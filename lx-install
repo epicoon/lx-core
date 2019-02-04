@@ -1,5 +1,12 @@
 #!/usr/bin/env php
 <?php
+/**
+ * Добавляет в корень проекта папку 'lx' - вердце платформы в проекте
+ * Папка будет содержать:
+ * 1. Каталог 'config' - настройки платформы, необходимые в рамках этого приложения
+ * 2. Файл 'lx' - для запуска встроенной в платформу CLI командой: php lx cli
+ * 3. Каталог .system - необходим платформе для работы, изменять там что-либо нежелательно
+ * */
 
 // fcgi doesn't have STDIN and STDOUT defined by default
 defined('STDIN') or define('STDIN', fopen('php://stdin', 'r'));
@@ -14,42 +21,43 @@ lx::installInitialisation();
 $site = new lx\Directory(lx::$conductor->site);
 $lx = $site->getOrMakeDirectory('lx');
 $system = $lx->getOrMakeDirectory('.system');
-$config = $lx->getOrMakeDirectory('config');
-
-require(__DIR__ . '/install-src/configTpl.php');
-/**
- * @var $configMainCode
- * @var $configRoutesCode
- * @var $configModuleCode
- * @var $configServiceCode
- * @var $configDbCode
- * */
-
-$configMain = $config->makeFile('main.php');
-$configMain->put($configMainCode);
-
-$configRoutes = $config->makeFile('routes.php');
-$configRoutes->put($configRoutesCode);
-
-$configModule = $config->makeFile('module.php');
-$configModule->put($configModuleCode);
-
-$configService = $config->makeFile('service.php');
-$configService->put($configServiceCode);
-
-$configDb = $config->makeFile('db.php');
-$configDb->put($configDbCode);
-
-
-// Строим карту автозагрузки
-(new lx\AutoloadMapBuilder())->createCommonAutoloadMap();
-
 
 // Создаем файл для работы в консольном режиме
 require(__DIR__ . '/install-src/lxConsole.php');
 $lxConsole = $lx->makeFile('lx');
 $lxConsole->put($lxConsoleCode . 'lx::runConsole($argv);');
 
+// Если конфигов еще нет - создадим
+if (!$lx->contain('config')) {
+	$config = $lx->makeDirectory('config');
+
+	require(__DIR__ . '/install-src/configTpl.php');
+	/**
+	 * @var $configMainCode
+	 * @var $configRoutesCode
+	 * @var $configModuleCode
+	 * @var $configServiceCode
+	 * @var $configDbCode
+	 * */
+
+	$configMain = $config->makeFile('main.php');
+	$configMain->put($configMainCode);
+
+	$configRoutes = $config->makeFile('routes.php');
+	$configRoutes->put($configRoutesCode);
+
+	$configModule = $config->makeFile('module.php');
+	$configModule->put($configModuleCode);
+
+	$configService = $config->makeFile('service.php');
+	$configService->put($configServiceCode);
+
+	$configDb = $config->makeFile('db.php');
+	$configDb->put($configDbCode);
+}
+
+// Строим карту автозагрузки
+(new lx\AutoloadMapBuilder())->createCommonAutoloadMap();
 
 // Закончили упражнение
 lx\Console::outln('Done');

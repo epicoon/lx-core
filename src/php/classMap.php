@@ -72,6 +72,7 @@ return [
 	'ConfigFile' => 'classes/file',
 
 	'Cli' => 'classes/system/cli',
+	'CliProcessor' => 'classes/system/cli',
 
 	'ClassHelper' => 'classes/helpers',
 	'Math' => 'classes/helpers',
