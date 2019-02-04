@@ -1,0 +1,55 @@
+#!/usr/bin/env php
+<?php
+
+// fcgi doesn't have STDIN and STDOUT defined by default
+defined('STDIN') or define('STDIN', fopen('php://stdin', 'r'));
+defined('STDOUT') or define('STDOUT', fopen('php://stdout', 'w'));
+
+require_once(__DIR__ . '/src/php/app.php');
+
+lx::installInitialisation();
+
+
+// Создаем в корне папку lx
+$site = new lx\Directory(lx::$conductor->site);
+$lx = $site->getOrMakeDirectory('lx');
+$system = $lx->getOrMakeDirectory('.system');
+$config = $lx->getOrMakeDirectory('config');
+
+require(__DIR__ . '/install-src/configTpl.php');
+/**
+ * @var $configMainCode
+ * @var $configRoutesCode
+ * @var $configModuleCode
+ * @var $configServiceCode
+ * @var $configDbCode
+ * */
+
+$configMain = $config->makeFile('main.php');
+$configMain->put($configMainCode);
+
+$configRoutes = $config->makeFile('routes.php');
+$configRoutes->put($configRoutesCode);
+
+$configModule = $config->makeFile('module.php');
+$configModule->put($configModuleCode);
+
+$configService = $config->makeFile('service.php');
+$configService->put($configServiceCode);
+
+$configDb = $config->makeFile('db.php');
+$configDb->put($configDbCode);
+
+
+// Строим карту автозагрузки
+(new lx\AutoloadMapBuilder())->createCommonAutoloadMap();
+
+
+// Создаем файл для работы в консольном режиме
+require(__DIR__ . '/install-src/lxConsole.php');
+$lxConsole = $lx->makeFile('lx');
+$lxConsole->put($lxConsoleCode . 'lx::runConsole($argv);');
+
+
+// Закончили упражнение
+lx\Console::outln('Done');

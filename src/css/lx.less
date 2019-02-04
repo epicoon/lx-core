@@ -1,0 +1,562 @@
+/* Header *//*todo???*/
+/* Button */
+/* Input */
+/* Textarea */
+/* Dropbox */
+/* Table */
+/* Checkbox */
+/* Radio */
+/* BoxSlider */
+/* Calendar */
+
+/* TreeBox */
+
+/* MultiBox */
+/* TableManager */
+
+@hoverColor: #FFFF99;
+
+@aldenTurquoise: #1C8382;
+@aldenRed: #DC2E2F;
+
+@buttonColor: white;
+@buttonTextShadow: black;
+@buttonBorderColor: darken(@aldenTurquoise, 15%);
+@intactGradient: linear-gradient(to bottom, lighten(@aldenTurquoise, 10%), darken(@aldenTurquoise, 10%));
+@hoverGradient: linear-gradient(to bottom, #ff8, #dd8);
+@activeGradient: linear-gradient(to bottom, lighten(@aldenRed, 10%), darken(@aldenRed, 10%));
+
+/*?*/
+body {
+	display: block;
+	margin: 0px;
+  	padding: 0px;
+  	overflow: hidden;
+}
+
+.lxbody {
+  position: absolute;
+  left: 0%;
+  top: 0%;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.lx {
+	position: absolute;
+	overflow: hidden;
+	visibility: inherit;
+}
+
+div, input {
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+
+/*
+textarea {
+	position: absolute;
+	top: 100px;
+	left: 100px;
+	width: 400px;
+	height: 400px;
+}
+*/
+
+/*============================================================================*/
+/* TextBox */
+.lx-TextBox {
+	padding: 0px 5px;
+	width: auto;
+	height: auto;
+	//color: #333333;
+	//white-space: pre;
+	cursor: default;
+	font-family: helvetica, arial, sans-serif;
+}
+/* TextBox */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* Header */
+.lx-Header {
+	font-weight:bold;
+	color: @buttonColor;
+	background:white;
+	background-image: @intactGradient;
+	text-shadow:0 1px 1px @buttonTextShadow;
+	border: 1px solid @buttonBorderColor;
+}
+/* Header */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* Button */
+.Button() {
+	font-weight:bold;
+	color: @buttonColor;
+	background:white;
+	background-image: @intactGradient;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	text-shadow:0 1px 1px @buttonTextShadow;
+	border-radius: 8px;
+	border: 1px solid @buttonBorderColor;
+}
+
+.lx-Button {
+	.Button();
+	cursor: pointer;
+}
+
+.lx-Button .lx-text {
+	cursor: pointer;
+}
+
+.lx-Button:hover {
+	background-color: #D8D8D8;
+	box-shadow: 0px 0px 10px #888888;
+}
+
+.lx-Button:active {
+    background-image: @activeGradient;
+}
+
+.lx-Button-disabled {
+	.Button();
+	opacity: 0.5;
+}
+/* Button */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* Input */
+.Input() {
+	border:1px solid #ccc;
+	padding:4px 5px;
+	background: #ffffff !important;
+	border-radius: 8px;
+	outline: none;
+	box-shadow:inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.lx-Input {
+	.Input();
+}
+
+.lx-Input:focus {
+	border: 1px solid #888;
+}
+
+.lx-Input-disabled {
+	.Input();
+	opacity: 0.5;
+}
+
+.lx-InputHint {
+	color: #7D7D7D;
+}
+/* Input */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* Textarea */
+.lx-Textarea {
+	.Input();
+	resize: none;
+}
+/* Textarea */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* Dropbox */
+.lx-Dropbox {
+	.Input();
+	cursor: pointer;
+}
+
+.lx-Dropbox-cell:hover {
+	background-color: @hoverColor;
+}
+
+.lx-Dropbox div {
+	cursor: pointer;
+}
+
+.lx-Dropbox-but {
+	background-image: url(img/dropbutton.png);
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+}
+
+.lx-Dropbox-but:hover {
+	opacity: 0.7;
+}
+/* Dropbox */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* Table */
+@tableBorderColor: #D8D8D8;
+
+.lx-Table {
+	border: 1px solid @tableBorderColor;
+	border-radius: 4px;
+}
+
+.lx-TableRow {
+	border-top: 1px solid @tableBorderColor;
+}
+
+.lx-TableRow:first-child {
+	border: 0px;
+}
+
+.lx-TableRow:last-child {
+	border-bottom: 1px solid @tableBorderColor;
+}
+
+.lx-TableRow:nth-child(2n) {
+	background-color: #F6F6F6;
+}
+
+.lx-TableRow:nth-child(2n+1) {
+	background-color: white;
+}
+
+.lx-TableCell {
+	height: 100%;
+	border-right: 1px solid @tableBorderColor;
+//	border: 1px solid @tableBorderColor;
+}
+
+.lx-TableCell:last-child {
+	border: 0px;
+}
+
+.lx-TableCell .lx-Textarea {
+	border-radius: 0px;
+}
+
+//  онтейнер дл€ изображений
+.lx-Table div[id$="::pic"] {
+	background-color: white;
+	border: 1px solid #ccc;
+}
+/* Table */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* Slider */
+.lx-slider-track {
+	background-color: #EEEEEE;
+	border: #CCCCCC solid 1px;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.lx-slider-handle {
+	background-color: #F6F6F6;
+	border: #CCCCCC solid 1px;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.lx-slider-handle:hover {
+	background-color: #FDFCCE;
+	border-color: #FBCB09;
+}
+
+.lx-slider-handle:active {
+	background-color: #FDFCCE;
+	border-color: #FBCB09;
+}
+/* Slider */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* Checkbox */
+@checkboxSprite: url(img/crsprite.png);
+
+.Checkbox-shape() {
+	width: 23px !important;
+	height: 23px !important;
+	background-image: @checkboxSprite;
+	cursor: pointer;
+}
+
+.lx-Checkbox-0 {
+	.Checkbox-shape();
+	background-position: -2px -3px;
+}
+
+.lx-Checkbox-0:hover {
+	background-position: -46px -3px;
+}
+
+.lx-Checkbox-0:active {
+	background-position: -70px -3px;
+}
+
+.lx-Checkbox-disabled-0 {
+	.Checkbox-shape();
+	background-position: -184px -3px;
+}
+
+.lx-Checkbox-1 {
+	.Checkbox-shape();
+	background-position: -92px -3px;
+}
+
+.lx-Checkbox-1:hover {
+	background-position: -135px -3px;
+}
+
+.lx-Checkbox-1:active {
+	background-position: -160px -3px;
+}
+
+.lx-Checkbox-disabled-1 {
+	.Checkbox-shape();
+	background-position: -206px -3px;
+}
+/* CheckBox */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* Radio */
+.lx-Radio-0 {
+	.Checkbox-shape();
+	background-position: -1px -24px;
+}
+
+.lx-Radio-0:hover {
+	background-position: -45px -24px;
+}
+
+.lx-Radio-0:active {
+	background-position: -69px -24px;
+}
+
+.lx-Radio-disabled-0 {
+	.Checkbox-shape();
+	background-position: -184px -24px;
+}
+
+.lx-Radio-1 {
+	.Checkbox-shape();
+	background-position: -91px -24px;
+}
+
+.lx-Radio-1:hover {
+	background-position: -135px -24px;
+}
+
+.lx-Radio-1:active {
+	background-position: -160px -24px;
+}
+
+.lx-Radio-disabled-1 {
+	.Checkbox-shape();
+	background-position: -206px -24px;
+}
+/* Radio */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* BoxSlider */
+.lx-IS-button {
+	background-image: url(img/ISarroy.png);
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+	opacity: 0.3;
+}
+
+.lx-IS-button:hover {
+	opacity: 0.5;
+}
+/* BoxSlider */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* Calendar */
+@calendarSideBackground: linear-gradient(to bottom, #9AD9F7, #146FBB);
+@calendarSideTextColor: white;
+
+.lx-Calendar {
+	.lx-Input
+}
+
+.lx-Calendar-arroy {
+	background-image: url(img/calendarArroy.png);
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+	cursor: pointer;
+}
+.lx-Calendar-arroy:hover {
+	top: -7px !important;
+	height: 45px !important;
+}
+
+.lx-Calendar-info {
+	background-image: @calendarSideBackground;
+	color: @calendarSideTextColor;
+	font-weight: bold;
+}
+.lx-Calendar-today {
+	.lx-Calendar-info;
+	border-bottom-left-radius: 8px;
+	border-bottom-right-radius: 8px;
+	cursor: pointer;
+}
+.lx-Calendar-today .lx-TextBox {
+	cursor: pointer;
+}
+
+#calendar-menu {
+	// подсвечивание мес€ца в выпадающем списке
+	.lx-TableRow > .lx-TableCell:hover {
+		background-image: @calendarSideBackground;
+		color: @calendarSideTextColor;
+		font-weight: bold;
+	}
+	.lx-Dropbox .lx-TableRow:hover {
+		background-color: #88CCFF;
+	}
+
+	// таблица дней
+	div[id$="table"] {
+		border-radius: 0px;
+		border-top-left-radius: 8px;
+		border-top-right-radius: 8px;
+	}
+
+	// таблица дней - €чейка активного дн€
+	.calendar-active-cell {
+		font-weight: bold;
+		color: @calendarSideTextColor;
+		background-image: @calendarSideBackground;
+		border: 1px solid @tableBorderColor;
+		border-radius: 50%;
+		cursor: pointer;
+	}
+
+	// таблица дней - €чейки при наведении мышки
+	div[id*="::r"]:nth-child(n+2) .calendar-cell:hover {
+		.calendar-active-cell();
+	}
+	.calendar-cell div[id$="text"] {
+		cursor: pointer;
+	}
+}
+/* Calendar */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* TreeBox */
+.lx-TreeBox {
+	background-color: #D8D8D8;
+	border-radius: 10px;
+}
+
+.lx-TW-Button {
+	border-radius: 5px;
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+}
+
+.lx-TW-Button-closed {
+	background-image: url(img/TWclosed.png);
+}
+
+.lx-TW-Button-opened {
+	background-image: url(img/TWopened.png);
+}
+
+.lx-TW-Button-empty {
+	background-image: url(img/TWempty.png);
+}
+
+.lx-TW-Button-add {
+	background-image: url(img/TWadd.png);
+}
+
+.lx-TW-Button-del {
+	background-image: url(img/TWdel.png);
+}
+
+.lx-TW-Button:hover {
+	box-shadow: 0px 0px 7px #888888;
+}
+
+.lx-TW-Label {
+	background-color: #FFFFFF;
+	border-radius: 5px;
+}
+/* TreeBox */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* MultiBox */
+.lx-MultiBox {
+	border: 1px solid @tableBorderColor;
+	border-top-width: 0px;
+	border-radius: 4px;
+}
+
+.lx-MultiBox-mark {
+	font-weight:bold;
+	color: @buttonColor;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	text-shadow:0 1px 1px @buttonTextShadow;
+	background-image: @intactGradient;
+	border: 1px solid @buttonBorderColor;
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+}
+
+.lx-MultiBox-mark:hover {
+	background-color: @hoverColor;
+	background-image: @hoverGradient;
+}
+
+.lx-MultiBox-mark:active {
+	background-image: @activeGradient;
+}
+
+.lx-MultiBox-active {
+	background-image: @activeGradient;
+}
+/* MultiBox */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* TableManager */
+.lx-TM-table {
+	border: #00CC00 solid 2px;
+}
+
+.lx-TM-row {
+	background-color: #FFFF99;
+}
+
+.lx-TM-cell {
+	background-color: #AAFFAA !important;
+}
+/* TableManager */
+/*============================================================================*/

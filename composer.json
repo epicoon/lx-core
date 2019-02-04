@@ -1,0 +1,13 @@
+{
+    "name": "lx/lx-core",
+    "description": "Lx framework",
+    "version": "1.0.0",
+    "keywords": ["lx", "core"],
+    "type": "project",
+    "authors": [
+        {
+            "name": "a.sedov",
+            "email": "altkkb.vds@mail.ru"
+        }
+    ]
+}

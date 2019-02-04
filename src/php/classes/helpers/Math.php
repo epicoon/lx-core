@@ -1,0 +1,104 @@
+<?php
+
+namespace lx;
+
+class Math {
+
+	/**
+	 * Сгенерировать случайное число
+	 * */
+	public static function rand($min, $max) {
+		if (function_exists('\random_int'))
+			return \random_int($min, $max);
+
+		return \rand($min, $max);
+	}
+
+	/**
+	 * Смена системы счисления с десятичной на заданную
+	 * Можно задать базис до 62-ричной системы счисления
+	 * */
+	public static function decChangeNotation($n, $basis) {
+		$str = '';
+		$q = floor($n / $basis);
+		while ($q) {
+			$a = $n % $basis;
+			if ($a>35) $a = chr($a+29);
+			else if ($a>9) $a = chr($a+87);
+			$str = $a.$str;
+			$n = $q;
+			$q = floor($n / $basis);
+		}
+		$a = $n % $basis;
+		if ($a>35) $a = chr($a+29);
+		else if ($a>9) $a = chr($a+87);
+		$str = $a.$str;
+		return $str;
+	}
+
+	public static function roundToZero($val) {
+		if ($val > 0) return floor($val);
+		if ($val < 0) return ceil($val);
+		return 0;
+	}
+
+	/**
+	 * Вычислить значение из строки, н-р '(11 + 44) * 3'
+	 * */
+	public static function calculate($str) {
+		if ($str == '') return 0;
+		if (is_numeric($str)) return $str;
+		$str = preg_replace('/^=/', '', $str);
+		$str = str_replace(' ', '', $str);
+		if (preg_match('/[^\d.()+\-*\/]/', $str)) return false;
+		if (is_numeric($str)) return $str;
+
+		$calc = function($op0, $op1, $opr) {
+			switch ($opr) {
+				case '+': return $op0 + $op1;
+				case '-': return $op0 - $op1;
+				case '/': return $op0 / $op1;
+				case '*': return $op0 * $op1;
+			}		
+		};
+
+		$applyOperation = function(&$i, &$l, $op, &$nums, &$opers) use ($calc) {
+			$num = $calc(floatval($nums[$i]), floatval($nums[$i+1]), $op);
+			$nums[$i] = $num;
+			array_splice($nums, $i+1, 1);
+			array_splice($opers, $i, 1);
+			$i--;
+			$l--;
+		};
+
+		$simpleCalc = function($str) use ($applyOperation) {
+			$nums = preg_split('/[\*\/+-]/', $str);
+			preg_match_all('/[\*\/+-]/', $str, $opers);
+			$opers = $opers[0];
+			$oprPrioritet = ['*', '/'];
+			$l = count($opers);
+			for ($i=0; $i<$l; $i++) {
+				$oper = $opers[$i];
+				if (array_search($oper, $oprPrioritet) === false) continue;
+				$applyOperation($i, $l, $oper, $nums, $opers);
+			}
+			$l = count($opers);
+			for ($i=0; $i<$l; $i++) {
+				$oper = $opers[$i];
+				$applyOperation($i, $l, $oper, $nums, $opers);
+			}
+			return $nums[0];
+		};
+
+		$simp = explode('(', $str);
+		for ($i=count($simp)-1; $i>0; $i--) {
+			$s = $simp[$i];
+			preg_match('/\)/', $s, $close, PREG_OFFSET_CAPTURE);
+			$inner = substr($s, 0, $close[0][1]);
+			$simp[$i - 1] .= $simpleCalc($inner) . substr($s, $close[0][1] + 1);
+		}
+		$result = $simpleCalc($simp[0]);
+		return $result;
+	}
+
+}
