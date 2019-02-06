@@ -181,6 +181,24 @@ Object.defineProperty(Object.prototype, "is", {
 });
 
 
+Object.defineProperty(String.prototype, "repeat", {
+	value: function(multiplier) {
+		var buf = '';
+		for (var i=0; i<multiplier; i++) {
+			buf += this;
+		}
+		return buf;
+	}
+});
+
+Object.defineProperty(String.prototype, "ucFirst", {
+	value: function() {
+		if (this == '') return this;
+		return this[0].toUpperCase() + this.slice(1);
+	}
+});
+
+
 /*
 Прокачка массивов
 */
@@ -206,11 +224,58 @@ if (!Array.prototype.indexOf) {
 };
 
 Object.defineProperty(Array.prototype, "len", {
-	get: function() { return this.length; }
+	get: function() {
+		if (!this.isAssoc) return this.length;
+		var count = 0;
+		for (var i in this) count++;
+		return count;
+	}
+});
+
+Object.defineProperty(Object.prototype, "len", {
+	get: function() {
+		var count = 0;
+		for (var i in this) count++;
+		return count;
+	}
 });
 
 Object.defineProperty(Array.prototype, "last", {
-	value: function() { return this[this.len-1]; }
+	value: function() {
+		if (!this.isAssoc) return this[this.len-1];
+		var result;
+		for (var i in this) result = this[i];
+		return result;
+	}
+});
+
+Object.defineProperty(Object.prototype, "last", {
+	value: function() {
+		var result;
+		for (var i in this) result = this[i];
+		return result;
+	}
+});
+
+Object.defineProperty(Array.prototype, "nth", {
+	value: function(index) {
+		if (!this.isAssoc) return this[index];
+		var i = 0;
+		for (var key in this) {
+			if (i == index) return this[key];
+			i++;
+		}
+	}
+});
+
+Object.defineProperty(Object.prototype, "nth", {
+	value: function(index) {
+		var i = 0;
+		for (var key in this) {
+			if (i == index) return this[key];
+			i++;
+		}
+	}
 });
 
 Object.defineProperty(Array.prototype, "equalTo", {

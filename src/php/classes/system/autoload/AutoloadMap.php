@@ -38,13 +38,20 @@ class AutoloadMap {
 	}
 
 	/**
+	 *
+	 * */
+	public function reset() {
+		if ($this->loadForce()) {
+			$this->makeCache();
+		}
+	}
+
+	/**
 	 * Загрузка карт, при необходимости - актуализация кэша
 	 * */
 	private function load() {
 		if (!file_exists(\lx::$conductor->autoloadMapCache) || filemtime(\lx::$conductor->autoloadMap) > filemtime(\lx::$conductor->autoloadMapCache)) {
-			if ($this->loadForce()) {
-				$this->makeCache();
-			}
+			$this->reset();
 		} else {
 			$this->loadCache();
 		}
