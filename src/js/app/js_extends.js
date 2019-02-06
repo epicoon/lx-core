@@ -12,19 +12,19 @@ Object.defineProperty(Object.prototype, "lxGetKeys", {
 Object.defineProperty(Object.prototype, "lxCopy", {
 	value: function() {
 		var result = {};
-		function rec(to, from) {
+		function rec(from, to) {
 			for (var i in from) {
 				var val = from[i];
 				if (val.isArray) {
 					to[i] = [];
-					rec(to[i], val);
+					rec(val, to[i]);
 				} else if (val.isObject) {
 					to[i] = {};
-					rec(to[i], val);
+					rec(val, to[i]);
 				} else to[i] = from[i];
 			}
 		}
-		rec(result, this);
+		rec(this, result);
 		return result;
 	}
 });

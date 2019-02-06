@@ -1,8 +1,8 @@
 #private;
 
 lx.Json = {
-	// Чтобы можно было парсить многострочники и табы
-	parse: function(str) {
+	decode: function(str) {
+		// Чтобы можно было парсить многострочники и табы
 		var caret = String.fromCharCode(92) + String.fromCharCode(110),
 			tab = String.fromCharCode(92) + String.fromCharCode(116);
 		str = str.replace(/\n/g, caret);
@@ -19,7 +19,33 @@ lx.Json = {
 				exp = attempt.string;
 			}
 		}
-	}
+	},
+	parse: function(str) {return this.decode(str);},
+
+	/**
+	 * У JS есть косяк - он {i:1} такое правильно упакует, а такое [i:1] нет -
+	 * - содержимое ассоциативного массива будет проигнорировано
+	 * */
+	encode: function(data) {
+		var result = {};
+		function rec(from, to) {
+			for (var i in from) {
+				var item = from[i];
+				if (item === null || item === undefined) {
+					to[i] = null;
+				} else if (item.isArray && !item.isAssoc) {
+					to[i] = [];
+					rec(item, to[i]);
+				} else if (item.isObject || (item.isArray && item.isAssoc)) {
+					to[i] = {};
+					rec(item, to[i]);
+				} else to[i] = from[i];
+			}
+		}
+		rec(data, result);
+		return JSON.stringify(result);
+	},
+	stringify: function(data) {return this.encode(data);}
 };
 
 function eliminateParseProblem(str) {

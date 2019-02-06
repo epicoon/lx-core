@@ -198,10 +198,10 @@ class Service {
 					return $this->{$info['method']}();
 				}
 
-				if (!isset($info['module'])) {
+				if (!isset($info['prototype'])) {
 					throw new \Exception("Module '$moduleName' not found", 400);
 				}
-				$path = \lx::getModulePath($info['module']);
+				$path = \lx::getModulePath($info['prototype']);
 				$module = Module::create($this, $moduleName, $path);
 				if (isset($info['params'])) {
 					$configParams = $info['params'];

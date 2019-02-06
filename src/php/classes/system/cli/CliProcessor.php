@@ -17,7 +17,7 @@ class CliProcessor {
 	private $invalidParams = [];
 	private $keepProcess = false;
 
-	public function __construct($commandsList) {
+	public function __construct($commandsList = []) {
 		$this->commandsList = $commandsList;
 	}
 
@@ -83,18 +83,6 @@ class CliProcessor {
 	 * //todo - когда будет что описывать в помощи, будет смысл ее делать
 	 * */
 	private function showHelp() {
-		// if ($this->requireParam('opa')) {
-		// 	$this->outln('Help is in developing... sorry. Use "\cl" or "commands-list" instead ;)');
-		// 	$this->in('opa', 'Giv me opa: ');
-		// 	return;
-		// }
-		// if ($this->requireParam('opa2')) {
-		// 	$this->outln('MOOORE');
-		// 	$this->in('opa2', 'Giv me opa2: ');
-		// 	return;
-		// }
-		// $this->outln('!!! ' . $this->params['opa'] . ' ' . $this->params['opa2']);
-
 		$this->outln('Help is in developing... sorry. Use "\cl" or "commands-list" instead ;)');
 	}
 
@@ -113,7 +101,7 @@ class CliProcessor {
 
 		$arr = Console::normalizeTable($arr, '.');
 		foreach ($arr as $row) {
-			$this->out($row[0], ': ', ['decor' => 'b']);
+			$this->out($row[0] . ': ', ['decor' => 'b']);
 			$this->outln($row[1]);
 		}
 	}
@@ -429,7 +417,7 @@ class CliProcessor {
 				$this->out('Service: ', ['decor' => 'b']);
 				$this->outln($service->name);
 				foreach ($info['models'] as $data) {
-					$this->outln('-', $data['name']);
+					$this->outln('- ' . $data['name']);
 				}
 			}
 		}
@@ -807,10 +795,10 @@ class CliProcessor {
 			Autoloader::getInstance()->map->reset();
 			$this->resetServicesList();
 
-			Console::out('New service created in: ');
-			Console::outln($dir->getPath(), ['decor' => 'u']);
+			$this->out('New service created in: ');
+			$this->outln($dir->getPath(), ['decor' => 'u']);
 		} catch (\Exception $e) {
-			Console::outln('Module was not created. ' . $e->getMessage());
+			$this->outln('Module was not created. ' . $e->getMessage());
 		}
 	}
 
@@ -821,10 +809,10 @@ class CliProcessor {
 		$editor = new ModuleEditor($service);
 		try {
 			$dir = $editor->createModule($name, $path);
-			Console::out('New module created in: ');
-			Console::outln($dir->getPath(), ['decor' => 'u']);
+			$this->out('New module created in: ');
+			$this->outln($dir->getPath(), ['decor' => 'u']);
 		} catch (\Exception $e) {
-			Console::outln('Module was not created. ' . $e->getMessage());
+			$this->outln('Module was not created. ' . $e->getMessage());
 		}
 	}
 }

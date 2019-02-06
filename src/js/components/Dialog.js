@@ -147,7 +147,8 @@ Object.defineProperty(lx, 'Dialog', {
 
 					// Устанавливаем заголовок
 					request.setRequestHeader("Content-Type","application/json; charset=UTF8");
-					request.send(JSON.stringify(args));
+
+					request.send(lx.Json.encode(args));
 					break;
 				case 'get':
 					// Посылаем нуль-запрос
