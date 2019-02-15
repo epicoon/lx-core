@@ -1,6 +1,6 @@
-#use lx.Rect as Rect;
+#lx:use lx.Rect as Rect;
 
-class Checkbox extends Rect #in lx {
+class Checkbox extends Rect #lx:namespace lx {
 	/**
 	 * config = {
 	 *	// стандартные для Rect,

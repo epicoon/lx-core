@@ -11,7 +11,7 @@ class SintaxExtender {
 		$code = preg_replace_callback('/\?>#(\b.+?\b)/', function($matches) {
 			return 'lx.WidgetHelper.getById("' . $matches[1] . '")';
 		}, $code);
-		// ? >{#id} => lx.WidgetHelper.getById(id)
+		// ? >#{id} => lx.WidgetHelper.getById(id)
 		$code = preg_replace_callback('/\?>#{(.+?)}/', function($matches) {
 			return 'lx.WidgetHelper.getById(' . $matches[1] . ')';
 		}, $code);
@@ -20,7 +20,7 @@ class SintaxExtender {
 		$code = preg_replace_callback('/\?>\.(\b.+?\b)/', function($matches) {
 			return 'lx.WidgetHelper.getByClass("' . $matches[1] . '")';
 		}, $code);
-		// ? >{.class} => lx.WidgetHelper.getByClass(class)
+		// ? >.{class} => lx.WidgetHelper.getByClass(class)
 		$code = preg_replace_callback('/\?>\.{(.+?)}/', function($matches) {
 			return 'lx.WidgetHelper.getByClass(' . $matches[1] . ')';
 		}, $code);
@@ -178,9 +178,9 @@ class SintaxExtender {
 		//=====================================================================================================================
 		//=====================================================================================================================
 
-		// #model e = { a, b, sum }; => const e = (function(){ class _am_ extends lx.Model { field a, b, sum; } return new _am_; })();
-		// #model e = #MODEL_NAME someName; => const e = (function(){ class _am_ extends lx.Model { #MODEL_NAME someName; } return new _am_; })();
-		$regexp = '/#model\s*(\b[\w_][\w\d_]*\b)\s*=\s*([\w\W]+?);/';
+		// #lx:model e = { a, b, sum }; => const e = (function(){ class _am_ extends lx.Model { field a, b, sum; } return new _am_; })();
+		// #lx:model e = #lx:MODEL_NAME someName; => const e = (function(){ class _am_ extends lx.Model { #lx:MODEL_NAME someName; } return new _am_; })();
+		$regexp = '/#lx:model\s*(\b[\w_][\w\d_]*\b)\s*=\s*([\w\W]+?);/';
 		preg_match_all($regexp, $code, $matches);
 		for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
 			$name = $matches[1][$i];
@@ -189,21 +189,21 @@ class SintaxExtender {
 			if (preg_match('/^{/', $fields)) $fields = preg_replace('/^{/', '', $fields);
 			if (preg_match('/}$/', $fields)) $fields = preg_replace('/}$/', '', $fields);
 			$fields = trim($fields, ' ');
-			if ($fields{0} != '#') $fields = 'field ' . $fields;
+			if ($fields{0} != '#') $fields = '#lx:fields ' . $fields;
 			$text = "const $name = (function(){ class _am_ extends lx.Model {" . $fields . ";} return new _am_; })();";
 			$code = str_replace($matches[0][$i], $text, $code);
 		}
 
 		/*
-		#model-collection c = #MODEL_NAME someName; =>
+		#lx:model-collection c = #lx:MODEL_NAME someName; =>
 		const c = (function(){
 			let c = new lx.ModelCollection();
-			class _am_ extends lx.Model { #MODEL_NAME someName; }
+			class _am_ extends lx.Model { #lx:MODEL_NAME someName; }
 			c.setModelClass(_am_);
 			return c;
 		})();
 
-		#model-collection c2 = { x, y }; =>
+		#lx:model-collection c2 = { x, y }; =>
 		const c2 = (function(){
 			let c = new lx.ModelCollection();
 			class _am_ extends lx.Model { field x, y; }
@@ -211,22 +211,31 @@ class SintaxExtender {
 			return c;
 		})();
 		*/
-		$regexp = '/#model-collection\s*(\b[\w_][\w\d_]*\b)\s*=\s*([\w\W]+?);/';
+		$regexp = '/#lx:model-collection\s*(\b[\w_][\w\d_]*\b)\s*=\s*([\w\W]+?);/';
 		preg_match_all($regexp, $code, $matches);
 		for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
 			$name = $matches[1][$i];
 			$fields = $matches[2][$i];
 			$fields = trim($fields, ' ');
-			if (preg_match('/^{/', $fields)) $fields = preg_replace('/^{/', '', $fields);
-			if (preg_match('/}$/', $fields)) $fields = preg_replace('/}$/', '', $fields);
+			$fields = preg_replace('/^{/', '', $fields);
+			$fields = preg_replace('/}$/', '', $fields);
+			$fields = preg_replace('/(\n\r|\r\n|\r|\n)$/', '', $fields);
 			$fields = trim($fields, ' ');
-			if ($fields{0} != '#') $fields = 'field ' . $fields;
+			if ($fields{0} != '#') $fields = '#lx:fields ' . $fields;
 			$text = "const $name = (function(){ let c=new lx.ModelCollection; class _am_ extends lx.Model {" . $fields . ';} c.setModelClass(_am_); return c; })();';
 			$code = str_replace($matches[0][$i], $text, $code);
 		}
 
 		return $code;
 	}
+
+
+
+	private static function inClassReg($keyword) {
+		return '/(}|;|{)[\s\r]*#lx:'.$keyword.'[\s\r]+([^;]+)?;/';
+	}
+
+
 
 	/**
 	 *
@@ -242,9 +251,9 @@ class SintaxExtender {
 			foreach ($matches[0] as $i => $implement) {
 				$class = $matches[1][$i];
 				// Среди таких классов - отнаследованные от модели имеют свой синтаксис:
-				// 1. field ...;
-				$implementResult = preg_replace_callback('/{[\s\r]*\bfield[\s\r]+([^;]+)?;/', function ($matches) {
-					$fields = preg_split('/[\s\r]*,[\s\r]*/', $matches[1]);
+				// 1. fields ...;
+				$implementResult = preg_replace_callback(self::inClassReg('fields?'), function ($matches) {
+					$fields = preg_split('/[\s\r]*,[\s\r]*/', $matches[2]);
 
 					$loneFields = [];
 					$definedFields = [];
@@ -311,11 +320,28 @@ class SintaxExtender {
 						$fieldCode .= '};}';
 					}
 
-					return '{' . $fieldCode;
+					return $matches[1] . $fieldCode;
 				}, $implement);
 
-				// 2. #MODEL_NAME xxx;
-				$implementResult = preg_replace_callback('/#MODEL_NAME[\s\r]+([^;]+)?;/', function ($matches) {
+				// 2. behaviors ...;
+				/*
+				//todo
+				нужно генерить код, проверяющий, что предложенные бихевиоры это реально существующие
+				классы, отнаследованные от lx.Behavior
+				*/
+				$implementResult = preg_replace_callback(self::inClassReg('behaviors?'), function ($matches) {
+					$behaviors = preg_split('/[\s\r]*,[\s\r]*/', $matches[2]);
+					foreach ($behaviors as &$behavior) {
+						$behavior .= '.inject(this);';
+					}
+					unset($behavior);
+					$behaviorsCode = 'static __injectBehaviors(){' . implode(',', $behaviors) . '}';
+
+					return $matches[1] . $behaviorsCode;
+				}, $implementResult);
+
+				// 3. #lx:MODEL_NAME xxx;
+				$implementResult = preg_replace_callback('/#lx:MODEL_NAME[\s\r]+([^;]+)?;/', function ($matches) {
 					$modelName = $matches[1];
 
 					$mp = ModuleBuilder::active()->getModule()->getService()->modelProvider;
@@ -324,7 +350,7 @@ class SintaxExtender {
 					$fields = [];
 					foreach ($schema->fieldNames() as $fieldName) {
 						$field = $schema->field($fieldName);
-						if ($field->forbidden()) continue;
+						if ($field->isForbidden()) continue;
 						$fields[] = $field->toStringForClient();
 					}
 
@@ -343,21 +369,21 @@ class SintaxExtender {
 	 *
 	 * */
 	private static function classInNamespace($code) {
-		$regexp = '/(class [^{]*) #in ([^{]*)(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
+		$regexp = '/(class [^{]*) #lx:namespace ([^{]*)(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
 
 		$code = preg_replace_callback($regexp, function ($matches) {
-			$in = trim($matches[2]);
+			$namespace = trim($matches[2]);
 			$class = trim($matches[1]);
 			$implementation = trim($matches[3]);
 
 			preg_match_all('/class (\b.+?\b)/', $class, $className);
 			$className = $className[1][0];
 
-			$str = "if(window.$in === undefined)window.$in = {};";
-			// $str .= "if(typeof(Module)!='undefined')Module.subscribeNamespacedClass('$in', '$className');";
-			$str .= "if('$className' in $in)return;";
+			$str = "if(window.$namespace === undefined)window.$namespace = {};";
+			// $str .= "if(typeof(Module)!='undefined')Module.subscribeNamespacedClass('$namespace', '$className');";
+			$str .= "if('$className' in $namespace)return;";
 			$str .= $class . $implementation;
-			$str .= "$className.__namespace='$in';$in.$className=$className;";
+			$str .= "$className.__namespace='$namespace';$namespace.$className=$className;";
 			$str = '(function(){' . $str . '})();';
 
 			return $str;

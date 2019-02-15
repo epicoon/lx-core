@@ -9,7 +9,7 @@ class DbTableSchemaProvider {
 		$tableKey = $table->getDb()->getName() . '.' . $table->getName();
 
 		if (!array_key_exists($tableKey, self::$map)) {
-			$schema = $table->getDb()->tableSchema($table->getName(), DB::SHORT_SCHEME);
+			$schema = $table->getDb()->tableSchema($table->getName(), DB::SHORT_SCHEMA);
 
 			$pk = null;
 			$defaults = [];
@@ -21,7 +21,7 @@ class DbTableSchemaProvider {
 					$pk = $key;
 				// Выбрасываем первичный ключ из проверки на null, т.к. технически он может зануляться в режиме DbRecord
 				} else {
-					if ($value['is_nullable'] === false) $notNull[] = $key;
+					if ($value['notNull'] === true) $notNull[] = $key;
 				}
 
 				// Определение дефолтных значений

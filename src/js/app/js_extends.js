@@ -11,7 +11,8 @@ Object.defineProperty(Object.prototype, "lxGetKeys", {
 
 Object.defineProperty(Object.prototype, "lxCopy", {
 	value: function() {
-		var result = {};
+		if (!this.isArray && !this.isObject) return this;
+		var result = (this.isArray) ? [] : {};
 		function rec(from, to) {
 			for (var i in from) {
 				var val = from[i];
@@ -29,7 +30,115 @@ Object.defineProperty(Object.prototype, "lxCopy", {
 	}
 });
 
-Object.defineProperty(Object.prototype, "getFirstDefined", {
+Object.defineProperty(Object.prototype, "lxCompare", {
+	value: function(obj) {
+		function rec(left, right) {
+			if (!left.isArray && !left.isObject && !right.isArray && !right.isObject) return left == right;
+			if (left.isArray && !right.isArray) return false;
+			if (left.isObject && !right.isObject) return false;
+
+			var leftKeys = left.lxGetKeys()
+				rightKeys = right.lxGetKeys();
+			if (leftKeys.len != rightKeys.len) return false;
+			if (leftKeys.diff(rightKeys).len || rightKeys.diff(leftKeys).len) return false;
+
+			for (var i in left) if (!rec(left[i], right[i])) return false;
+			return true;
+		}
+		return rec(this, obj);
+	}
+});
+
+
+
+
+
+
+
+
+
+
+Object.defineProperty(Object.prototype, "lxDiff", {
+	value: function(obj) {
+
+
+		/*
+		Ищет различия в двух объектах
+		Если отличий нет - вернет false
+		Если сравниваются примитивы и они отличаются, вернет true
+
+		Если сравниваются объекты, варианты отличий могут быть разными:
+		- объект left имеет поля, которых нет у объекта right
+		- объект right имеет поля, которых нет у объекта left
+		- значение полей-примитивов отличается
+		[
+			traceString: {
+				leftExtraFields: []
+				rightExtraFields: []
+				differences: [
+					key: {
+						left: val
+						right: val
+					},
+					...
+				]	
+			},
+			...
+		]
+		*/
+
+
+		if (!this.isArray && !this.isObject) return this;
+
+		// var result = (this.isArray) ? [] : {};
+
+
+		var trace = [undefined];
+		var deep = 0;
+		function rec(from, to) {
+			deep++;
+
+
+
+			// var fieldNames = schema.fields.lxGetKeys(),
+			// 	oldFieldNames = oldSchema.fields.lxGetKeys(),
+			// 	addedFields = fieldNames.diff(oldFieldNames),
+			// 	deletedFields = oldFieldNames.diff(fieldNames);
+
+
+			console.log(deep);
+			console.log(from);
+			console.log(to);
+
+			for (var i in from) {
+				trace[deep - 1] = i;
+
+				console.log(trace);
+
+				var val = from[i];
+				if (val.isArray) {
+					// to[i] = [];
+					rec(val, to[i]);
+				} else if (val.isObject) {
+					// to[i] = {};
+					rec(val, to[i]);
+				} else ;// to[i] = from[i];
+			}
+			deep--;
+			trace.length = deep;
+		}
+		rec(this, obj);
+
+
+		return 1;
+		// return result;
+	}
+});
+
+
+
+
+Object.defineProperty(Object.prototype, "lxGetFirstDefined", {
 	value: function(names, defaultValue = undefined) {
 		if (!names.isArray) names = [names];
 
@@ -42,7 +151,7 @@ Object.defineProperty(Object.prototype, "getFirstDefined", {
 	}
 });
 
-Object.defineProperty(Object.prototype, "getAllProperties", {
+Object.defineProperty(Object.prototype, "lxGetAllProperties", {
 	value: function() {
 		var obj = this,
 			props = [];
@@ -59,20 +168,20 @@ Object.defineProperty(Object.prototype, "lxEmpty", {
 
 Object.defineProperty(Object.prototype, "lxMerge", {
 	value: function(obj, overwrite=false) {
-		if (this.isAssoc || obj.isAssoc) {
+		if (this.isArray && !this.isAssoc && obj.isArray && !obj.isAssoc) {
+			for (var i=0, l=obj.length; i<l; i++)
+				this.push(obj[i]);
+		} else {
 			for (var i in obj) {
 				if (!overwrite && i in this) continue;
 				this[i] = obj[i];
 			}
-		} else {
-			for (var i=0, l=obj.length; i<l; i++)
-				this.push(obj[i]);
 		}
 		return this;
 	}
 });
 
-Object.defineProperty(Object.prototype, "extract", {
+Object.defineProperty(Object.prototype, "lxExtract", {
 	value: function(name) {
 		if (!(name in this)) return null;
 		var res = this[name];
@@ -81,7 +190,7 @@ Object.defineProperty(Object.prototype, "extract", {
 	}
 });
 
-Object.defineProperty(Object.prototype, "hasMethod", {
+Object.defineProperty(Object.prototype, "lxHasMethod", {
 	value: function(name) {
 		return (this[name] && this[name].isFunction);
 	}
@@ -93,7 +202,7 @@ Object.defineProperty(Object.prototype, "hasMethod", {
 Для определения имен классов и пространств имен
 */
 // Для объекта и класса - название пространства имен
-Object.defineProperty(Object.prototype, "namespace", {
+Object.defineProperty(Object.prototype, "lxNamespace", {
 	get: function() {
 		if (this.isFunction && this.__namespace)
 			return this.__namespace;
@@ -103,7 +212,7 @@ Object.defineProperty(Object.prototype, "namespace", {
 	}
 });
 // Для объекта - имя класса без учета пространства имен
-Object.defineProperty(Object.prototype, "className", {
+Object.defineProperty(Object.prototype, "lxClassName", {
 	get: function() {
 		if (this === undefined) return undefined;
 		return this.constructor
@@ -112,20 +221,20 @@ Object.defineProperty(Object.prototype, "className", {
 	}
 });
 // Для объекта - имя класса с учетом пространства имен
-Object.defineProperty(Object.prototype, "fullClassName", {
+Object.defineProperty(Object.prototype, "lxFullClassName", {
 	get: function() {
 		if (this === undefined) return undefined;
-		var namespace = this.namespace,
-			name = this.className;
+		var namespace = this.lxNamespace,
+			name = this.lxClassName;
 		if (namespace != '') return namespace + '.' + name;
 		return name;
 	}
 });
 // Для класса - имя класса с учетом пространства имен
-Object.defineProperty(Function.prototype, "fullName", {
+Object.defineProperty(Function.prototype, "lxFullName", {
 	get: function() {
 		if (this === undefined) return undefined;
-		var namespace = this.namespace,
+		var namespace = this.lxNamespace,
 			name = this.name;
 		if (namespace != '') return namespace + '.' + name;
 		return name;
@@ -136,8 +245,8 @@ Object.defineProperty(Function.prototype, "fullName", {
 
 /*
 Блок для определения типа данных
-1. Для lx. - объектов наиболее эффективно проверять через className:
-	var bool = element.className == 'Widget';
+1. Для lx. - объектов наиболее эффективно проверять через lxClassName:
+	var bool = element.lxClassName == 'Widget';
 2. Для массивов/строк/чисел - наиболее эффективны соответствующие isArray/isString/isNumber
 */
 Object.defineProperty(Object.prototype, "isNumber", {
@@ -161,7 +270,7 @@ Object.defineProperty(Object.prototype, "isArray", {
 });
 
 Object.defineProperty(Object.prototype, "isObject", {
-	get: function() { return (this.constructor === Object || this.className == 'Object'); }
+	get: function() { return (this.constructor === Object || this.lxClassName == 'Object'); }
 });
 
 Object.defineProperty(Object.prototype, "isFunction", {
@@ -232,14 +341,6 @@ Object.defineProperty(Array.prototype, "len", {
 	}
 });
 
-Object.defineProperty(Object.prototype, "len", {
-	get: function() {
-		var count = 0;
-		for (var i in this) count++;
-		return count;
-	}
-});
-
 Object.defineProperty(Array.prototype, "last", {
 	value: function() {
 		if (!this.isAssoc) return this[this.len-1];
@@ -249,27 +350,9 @@ Object.defineProperty(Array.prototype, "last", {
 	}
 });
 
-Object.defineProperty(Object.prototype, "last", {
-	value: function() {
-		var result;
-		for (var i in this) result = this[i];
-		return result;
-	}
-});
-
 Object.defineProperty(Array.prototype, "nth", {
 	value: function(index) {
 		if (!this.isAssoc) return this[index];
-		var i = 0;
-		for (var key in this) {
-			if (i == index) return this[key];
-			i++;
-		}
-	}
-});
-
-Object.defineProperty(Object.prototype, "nth", {
-	value: function(index) {
 		var i = 0;
 		for (var key in this) {
 			if (i == index) return this[key];
@@ -320,13 +403,8 @@ Object.defineProperty(Array.prototype, "isAssoc", {
 		return !this.lxEmpty && (!(0 in this) || !this.length);
 	}
 });
-Object.defineProperty(Object.prototype, "isAssoc", {
-	get: function() {
-		return true;
-	}
-});
 
-Object.defineProperty(Array.prototype, "getFirstDefined", {
+Object.defineProperty(Array.prototype, "lxGetFirstDefined", {
 	value: function() {
 		if (this.isAssoc) return undefined;
 		for (var i=0, l=this.len; i<l; i++) {

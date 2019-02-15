@@ -5,6 +5,7 @@ namespace lx;
 class ModelSchema {
 	protected
 		$name,
+		$pkName = null,
 		$tableName,
 		$fieldNames = [],
 		$fields = [];
@@ -12,9 +13,6 @@ class ModelSchema {
 	public function __construct($name, $schema) {
 		$this->name = $name;
 		if (isset($schema['table'])) $this->tableName = $schema['table'];
-
-		$this->fieldNames[] = $this->pkName();
-		$this->fields[$this->pkName()] = ModelField::create($this->pkName(), ['type' => ModelField::TYPE_INTEGER_SLUG]);
 
 		$forbidden = isset($schema['forbidden']) ? $schema['forbidden'] : [];
 
@@ -29,8 +27,30 @@ class ModelSchema {
 				$fieldData['forbidden'] = true;
 			}
 
+			if (array_key_exists('pk', $fieldData)) {
+				if ($this->pkName === null) {
+					$this->pkName = $fieldName;
+				} else {
+					unset($fieldData['pk']);
+				}
+			}
+
 			$this->fields[$fieldName] = ModelField::create($fieldName, $fieldData);
 		}
+
+		if ($this->pkName === null) {
+			$this->pkName = 'id';
+			$this->fieldNames[] = $this->pkName;
+			$this->fields[$this->pkName] = ModelField::create($this->pkName, ['pk' => true, 'type' => ModelField::TYPE_INTEGER_SLUG]);
+		}
+	}
+
+	public function getDefinitions($params = null) {
+		$result = [];
+		foreach ($this->fields as $name => $field) {
+			$result[$name] = $field->getDefinition($params);
+		}
+		return $result;
 	}
 
 	public function getName() {
@@ -42,8 +62,7 @@ class ModelSchema {
 	}
 
 	public function pkName() {
-		//todo как-то это тоже можно инициализировать, н-р не в филдах, а  table: ... \n  pk: integer id
-		return 'id';
+		return $this->pkName;
 	}
 
 	public function fieldNames() {

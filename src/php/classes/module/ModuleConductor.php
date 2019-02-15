@@ -157,7 +157,7 @@ class ModuleConductor {
 			return new $className($module);
 		}
 
-		$servicePath = $service->dir->getPath();
+		$servicePath = $service->getPath();
 		$modulePath = $this->getModulePath();
 
 		$namespacePrefixes = $service->getConfig('autoload.psr-4');

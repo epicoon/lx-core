@@ -17,7 +17,7 @@ lx.TableManager = {
 	},
 
 	registerTable: function(tab) {
-		if (tab.className != 'Table' || this.tables.contain(tab)) return;
+		if (tab.lxClassName != 'Table' || this.tables.contain(tab)) return;
 
 		if (this.tables.lxEmpty) this.start();
 
@@ -269,9 +269,9 @@ lx.TableManager = {
 
 		if (!event.target.lx) return;
 
-		var newCell = event.target.lx.className == 'TableCell'
+		var newCell = event.target.lx.lxClassName == 'TableCell'
 			? event.target.lx
-			: event.target.lx.ancestor({hasProperties: {className: 'TableCell'}});
+			: event.target.lx.ancestor({hasProperties: {lxClassName: 'TableCell'}});
 		if (!newCell) return;
 
 		if (this.activeCell == newCell) {

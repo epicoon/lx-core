@@ -1,4 +1,4 @@
-class Synchronizer #in lx {
+class Synchronizer #lx:namespace lx {
 	constructor(action) {
 		this.keyCounter = 0;
 		this.waitingList = [];

@@ -1,12 +1,13 @@
-#require app/js_extends;
-#require app/lx;
-#require app/lx_function;
-#require app/lx_start;
-#require app/lx_keyboard;
-#require app/lx_movement;
-#require app/lx_animation;
-#require app/lx_widgets;
-#require app/lx_tost;
+#lx:require app/js_extends;
+#lx:require app/lx;
+#lx:require app/lx_function;
+#lx:require app/lx_start;
+#lx:require app/lx_keyboard;
+#lx:require app/lx_movement;
+#lx:require app/lx_animation;
+#lx:require app/lx_widgets;
+#lx:require app/lx_alerts;
+#lx:require app/lx_tost;
 
 
 lx.entryElement = null;
@@ -29,6 +30,13 @@ lx.POSTUNPACK_TYPE_ALL_DISPLAY = 3;
 lx.unpackType = lx.POSTUNPACK_TYPE_FIRST_DISPLAY;
 
 
+/**
+ * Правильная последовательность \r\n, коды соответственно 13 и 10
+ * */
+Object.defineProperty(lx, "EOL", {
+	get: function() { return String.fromCharCode(13) + String.fromCharCode(10); }
+});
+
 lx.on = function(eventName, func) {
 	this.Event.add( document, eventName, func );
 };
@@ -45,6 +53,7 @@ lx.getModule = function(name) {
 };
 
 
-#require helpers/;
-#require components/;
-#require tools/;
+#lx:require helpers/;
+#lx:require -R classes/;
+#lx:require components/;
+#lx:require tools/;

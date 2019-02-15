@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class ModelFieldBoolean extends ModelFieldSimple {
+class ModelFieldBoolean extends ModelField {
 	const NOT_NULL_DEFAULT = false;
 
 	protected function init($data) {

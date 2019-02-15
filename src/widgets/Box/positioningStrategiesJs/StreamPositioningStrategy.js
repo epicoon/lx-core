@@ -1,11 +1,11 @@
-#private;
+#lx:private;
 
-#use lx.PositioningStrategy as PositioningStrategy;
+#lx:use lx.PositioningStrategy as PositioningStrategy;
 
 /**
  * Располагает элементы потоком, игнорирует все параметры кроме размера, соответствующего направлению потока
  * */
-class StreamPositioningStrategy extends PositioningStrategy #in lx {
+class StreamPositioningStrategy extends PositioningStrategy #lx:namespace lx {
 	/**
 	 * config = direction | {
 	 *	direction,
@@ -191,8 +191,8 @@ class AbstractCalc {
 			val = [
 				this.owner.getSavedParam(elem, this.geomKeys.sizeConst),
 				elem[this.geomKeys.sizeName]()
-			].getFirstDefined();
-			//todo - пиксели могут привести к нежелательным результатам. И вообще допусловие после .getFirstDefined() некрасиво
+			].lxGetFirstDefined();
+			//todo - пиксели могут привести к нежелательным результатам. И вообще допусловие после .lxGetFirstDefined() некрасиво
 			if (val === null) val = elem[this.geomKeys.sizeName]('px') + 'px';
 
 			if (val.isNumber) {

@@ -105,8 +105,8 @@ class JsCompiler {
 
 	/**
 	 * Собственно основные этапы компиляции исходного кода
-	 * $path нужен для того, чтобы было от чего отталкиваться при поиске всяких #require, 
-	 * при этом, если путь в #require начинается с '/' - $path игнорируется и файл ищется относительно корня сайта
+	 * $path нужен для того, чтобы было от чего отталкиваться при поиске всяких #lx:require, 
+	 * при этом, если путь в #lx:require начинается с '/' - $path игнорируется и файл ищется относительно корня сайта
 	 * */
 	private static function compileCodeProcess($code, $path) {
 		$parentDir = dirname($path) . '/';
@@ -149,20 +149,20 @@ class JsCompiler {
 
 	/**
 	 * Можно писать js-код под конкретный режим работы приложения при помощи директив:
-	 * #mode-case: SOME_MODE_0;
+	 * #lx:mode-case: SOME_MODE_0;
 	 * 	... some code
-	 * #mode-case: SOME_MODE_1;
+	 * #lx:mode-case: SOME_MODE_1;
 	 * 	... some code
-	 * #mode-end;
+	 * #lx:mode-end;
 	 * */
 	private static function checkMode($code) {
 		$mode = \lx::getConfig('mode');
-		$reg = '/#mode-case[\w\W]*?#mode-end;/';
+		$reg = '/#lx:mode-case[\w\W]*?#lx:mode-end;?/';
 		$code = preg_replace_callback($reg, function($matches) use ($mode) {
 			if (!$mode) return '';
 
 			$match = $matches[0];
-			preg_match_all('/#mode-case:?\s*' . $mode . ';([\w\W]*?)#mode-/', $match, $data);
+			preg_match_all('/#lx:mode-case:?\s*' . $mode . ';([\w\W]*?)#lx:mode-/', $match, $data);
 			if (empty($data[0])) return '';
 
 			return $data[1][0];
@@ -172,11 +172,11 @@ class JsCompiler {
 	}
 
 	/**
-	 * Проверка использования замен кода вроде #use test.Test as Test;
+	 * Проверка использования замен кода вроде #lx:use test.Test as Test;
 	 * Для оптимизации так можно подключать виджеты
 	 * */
 	private static function checkAliases($code) {
-		preg_match_all('/#use ([^;]*?) as ([^;]*?);/', $code, $matches);
+		preg_match_all('/#lx:use ([^;]*?) as ([^;]*?);/', $code, $matches);
 		if (empty($matches[0])) return [$code, []];
 
 		$aliases = [];
@@ -184,7 +184,7 @@ class JsCompiler {
 			$realText = $matches[1][$i];
 			$alias = $matches[2][$i];
 
-			$code = preg_replace('/(?<!#require )\b' . $alias . '\b([.,;)(])/', $realText . '$1', $code);
+			$code = preg_replace('/(?<!#lx:require )\b' . $alias . '\b([.,;)(])/', $realText . '$1', $code);
 			$code = preg_replace('/\bnew \b' . $alias . '\b/', 'new ' . $realText, $code);
 			$code = preg_replace('/\bextends ' . $alias . '\b/', 'extends ' . $realText, $code);
 
@@ -199,7 +199,7 @@ class JsCompiler {
 			} else $aliases[] = $realText;
 		}
 
-		$code = preg_replace('/#use [^;]*?as[^;]*?;/', '', $code);
+		$code = preg_replace('/#lx:use [^;]*?as[^;]*?;/', '', $code);
 		return [$code, $aliases];
 	}
 
@@ -215,8 +215,8 @@ class JsCompiler {
 	*/
 	private static function plugWidgets($code) {
 		// Находит явно указанное использование виджетов
-		preg_match_all('/(?<!\/\/ )(?<!\/\/)#widget ([\w\W]*?);/', $code, $widgets);
-		$code = preg_replace('/(?<!\/\/ )(?<!\/\/)#widget ([\w\W]*?);/', '', $code);
+		preg_match_all('/(?<!\/\/ )(?<!\/\/)#lx:widget ([\w\W]*?);/', $code, $widgets);
+		$code = preg_replace('/(?<!\/\/ )(?<!\/\/)#lx:widget ([\w\W]*?);/', '', $code);
 		foreach ($widgets[1] as $widget) {
 			if ($widget == '') continue;
 			$widgetArray = preg_split('/[.\\'.'\]/', $widget);
@@ -289,19 +289,19 @@ class JsCompiler {
 	 * Определяет объявлен ли код приватным (надо ли его обернуть в анонимную функцию)
 	 * */
 	private static function checkPrivate($code) {
-		$private = preg_match('/#private/', $code);
-		$code = preg_replace('/#private;?/', '', $code);
+		$private = preg_match('/#lx:private/', $code);
+		$code = preg_replace('/#lx:private;?/', '', $code);
 		return [$code, $private];
 	}
 
 	/**
-	 * Конкатенация кода по директиве #require
+	 * Конкатенация кода по директиве #lx:require
 	 *	Поддерживаемые конструкции:
-	 *	#require ClassName;
-	 *	#require { ClassName1, ClassName2 };
+	 *	#lx:require ClassName;
+	 *	#lx:require { ClassName1, ClassName2 };
 	 * */
 	private static function plugAllRequires($code, $parentDir) {
-		$pattern = '/(?<!\/ )(?<!\/)#require( -.+)? [\'"]?([\w\W]*?)[\'"]?;/';
+		$pattern = '/(?<!\/ )(?<!\/)#lx:require( -.+)? [\'"]?([\w\W]*?)[\'"]?;/';
 		$code = preg_replace_callback($pattern, function($matches) use ($parentDir) {
 			$flags = $matches[1];
 			$requireName = $matches[2];
@@ -315,7 +315,7 @@ class JsCompiler {
 	}
 
 	/**
-	 * Собирает код из перечней, указанных в директиве #require
+	 * Собирает код из перечней, указанных в директиве #lx:require
 	 * */
 	private static function plugRequire($requireName, $parentDir) {
 		// Полезно убрать пробелы
@@ -413,7 +413,7 @@ class JsCompiler {
 				- Class2
 					- code.js
 			Если есть зависимости между этими файлами, можно компилить так:
-			#require {Class1:code.js, Class2:code.js};  // из файла, который лежит непосредственно в directory
+			#lx:require {Class1:code.js, Class2:code.js};  // из файла, который лежит непосредственно в directory
 			*/
 			$name = str_replace(':', '/', $name);
 
@@ -421,11 +421,11 @@ class JsCompiler {
 			if (!file_exists($fileName)) continue;
 			$code = file_get_contents($fileName);
 
-			preg_match_all('/#require [\'"]?(.+)\b/', $code, $requiredFiles);
+			preg_match_all('/#lx:require [\'"]?(.+)\b/', $code, $requiredFiles);
 			$required = array_merge($required, $requiredFiles[1]);
 
 			// Находим классы, которые в файле объявлены
-			preg_match_all('/class (.+?)\b\s*(extends\s+[\w\d_]+?\b)?\s*({|#in)/', $code, $classes);
+			preg_match_all('/class (.+?)\b\s*(extends\s+[\w\d_]+?\b)?\s*({|#lx:)/', $code, $classes);
 			$classes = $classes[1];
 			$index = count($list);
 			// Формируем карту по именам классов

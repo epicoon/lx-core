@@ -1,6 +1,6 @@
-#require positioningStrategiesJs/;
+#lx:require positioningStrategiesJs/;
 
-#use lx.Rect as Rect;
+#lx:use lx.Rect as Rect;
 
 /**
  * * 1. Constructor
@@ -62,7 +62,7 @@
  * matrix(config)
  * agregator(c, toWidget=true, fromWidget=true)
  * */
-class Box extends Rect #in lx {
+class Box extends Rect #lx:namespace lx {
 
 	//=========================================================================================================================
 	/* 1. Constructor */
@@ -110,9 +110,9 @@ class Box extends Rect #in lx {
 		//todo - единственное пока взаимодействие стратегий элемента и родителя. Выносить в отдельный метод, еще какие-то может нужны
 		//todo - еще момент - работает такая связь только если 'grid' передали в конфиге, если методом навесили - связи нет. Может это не баг, а фича?
 		// Если стратегия позиционирования grid и у элемента и у родителя - осуществляется некоторое взаимодействие - выставляется высота и заимстуются шаги
-		if (this.positioning().className == 'GridPositioningStrategy'
+		if (this.positioning().lxClassName == 'GridPositioningStrategy'
 			&& this.parent
-			&& this.parent.positioning().className == 'GridPositioningStrategy'
+			&& this.parent.positioning().lxClassName == 'GridPositioningStrategy'
 		) {
 			this.height( this.positioning().map.len );
 
@@ -127,7 +127,7 @@ class Box extends Rect #in lx {
 
 	postUnpack(config) {
 		super.postUnpack(config);
-		if (this.extract('__na'))
+		if (this.lxExtract('__na'))
 			this.positioningStrategy.actualize();
 	}
 
@@ -630,7 +630,7 @@ class Box extends Rect #in lx {
 	/* 4. PositioningStrategies */
 	preparePositioningStrategy(strategy) {
 		if (this.positioningStrategy) {
-			if (this.positioningStrategy.className == strategy.name) return;
+			if (this.positioningStrategy.lxClassName == strategy.name) return;
 			this.positioningStrategy.clear();
 		}
 		this.positioningStrategy = (strategy === lx.PositioningStrategy)
@@ -666,7 +666,7 @@ class Box extends Rect #in lx {
 	}
 
 	streamDirection() {
-		if (!this.positioningStrategy || this.positioningStrategy.className != 'StreamPositioningStrategy')
+		if (!this.positioningStrategy || this.positioningStrategy.lxClassName != 'StreamPositioningStrategy')
 			return false;
 		return this.positioningStrategy.direction;
 	}
@@ -716,7 +716,7 @@ class Box extends Rect #in lx {
 	 * */
 	injectModule(info, func) {
 		this.dropModule();
-		lx.Loader.loadModule(info, this, this.getModule(), func);
+		lx.Loader.run(info, this, this.getModule(), func);
 	}
 
 	/**
@@ -743,20 +743,23 @@ class Box extends Rect #in lx {
 	 * {
 	 * 	items: lx.Collection,
 	 * 	itemBox: [Widget, Config],
-	 * 	itemRender: function(itemBox) {}
+	 * 	itemRender: function(itemBox, model) {}
+	 *  afterBind: function(itemBox, model) {}
 	 * 	toWidget: boolean
 	 * 	fromWidget: boolean
 	 * }
 	 * Если два аргумента - краткая передача коллекции и коллбэка:
 	 * - lx.Collection
-	 * - Function
+	 * - Function  - itemRender
+	 * - Function  - afterBind
 	 * */
 	matrix(...args) {
 		let config;
 		if (args.len == 1 && args[0].isObject) config = args[0];
 		else { config = {
 			items: args[0],
-			itemRender: args[1]
+			itemRender: args[1],
+			afterBind: args[2]
 		}; };
 		if (!config.itemBox) config.itemBox = self::defaultMatrixItemBox;
 
@@ -764,8 +767,9 @@ class Box extends Rect #in lx {
 		lx.Binder.bindMatrix(
 			config.items,
 			this,
-			[config.toWidget, true].getFirstDefined(),
-			[config.fromWidget, true].getFirstDefined()
+			config.afterBind,
+			[config.toWidget, true].lxGetFirstDefined(),
+			[config.fromWidget, true].lxGetFirstDefined()
 		);
 	}
 

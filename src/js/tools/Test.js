@@ -1,4 +1,4 @@
-class Test #in lx {
+class Test #lx:namespace lx {
 	constructor() {
 		this.mode = self::MODE_CONSOLE;
 		this.onFail = self::ON_FAIL_CONTINUE;
@@ -75,18 +75,18 @@ class Test #in lx {
 	_run() {
 		var forRun = this.forRun();
 		if (forRun.isString) {
-			if (!forRun.match(/^test/) || !this.hasMethod(forRun)) return;
+			if (!forRun.match(/^test/) || !this.lxHasMethod(forRun)) return;
 			this._runTest(forRun);
 		} else if (forRun.isArray) {
 			for (var i=0, l=forRun.len; i<l; i++) {
 				var funcName = forRun[i];
-				if (!funcName.match(/^test/) || !this.hasMethod(funcName)) continue;
+				if (!funcName.match(/^test/) || !this.lxHasMethod(funcName)) continue;
 
 				var result = this._runTest(funcName);
 				if (this.onFail == self::ON_FAIL_STOP && !result) return;
 			}
 		} else if (forRun === true) {
-			var funcs = this.getAllProperties();
+			var funcs = this.lxGetAllProperties();
 			for (var i=0, l=funcs.len; i<l; i++) {
 				var funcName = funcs[i];
 				if (!funcName.match(/^test/)) continue;

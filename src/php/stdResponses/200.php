@@ -13,6 +13,7 @@
 		<?= $headScripts ?>
 	</head>
 	<body>
+		<div id="lx-alerts" class="lxbody"></div>
 		<div id="lx-tosts" class="lxbody"></div>
 		<div id="lx" class="lxbody"></div>
 		<script id=__js>

@@ -146,7 +146,7 @@ class DBpostgres extends DB {
 	 * */
 	public function tableSchema($name, $fields=null) {
 		$fieldsString = $fields;
-		if ($fields == self::SHORT_SCHEME) $fieldsString = 'column_name,column_default,is_nullable,data_type,character_maximum_length';
+		if ($fields == self::SHORT_SCHEMA) $fieldsString = 'column_name,column_default,is_nullable,data_type,character_maximum_length';
 		elseif (is_string($fields)) $fieldsString = $fields;
 		elseif (is_array($fields)) $fieldsString = implode(',', $fields);
 		elseif ($fields === null) $fieldsString = '*';
@@ -157,7 +157,7 @@ class DBpostgres extends DB {
 			foreach ($res as $value) $arr[] = $value[$fields];
 			return $arr;
 		}
-		if ($fields != self::SHORT_SCHEME) return $res;
+		if ($fields != self::SHORT_SCHEMA) return $res;
 
 		/*
 		Для короткой схемы вернёт данные в формате:
@@ -165,9 +165,9 @@ class DBpostgres extends DB {
 			[
 				'name' - всегда
 				'type' - всегда
-				'id_nullable' - всегда, булево значение
+				'notNull' - всегда, булево значение
 				'default' - если есть
-				'len' - если есть
+				'size' - если есть
 			],
 			...
 		]
@@ -181,11 +181,11 @@ class DBpostgres extends DB {
 					$data['default'] = '@PK';
 				else $data['default'] = $item['column_default'];
 			}
-			$data['is_nullable'] = $item['is_nullable'] == 'YES';
+			$data['notNull'] = $item['is_nullable'] == 'NO';
 			if (preg_match('/^character/', $item['data_type'])) $data['type'] = 'string';
 			else $data['type'] = $item['data_type'];
 			if (isset($item['character_maximum_length']))
-				$data['len'] = $item['character_maximum_length'];
+				$data['size'] = $item['character_maximum_length'];
 			$result[$name] = $data;
 		}
 		return $result;

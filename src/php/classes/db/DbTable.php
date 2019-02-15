@@ -29,8 +29,8 @@ class DbTable {
 	/**
 	 * 
 	 * */
-	public function schema($columns = DB::SHORT_SCHEME) {
-		if ($columns == DB::SHORT_SCHEME)
+	public function schema($columns = DB::SHORT_SCHEMA) {
+		if ($columns == DB::SHORT_SCHEMA)
 			return DbTableSchemaProvider::get($this);
 	
 		return $this->db->tableSchema($this->name, $columns);

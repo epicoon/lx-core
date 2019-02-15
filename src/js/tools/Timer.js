@@ -1,4 +1,4 @@
-class Timer #in lx {
+class Timer #lx:namespace lx {
 	constructor(p=0) {
 		if (p.isNumber || p.isArray) p = {period: p};
 

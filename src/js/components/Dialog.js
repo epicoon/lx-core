@@ -92,25 +92,19 @@ Object.defineProperty(lx, 'Dialog', {
 			// Обертка при успешном ответе - он может нести системную информацию вместо полезного ответа
 			function successWrap(request) {
 				var response = request.response;
-				if (response.match(/^"alert:/)) {
-					//todo - что за хрень с этим JSON??? Почему приходится так воевать с экранирщиной
-					response = response.replace(/^"alert:/, '');
-					response = response.replace(/"$/, '');
-					response = response.replace(/\\"/g, '"');
-					var reg = new RegExp('\\\\\\\\\\\\/', 'g');
-					response = response.replace(reg, '/');
-					response = lx.Json.parse(response);
-					response.each((a)=>console.log(a));
-					// callHandler(success, [false, request]);
-				} else {
-					// try {
-						// Передаем управление обработчику пользователя
-						result = JSON.parse(request.response);
-						callHandler(success, [result, request]);
-					// } catch (e) {
-					// 	console.error('lx.Dialog Error: can not parse JSON in response. Response: ', request.response);
-					// }
+
+				var alerts = response.match(/^<lx-alert>[\w\W]*<\/lx-alert>/);
+				if (alerts) {
+					alerts = alerts[0];
+					response = response.replace(alerts, '');
+					alerts = alerts.replace(/<lx-alert>/g, '');
+					alerts = alerts.replace(/<\/lx-alert>/g, '');
+					lx.Alert(alerts);
 				}
+
+				// Передаем управление обработчику пользователя
+				result = JSON.parse(response);
+				callHandler(success, [result, request]);
 			}
 
 			// Назначаем пользовательский обработчик
@@ -169,7 +163,7 @@ Object.defineProperty(lx, 'Dialog', {
 					success = config.success,
 					waiting = config.waiting,
 					error = config.error,
-					isAjax = [config.isAjax, true].getFirstDefined();
+					isAjax = [config.isAjax, true].lxGetFirstDefined();
 				sendRequest(
 					method,
 					url,

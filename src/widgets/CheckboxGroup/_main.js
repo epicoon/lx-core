@@ -1,6 +1,6 @@
-#use lx.LabeledGroup as LabeledGroup;
+#lx:use lx.LabeledGroup as LabeledGroup;
 
-class CheckboxGroup extends LabeledGroup #in lx {
+class CheckboxGroup extends LabeledGroup #lx:namespace lx {
 	preBuild(config) {
 		if (!config.unit) config.unit = {};
 		config.unit.widget = lx.Checkbox;
@@ -29,6 +29,7 @@ class CheckboxGroup extends LabeledGroup #in lx {
 			this.widgets().each(function(a) {
 				if (a.value()) result.push(a.parent.parent.index);
 			});
+
 			return result;
 		}
 

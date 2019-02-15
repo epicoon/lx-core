@@ -38,6 +38,7 @@ class Service {
 		}
 
 		$config['dbList'] = $this->getDbConfig($config);
+		unset($config['db']);
 		$this->_config = $config;
 	}
 	protected function __clone() {}
@@ -81,6 +82,10 @@ class Service {
 			? $config['service']['class']
 			: self::class;
 
+		if (!ClassHelper::exists($className)) {
+			throw new \Exception("Class '$className' for service '$name' does not exist", 400);			
+		}
+
 		$service = new $className($name, $config);
 		ServicesMap::newService($name, $service);
 		return $service;
@@ -92,8 +97,8 @@ class Service {
 	public function __get($name) {
 		switch ($name) {
 			case 'name': return $this->_name;
-			case 'path': return $this->_path;
-			case 'dir':
+			case 'relativePath': return $this->_path;
+			case 'directory':
 				if ($this->_dir === null) {
 					$this->_dir = new PackageDirectory(\lx::sitePath() . '/' . $this->_path);
 				}
@@ -145,7 +150,7 @@ class Service {
 	 *
 	 * */
 	public function getPath() {
-		return $this->dir->getPath();
+		return $this->directory->getPath();
 	}
 
 	/**
@@ -260,6 +265,16 @@ class Service {
 			$this->dbConnections[$db] = $connection;
 		}
 		return $this->dbConnections[$db];
+	}
+
+	/**
+	 *
+	 * */
+	public function closeDbConnection($db = 'db') {
+		if (isset($this->dbConnections[$db])) {
+			$this->dbConnections[$db]->close();
+			unset($this->dbConnections[$db]);
+		}
 	}
 
 	/**

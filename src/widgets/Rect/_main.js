@@ -130,7 +130,7 @@
  * unpackScreenDependencies()
  * unpackProperties(loaderContext)
  * */
-class Rect #in lx {
+class Rect #lx:namespace lx {
 
 	//=========================================================================================================================
 	/* 1. Constructor */
@@ -219,7 +219,7 @@ class Rect #in lx {
 	 * Метод, вызываемый загрузчиком для допиливания элемента
 	 * */
 	postLoad() {
-		var config = this.extract('__postBuild') || {};
+		var config = this.lxExtract('__postBuild') || {};
 		this.postBuild(config);
 		this.postUnpack(config);
 	}
@@ -593,12 +593,12 @@ class Rect #in lx {
 	 * */
 	getEnabledClass() {
 		if (this.css !== undefined) return this.css.enabled || '';
-		return 'lx-' + this.className;
+		return 'lx-' + this.lxClassName;
 	}
 
 	getDisabledClass() {
 		if (this.css && this.css.disabled) return this.css.disabled;
-		return 'lx-' + this.className + '-disabled';
+		return 'lx-' + this.lxClassName + '-disabled';
 	}
 
 	getBaseCss() {
@@ -920,7 +920,7 @@ class Rect #in lx {
 		if (!this.DOMelem) return null;
 		if (!format) return this.DOMelem.style.width ? this.DOMelem.style.width : null;
 
-		if ( this === lx.body ) {
+		if (!this.parent) {
 			if (format == '%') return 100;
 			return this.DOMelem.offsetWidth;
 		}
@@ -938,7 +938,7 @@ class Rect #in lx {
 		if (!this.DOMelem) return null;
 		if (!format) return this.DOMelem.style.height ? this.DOMelem.style.height : null;
 
-		if ( this === lx.body ) {
+		if (!this.parent) {
 			if (format == '%') return 100;
 			return this.DOMelem.offsetHeight;
 		}
@@ -1363,22 +1363,32 @@ class Rect #in lx {
 	/**
 	 * Назначить элементу поле, за которым он сможет следить
 	 * */
-	setField(name, func) {
+	setField(name, func, type = null) {
 		this._field = name;
+		this._bindType = type || lx.Binder.BIND_TYPE_FULL;
 
 		if (func) {
-			var valFunc = this.hasMethod('value')
+			var valFunc = this.lxHasMethod('value')
 				? this.value
 				: function(val) { if (val===undefined) return this._val; this._val = val; };
+			this.innerValue = valFunc;
 
-			/**
-			 * Метод, через который осуществляется связь с моделью:
+			// Определяем - может ли переданная функция возвращать значение (кроме как устанавливать)
+			var str = func.toString(),
+				argName = str.match(/function\s*\((.*?)(?:,|\))/)[1],
+				reg = new RegExp('if\\s*\\(\\s*' + argName + '\\s*===\\s*undefined'),
+				isCallable = (str.match(reg) !== null);
+
+			/* Метод, через который осуществляется связь с моделью:
 			 * - модель отсюда читает значение, когда на виджете триггерится событие 'change'
 			 * - модель сюда записывает значение поля, когда оно меняется через сеттер
-			 * */
+			 */
 			this.value = function(val) {
-				if (val === undefined) return valFunc.call(this);
-				var oldVal = valFunc.call(this);
+				if (val === undefined) {
+					if (isCallable) return func.call(this);
+					return this.innerValue();
+				}
+				var oldVal = isCallable ? func.call(this) : this.innerValue();
 				/* Важно:
 				 * - цепочка алгоритма может быть такая:
 				 * 1. В пользовательском коде вызван метод .value(val), передано какое-то значение
@@ -1387,15 +1397,12 @@ class Rect #in lx {
 				 * 4. В сеттере модели тоже есть логика актуализации - на этот раз виджета, через метод value(val)
 				 * 5. Этот метод будет вызван повторно, чтобы не попасть в рекурсию - при попытке присвоить значние, идентичное текущему,
 				 *    ничего не делаем - логично, если значение x "поменялось" на значение x, изменений не произошло - событие 'change' не должно триггериться
-				 * */
-				if (val === oldVal) return;
-				valFunc.call(this, val);
+				 */
+				if (lx.CompareHelper.deepCompare(val, oldVal)) return;
+				this.innerValue(val);
 				func.call(this, val, oldVal);
 				this.trigger('change');
 			};
-			this.setValueWithoutBind = function(val) {
-				valFunc.call(this, val);
-			}
 		}
 
 		return this;
@@ -1667,7 +1674,7 @@ class Rect #in lx {
 
 		// '::funcName'
 		if (handler.match(/^::/)) {
-			var func = lx[this.className][handler.split('::')[1]];
+			var func = lx[this.lxClassName][handler.split('::')[1]];
 			if (!func || !func.isFunction) return null;
 			return func;
 		}
@@ -1757,7 +1764,7 @@ class Rect #in lx {
 
 		// Стратегии позиционирования
 		if (this.__ps) {
-			var ps = this.extract('__ps').split(';'),
+			var ps = this.lxExtract('__ps').split(';'),
 				psName = ps.shift();
 			this.positioningStrategy = new lx[psName](this);
 			this.positioningStrategy.unpack(ps);

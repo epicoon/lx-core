@@ -1,11 +1,11 @@
-#use lx.Box as Box;
+#lx:use lx.Box as Box;
 
 /* Special events:  // опосредованы работой TableManager
  * selectionChange
  * rowAdded
  * cellChange
  * */
-class Table extends Box #in lx {
+class Table extends Box #lx:namespace lx {
 	/**
 	 * config = {
 	 * 	rows: integer
@@ -273,7 +273,7 @@ lx.Table.DEFAULT_ROW_HEIGHT = '25px';
 //=============================================================================================================================
 
 //=============================================================================================================================
-class TableRow extends Box #in lx {
+class TableRow extends Box #lx:namespace lx {
 	postBuildClient(config) {
 		var colConfig = {
 				direction: lx.HORIZONTAL,
@@ -308,7 +308,7 @@ class TableRow extends Box #in lx {
 //=============================================================================================================================
 
 //=============================================================================================================================
-class TableCell extends Box #in lx {
+class TableCell extends Box #lx:namespace lx {
 	table() {
 		return this.parent.parent;
 	}

@@ -111,6 +111,20 @@ class PositioningStrategy extends DataObject {
 	}
 
 	protected function getGeomParam($elem, $param, $format=null) {
+
+		/*
+		//todo воткнул какой-то костыль - долго разбираться, но надо. Параметр не определен
+		Ситуация:
+		пропорциональный поток
+		в элемент потока (сам элемент без стратегий) добавляется потомок без указания геометрии
+		*/
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		if (!isset($elem->geomBuffer[$param])) {
+			return '0px';
+		}
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 		$val = $elem->geomBuffer[$param];
 		if (is_numeric($val)) {
 			if ($format === null) $format = $this->getFormatText($this->innerFormat);

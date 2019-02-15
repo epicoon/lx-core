@@ -2,18 +2,34 @@
 
 namespace lx;
 
-class ModelFieldString extends ModelFieldSimple {
-	const NOT_NULL_DEFAULT = 'DDD';
+class ModelFieldString extends ModelField {
+	const NOT_NULL_DEFAULT = '';
 
-	protected $_len = 255;
+	protected $_size = 255;
 
 	protected function init($data) {
-		if (array_key_exists('len', $data))
-			$this->_len = $data['len'];
+		if (array_key_exists('size', $data))
+			$this->_size = $data['size'];
 	}
 
-	public function len() {
-		return $this->_len;
+	public function getTypeDb() {
+		return 'varchar';
+	}
+
+	public function getDefinition($params = null) {
+		if ($params === null) {
+			$params = ['type', 'dbType', 'default', 'notNull', 'size'];
+		}
+
+		$result = parent::getDefinition($params);
+		if (array_search('size', $params) !== false) {
+			$result['size'] = $this->size();
+		}
+		return $result;
+	}
+
+	public function size() {
+		return $this->_size;
 	}
 
 	public function suitableType($value) {

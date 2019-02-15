@@ -1,6 +1,6 @@
-#use lx.BoxSlider as BoxSlider;
+#lx:use lx.BoxSlider as BoxSlider;
 
-class ImageSlider extends BoxSlider #in lx {
+class ImageSlider extends BoxSlider #lx:namespace lx {
 	build(config) {
 		super.build(config);
 

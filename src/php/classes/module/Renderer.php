@@ -126,7 +126,7 @@ class Renderer {
 		надо делать выход на какую-то конфигурацию
 		*/
 		$blockPath = is_dir($path)
-			? $path . '/_main.php'
+			? $this->getBlockMainPhpPath($path) // . '/_main.php'
 			: $path;
 		if (!file_exists($blockPath)) {
 			return null;
@@ -137,7 +137,7 @@ class Renderer {
 
 		$b = $this->createBlock($blockPath, $renderParams, $clientParams);
 		if (is_dir($path)) {
-			$js = $path . '/_main.js';
+			$js = $this->getBlockMainJsPath($path); // . '/_main.js';
 			if (file_exists($js)) {
 				$f = new File($js);
 				$code = JsCompiler::compileCode($f->get(), $f->getPath());
@@ -254,5 +254,39 @@ class Renderer {
 		$block = $this->createBlock($path);
 		$this->renderBlockRe($block);
 		return $this->packBlocks();
+	}
+
+	/**
+	 *
+	 * */
+	private function getBlockMainPhpPath($path) {
+		if (file_exists($path . '/_main.php')) {
+			return $path . '/_main.php';
+		}
+		$arr = explode('/', $path);
+		$name = end($arr);
+		if (file_exists($path . '/_' . $name . '.php')) {
+			return $path . '/_' . $name . '.php';
+		}
+		if (file_exists($path . '/' . $name . '.php')) {
+			return $path . '/' . $name . '.php';
+		}
+	}
+
+	/**
+	 *
+	 * */
+	private function getBlockMainJsPath($path) {
+		if (file_exists($path . '/_main.js')) {
+			return $path . '/_main.js';
+		}
+		$arr = explode('/', $path);
+		$name = end($arr);
+		if (file_exists($path . '/_' . $name . '.js')) {
+			return $path . '/_' . $name . '.js';
+		}
+		if (file_exists($path . '/' . $name . '.js')) {
+			return $path . '/' . $name . '.js';
+		}
 	}
 }

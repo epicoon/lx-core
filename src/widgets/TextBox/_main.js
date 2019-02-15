@@ -1,6 +1,6 @@
-#use lx.Rect as Rect;
+#lx:use lx.Rect as Rect;
 
-class TextBox extends Rect #in lx {
+class TextBox extends Rect #lx:namespace lx {
 	preBuild(config='') {
 		if (config.isString) config = {text: config};
 

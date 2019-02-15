@@ -15,6 +15,16 @@ class Math {
 	}
 
 	/**
+	 * @var $probability float - в интервале [0; 1]
+	 * @return bool
+	 * */
+	public static function gamble($probability) {
+		$param = $probability * 1000;
+		$rand = self::rand(1, 1000);
+		return $rand <= $param;
+	}
+
+	/**
 	 * Смена системы счисления с десятичной на заданную
 	 * Можно задать базис до 62-ричной системы счисления
 	 * */

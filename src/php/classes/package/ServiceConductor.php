@@ -16,7 +16,7 @@ class ServiceConductor {
 	 * @return string - путь к сервису на сервере
 	 * */
 	public function getPath() {
-		return $this->service->dir->getPath();
+		return $this->service->directory->getPath();
 	}
 
 	/**
@@ -109,6 +109,15 @@ class ServiceConductor {
 		}
 
 		return $result;
+	}
+
+	/**
+	 *
+	 * */
+	public function getMigrationDirectory() {
+		$system = $this->service->directory->getOrMakeDirectory('.system');
+		$migrationsDirectory = $system->getOrMakeDirectory('migrations');
+		return $migrationsDirectory;
 	}
 
 }

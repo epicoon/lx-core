@@ -17,6 +17,7 @@
 	addList(list)
 	flat(deep)
 	construct(*arguments*)
+	indexOf(el)
 	remove(el)
 	removeAt(k)
 	sub()
@@ -33,7 +34,7 @@
 
 ***************************************************************/
 
-class Collection #in lx {
+class Collection #lx:namespace lx {
 	constructor(...args) {
 		this.actPart = null;
 		this.actI = null;
@@ -280,7 +281,7 @@ class Collection #in lx {
 
 			if (arg.isArray) {
 				this.map.push(arg);
-			} else if ( arg.className == 'Collection' ) {
+			} else if ( arg.lxClassName == 'Collection' ) {
 				if (arg.isCopy) this.add(arg.elements);
 				else for (var j=0, ll=arg.map.length; j<ll; j++)
 					this.add( arg.map[j] );
@@ -311,7 +312,7 @@ class Collection #in lx {
 			if (arg.isArray) {
 				for (var j=0, ll=arg.length; j<ll; j++)
 					this.elements.push( arg[j] );
-			} else if ( arg.className == 'Collection' ) {
+			} else if ( arg.lxClassName == 'Collection' ) {
 				arg.first();
 				while (arg.current()) {
 					this.elements.push( arg.current() );
@@ -353,6 +354,14 @@ class Collection #in lx {
 	construct(/*arguments*/) {
 		this.add(lx.Collection.construct.apply(null, arguments));
 		return this;
+	}
+
+	indexOf(el) {
+		//todo - возможно неоптимально
+		this.toCopy();
+		var index = this.elements.indexOf(el);
+		if (index == -1) return false;
+		return index;
 	}
 
 	remove(el) {
@@ -404,7 +413,7 @@ class Collection #in lx {
  	
 	call(funcName, ...args) {
 		this.each((a)=> {
-			if ( a === null || !a.hasMethod(funcName) ) return;
+			if ( a === null || !a.lxHasMethod(funcName) ) return;
 			a[funcName].apply(a, args);
 		});
 
@@ -414,7 +423,7 @@ class Collection #in lx {
 	callRepeat(funcName, args) {
 		var current = 0;
 		this.each((a)=> {
-			if (a === null || !a.hasMethod(funcName) ) return;
+			if (a === null || !a.lxHasMethod(funcName) ) return;
 
 			if (args[current].isArray) a[funcName].apply(a, args[current]);
 			else a[funcName].call(a, args[current]);

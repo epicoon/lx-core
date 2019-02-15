@@ -1,4 +1,4 @@
-#private
+#lx:private
 
 function getEnvInfo() {
 	var ua = navigator.userAgent;

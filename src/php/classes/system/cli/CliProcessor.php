@@ -157,7 +157,7 @@ class CliProcessor {
 				$this->module = null;
 			// Иначе попробуем войти в модуль
 			} else {
-				$list = (new ModuleBrowser($this->service))->getModulesList();
+				$list = ModuleBrowser::getModulesMap($this->service);
 				if (array_search($name, $list['dynamic']) !== false) {
 					$this->outln('Only static modules are available for edit from console');
 					return;
@@ -189,7 +189,7 @@ class CliProcessor {
 			if ($this->module) {
 				$this->outln('Path: ' . $this->module->getPath());
 			} elseif ($this->service) {
-				$this->outln('Path: ' . $this->service->dir->getPath());
+				$this->outln('Path: ' . $this->service->getPath());
 			} else {
 				$this->outln('Path: ' . \lx::sitePath());
 			}
@@ -213,7 +213,7 @@ class CliProcessor {
 			} else {
 				try {
 					$service = Service::create($name);
-					$this->outln("Service '$name' path: " . $service->dir->getPath());
+					$this->outln("Service '$name' path: " . $service->getPath());
 					return;
 				} catch (\Exception $e) {
 					$this->outln("Service '$name' not found");
@@ -237,15 +237,25 @@ class CliProcessor {
 	 * Отобразить все сервисы приложения
 	 * */
 	private function showServices() {
-		$data = $this->getServicesList();
+		$temp = $this->getServicesList();
+		$data = [];
+		$counter = 0;
+		foreach ($temp as $value) {
+			$data[] = [
+				'num' => ''.(++$counter).'.',
+				'name' => $value['name'],
+				'path' => $value['path'],
+			];
+		}
 		$data = Console::normalizeTable($data);
 
 		$this->outln('Services list:', ['decor' => 'b']);
 		$counter = 0;
 		foreach ($data as $value) {
+			$num = $value['num'];
 			$name = $value['name'];
 			$path = $value['path'];
-			$this->out((++$counter) . '. ', ['decor' => 'b']);
+			$this->out($num . ' ', ['decor' => 'b']);
 			$this->out('Name: ', ['decor' => 'b']);
 			$this->out($name . '  ');
 			$this->out('Path: ', ['decor' => 'b']);
@@ -276,7 +286,7 @@ class CliProcessor {
 			return;
 		}
 
-		$modules = (new ModuleBrowser($service))->getModulesList();
+		$modules = ModuleBrowser::getModulesMap($service);
 		/*[
 			'dynamic' => [...names]
 			'static' => [...{name=>pathInService}]
@@ -362,7 +372,7 @@ class CliProcessor {
 			'needTable' => 'Need table',
 			'changed' => 'Changed'
 		]];
-		$info = (new ModelBrowser($this->service))->getModelsInfo(['needTable', 'hasChanges']);
+		$info = ModelBrowser::getModelsInfo($this->service, ['needTable', 'hasChanges']);
 		foreach ($info as $modelName => $modelInfo) {
 			$needTable = $modelInfo['needTable'];
 			$changed = $modelInfo['hasChanges'];
@@ -759,10 +769,14 @@ class CliProcessor {
 				}
 			}
 
-			$analizer = new ModelBrowser($service);
 			foreach ($serviceModels as $modelName => $path) {
-				$needTable = $analizer->checkModelNeedTable($modelName);
-				$changed = $analizer->checkModelNeedChange(['path' => $path]);
+				$analizer = new ModelBrowser([
+					'service' => $service,
+					'modelName' => $modelName,
+					'path' => $path,
+				]);
+				$needTable = $analizer->needTable();
+				$changed = $analizer->changed();
 				if (!$needTable && !$changed) {
 					continue;
 				}

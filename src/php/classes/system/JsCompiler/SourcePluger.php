@@ -8,7 +8,7 @@ class SourcePluger {
 	 * Подключает скрипты, указанные в js-файлах
 	 * */
 	public function plugScripts($code) {
-		return preg_replace_callback('/(?<!\/\/ )(?<!\/\/)#script [\'"]?(.*?)[\'"]?;/', function($matches) {
+		return preg_replace_callback('/(?<!\/\/ )(?<!\/\/)#lx:script [\'"]?(.*?)[\'"]?;/', function($matches) {
 			$path = $matches[1];
 			if (!preg_match('/\.js$/', $path)) $path .= '.js';
 			ModuleBuilder::active()->getModule()->script($path);
@@ -20,7 +20,7 @@ class SourcePluger {
 	 * Загрузка js-даннфх из yaml-файла
 	 * */
 	public static function loadYaml($code, $parentDir) {
-		$pattern = '/(?<!\/ )(?<!\/)#yaml [\'"]?(.*?)[\'"]?([;,)])/';
+		$pattern = '/(?<!\/ )(?<!\/)#lx:yaml [\'"]?(.*?)[\'"]?([;,)])/';
 		$code = preg_replace_callback($pattern, function($matches) use ($parentDir) {
 			$fileName = $matches[1];
 			$file = self::findFile($fileName, $parentDir, ['yaml', 'yml']);

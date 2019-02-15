@@ -82,7 +82,7 @@ class Conductor {
 		}
 
 		$alias = $this->getAlias($name);
-		if (!$alias) return null;
+		if (!$alias) return false;
 		if (is_array($alias)) return $alias;
 		return $this->decodeAlias($alias);
 	}

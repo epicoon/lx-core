@@ -1,4 +1,4 @@
-#private;
+#lx:private;
 
 let tosts = null;
 function initTosts() {

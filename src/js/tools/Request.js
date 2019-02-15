@@ -1,4 +1,4 @@
-class Request #in lx {
+class Request #lx:namespace lx {
 	constructor(url = '', params = {}) {
 		this.method = 'post';
 		this.url = url;

@@ -1,9 +1,9 @@
-#private;
+#lx:private;
 
-#use lx.Rect as Rect;
-#use lx.Box as Box;
+#lx:use lx.Rect as Rect;
+#lx:use lx.Box as Box;
 
-class BoxSlider extends Box #in lx {
+class BoxSlider extends Box #lx:namespace lx {
 	build(config) {
 		super.build(config);
 
@@ -19,7 +19,7 @@ class BoxSlider extends Box #in lx {
 	}
 
 	postUnpack() {
-		this.timer = new BoxSliderTimer(this, this.extract('__timer') || {});
+		this.timer = new BoxSliderTimer(this, this.lxExtract('__timer') || {});
 		this.timer.slides = new lx.Collection(this.children.s);
 		if (this.timer.auto) this.timer.start();
 	}

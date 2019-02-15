@@ -107,7 +107,7 @@ class DbCrudAdapter extends CrudAdapter {
 				$rows[] = $fields;
 			}
 			$rows = ArrayHelper::valuesStable($rows);
-			$ids = $table->insert($rows['keys'], $rows['rows']);
+			$ids = (array)$table->insert($rows['keys'], $rows['rows']);
 			sort($ids);
 
 			$i = 0;
@@ -142,12 +142,11 @@ class DbCrudAdapter extends CrudAdapter {
 	 *
 	 * */
 	public function createTable($schema) {
-	// private function createTable($schema) {
 		$db = $this->getDb();
 
 		$tableName = $schema->getTableName();
 		$schemaConfig = [
-			$schema->pkName() => $db->primaryKey()
+			$schema->pkName() => $db->primaryKeyDefinition()
 		];
 
 		$fields = $schema->fieldNames();
@@ -167,9 +166,9 @@ class DbCrudAdapter extends CrudAdapter {
 	/**
 	 * //todo!!!! нормально с транзакциями сделать
 	 * */
-	public function correctModel($modelName, $tableName, $innerActions, $outerActions) {
+	public function correctModel($modelName, $tableName, $actions) {
 		/*
-		$innerActions - перечислимый массив, возможные элементы:
+		$actions - перечислимый массив, возможные элементы:
 			'action' => 'renameTable'
 				'old'
 				'new'
@@ -186,7 +185,28 @@ class DbCrudAdapter extends CrudAdapter {
 				'property'
 				'old'
 				'new'
-		$outerActions - ассоциативный массив, примеры:
+		*/
+
+		$db = $this->getDb();
+		$db->query('BEGIN;');
+		try {
+			$tableName = $this->applyInnerActions($tableName, $actions);
+		} catch (\Exception $e) {
+			$db->query('ROLLBACK;');
+			throw $e;
+			
+		}
+		$db->query('COMMIT;');
+
+		return $tableName;
+	}
+
+	/**
+	 *
+	 * */
+	public function addModelEssences($modelName, $tableName, $actions) {
+		/*
+		$actions - ассоциативный массив, примеры:
 			!!add:
 			  - f0: val1_0
 			    f1: val1_1
@@ -194,12 +214,12 @@ class DbCrudAdapter extends CrudAdapter {
 			    f1: val2_1
 			!!add:
 			  vars:
-			    $slug1: SomeModel('slug1').field
-			    $slug2: SomeModel('slug2').field + '_' + SomeModel('slug1').field
+			    $field1: SomeModel('slug1')->field
+			    $field2: SomeModel('slug2')->field + '_' + SomeModel('slug1')->field
 			  models:
-			    - f0: $slug1
+			    - f0: $field1
 			      f1: val1_1
-			    - f0: $slug2
+			    - f0: $field2
 			      f1: val2_1
 			!!addTable: [
 			  [ f0,     f1     ],
@@ -208,12 +228,12 @@ class DbCrudAdapter extends CrudAdapter {
 			]
 			!!addTable:
 			  vars:
-			    $slug1: SomeModel('slug1')->field;
-			    $slug2: SomeModel('slug2')->field . '_' . SomeModel('slug1')->field;
+			    $field1: SomeModel('slug1')->field;
+			    $field2: SomeModel('slug2')->field . '_' . SomeModel('slug1')->field;
 			  models: [
-			    [ f0,     f1     ],
-			    [ $slug1, val1_1 ],
-			    [ $slug2, val2_1 ]
+			    [ f0,      f1     ],
+			    [ $field1, val1_1 ],
+			    [ $field2, val2_1 ]
 			  ]
 			!!remove:
 			  slug: val
@@ -228,9 +248,7 @@ class DbCrudAdapter extends CrudAdapter {
 		$db = $this->getDb();
 		$db->query('BEGIN;');
 		try {
-			// Действия со схемой могут переименовать таблицу
-			$tableName = $this->applyInnerActions($tableName, $innerActions);
-			$this->applyOuterActions($modelName, $outerActions);
+			$this->applyOuterActions($modelName, $actions);
 		} catch (\Exception $e) {
 			$db->query('ROLLBACK;');
 			throw $e;
@@ -294,46 +312,50 @@ class DbCrudAdapter extends CrudAdapter {
 	 *
 	 * */
 	private function definitionByField($field) {
-		$type = $field->getType();
-		$dbType;
-		$conf = [];
-		switch ($type) {
-			case ModelField::TYPE_INTEGER:
-				$dbType = 'integer';
-				break;
+		// $type = $field->getType();
+		// $dbType;
+		// $conf = [];
+		// switch ($type) {
+		// 	case ModelField::TYPE_INTEGER:
+		// 		$dbType = 'integer';
+		// 		break;
 
-			case ModelField::TYPE_STRING:
-				$dbType = 'varchar';
-				$conf['size'] = $field->len();
-				break;
+		// 	case ModelField::TYPE_STRING:
+		// 		$dbType = 'varchar';
+		// 		$conf['size'] = $field->len();
+		// 		break;
 
-			case ModelField::TYPE_BOOLEAN:
-				$dbType = 'boolean';
-				break;
+		// 	case ModelField::TYPE_BOOLEAN:
+		// 		$dbType = 'boolean';
+		// 		break;
 
-			case ModelField::TYPE_MODEL:
-				/*
-				Это явно заявка на внешний ключ
-				*/
-				break;
+		// 	// case ModelField::TYPE_MODEL:
+		// 	// 	/*
+		// 	// 	Это явно заявка на внешний ключ
+		// 	// 	*/
+		// 	// 	break;
 
-			case ModelField::TYPE_MODEL_ARRAY:
-				// Здесь надо выяснить - возможно нужна промежуточная таблица, если вторая модель тоже с массивом
-				// Если вторая модель с одиночной ссылкой - это внешний ключ во второй модели
-				// Если во второй модели нет ссылки на первую - это расценивать как ошибку?
+		// 	// case ModelField::TYPE_MODEL_ARRAY:
+		// 	// 	// Здесь надо выяснить - возможно нужна промежуточная таблица, если вторая модель тоже с массивом
+		// 	// 	// Если вторая модель с одиночной ссылкой - это внешний ключ во второй модели
+		// 	// 	// Если во второй модели нет ссылки на первую - это расценивать как ошибку?
 
-				// $manager = $this->modelProvider->getManager( $field->getModelName() );
-				// var_dump($manager);
-				// die();
+		// 	// 	// $manager = $this->modelProvider->getManager( $field->getModelName() );
+		// 	// 	// var_dump($manager);
+		// 	// 	// die();
 
-				break;
-		}
+		// 	// 	break;
+		// }
 
-		if (!$dbType) return null;
+		// if (!$dbType) return null;
 
-		$conf['default'] = $field->getDefault();
-		$conf['notNull'] = $field->isNotNull();
-		$definition = $this->getDb()->$dbType($conf);
+		// $conf['default'] = $field->getDefault();
+		// $conf['notNull'] = $field->isNotNull();
+
+		$fieldDefinition = $field->getDefinition();
+		$dbType = $fieldDefinition['dbType'];
+
+		$definition = $this->getDb()->$dbType($fieldDefinition);
 
 		return $definition;
 	}
@@ -368,7 +390,7 @@ class DbCrudAdapter extends CrudAdapter {
 	 *
 	 * */
 	private function renameField($tableName, $data) {
-		$this->getDb()->tableRenameField($tableName, $data['old'], $data['new']);
+		$this->getDb()->tableRenameColumn($tableName, $data['old'], $data['new']);
 	}
 
 	/**
@@ -377,7 +399,7 @@ class DbCrudAdapter extends CrudAdapter {
 	private function addField($tableName, $data) {
 		$field = ModelField::create($data['name'], $data['params']);
 		$definition = $this->definitionByField($field);
-		$this->getDb()->tableAddField($tableName, $data['name'], $definition);
+		$this->getDb()->tableAddColumn($tableName, $data['name'], $definition);
 	}
 
 	/**
@@ -428,7 +450,7 @@ class DbCrudAdapter extends CrudAdapter {
 			if (array_key_exists('vars', $__data)) {
 				foreach ($__data['vars'] as $varName => $varCode) {
 					if (!preg_match('/;$/', $varCode)) $varCode .= ';';
-					eval( $varName . '=' . $varCode . '$__vars[\''. $varName .'\']=' . $varName . ';' );
+					eval('$__vars[\''. $varName .'\']=' . $varCode);
 				}
 			}
 
@@ -448,6 +470,7 @@ class DbCrudAdapter extends CrudAdapter {
 		// Создаем модели
 		$manager = $this->modelProvider->getManager($__modelName);
 		$models = $manager->newModels( count($__data) );
+		if (!is_array($models)) $models = [$models];
 		foreach ($__data as $i => $params) {
 			$models[$i]->setFields($params);
 		}

@@ -1,118 +1,158 @@
-#widget Table;
+#lx:widget Table;
 
-class ModelListDisplayer #in lx {
-	constructor(config) {
+class ModelListDisplayer #lx:namespace lx {
+	/**
+	 * config = {
+	 *	headHeight
+	 *	columnWidth
+	 *	integerColumnWidth
+	 *	booleanColumnWidth
+	 *	modelClass
+	 *	lock
+	 *	hide
+	 *	formModifier
+	 *	fieldsModifier
+	 *	data
+	 * }
+	 * */
+	constructor(config = {}) {
+		this.sideColumns = [];
+		this.bodyColumns = [];
+
 		this.init(config);
 	}
 
+	/**
+	 * Можно повторно передать конфиг, изменив некоторые параметры
+	 * */
+	apply(config = {}) {
+		this.init(config);
+		this.reset();
+	}
+
+	reset() {
+		if (!this.box) return;
+
+		var box = this.box;
+		box.clear();
+
+		if (!this.data) return;
+
+		var fieldConfigs = this.__defineFieldConfigs();
+		var addedColumns = this.__defineAddedColumns();
+		this.__buildMainComponents(box, this.headHeight, fieldConfigs.sideWidth, fieldConfigs.bodyWidth);
+		this.__buildComponentContent(
+			this.data,
+			addedColumns.preSideFields,
+			fieldConfigs.sideFields,
+			addedColumns.postSideFields,
+			fieldConfigs.sideCols,
+			box->headSide,
+			box->side
+		);
+		this.__buildComponentContent(
+			this.data,
+			addedColumns.preBodyFields,
+			fieldConfigs.bodyFields,
+			addedColumns.postBodyFields,
+			fieldConfigs.bodyCols,
+			box->headBody,
+			box->body
+		);
+	}
+
+	/**
+	 * Инициализация параметров - перезаписываются переданные, непереданные остаются прежними
+	 * */
 	init(config) {
-		if (config.headHeight) this.headHeight = config.headHeight;
-		this.headHeight = this.headHeight || '25px';
+		this.headHeight = [config.headHeight, this.headHeigh, '25px'].lxGetFirstDefined();
+		this.columnWidth = [config.columnWidth, this.columnWidth, '150px'].lxGetFirstDefined();
+		this.integerColumnWidth = [config.integerColumnWidth, this.integerColumnWidth, '100px'].lxGetFirstDefined();
+		this.booleanColumnWidth = [config.booleanColumnWidth, this.booleanColumnWidth, '100px'].lxGetFirstDefined();
 
-		if (config.columnWidth) this.columnWidth = config.columnWidth;
-		this.columnWidth = this.columnWidth || '150px';
+		this.modelClass = [config.modelClass, this.modelClass, null].lxGetFirstDefined();
+		this.lock = [config.lock, this.lock, []].lxGetFirstDefined();
+		this.hide = [config.hide, this.hide, []].lxGetFirstDefined();
 
-		if (config.integerColumnWidth) this.integerColumnWidth = config.integerColumnWidth;
-		this.integerColumnWidth = this.integerColumnWidth || '100px';
+		this.formModifier = [config.formModifier, this.formModifier, null].lxGetFirstDefined();
+		this.fieldsModifier = [config.fieldsModifier, this.fieldsModifier, {}].lxGetFirstDefined();
 
-		if (config.booleanColumnWidth) this.booleanColumnWidth = config.booleanColumnWidth;
-		this.booleanColumnWidth = this.booleanColumnWidth || '100px';
-
-
-		if (config.lock) this.lock = config.lock;
-		this.lock = this.lock || [];
-
-		if (config.hide) this.hide = config.hide;
-		this.hide = this.hide || [];
-
-		if (config.formModifier) this.formModifier = config.formModifier;
-		this.formModifier = this.formModifier || {};
-
-		if (config.fieldsModifier) this.modifier = config.fieldsModifier;
-		this.modifier = this.modifier || {};
-
-		if (config.modelClass) this.modelClass = config.modelClass;
-		this.modelClass = this.modelClass || null;
+		this.box = [config.box, this.box, null].lxGetFirstDefined();
+		this.data = [config.data, this.data, null].lxGetFirstDefined();
 	}
 
-	apply(config) {
-		this.init(config);
+	/**
+	 * Добавить колонку, не являющуюся частью схемы представляемой модели
+	 * */
+	addColumn(config) {
+		if (!config.render || !config.render.isFunction) return;
 
-		var box = config.box,
-			headHeight = this.headHeight,
-			columnWidth = this.columnWidth,
-			intColumnWidth = this.integerColumnWidth,
-			boolColumnWidth = this.booleanColumnWidth,
-			w = lx.Geom.splitGeomValue(columnWidth),
-			wInt = lx.Geom.splitGeomValue(intColumnWidth),
-			wBool = lx.Geom.splitGeomValue(boolColumnWidth),
-			width = [0, 0],
-			data = config.data,
-			schema = this.modelClass.getFieldTypes(),
-			lock = this.lock,
-			modif = this.modifier,
-			formModif = this.formModifier,
-			lockLen = 0,
-			unlockLen = 0,
-			widget,
-			sideFields = {},
-			bodyFields = {};
-		for (var name in schema) {
-			if (this.hide.contain(name)) continue;
+		config.lock = [config.lock, true].lxGetFirstDefined();
+		config.widget = [config.widget, lx.Box].lxGetFirstDefined();
+		config.position = [config.position, lx.RIGHT].lxGetFirstDefined();
+		config.width = [config.width, '100px'].lxGetFirstDefined();
+		config.label = [config.label, ''].lxGetFirstDefined();
 
-			var side = +lock.contain(name);
-			switch (schema[name]) {
-				case 'pk'     : width[side] += wInt[0];  widget = lx.Box;      break;
-				case 'boolean': width[side] += wBool[0]; widget = lx.Checkbox; break;
-				case 'integer': width[side] += wInt[0];  widget = lx.Input;    break;
-				default: width[side] += w[0]; widget = lx.Input;
-			}
-			if (side) {
-				sideFields[name] = [widget, {width: 1}];
-				lockLen++;
-			} else {
-				bodyFields[name] = [widget, {width: 1}];
-				unlockLen++;
-			}
-		}
+		if (config.lock) this.sideColumns.push(config);
+		else this.bodyColumns.push(config);
+	}
 
-		this.buildBox(box, headHeight, width[1] + w[1], width[0] + w[1]);
+	/**
+	 *
+	 * */
+	getRow(index) {
+		return {
+			side: this.box->side.child(index),
+			body: this.box->body.child(index)
+		};
+	}
 
-		for (var name in sideFields) box->headSide.add(lx.Box, {text: name}).align(lx.CENTER, lx.MIDDLE);
-		for (var name in bodyFields) box->head.add(lx.Box, {text: name}).align(lx.CENTER, lx.MIDDLE);
+	/**
+	 * Наполенние основных контейнеров содержимым согласно переданной коллекции моделей
+	 * */
+	__buildComponentContent(data, pre, fields, post, colsCount, head, body) {
+		if (fields.lxEmpty) return;
 
-		box->side.matrix({
+		var fieldsModifier = this.fieldsModifier,
+			formModifier = this.formModifier;
+
+
+		pre.each((a)=>head.add(lx.Box, {text:a.label}).align(lx.CENTER, lx.MIDDLE));
+		for (var name in fields) head.add(lx.Box, {text: name}).align(lx.CENTER, lx.MIDDLE);
+		post.each((a)=>head.add(lx.Box, {text:a.label}).align(lx.CENTER, lx.MIDDLE));
+
+		body.matrix({
 			items: data,
-			itemBox: [lx.Form, {grid: {cols: lockLen, indent: '10px'}}],
+			itemBox: [lx.Form, {grid: {cols: colsCount, indent: '10px'}}],
 			itemRender: (form)=> {
-				if (formModif) formModif(form);
+				if (formModifier) formModifier(form);
 
-				form.fields(sideFields);
-
-				form.getChildren().each((a)=> {
-					if (modif[a.key]) modif[a.key](a);
-					else if (modif.default) modif.default(a);
+				pre.each((a)=>{
+					var widget = new a.widget({width: 1/*todo!!!!!*/});
+					a.render(widget);
 				});
-			}
-		});
-
-		box->body.matrix({
-			items: data,
-			itemBox: [lx.Form, {grid: {cols: unlockLen, indent: '10px'}}],
-			itemRender: (form)=> {
-				if (formModif) formModif(form);
-
-				form.fields(bodyFields);
+				form.fields(fields);
+				post.each((a)=>{
+					var widget = new a.widget({width: 1/*todo!!!!!*/});
+					a.render(widget);
+				});
 
 				form.getChildren().each((a)=> {
-					if (modif[a.key]) modif[a.key](a);
-					else if (modif.default) modif.default(a);
+					if (fieldsModifier[a.key]) fieldsModifier[a.key](a);
+					else if (fieldsModifier['default']) fieldsModifier['default'](a);
 				});
 			}
 		});
 	}
 
-	buildBox(elem, height, sideWidth, bodyWidth) {
+	/**
+	 * Построение основных контейнеров виджета:
+	 * - несмещаемого заголовка
+	 * - смещаемого заголовка
+	 * - горизонтально несмещаемого содержимого
+	 * - смещаемого содержимого
+	 * */
+	__buildMainComponents(elem, height, sideWidth, bodyWidth) {
 		elem.overflow('auto');
 
 		var body = elem.add(lx.Box, {
@@ -132,8 +172,8 @@ class ModelListDisplayer #in lx {
 			stream: {sizeBehavior: lx.StreamPositioningStrategy.SIZE_BEHAVIOR_BY_CONTENT}
 		});
 
-		var head = elem.add(lx.TableRow, {
-			key: 'head',
+		var headBody = elem.add(lx.TableRow, {
+			key: 'headBody',
 			left: sideWidth,
 			width: bodyWidth,
 			height: height,
@@ -149,11 +189,89 @@ class ModelListDisplayer #in lx {
 
 		elem.on('scroll', function() {
 			var pos = this.scrollPos();
-			this->head.top(pos.y + 'px');
+			this->headBody.top(pos.y + 'px');
 			this->side.left(pos.x + 'px');
 			this->headSide
 				.top(pos.y + 'px')
 				.left(pos.x + 'px');
 		});
+	}
+
+	/**
+	 * В зависимости от типов полей модели вычисляются ширины и подходящие виджеты для каждого поля, с учетом смещаемости
+	 * */
+	__defineFieldConfigs() {
+		//todo - все для пикселей работает, для смешанных нет. Надо переделывать
+		var columnWidth = this.columnWidth,
+			intColumnWidth = this.integerColumnWidth,
+			boolColumnWidth = this.booleanColumnWidth,
+			w = lx.Geom.splitGeomValue(columnWidth),
+			wInt = lx.Geom.splitGeomValue(intColumnWidth),
+			wBool = lx.Geom.splitGeomValue(boolColumnWidth),
+			width = [0, 0],
+			lock = this.lock,
+			widget,
+			schema = this.modelClass.getFieldTypes(),
+			result = {
+				sideCols: 0,
+				bodyCols: 0,
+				sideFields: {},
+				bodyFields: {}
+			};
+		for (var name in schema) {
+			if (this.hide.contain(name)) continue;
+
+			var side = +lock.contain(name);
+			switch (schema[name]) {
+				case 'pk'     : width[side] += wInt[0];  widget = lx.Box;      break;
+				case 'boolean': width[side] += wBool[0]; widget = lx.Checkbox; break;
+				case 'integer': width[side] += wInt[0];  widget = lx.Input;    break;
+				default: width[side] += w[0]; widget = lx.Input;
+			}
+			if (side) {
+				result.sideFields[name] = [widget, {width: 1}];
+				result.sideCols++;
+			} else {
+				result.bodyFields[name] = [widget, {width: 1}];
+				result.bodyCols++;
+			}
+		}
+
+		this.sideColumns.each((column)=>{
+			let cw = lx.Geom.splitGeomValue( column.width )[0];
+			width[1] += cw;
+			result.sideCols++;
+		});
+		this.bodyColumns.each((column)=>{
+			let cw = lx.Geom.splitGeomValue( column.width )[0];
+			width[0] += cw;
+			result.bodyCols++;
+		});
+
+		result.sideWidth = width[1] + w[1];
+		result.bodyWidth = width[0] + w[1];
+		return result;
+	}
+
+	/**
+	 * Раскидываем добавочные колонки по положению
+	 * */
+	__defineAddedColumns() {
+		var result = {
+			preSideFields:[],
+			postSideFields:[],
+			preBodyFields:[],
+			postBodyFields:[]
+		};
+
+		this.sideColumns.each((column)=>{
+			if (column.position == lx.RIGHT) result.postSideFields.push(column);
+			else result.preSideFields.push(column);
+		});
+		this.bodyColumns.each((column)=>{
+			if (column.position == lx.RIGHT) result.postBodyFields.push(column);
+			else result.preBodyFields.push(column);
+		});
+		return result;
 	}
 }

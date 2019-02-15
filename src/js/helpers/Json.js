@@ -1,4 +1,4 @@
-#private;
+#lx:private;
 
 lx.Json = {
 	decode: function(str) {

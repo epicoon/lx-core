@@ -1,10 +1,10 @@
-#use lx.Rect as Rect;
-#use lx.Box as Box;
-#use lx.Input as Input;
-#use lx.Dropbox as Dropbox;
-#use lx.Table as Table;
+#lx:use lx.Rect as Rect;
+#lx:use lx.Box as Box;
+#lx:use lx.Input as Input;
+#lx:use lx.Dropbox as Dropbox;
+#lx:use lx.Table as Table;
 
-class Calendar extends Input #in lx {
+class Calendar extends Input #lx:namespace lx {
 	//todo - сделать инициализацию даты + см. тудуху для lx.Date
 	postBuild(config) {
 		this.date = lx.Date();

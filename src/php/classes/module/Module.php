@@ -134,9 +134,16 @@ class Module {
 	 * Добавить сразу несколько параметров при помощи массива
 	 * */
 	public function addParams($data) {
+		$data = $this->beforeAddParams($data);
+		if ($data === false) {
+			return;
+		}
+
 		foreach ($data as $key => $value) {
 			$this->params->$key = $value;
 		}
+
+		$this->afterAddParams($data);
 	}
 
 	public function preJs($code) {
@@ -358,6 +365,19 @@ class Module {
 	 * */
 	protected function init() {
 
+	}
+
+	/**
+	 *
+	 * */
+	protected function beforeAddParams($data) {
+		return $data;
+	}
+
+	/**
+	 *
+	 * */
+	protected function afterAddParams($data) {
 	}
 
 

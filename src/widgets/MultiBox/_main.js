@@ -1,6 +1,6 @@
-#use lx.Box as Box;
+#lx:use lx.Box as Box;
 
-class MultiBox extends Box #in lx {
+class MultiBox extends Box #lx:namespace lx {
 	/**
 	 * config = {
 	 *	// стандартные для Box,
@@ -49,7 +49,7 @@ class MultiBox extends Box #in lx {
 	}
 
 	postUnpack() {
-		var timer = this.extract('__timer');
+		var timer = this.lxExtract('__timer');
 		if (timer) {
 			var action = (timer === true) ? null : a.unpackFunction(timer);
 			this.setTimer(action);

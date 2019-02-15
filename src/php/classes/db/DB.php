@@ -8,7 +8,7 @@ abstract class DB {
 		SELECT_TYPE_MAP = 10,    // Возвращать поля с ключами именами полей
 		SELECT_TYPE_ARRAY = 15,  // Возвращать поля с числовыми ключами
 
-		SHORT_SCHEME = 20,
+		SHORT_SCHEMA = 20,
 
 		TYPE_INTEGER = 'integer',
 		TYPE_STRING = 'string',
@@ -119,7 +119,7 @@ abstract class DB {
 	/**
 	 * Сформировать новый DbColumnDefinition для первичного ключа
 	 * */
-	public function primaryKey($conf=[]) {
+	public function primaryKeyDefinition($conf=[]) {
 		$conf['type'] = '';
 		$conf['isPK'] = true;
 		return new DbColumnDefinition($conf);

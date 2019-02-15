@@ -1,6 +1,6 @@
-#use lx.Box as Box;
+#lx:use lx.Box as Box;
 
-class LabeledBox extends Box #in lx {
+class LabeledBox extends Box #lx:namespace lx {
 	/**
 	 * config = {
 	 *	// стандартные для Box,
@@ -219,13 +219,13 @@ class LabeledBox extends Box #in lx {
 	value(val) {
 		var widget = this.widget();
 		if (val === undefined) {
-			if (widget.hasMethod('value')) return widget.value();
-			if (widget.hasMethod('text')) return widget.text();
+			if (widget.lxHasMethod('value')) return widget.value();
+			if (widget.lxHasMethod('text')) return widget.text();
 			return null;
 		}
 
-		if (widget.hasMethod('value')) widget.value(val);
-		if (widget.hasMethod('text')) widget.text(val);
+		if (widget.lxHasMethod('value')) widget.value(val);
+		if (widget.lxHasMethod('text')) widget.text(val);
 	}
 
 	disabled(bool) {

@@ -1,4 +1,4 @@
-class Button extends lx.Box #in lx {
+class Button extends lx.Box #lx:namespace lx {
 	postBuild(config) {
 		super.postBuild(config);
 		this.align(lx.CENTER, lx.MIDDLE);

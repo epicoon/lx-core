@@ -1,9 +1,9 @@
-#private;
+#lx:private;
 
-#use lx.Rect as Rect;
-#use lx.Box as Box;
+#lx:use lx.Rect as Rect;
+#lx:use lx.Box as Box;
 
-class ActiveBox extends Box #in lx {
+class ActiveBox extends Box #lx:namespace lx {
 	/**
 	 * config = {
 	 * 	header: string
@@ -19,8 +19,8 @@ class ActiveBox extends Box #in lx {
 
 		this.setHeader(config);
 		if (config.body !== false) this.setBody(config.body || Box);
-		if ([config.resize, self::DEFAULT_RESIZE].getFirstDefined()) this.setResizer(config);
-		this.adhesive = [config.adhesive, self::DEFAULT_ADHESIVE].getFirstDefined();
+		if ([config.resize, self::DEFAULT_RESIZE].lxGetFirstDefined()) this.setResizer(config);
+		this.adhesive = [config.adhesive, self::DEFAULT_ADHESIVE].lxGetFirstDefined();
 	}
 
 	postBuild(config) {
@@ -44,7 +44,7 @@ class ActiveBox extends Box #in lx {
 		var header = new Box(headerConfig).align(lx.CENTER, lx.MIDDLE, 'text');
 		header.fill('lightgray');
 
-		if ([config.move, self::DEFAULT_MOVE].getFirstDefined())
+		if ([config.move, self::DEFAULT_MOVE].lxGetFirstDefined())
 			header.move({parentMove: true});
 	}
 

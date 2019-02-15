@@ -1,6 +1,6 @@
-#private;
+#lx:private;
 
-#use lx.PositioningStrategy as PositioningStrategy;
+#lx:use lx.PositioningStrategy as PositioningStrategy;
 
 /*
 формирует сетку с заданным количеством колонок, высота строки может быть задана, или будет определена автоматически исходя из размера коробки				
@@ -11,7 +11,7 @@
 	адаптируемая высота строк	SIZE_BEHAVIOR_PROPORTIONAL
 	управляющая высота строк	SIZE_BEHAVIOR_BY_CONTENT
 */
-class GridPositioningStrategy extends PositioningStrategy #in lx {
+class GridPositioningStrategy extends PositioningStrategy #lx:namespace lx {
 	constructor(owner, config) {
 		super(owner);
 		this.innerFormat = PositioningStrategy.FORMAT_PX;

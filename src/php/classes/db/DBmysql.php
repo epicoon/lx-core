@@ -105,12 +105,12 @@ class DBmysql extends DB {
 	 * */
 	public function tableSchema($name, $fields=null) {
 		$fieldsString = $fields;
-		if ($fields == self::SHORT_SCHEME) $fieldsString = 'column_name,column_default,is_nullable,data_type,character_maximum_length,column_key';
+		if ($fields == self::SHORT_SCHEMA) $fieldsString = 'column_name,column_default,is_nullable,data_type,character_maximum_length,column_key';
 		else if (is_array($fields)) $fieldsString = implode(',', $fields);
 		else if ($fields === null) $fieldsString = '*';
 
 		$res = $this->select("SELECT $fieldsString FROM information_schema.columns WHERE table_name='$name'");
-		if ($fields != self::SHORT_SCHEME) return $res;
+		if ($fields != self::SHORT_SCHEMA) return $res;
 
 		/*
 		Для короткой схемы вернёт данные в формате:
@@ -118,9 +118,9 @@ class DBmysql extends DB {
 			[
 				'name' - всегда
 				'type' - всегда
-				'id_nullable' - всегда, булево значение
+				'notNull' - всегда, булево значение
 				'default' - если есть
-				'len' - если есть
+				'size' - если есть
 			],
 			...
 		]
@@ -134,14 +134,14 @@ class DBmysql extends DB {
 
 			if ($item['column_key'] == 'PRI') $data['default'] = '@PK';
 
-			$data['is_nullable'] = $item['is_nullable'] == 'YES';
+			$data['notNull'] = $item['is_nullable'] == 'NO';
 
 			if (preg_match('/^varchar/', $item['data_type'])) $data['type'] = 'string';
 			else if ($item['data_type'] == 'int') $data['type'] = 'integer';
 			else $data['type'] = $item['data_type'];
 
 			if (isset($item['character_maximum_length']))
-				$data['len'] = $item['character_maximum_length'];
+				$data['size'] = $item['character_maximum_length'];
 
 			$result[$name] = $data;
 		}

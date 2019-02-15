@@ -8,9 +8,9 @@ return [
 	'mode' => 'dev',
 
 	// Роутинг по сервисам
-	'router' => require_once(__DIR__ . '/routes.php'),
+	'router' => require __DIR__ . '/routes.php',
 	// Настройки базы данных
-	'db' => require_once(__DIR__ . '/db.php'),
+	'db' => require __DIR__ . '/db.php',
 
 	// Каталоги, в которых расположены пакеты
 	'packagesMap' => [

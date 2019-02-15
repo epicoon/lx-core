@@ -1,6 +1,6 @@
-#use lx.Button as Button;
+#lx:use lx.Button as Button;
 
-class RequestButton extends Button #in lx {
+class RequestButton extends Button #lx:namespace lx {
 	build(config) {
 		super.build(config);
 

@@ -1,7 +1,7 @@
-#use lx.Rect as Rect;
-#use lx.Box as Box;
+#lx:use lx.Rect as Rect;
+#lx:use lx.Box as Box;
 
-class EggMenu extends Box #in lx {
+class EggMenu extends Box #lx:namespace lx {
 	constructor(config={}) {
 		config.size = ['40px', '50px'];
 		super(config);

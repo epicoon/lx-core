@@ -1,7 +1,7 @@
-#use lx.Box as Box;
-#use lx.Button as Button;
+#lx:use lx.Box as Box;
+#lx:use lx.Button as Button;
 
-class Form extends Box #in lx {
+class Form extends Box #lx:namespace lx {
 	/**
 	 * list - хэш-таблица, записи - {name, info} - преобразуются в аргументы для метода .field(className, fieldName, config)
 	 *	name - имя, которое станет значением ключа нового элемента и значением поля field
@@ -73,7 +73,7 @@ class Form extends Box #in lx {
 		var children = this.getChildren({ hasProperties: '_field', all: true });
 		children.each((a)=>{
 			if (map !== null && map.isArray && !map.contain(a._field)) return;
-			obj[a._field] = a.hasMethod('value')
+			obj[a._field] = a.lxHasMethod('value')
 				? a.value()
 				: a.text();
 		});

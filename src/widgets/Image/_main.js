@@ -1,6 +1,6 @@
-#use lx.Rect as Rect;
+#lx:use lx.Rect as Rect;
 
-class Image extends Rect #in lx {
+class Image extends Rect #lx:namespace lx {
 	preBuild(config) {
 		if (config.isString) config = {filename: config};
 		if (!config.key) config.key = 'image';

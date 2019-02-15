@@ -1,6 +1,6 @@
-#private;
+#lx:private;
 
-#use lx.PositioningStrategy as PositioningStrategy;
+#lx:use lx.PositioningStrategy as PositioningStrategy;
 
 /**
  * Позволяет задавать правила выравнивания для групп элементов
@@ -8,7 +8,7 @@
  * Можно задать правило по ключу — все элементы с таким ключом формируют группу, которая выравнивается как единое целое
  * Можно задать правило для конкретных элементов, они так же сформируют группу
  * */
-class AlignPositioningStrategy extends PositioningStrategy #in lx {
+class AlignPositioningStrategy extends PositioningStrategy #lx:namespace lx {
 	constructor(owner, config) {
 		super(owner);
 

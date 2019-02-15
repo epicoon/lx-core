@@ -1,8 +1,8 @@
-#use lx.Rect as Rect;
-#use lx.Box as Box;
-#use lx.Table as Table;
+#lx:use lx.Rect as Rect;
+#lx:use lx.Box as Box;
+#lx:use lx.Table as Table;
 
-class Dropbox extends Box #in lx {
+class Dropbox extends Box #lx:namespace lx {
 	/* params = {
 	 *	// стандартные для Box,
 	 *	

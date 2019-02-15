@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class ModelFieldInteger extends ModelFieldSimple {
+class ModelFieldInteger extends ModelField {
 	const NOT_NULL_DEFAULT = 111;
 
 	protected function init($data) {

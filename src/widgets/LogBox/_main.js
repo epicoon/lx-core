@@ -1,6 +1,6 @@
-#use lx.Box as Box;
+#lx:use lx.Box as Box;
 
-class LogBox extends Box #in lx {
+class LogBox extends Box #lx:namespace lx {
 	build(config) {
 		super.build(config);
 

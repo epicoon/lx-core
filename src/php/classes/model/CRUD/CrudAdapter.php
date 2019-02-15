@@ -17,5 +17,6 @@ abstract class CrudAdapter {
 
 	abstract public function checkNeedTable($schema);
 
-	abstract public function correctModel($modelName, $tableName, $innerActions, $outerActions);
+	abstract public function correctModel($modelName, $tableName, $actions);
+	abstract public function addModelEssences($modelName, $tableName, $actions);
 }

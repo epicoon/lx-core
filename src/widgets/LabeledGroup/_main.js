@@ -1,7 +1,7 @@
-#use lx.Box as Box;
-#use lx.LabeledBox as LabeledBox;
+#lx:use lx.Box as Box;
+#lx:use lx.LabeledBox as LabeledBox;
 
-class LabeledGroup extends Box #in lx {
+class LabeledGroup extends Box #lx:namespace lx {
 	/**
 	 * config = {
 	 *	// стандартные для Box,

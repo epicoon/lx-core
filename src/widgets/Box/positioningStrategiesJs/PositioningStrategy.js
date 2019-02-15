@@ -1,6 +1,6 @@
-#require IndentData;
+#lx:require IndentData;
 
-class PositioningStrategy #in lx {
+class PositioningStrategy #lx:namespace lx {
 	constructor(owner) {
 		this.owner = owner;
 

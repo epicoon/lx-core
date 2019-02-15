@@ -1,4 +1,4 @@
-#use lx.PositioningStrategy as PositioningStrategy;
+#lx:use lx.PositioningStrategy as PositioningStrategy;
 
 /*
 количество элементов определяется заданным числом строк и колонок, либо общим числом элементов
@@ -11,7 +11,7 @@
 добавление новых элементов пересчитывает размеры уже имеющимся, не влияя на размер самой коробки
 todo - можно добавить фиксированную высоту, чтобы высота коробки менялась + автоопределение числа колонок
 */
-class SlotPositioningStrategy extends PositioningStrategy #in lx {
+class SlotPositioningStrategy extends PositioningStrategy #lx:namespace lx {
 	constructor(owner, config) {
 		super(owner);
 

@@ -6,6 +6,8 @@ namespace lx;
  * Самое общее, централизованное управление миграциями
  * */
 class MigrationManager {
+	private $migrationsChecked = [];
+
 	/**
 	 * Инициация накатывания всех миграций
 	 * */
@@ -27,7 +29,10 @@ class MigrationManager {
 	 * Инициация накатывания всех миграций в конкретном сервисе
 	 * */
 	public function runService($service) {
-		$info = (new ModelBrowser($service))->getModelsInfo();
+		// Проверка существующих миграций - все ли накачены
+		$this->checkMigrations($service);
+
+		$info = ModelBrowser::getModelsInfo($service);
 
 		foreach ($info as $modelName => $modelInfo) {
 			if ($modelInfo['needTable'] || $modelInfo['hasChanges']) {
@@ -40,6 +45,9 @@ class MigrationManager {
 	 * Проверка конкретной модели на измение и если они есть - генерация и накатывание миграций
 	 * */
 	public function runModel($service, $modelName, $path = null, $code = null) {
+		// Проверка существующих миграций - все ли накачены
+		$this->checkMigrations($service);
+
 		if ($path === null) {
 			$path = $service->conductor->getModelPath($modelName);
 		}
@@ -54,7 +62,7 @@ class MigrationManager {
 		unset($modelData[$modelName]);
 
 		$modelMigrater = new ModelMigrateExecutor($service, $modelName, $model, $modelData, $path, $code);
-		if (!$modelMigrater->run()) {
+		if (!$modelMigrater->runParseCode()) {
 			throw new \Exception("Migration failed for model '$modelName' in service '{$service->mame}'", 400);
 		}
 	}
@@ -62,4 +70,39 @@ class MigrationManager {
 	/**************************************************************************************************************************
 	 * PRIVATE
 	 *************************************************************************************************************************/
+
+	/**
+	 * Проверка ненакаченных миграция для сервиса
+	 * */
+	private function checkMigrations($service) {
+		if (array_search($service->name, $this->migrationsChecked) !== false) {
+			return;
+		}
+		$this->migrationsChecked[] = $service->name;
+
+		$dir = $service->conductor->getMigrationDirectory();
+		if (!$dir->contain('map.json')) {
+			return;
+		}
+
+		$mapFile = $dir->get('map.json');
+		$map = json_decode($mapFile->get(), true);
+		$list = $map['list'];
+		usort($list, function($a, $b) {
+			if ($a['time']===$b['time']) return 0;
+			return ($a['time'] < $b['time']) ? -1 : 1;
+		});
+
+		foreach ($list as &$migrationRow) {
+			if (!$migrationRow['applied']) {
+				$migration = json_decode($dir->get($migrationRow['name'])->get(), true);
+				ModelMigrateExecutor::runMigration($service, $migration);
+				$migrationRow['applied'] = true;
+			}
+		}
+		unset($migrationRow);
+
+		$map['list'] = $list;
+		$mapFile->put(json_encode($map));
+	}
 }

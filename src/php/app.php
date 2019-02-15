@@ -57,6 +57,10 @@
 	private static function loadConfig()
 */
 class lx {
+	const MODE_PROD = 'prod';
+	const MODE_DEV = 'dev';
+	const MODE_TEST = 'test';
+
 	const APP_TYPE_SIMPLE = 'simple';
 	const APP_TYPE_COMPOSER_PACKAGE = 'composer-package';
 
@@ -106,17 +110,19 @@ class lx {
 		$_config = null;
 
 
-	private static $alertStack = [];
+
+
+
 
 	public static function alert($data) {
-		self::$alertStack[] = $data;
-	}
-
-	public static function getAlerts() {
-		if (empty(self::$alertStack)) {
-			return null;
+		if (self::isMode(self::MODE_PROD)) {
+			return;
 		}
-		return 'alert:' . json_encode(self::$alertStack);
+
+		lx\JsCompiler::noteUsedWidget(lx\ActiveBox::class);
+		echo '<lx-alert>';
+		var_dump($data);
+		echo '</lx-alert>';
 	}
 
 
@@ -455,12 +461,7 @@ class lx {
 		}
 
 		$result = lx\ClassHelper::call($module, 'sendAjaxResponse', [\lx::$dialog->params()]);
-		$alerts = self::getAlerts();
-		if ($alerts) {
-			self::$dialog->send($alerts);
-		} else {
-			self::$dialog->send($result);
-		}
+		self::$dialog->send($result);
 	}
 
 	/**

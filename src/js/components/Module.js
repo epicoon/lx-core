@@ -189,39 +189,29 @@ lx.Module = function(info, block) {
 			return this.getHandler(essense);
 		},
 
-		//todo 1/2 - оптимизировать ресурсы - если уже подгружен, просто подписаться, не зругизь заново
-		createCssTag: function(href) {
-			var link  = document.createElement('link');
-			link.rel  = 'stylesheet';
-			link.type = 'text/css';
-			link.href = href;
-			link.setAttribute('name', this.key);
-			return link;
-		},
-
-		//todo 2/2 - оптимизировать ресурсы - если уже подгружен, просто подписаться, не зругизь заново
-		createScriptTag: function(name) {
-			var script = document.createElement('script');
-			script.setAttribute('name', this.key);
-			var onSuccess, onError;
-			if (name.isArray) {
-				onSuccess = name[1];
-				onError = name[2];
-				name = name[0];
-			}
-			script.src = name;
-			if (onSuccess) {
-				if (onSuccess.isString) onSuccess = this.decodeFunciton(onSuccess);
-				if (!onSuccess) return false;
-				script.onload = onSuccess.bind(script);
-			}
-			if (onError) {
-				if (onError.isString) onError = this.decodeFunciton(onError);
-				if (!onError) return false;
-				script.error = onError.bind(script);
-			}
-			return script;
-		},
+		// //todo 2/2 - оптимизировать ресурсы - если уже подгружен, просто подписаться, не зругизь заново
+		// createScriptTag: function(name) {
+		// 	var script = document.createElement('script');
+		// 	script.setAttribute('name', this.key);
+		// 	var onSuccess, onError;
+		// 	if (name.isArray) {
+		// 		onSuccess = name[1];
+		// 		onError = name[2];
+		// 		name = name[0];
+		// 	}
+		// 	script.src = name;
+		// 	if (onSuccess) {
+		// 		if (onSuccess.isString) onSuccess = this.decodeFunciton(onSuccess);
+		// 		if (!onSuccess) return false;
+		// 		script.onload = onSuccess.bind(script);
+		// 	}
+		// 	if (onError) {
+		// 		if (onError.isString) onError = this.decodeFunciton(onError);
+		// 		if (!onError) return false;
+		// 		script.error = onError.bind(script);
+		// 	}
+		// 	return script;
+		// },
 
 		subscribeNamespacedClass: function(namespace, className) {
 			//todo
@@ -321,6 +311,6 @@ lx.Module = function(info, block) {
 	return module;
 };
 
-#require module/AjaxGet;
+#lx:require module/AjaxGet;
 
 })();

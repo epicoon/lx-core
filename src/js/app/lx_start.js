@@ -1,4 +1,4 @@
-#private
+#lx:private
 
 function resetInit() {
 	delete lx.setWatchForKeypress;
@@ -51,8 +51,8 @@ lx.start = function(settings, data, jsBootstrap, module, jsMain) {
 	// lx.body.key = 'body';
 	// lx.body.on('scroll', lx.checkDisplay);
 
-	// Загрузка модуля
-	if (module) lx.Loader.loadModule(module, lx.body);
+	// Запуск загрузчика
+	if (module) lx.Loader.run(module, lx.body);
 
 	// Глобальный js-код, выполняемый ПОСЛЕ загрузки корневого модуля
 	if (jsMain && jsMain != '') lx.createAndCallFunction('', jsMain, this);

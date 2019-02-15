@@ -1,7 +1,7 @@
-#use lx.Rect as Rect;
-#use lx.Box as Box;
+#lx:use lx.Rect as Rect;
+#lx:use lx.Box as Box;
 
-class Slider extends Box #in lx {
+class Slider extends Box #lx:namespace lx {
 	build(config) {
 		super.build(config);
 

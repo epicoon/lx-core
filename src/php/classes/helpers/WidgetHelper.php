@@ -98,7 +98,7 @@ class WidgetHelper {
 				$name = is_string($key) ? $key : $value;
 				$codes[$namespace]['code'][] = $name . ':_main.js';
 			}
-			$codes[$namespace]['code'] = '#require {' . implode(',', $codes[$namespace]['code']) . '};';
+			$codes[$namespace]['code'] = '#lx:require {' . implode(',', $codes[$namespace]['code']) . '};';
 		}
 		foreach ($codes as $namespace => $data) {
 			$codes[$namespace] = JsCompiler::compileCode($data['code'], $data['path']);

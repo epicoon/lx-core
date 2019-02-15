@@ -1,8 +1,8 @@
-#private;
+#lx:private;
 
-#use lx.Rect as Rect;
-#use lx.Box as Box;
-#use lx.Input as Input;
+#lx:use lx.Rect as Rect;
+#lx:use lx.Box as Box;
+#lx:use lx.Input as Input;
 
 /* 
  * Special events:
@@ -14,7 +14,7 @@
  * - beforeDel(event, node)
  * - afterDel(event)
  * */
-class TreeBox extends Box #in lx {
+class TreeBox extends Box #lx:namespace lx {
 	/* config = {
 	 *	// стандартные для Box,
 	 *	

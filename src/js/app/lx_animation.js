@@ -1,4 +1,4 @@
-#private
+#lx:private
 
 /*
 lx.addAction(f, ctx)

@@ -1,6 +1,6 @@
 //todo lx.treeSeparator это пздц какой-то
 
-class Tree #in lx {
+class Tree #lx:namespace lx {
 	constructor(...args) {
 		this.key = '';
 		this.root = null;

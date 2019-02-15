@@ -3,10 +3,10 @@
 namespace lx;
 
 class ModuleBrowser {
-	private $service;
+	private $module;
 
-	public function __construct($service) {
-		$this->service = $service;
+	public function __construct($module) {
+		$this->module = $module;
 	}
 
 	/**
@@ -34,8 +34,7 @@ class ModuleBrowser {
 	/**
 	 *
 	 * */
-	public function getModulesList() {
-		$service = $this->service;
+	public function getModulesMap($service) {
 		$dynamicModules = $service->getConfig('service.dynamicModules');
 		$modules = (array)$service->getConfig('service.modules');
 
@@ -53,7 +52,7 @@ class ModuleBrowser {
 		}
 
 		foreach ($modules as $dirName) {
-			$dir = $service->dir->get($dirName);
+			$dir = $service->directory->get($dirName);
 			if (!$dir) {
 				continue;
 			}
@@ -61,7 +60,7 @@ class ModuleBrowser {
 			$dirs = $dir->getDirs()->getData();
 			foreach ($dirs as $subdir) {
 				if (self::checkDirectoryIsModule($subdir->getPath())) {
-					$result['static'][$subdir->getName()] = explode($service->dir->getPath() . '/', $subdir->getPath())[1];
+					$result['static'][$subdir->getName()] = explode($service->getPath() . '/', $subdir->getPath())[1];
 				}
 			}
 		}

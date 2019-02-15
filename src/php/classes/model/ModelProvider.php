@@ -79,6 +79,20 @@ class ModelProvider {
 	}
 
 	/**
+	 * Получить массив схемы
+	 * */
+	public function getSchemaArray($modelName) {
+		$path = $this->getSchemaPath($modelName);
+		$file = new YamlFile($path);
+		if (!$file->exists()) {
+			return false;
+		}
+
+		$data = $file->get();
+		return $data[$modelName];
+	}
+
+	/**
 	 * Путь к конкретной модели
 	 * */
 	public function getSchemaPath($modelName) {
@@ -90,14 +104,6 @@ class ModelProvider {
 	 * */
 	public function getSchemasPath() {
 		return $this->service->conductor->getModelsPath();
-	}
-
-	/**
-	 * Директивы для внесения изменений в структуре данных CRUD-адаптером для модели
-	 * */
-	public function correctModel($modelName, $tableName, $innerActions, $outerActions) {
-		$adapter = $this->getCrudAdapter($modelName);
-		return $adapter->correctModel($modelName, $tableName, $innerActions, $outerActions);
 	}
 
 	/**
@@ -113,6 +119,33 @@ class ModelProvider {
 		$schema = $this->getSchema($modelName);
 
 		return $adapter->checkNeedTable($schema);
+	}
+
+	/**
+	 *
+	 * */
+	public function createTable($modelName, $schema = null) {
+		$adapter = $this->getCrudAdapter($modelName);
+		if ($schema === null) {
+			$schema = $this->getSchema($modelName);
+		}
+		return $adapter->createTable($schema);
+	}
+
+	/**
+	 * Директивы для внесения изменений в структуре данных CRUD-адаптером для модели
+	 * */
+	public function correctModel($modelName, $tableName, $actions) {
+		$adapter = $this->getCrudAdapter($modelName);
+		return $adapter->correctModel($modelName, $tableName, $actions);
+	}
+
+	/**
+	 *
+	 * */
+	public function addModelEssences($modelName, $tableName, $actions) {
+		$adapter = $this->getCrudAdapter($modelName);
+		return $adapter->addModelEssences($modelName, $tableName, $actions);
 	}
 
 
@@ -133,20 +166,11 @@ class ModelProvider {
 	 *
 	 * */
 	private function loadSchema($modelName) {
-		$path = $this->getSchemaPath($modelName);
-		$file = new YamlFile($path);
-		if (!$file->exists()) {
-			return false;
-		}
-
-		$data = $file->get();
-
-		$value = $data[$modelName];
 		if (array_key_exists($modelName, $this->schemas)) {
 			throw new \Exception("Model named $modelName is already used", 400);
 		}
-		$this->schemas[$modelName] = new ModelSchema($modelName, $value);
 
+		$this->schemas[$modelName] = new ModelSchema($modelName, $this->getSchemaArray($modelName));
 		return true;
 	}
 }

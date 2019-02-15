@@ -27,67 +27,170 @@ class ModelMigrateExecutor {
 	/**
 	 *
 	 * */
-	public function __construct($service, $modelName, $model, $actions, $path, $code) {
-		$this->service = $service;
-		$this->path = $path;
-		$this->code = $code;
-		$this->modelName = $modelName;
-		$this->modelData = $model;
-		$this->outerActions = $actions;
+	public static function runMigration($service, $migration) {
+		$modelProvider = $service->modelProvider;
+		switch ($migration['type']) {
+			case 'table_create':
+				$name = $migration['model'];
+				$schema = new ModelSchema($name, $migration['schema']);
+				if (!$modelProvider->createTable($name, $schema)) {
+					return false;
+				}
+				break;
+			case 'table_alter':
+				$correctResult = $modelProvider->correctModel(
+					$migration['model'],
+					$migration['table_name'],
+					$migration['actions']
+				);
+				if (!$correctResult) {
+					return false;
+				}
+				break;
+			case 'table_content':
+				$correctResult = $modelProvider->addModelEssences(
+					$migration['model'],
+					$migration['table_name'],
+					$migration['actions']
+				);
+				if (!$correctResult) {
+					return false;
+				}
+				break;
+		}
 
-		$this->innerActions = [];
+		return true;
 	}
 
 	/**
 	 *
 	 * */
-	public function run() {
+	public function __construct($service, $modelName, $modelArray=null, $actions=null, $path=null, $code=null) {
+		$this->service = $service;
+		$this->modelName = $modelName;
+
+		if ($path === null) {
+			$path = $service->conductor->getModelPath($modelName);
+		}
+		if ($code === null) {
+			$code = (new File($path))->get();
+		}
+		if ($modelArray === null) {
+			$modelData = (new Yaml($code, dirname($path)))->parse();
+			$modelArray = $modelData[$modelName];
+			// Остаются команды добавления/удаления/запросов
+			unset($modelData[$modelName]);
+		}
+		if ($actions === null) {
+			$actions = isset($modelData) ? $modelData : [];
+		}
+
+		$this->modelData = $modelArray;
+		$this->outerActions = $actions;
+		$this->path = $path;
+		$this->code = $code;
+
+		$this->innerActions = [];
+	}
+
+	/**
+	 * Для запуска парсинга yaml-кода модели
+	 * */
+	public function runParseCode() {
 		$this->parseInnerActions();
+		$modelProvider = $this->service->modelProvider;
 
-		if ($this->service->modelProvider->checkModelNeedTable($this->modelName)) {
+		if ($modelProvider->checkModelNeedTable($this->modelName)) {
 			$this->correctInnerYaml();
-			$data = (new YamlFile($this->path))->get();
-
-			var_dump($data);
-
-			// if (!$this->service->modelProvider->createTable($this->modelName, $data)) {
-			// 	return false;
-			// }
-			// $this->createTableMigration();
+			$this->createTableMigration();
+			if (!$modelProvider->createTable($this->modelName)) {
+				return false;
+			}
 		} else {
 			if (!empty($this->innerActions)) {
-				$correctResult = $this->service->modelProvider->correctModel(
+				$this->createInnerMigration();
+				$correctResult = $modelProvider->correctModel(
 					$this->modelName,
 					$this->tableName,
-					$this->innerActions,
-					[]
+					$this->innerActions
 				);
 				if (!$correctResult) {
 					return false;
 				}
-
 				$this->correctInnerYaml();
-				$this->createInnerMigration();
+				$this->tableName = $correctResult;
 			}
 		}
 
 		if (!empty($this->outerActions)) {
-			$correctResult = $this->service->modelProvider->correctModel(
+			$this->createOuterMigration();
+			$correctResult = $modelProvider->addModelEssences(
 				$this->modelName,
 				$this->tableName,
-				[],
 				$this->outerActions
 			);
 			if (!$correctResult) {
 				return false;
 			}
-
 			$this->correctOuterYaml();
-			$this->createOuterMigration();
 		}
 
 		return true;
 	}
+
+	/**
+	 *
+	 * */
+	public function runCorrectActions($actions) {
+		$this->tableName = $this->modelData['table'];
+		$this->innerActions = $actions;
+		$this->createInnerMigration();
+
+		$modelProvider = $this->service->modelProvider;
+		$correctResult = $modelProvider->correctModel(
+			$this->modelName,
+			$this->tableName,
+			$this->innerActions
+		);
+		if (!$correctResult) {
+			return false;
+		}
+
+		// Правка yaml-кода
+		//todo - перенести отсюда
+		$code = $this->code;
+		foreach ($actions as $action) {
+			$type = $action['action'];
+			switch ($type) {
+				case 'renameTable':
+					$code = preg_replace('/  (table: *)'.$action['old'].'/', '$1'.$action['new'], $code);
+					break;
+				case 'addField':
+					$arr = [];
+					foreach ($action['params'] as $property => $value) {
+						$arr[] = "$property: $value";
+					}
+					$fieldStr = '    ' . $action['name'] . ': { ' . implode(', ', $arr) . ' }';
+					$code = preg_replace('/(fields:[\w\W]*?)([\r\n]+?  \w|$)/', '$1'.PHP_EOL.$fieldStr.'$2', $code);
+					break;
+				case 'removeField':
+					$code = preg_replace('/(fields:[\w\W]*?)    '.$action['name'].'.*?[\r\n]+?( |$)/', '$1$2', $code);
+					break;
+				case 'renameField':
+					$code = preg_replace('/(fields:[\w\W]*?    )'.$action['old'].'/', '$1'.$action['new'], $code);
+					break;
+				case 'changeFieldProperty':
+					$code = preg_replace('/(fields:[\w\W]*?    '.$action['fieldName'].'[\w\W]*?'.$action['property'].': *)'.$action['old'].'/',
+						'$1'.$action['new'], $code);
+					break;
+			}
+		}
+		$file = new File($this->path);
+		$file->put($code);
+
+		return true;
+	}
+
 
 	/*************************************************************************************************************************
 	 * PRIVATE
@@ -127,7 +230,7 @@ class ModelMigrateExecutor {
 				$realName = $arr[1];
 			}
 
-			// Проверка на удаление поля
+			// Проверка на добавление поля
 			if (preg_match('/!!add/', $name)) {
 				$arr = preg_split('/\s*!!add\s*/', $name);
 				$realName = $arr[0] ? $arr[0] : $arr[1];
@@ -139,7 +242,7 @@ class ModelMigrateExecutor {
 				];
 			}
 
-			// Проверка на добавление поля
+			// Проверка на удаление поля
 			if (preg_match('/!!remove/', $name)) {
 				$arr = preg_split('/\s*!!remove\s*/', $name);
 				$realName = $arr[0] ? $arr[0] : $arr[1];
@@ -176,6 +279,10 @@ class ModelMigrateExecutor {
 	 * Отформатировать Yaml-конфиг
 	 * */
 	private function correctInnerYaml() {
+		if (empty($this->innerActions)) {
+			return;
+		}
+
 		$code = $this->code;
 		
 		foreach ($this->innerActions as $actionData) {
@@ -240,7 +347,6 @@ class ModelMigrateExecutor {
 	 *
 	 * */
 	private function correctOuterYaml() {
-		// return;
 		$code = $this->code;
 
 		if (!empty($this->outerActions)) {
@@ -252,18 +358,70 @@ class ModelMigrateExecutor {
 	}
 
 	/**
-	 * //todo
 	 * Сгенерировать миграции, отметить их выполненными
 	 * */
-	private function createInnerMigration() {
-
+	private function createTableMigration() {
+		$migrationData = [
+			'type' => 'table_create',
+			'model' => $this->modelName,
+			'schema' => $this->service->modelProvider->getSchemaArray($this->modelName),
+		];
+		$namePrefix = 'm_new_table';
+		$this->saveMigration($namePrefix, $migrationData);
 	}
 
 	/**
-	 * //todo
+	 * Сгенерировать миграции, отметить их выполненными
+	 * */
+	private function createInnerMigration() {
+		$migrationData = [
+			'type' => 'table_alter',
+			'model' => $this->modelName,
+			'table_name' => $this->tableName,
+			'actions' => $this->innerActions,
+		];
+		$namePrefix = 'm_alter_table';
+		$this->saveMigration($namePrefix, $migrationData);
+	}
+
+	/**
 	 * Сгенерировать миграции, отметить их выполненными
 	 * */
 	private function createOuterMigration() {
+		$migrationData = [
+			'type' => 'table_content',
+			'model' => $this->modelName,
+			'table_name' => $this->tableName,
+			'actions' => $this->outerActions,
+		];
+		$namePrefix = 'm_content_table';
+		$this->saveMigration($namePrefix, $migrationData);
+	}
 
+	/**
+	 * Создание файла миграции
+	 * */
+	private function saveMigration($namePrefix, $migrationData) {
+		$time = explode(' ', microtime());
+		$time = $time[1] . '_' . $time[0];
+		$migrationFileName = $namePrefix .'__'. $this->tableName .'_' . $time . '.json';
+
+		$dir = $this->service->conductor->getMigrationDirectory();
+		$file = $dir->makeFile($migrationFileName);
+		$code = json_encode($migrationData);
+		$file->put($code);
+
+		$mapFile = $dir->contain('map.json')
+			? $dir->get('map.json')
+			: $dir->makeFile('map.json');
+		$map = $mapFile->exists()
+			? json_decode($mapFile->get(), true)
+			: ['list' => []];
+		$map['list'][] = [
+			'applied' => true,
+			'time' => $time,
+			'name' => $migrationFileName,
+		];
+		$mapFile->put(json_encode($map));
 	}
 }

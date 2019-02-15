@@ -1,6 +1,6 @@
-#use lx.Rect as Rect;
+#lx:use lx.Rect as Rect;
 
-class Input extends Rect #in lx {
+class Input extends Rect #lx:namespace lx {
 	/**
 	 * config = {
 	 *	// стандартные для Rect,

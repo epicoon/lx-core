@@ -1,4 +1,4 @@
-#private
+#lx:private
 
 /*
 lx.keydown(key, func)

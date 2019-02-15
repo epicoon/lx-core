@@ -1,6 +1,6 @@
-#use lx.LabeledGroup as LabeledGroup;
+#lx:use lx.LabeledGroup as LabeledGroup;
 
-class RadioGroup extends LabeledGroup #in lx {
+class RadioGroup extends LabeledGroup #lx:namespace lx {
 	preBuild(config) {
 		if (!config.unit) config.unit = {};
 		config.unit.widget = lx.Radio;
