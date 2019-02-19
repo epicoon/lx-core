@@ -65,9 +65,9 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 			setterEvents.fields.pushUnique(fields[i]);
 
 		if (prototype.constructor.onBeforeSet)
-			prototype.beforeSet(prototype.constructor.onBeforeSet);
+			prototype.constructor.beforeSet(prototype.constructor.onBeforeSet);
 		if (prototype.constructor.onAfterSet)
-			prototype.afterSet(prototype.constructor.onAfterSet);
+			prototype.constructor.afterSet(prototype.constructor.onAfterSet);
 	}
 
 	/**
@@ -88,6 +88,13 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 		}
 
 		return result;
+	}
+
+	/**
+	 *
+	 * */
+	static getSetterEvents() {
+		return this.prototype.getSetterEvents();
 	}
 
 	/**
@@ -117,7 +124,7 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 	/**
 	 *
 	 * */
-	static onSetterFail(func) {
+	static afterSetFail(func) {
 		var setterEvents = this.behaviorMap.get(behKey, 'setterEvents');
 		setterEvents.fail.push(func);
 	}
@@ -213,14 +220,11 @@ function __defineFields(supportedClass) {
  * */
 function __getFuncBlank() {
 	var f = (function(){
-		var info = self::behaviorMap.get(behKey, 'setterEvents'),
-			thisInfo = this.behaviorMap.get(behKey, 'setterEvents');
-		function run(arr) {
+		var info = this.getSetterEvents();
+		function run(arr, withName=false) {
 			for (var i=0, l=arr.len; i<l; i++) {
-				var res = arr[i].call(this, name, val);
+				var res = withName ? arr[i].call(this, name, val) : arr[i].call(this, val);
 				if (res === false) {
-					if (thisInfo && thisInfo.fail)
-						thisInfo.fail.each((func)=> func.call(this, name, val));
 					if (info && info.fail)
 						info.fail.each((func)=> func.call(this, name, val));
 					return false;
@@ -231,32 +235,20 @@ function __getFuncBlank() {
 		}
 		var ignoreSetterListener = this.behaviorMap.get(behKey, 'ignoreSetterListener');
 		if (!ignoreSetterListener || (!ignoreSetterListener.__ALL__ && !ignoreSetterListener[name])) {
-			if (thisInfo) {
-				if (thisInfo.beforeMap && thisInfo.beforeMap[name])
-					if (run.call(this, thisInfo.beforeMap[name]) === false) return;
-				if (thisInfo.before)
-					if (run.call(this, thisInfo.before) === false) return;
-			}
 			if (info) {
 				if (info.beforeMap && info.beforeMap[name])
 					if (run.call(this, info.beforeMap[name]) === false) return;
 				if (info.before)
-					if (run.call(this, info.before) === false) return;
+					if (run.call(this, info.before, true) === false) return;
 			}
 		}
 		this[key] = val;
 		if (!ignoreSetterListener || (!ignoreSetterListener.__ALL__ && !ignoreSetterListener[name])) {
-			if (thisInfo) {
-				if (thisInfo.afterMap && thisInfo.afterMap[name])
-					if (run.call(this, thisInfo.afterMap[name]) === false) return;
-				if (thisInfo.after)
-					if (run.call(this, thisInfo.after) === false) return;
-			}
 			if (info) {
 				if (info.afterMap && info.afterMap[name])
 					if (run.call(this, info.afterMap[name]) === false) return;
 				if (info.after)
-					if (run.call(this, info.after) === false) return;
+					if (run.call(this, info.after, true) === false) return;
 			}
 		}
 	}).toString();

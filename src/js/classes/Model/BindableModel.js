@@ -55,13 +55,6 @@ class BindableModel extends lx.Model #lx:namespace lx {
 	/**
 	 *
 	 * */
-	static onAfterSet(field) {
-		lx.Binder.refresh(this, field);
-	}
-
-	/**
-	 *
-	 * */
 	static dropSchema() {
 		if (!this.__schema || this.__schema.isEmpty) return;
 
@@ -79,5 +72,13 @@ class BindableModel extends lx.Model #lx:namespace lx {
 		this.dropSchema();
 		super.initSchema(config);
 		lx.SetterListenerBehavior.inject(this);
+	}
+
+	/**
+	 * Метод, автоматически вызываемый после определения класса
+	 * */
+	static __afterDefinition() {
+		super.__afterDefinition();
+		if (this.lxHasMethod('afterSet')) this.afterSet(function(field){lx.Binder.refresh(this, field)});
 	}
 }
