@@ -54,6 +54,6 @@ lx.getModule = function(name) {
 
 
 #lx:require helpers/;
-#lx:require -R classes/;
 #lx:require components/;
+#lx:require -R classes/;
 #lx:require tools/;

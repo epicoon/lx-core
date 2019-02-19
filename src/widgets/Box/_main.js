@@ -734,8 +734,8 @@ class Box extends Rect #lx:namespace lx {
 
 	//=========================================================================================================================
 	/* 6. Js-features */
-	bind(model) {
-		model.bind(this);
+	bind(model, type=lx.Binder.BIND_TYPE_FULL) {
+		model.bind(this, type);
 	}
 
 	/**
@@ -745,10 +745,9 @@ class Box extends Rect #lx:namespace lx {
 	 * 	itemBox: [Widget, Config],
 	 * 	itemRender: function(itemBox, model) {}
 	 *  afterBind: function(itemBox, model) {}
-	 * 	toWidget: boolean
-	 * 	fromWidget: boolean
+	 * 	type: boolean
 	 * }
-	 * Если два аргумента - краткая передача коллекции и коллбэка:
+	 * Если три(два) аргумента - краткая передача коллекции и коллбэков:
 	 * - lx.Collection
 	 * - Function  - itemRender
 	 * - Function  - afterBind
@@ -767,14 +766,12 @@ class Box extends Rect #lx:namespace lx {
 		lx.Binder.bindMatrix(
 			config.items,
 			this,
-			config.afterBind,
-			[config.toWidget, true].lxGetFirstDefined(),
-			[config.fromWidget, true].lxGetFirstDefined()
+			[config.type, lx.Binder.BIND_TYPE_FULL].lxGetFirstDefined()
 		);
 	}
 
-	agregator(c, toWidget=true, fromWidget=true) {
-		lx.Binder.bindAgregation(c, this, toWidget, fromWidget);
+	agregator(c, type=lx.Binder.BIND_TYPE_FULL) {
+		lx.Binder.bindAgregation(c, this, type);
 	}
 	/* 6. Js-features */
 	//=========================================================================================================================

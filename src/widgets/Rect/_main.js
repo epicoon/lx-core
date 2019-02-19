@@ -1375,7 +1375,9 @@ class Rect #lx:namespace lx {
 
 			// Определяем - может ли переданная функция возвращать значение (кроме как устанавливать)
 			var str = func.toString(),
-				argName = str.match(/function\s*\((.*?)(?:,|\))/)[1],
+				argName = str[0] == '('
+					? str.match(/\((.*?)(?:,|\))/)[1]
+					: str.match(/function\s*\((.*?)(?:,|\))/)[1],
 				reg = new RegExp('if\\s*\\(\\s*' + argName + '\\s*===\\s*undefined'),
 				isCallable = (str.match(reg) !== null);
 

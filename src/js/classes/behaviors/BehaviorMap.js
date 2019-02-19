@@ -3,15 +3,27 @@ class BehaviorMap #lx:namespace lx {
 		this.supportedEssence = supportedEssence;
 	}
 
-	get map() { return this.supportedEssence.__lxBehaviors; }
-	get isEmpty() { return !this.supportedEssence.__lxBehaviors; }
+	/**
+	 *
+	 * */
+	get map() {
+		return this.supportedEssence.__lxBehaviors;
+	}
+	
+	/**
+	 *
+	 * */
+	get isEmpty() {
+		return !this.supportedEssence.__lxBehaviors;
+	}
 
 	/**
 	 *
 	 * */
 	register(behavior) {
 		if (this.isEmpty) this.__resetMap();
-		this.map.list.push(behavior);
+		else this.__copyMap(this.map);
+		this.map.list.pushUnique(behavior);
 	}
 
 	/**
@@ -57,5 +69,12 @@ class BehaviorMap #lx:namespace lx {
 			list: [],
 			data: {}
 		};
+	}
+
+	/**
+	 *
+	 * */
+	__copyMap(map) {
+		this.supportedEssence.__lxBehaviors = map.lxCopy();
 	}
 }

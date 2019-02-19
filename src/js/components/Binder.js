@@ -24,25 +24,19 @@ lx.Binder = {
 	},
 
 	/**
-	 * Только для использования с конструктором класса (модели данных)
-	 * - constructor - класс модели данных
-	 * - fields - можно передать массив с именами полей, которым нужно создать интерфейс связывания
-	 * - fields - можно передать true, чтобы поля взялись автоматически (будет попытка создать экземпляр, чтобы его распарсить)
-	 * - extraFields - дополнительные интерфейсы связывания, на которые можно подать любые поля вложенных объектов, элементы массивов и т.д.
-	 *   например: { extra: 'this.subObject.someFiled' }  - в виджете элемент с ключом 'extra' свяжется с соответствующим полем 
-	 * */
-	makeBindable: function(constructor, fields, extraFields) {
-		bindableBehavior(constructor, fields, extraFields);
-	},
-
-	/**
 	 * Объект сигнализирует активно, что он обновился - все виджеты обновляются
 	 * */
-	renew: function(obj) {
-		var fields = obj.constructor.__setterEvents.fields;
-		for (let i=0, l=fields.len; i<l; i++) {
-			let field = fields[i];
-			action(obj, field, obj[field]);
+	refresh: function(obj, fieldName = null) {
+		if (fieldName === null) {
+			var setterEvents = obj.getSetterEvents();
+			if (!setterEvents) return;
+			var fields = setterEvents.fields;
+			for (let i=0, l=fields.len; i<l; i++) {
+				let field = fields[i];
+				action(obj, field, obj[field]);
+			}
+		} else {
+			action(obj, fieldName, obj[fieldName]);
 		}
 	},
 
@@ -58,10 +52,11 @@ lx.Binder = {
 	 * Виджет может быть формой с полями, имеющими значения `_field`, соответствующие полям модели,
 	 * либо непосредственно таким полем
 	 * */
-	bind: function(obj, widget, toWidget = true, fromWidget = true) {
-		if (!toWidget && !fromWidget) return;
+	bind: function(obj, widget, type=lx.Binder.BIND_TYPE_FULL) {
+		var setterEvents = obj.getSetterEvents();
+		if (!setterEvents) return;
 
-		var fields = obj.constructor.__setterEvents.fields;
+		var fields = setterEvents.fields;
 		for (let i=0, l=fields.len; i<l; i++) {
 			let _field = fields[i],
 				c = widget.getChildren
@@ -75,11 +70,7 @@ lx.Binder = {
 			var readWidgets = new lx.Collection(),
 				writeWidgets = new lx.Collection();
 			c.each((widget)=>{
-				if (widget._bindType === undefined) {
-					if (toWidget && fromWidget) widget._bindType = lx.Binder.BIND_TYPE_FULL;
-					else if (toWidget) widget._bindType = lx.Binder.BIND_TYPE_READ;
-					else if (fromWidget) widget._bindType = lx.Binder.BIND_TYPE_WRITE;
-				}
+				if (widget._bindType === undefined) widget._bindType = type;
 				if (widget._bindType == lx.Binder.BIND_TYPE_READ || widget._bindType == lx.Binder.BIND_TYPE_FULL) readWidgets.add(widget);
 				if (widget._bindType == lx.Binder.BIND_TYPE_WRITE || widget._bindType == lx.Binder.BIND_TYPE_FULL) writeWidgets.add(widget);
 			});
@@ -107,7 +98,7 @@ lx.Binder = {
 		}
 	},
 
-	bindMatrix: function(c, widget, toWidget=true, fromWidget=true) {
+	bindMatrix: function(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 		if (!(c instanceof lx.Collection)) return;
 
 		//todo c - коллекция существует чисто в замыкании - утечка памяти? надо рефакторить
@@ -151,22 +142,15 @@ lx.Binder = {
 		};
 
 		c.each(function(a){newRow.call(this, a);});
-		lx.BehaviorOLD.methodListener(c);
-		c.onAfterMethod('add', function(){newRow.call(this);});
-		c.onBeforeMethod('removeAt', (i)=> delObject(i));
-		c.onBeforeMethod('clear', unbindAll);
-		c.onAfterMethod('set', (i, obj)=> lx.Binder.bind(c.at(i), widget.get('r')[i], toWidget, fromWidget) );
+		c.addBehavior(lx.MethodListenerBehavior);
+		c.afterMethod('add', function(){newRow.call(this);});
+		c.beforeMethod('removeAt', (i)=> delObject(i));
+		c.beforeMethod('clear', unbindAll);
+		c.afterMethod('set', (i, obj)=> lx.Binder.bind(c.at(i), widget.get('r')[i], type) );
 	},
 
-	bindAgregation: function(c, w, toWidget=true, fromWidget=true) {
+	bindAgregation: function(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 		var first = c.first();
-
-		if (first) {
-			// есть ли у первого элемента коллекции нужное поведение
-			this.makeBindable(first.constructor);
-			// все ли элементы коллекции одного типа
-			while (c.next()) if (c.current().constructor !== first.constructor) return;
-		}
 
 		c.each((a)=> a.lxBindC = c);
 
@@ -175,34 +159,49 @@ lx.Binder = {
 			var first = c.first();
 			if (!first) return;
 			var diff = collectionDifferent(c);
-			var fields = first.constructor.__setterEvents.fields;
+			var fields = first.getSetterEvents().fields;
+			// var fields = first.constructor.__setterEvents.fields;
 			for (var i=0; i<fields.len; i++) {
 				var _field = fields[i],
-					elem = w.getChildren({hasProperties:{_field}, all:true}).at(0);
+					elem = widget.getChildren({hasProperties:{_field}, all:true}).at(0);
 				if (elem) elem.disabled(_field in diff);
 			}
 		}
 
 		// привязка первого элемента коллекции к виджету
 		//todo практически копирует lx.bind()
-		function bindFirst(first) {
-			var fields = first.constructor.__setterEvents.fields;
-			for (let k=0, l=fields.len; k<l; k++) {
-				let _field = fields[k],
-					cw = w.getChildren({hasProperties:{_field}, all:true});
-				if (w._field == _field) cw.add(w);
+		function bindFirst(obj) {
+			var setterEvents = obj.getSetterEvents();
+			if (!setterEvents) return;
+
+			var fields = setterEvents.fields;
+			for (let i=0, l=fields.len; i<l; i++) {
+				let _field = fields[i],
+					cw = widget.getChildren
+						? widget.getChildren({hasProperties:{_field}, all:true})
+						: new lx.Collection();
+
+				if (widget._field == _field) cw.add(widget);
 				if (cw.isEmpty) continue;
+
+				var readWidgets = new lx.Collection(),
+					writeWidgets = new lx.Collection();
+				cw.each((widget)=>{
+					if (widget._bindType === undefined) widget._bindType = type;
+					if (widget._bindType == lx.Binder.BIND_TYPE_READ || widget._bindType == lx.Binder.BIND_TYPE_FULL) readWidgets.add(widget);
+					if (widget._bindType == lx.Binder.BIND_TYPE_WRITE || widget._bindType == lx.Binder.BIND_TYPE_FULL) writeWidgets.add(widget);
+				});
 				function actualize(a) {
-					let val = (a.value && a.value.isFunction)
+					let val = a.lxHasMethod('value')
 						? a.value()
 						: a.text();
-					c.each((el)=> el[_field] = val);				
+					c.each((el)=> el[_field] = val);
 				}
-				if (toWidget) {
-					bind(first, _field, cw);
-					action(first, _field, first[_field]);
+				if (!readWidgets.isEmpty) {
+					bind(obj, _field, readWidgets);
+					action(obj, _field, obj[_field]);
 				}
-				if (fromWidget) cw.each((a)=> {
+				writeWidgets.each((a)=>{
 					// a.on('blur', function() { actualize(this); });
 					a.on('change', function() { actualize(this); });
 				});
@@ -226,19 +225,19 @@ lx.Binder = {
 		};
 
 		// обработчики событий-методов
-		lx.BehaviorOLD.methodListener(c);
-		c.onBeforeMethod('removeAt', (i)=> delete c.at(i).lxBindC);
-		c.onAfterMethod('removeAt', (i)=> {
+		c.addBehavior(lx.MethodListenerBehavior);
+		c.beforeMethod('removeAt', (i)=> delete c.at(i).lxBindC);
+		c.afterMethod('removeAt', (i)=> {
 			if (i == 0 && !c.isEmpty) bindFirst(c.first());
 			disableDifferent();
 		});
-		c.onBeforeMethod('add', (obj)=>checkNewObj(obj));
-		c.onAfterMethod('add', disableDifferent);
-		c.onBeforeMethod('set', (i, obj)=>checkNewObj(obj));
-		c.onAfterMethod('set', disableDifferent);
-		c.onBeforeMethod('clear', unbindAll);
+		c.beforeMethod('add', (obj)=>checkNewObj(obj));
+		c.afterMethod('add', disableDifferent);
+		c.beforeMethod('set', (i, obj)=>checkNewObj(obj));
+		c.afterMethod('set', disableDifferent);
+		c.beforeMethod('clear', unbindAll);
 
-		c.lxBindWidget = w;
+		c.lxBindWidget = widget;
 		if (first) {
 			bindFirst(first);
 			disableDifferent();
@@ -271,7 +270,8 @@ function collectionDifferent(c) {
 	if (c.isEmpty) return {};
 	c.cachePosition();
 	var first = c.first(),
-		fields = first.constructor.__setterEvents.fields,
+		// fields = first.constructor.__setterEvents.fields,
+		fields = first.getSetterEvents().fields,
 		boof = {};
 	while (obj = c.next()) {
 		for (var i=0; i<fields.len; i++) {
@@ -370,18 +370,6 @@ function bind(obj, name, widgets) {
 		binds[obj.lxBindId][name] = [];
 	widgets.each((a)=> bindWidget(a, obj.lxBindId));
 }
-
-//todo костыльно захреначено в функцию, чтобы бихевиор имя имел, в Behavior тоже есть такое
-var bindableBehavior = function(constructor, fields, extraFields) {
-	var hasBehavior = lx.BehaviorOLD.hasBehavior(constructor, arguments.callee);
-
-	lx.BehaviorOLD.setterListener(constructor, fields, extraFields);
-
-	if (!hasBehavior) {
-		constructor.onAfterSet(function(name, val) { action(this, name, val); });
-		constructor.onSetterFail(function(name, val) { action(this, name, this[name]); });
-	}
-};
 
 lx.Binder.BIND_TYPE_FULL = 1;
 lx.Binder.BIND_TYPE_WRITE = 2;

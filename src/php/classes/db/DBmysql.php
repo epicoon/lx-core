@@ -132,16 +132,19 @@ class DBmysql extends DB {
 
 			if (isset($item['column_default'])) $data['default'] = $item['column_default'];
 
-			if ($item['column_key'] == 'PRI') $data['default'] = '@PK';
+			if ($item['column_key'] == 'PRI') $data['type'] = 'pk';
 
 			$data['notNull'] = $item['is_nullable'] == 'NO';
 
-			if (preg_match('/^varchar/', $item['data_type'])) $data['type'] = 'string';
-			else if ($item['data_type'] == 'int') $data['type'] = 'integer';
-			else $data['type'] = $item['data_type'];
+			if (!isset($data['type'])) {
+				if (preg_match('/^varchar/', $item['data_type'])) $data['type'] = 'string';
+				else if ($item['data_type'] == 'int') $data['type'] = 'integer';
+				else $data['type'] = $item['data_type'];
+			}
 
-			if (isset($item['character_maximum_length']))
+			if (isset($item['character_maximum_length'])) {
 				$data['size'] = $item['character_maximum_length'];
+			}
 
 			$result[$name] = $data;
 		}

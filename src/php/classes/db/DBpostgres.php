@@ -177,15 +177,20 @@ class DBpostgres extends DB {
 			$data = [];
 			$name = $item['column_name'];
 			if (isset($item['column_default'])) {
-				if (preg_match('/^nextval\(.*seq/', $item['column_default']))
-					$data['default'] = '@PK';
-				else $data['default'] = $item['column_default'];
+				if (preg_match('/^nextval\(.*seq/', $item['column_default'])) {
+					$data['type'] = 'pk';
+				} else {
+					$data['default'] = $item['column_default'];
+				}
 			}
 			$data['notNull'] = $item['is_nullable'] == 'NO';
-			if (preg_match('/^character/', $item['data_type'])) $data['type'] = 'string';
-			else $data['type'] = $item['data_type'];
-			if (isset($item['character_maximum_length']))
+			if (!isset($data['type'])) {
+				if (preg_match('/^character/', $item['data_type'])) $data['type'] = 'string';
+				else $data['type'] = $item['data_type'];
+			}
+			if (isset($item['character_maximum_length'])) {
 				$data['size'] = $item['character_maximum_length'];
+			}
 			$result[$name] = $data;
 		}
 		return $result;

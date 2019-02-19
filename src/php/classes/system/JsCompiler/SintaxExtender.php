@@ -189,7 +189,7 @@ class SintaxExtender {
 			if (preg_match('/^{/', $fields)) $fields = preg_replace('/^{/', '', $fields);
 			if (preg_match('/}$/', $fields)) $fields = preg_replace('/}$/', '', $fields);
 			$fields = trim($fields, ' ');
-			if ($fields{0} != '#') $fields = '#lx:fields ' . $fields;
+			if ($fields{0} != '#') $fields = '#lx:schema ' . $fields;
 			$text = "const $name = (function(){ class _am_ extends lx.Model {" . $fields . ";} return new _am_; })();";
 			$code = str_replace($matches[0][$i], $text, $code);
 		}
@@ -221,21 +221,13 @@ class SintaxExtender {
 			$fields = preg_replace('/}$/', '', $fields);
 			$fields = preg_replace('/(\n\r|\r\n|\r|\n)$/', '', $fields);
 			$fields = trim($fields, ' ');
-			if ($fields{0} != '#') $fields = '#lx:fields ' . $fields;
+			if ($fields{0} != '#') $fields = '#lx:schema ' . $fields;
 			$text = "const $name = (function(){ let c=new lx.ModelCollection; class _am_ extends lx.Model {" . $fields . ';} c.setModelClass(_am_); return c; })();';
 			$code = str_replace($matches[0][$i], $text, $code);
 		}
 
 		return $code;
 	}
-
-
-
-	private static function inClassReg($keyword) {
-		return '/(}|;|{)[\s\r]*#lx:'.$keyword.'[\s\r]+([^;]+)?;/';
-	}
-
-
 
 	/**
 	 *
@@ -250,80 +242,58 @@ class SintaxExtender {
 		if (!empty($matches[0])) {
 			foreach ($matches[0] as $i => $implement) {
 				$class = $matches[1][$i];
+				$implementResult = $implement;
+
 				// Среди таких классов - отнаследованные от модели имеют свой синтаксис:
-				// 1. fields ...;
-				$implementResult = preg_replace_callback(self::inClassReg('fields?'), function ($matches) {
-					$fields = preg_split('/[\s\r]*,[\s\r]*/', $matches[2]);
+				// 1. #lx:schema ...;
+				/*
+					#lx:schema
+						aaa : {type:'integer', default: 11},
+						bbb,
+						ccc << arr[0],
+						ddd << arr[1] : {type:'string', default: 'ee'};
 
-					$loneFields = [];
-					$definedFields = [];
-					$extraFields = [];
-					foreach ($fields as $field) {
-						$finded = false;
-
-						if (preg_match('/^[\w_][\w\d_]*?$/', $field)) {
-							$loneFields[] = $field;
-							$finded = true;
-						}
-						if ($finded) continue;
-
-						preg_match_all('/^([\w_][\w\d_]*?)[\s\r]*:[\s\r]*(.+)$/', $field, $defined);
-						if (!empty($defined[0])) {
-							$definedFields[$defined[1][0]] = $defined[2][0];
-							$finded = true;
-						}
-						if ($finded) continue;
-
-						preg_match_all('/^([\w_][\w\d_]*?)[\s\r]*<<[\s\r]*(.+)$/', $field, $extra);
-						if (!empty($extra[0])) {
-							$extraFields[$extra[1][0]] = $extra[2][0];
-							$finded = true;
-						}
-						if ($finded) continue;
+					__setSchema() {
+						this.setSchema({
+							aaa:{type:'integer', default: 11},
+							bbb:{},
+							ccc:{ref:'arr[0]'},
+							ddd:{type:'string', default: 'ee',ref:'arr[1]'};
+						});
 					}
-
-					$fieldCode = '';
-					if (!empty($loneFields) && empty($definedFields)) {
-						$fieldCode = 'static _fields(){return [\'';
-						$fieldCode .= implode('\',\'', $loneFields);
-						$fieldCode .= '\'];}';
-					} elseif (!empty($definedFields)) {
-						$fieldCode = 'static _fields() {return {';
-						$codeResult = [];
-						if (!empty($loneFields)) {
-							foreach ($loneFields as $k => $value) {
-								$loneFields[$k] = "$value:{}";
-							}
-							$codeResult[] = implode(',', $loneFields);
+				*/
+				$implementResult = preg_replace_callback(self::inClassReg('schema'), function ($matches) {
+					$schema = $matches[2];
+					$regexp = '/(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
+					preg_match_all($regexp, $schema, $defs);
+					$schema = preg_replace($regexp, '№№№', $schema);
+					$fields = preg_split('/[\s\r]*,[\s\r]*/', $schema);
+					$index = 0;
+					foreach ($fields as &$field) {
+						$pare = preg_split('/[\s\r]*:[\s\r]*/', $field);
+						$key = $pare[0];
+						$def = (isset($pare[1])) ? $pare[1] : '{}';
+						if ($def == '№№№') {
+							$def = $defs[0][$index++];
 						}
-						$definedFieldsResult = [];
-						foreach ($definedFields as $key => $value) {
-							$definedFieldsResult[] = "$key:$value";
-						}
-						$codeResult[] = implode(',', $definedFieldsResult);
-						$fieldCode .= implode(',', $codeResult);
-						$fieldCode .= '};}';
-					}
-
-					if (!empty($extraFields)) {
-						$fieldCode .= 'static _extraFields(){return{';
-						$extraFieldsResult = [];
-						foreach ($extraFields as $key => $value) {
-							preg_match_all('/^([^:]+?)[\s\r]*:[\s\r]*(.+)$/', $value, $definition);
-							if (empty($definition[0])) $extraFieldsResult[] = "$key:'$value'";
+						if (preg_match('/<</', $key)) {
+							$temp = preg_split('/[\s\r]*<<[\s\r]*/', $key);
+							$key = $temp[0];
+							if ($def == '{}')
+								$def = '{ref:\''.$temp[1].'\'}';
 							else {
-								$definition = str_replace('{', '{ref:\'' . $definition[1][0] . '\',', $definition[2][0]);
-								$extraFieldsResult[] = "$key:$definition";
+								$def = preg_replace('/}$/', ',ref:\''.$temp[1].'\'}', $def);
 							}
 						}
-						$fieldCode .= implode(',', $extraFieldsResult);
-						$fieldCode .= '};}';
+						$field = "$key:$def";
 					}
+					unset($field);
 
-					return $matches[1] . $fieldCode;
-				}, $implement);
+					$code = 'static __setSchema(){this.initSchema({'. implode(',', $fields) .'});}';
+					return $matches[1] . $code;
+				}, $implementResult);
 
-				// 2. behaviors ...;
+				// 2. #lx:behaviors ...;
 				/*
 				//todo
 				нужно генерить код, проверяющий, что предложенные бихевиоры это реально существующие
@@ -354,7 +324,7 @@ class SintaxExtender {
 						$fields[] = $field->toStringForClient();
 					}
 
-					$fieldCode = 'static _fields() {return {' . implode(',', $fields) . '};}';
+					$fieldCode = 'static __setSchema(){this.initSchema({' . implode(',', $fields) . '});}';
 					return $fieldCode;
 				}, $implementResult);
 
@@ -363,6 +333,13 @@ class SintaxExtender {
 		}
 
 		return $code;
+	}
+
+	/**
+	 *
+	 * */
+	private static function inClassReg($keyword) {
+		return '/(}|;|{)[\s\r]*#lx:'.$keyword.'[\s\r]+([^;]+)?;/';
 	}
 
 	/**
@@ -380,7 +357,6 @@ class SintaxExtender {
 			$className = $className[1][0];
 
 			$str = "if(window.$namespace === undefined)window.$namespace = {};";
-			// $str .= "if(typeof(Module)!='undefined')Module.subscribeNamespacedClass('$namespace', '$className');";
 			$str .= "if('$className' in $namespace)return;";
 			$str .= $class . $implementation;
 			$str .= "$className.__namespace='$namespace';$namespace.$className=$className;";

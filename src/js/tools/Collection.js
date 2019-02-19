@@ -34,8 +34,9 @@
 
 ***************************************************************/
 
-class Collection #lx:namespace lx {
+class Collection extends lx.Object #lx:namespace lx {
 	constructor(...args) {
+		super();
 		this.actPart = null;
 		this.actI = null;
 		this.actPartI = null;

@@ -8,7 +8,7 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 	static inject(supportedEssence, config=null) {
 		super.inject(supportedEssence);
 
-		var setterEvents = supportedEssence.behaviorMap.set('lx.SetterListenerBehavior', 'setterEvents', {
+		var setterEvents = supportedEssence.behaviorMap.set(behKey, 'setterEvents', {
 			fields: [],
 			beforeMap: [],  // функции, выполняющиеся ДО присваивания, для ВЫБРАННОГО сеттера
 			afterMap: [],   // функции, выполняющиеся ПОСЛЕ присваивания, для ВЫБРАННОГО сеттера
@@ -31,7 +31,7 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 				//todo - надо чтобы можно было аккуратно снять бихевиор
 				configurable: true,
 				set: function(val) {
-					(new Function("val,name,key", funcBlank)).call(this, val, name, key);
+					(new Function("val,name,key,behKey", funcBlank)).call(this, val, name, key, behKey);
 				},
 				get: function() {
 					return this[key];
@@ -55,7 +55,7 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 			Object.defineProperty(prototype, name, {
 				configurable: true,
 				set: function(val) {
-					(new Function("val,name", ff)).call(this, val, name);
+					(new Function("val,name,behKey", ff)).call(this, val, name, behKey);
 				},
 				get: new Function("", "return(this." + str + ");")
 			});
@@ -63,6 +63,31 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 
 		for (var i=0, l=fields.length; i<l; i++)
 			setterEvents.fields.pushUnique(fields[i]);
+
+		if (prototype.constructor.onBeforeSet)
+			prototype.beforeSet(prototype.constructor.onBeforeSet);
+		if (prototype.constructor.onAfterSet)
+			prototype.afterSet(prototype.constructor.onAfterSet);
+	}
+
+	/**
+	 *
+	 * */
+	getSetterEvents() {
+		var thisEvents = this.behaviorMap.get(behKey, 'setterEvents'),
+			selfEvents = self::behaviorMap.get(behKey, 'setterEvents');
+		if (!thisEvents && !selfEvents) return null;
+		if (!thisEvents) return selfEvents;
+		if (!selfEvents) return thisEvents;
+
+		var result = {};
+		for (var name in selfEvents) {
+			var item = [].lxMerge(selfEvents[name]);
+			if (thisEvents[name]) item = item.lxMerge(thisEvents[name]);
+			result[name] = item;
+		}
+
+		return result;
 	}
 
 	/**
@@ -93,7 +118,7 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 	 *
 	 * */
 	static onSetterFail(func) {
-		var setterEvents = this.behaviorMap.get('lx.SetterListenerBehavior', 'setterEvents');
+		var setterEvents = this.behaviorMap.get(behKey, 'setterEvents');
 		setterEvents.fail.push(func);
 	}
 
@@ -101,8 +126,8 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 	 *
 	 * */
 	beforeSet(name, func) {
-		if (!this.behaviorMap.get('lx.SetterListenerBehavior', 'setterEvents'))
-			this.behaviorMap.set('lx.SetterListenerBehavior', 'setterEvents', {
+		if (!this.behaviorMap.get(behKey, 'setterEvents'))
+			this.behaviorMap.set(behKey, 'setterEvents', {
 				beforeMap: [],  // функции, выполняющиеся ДО присваивания, для ВЫБРАННОГО сеттера
 				afterMap: [],   // функции, выполняющиеся ПОСЛЕ присваивания, для ВЫБРАННОГО сеттера
 				before: [],     // функции, выполняющиеся ДО присваивания, для ВСЕХ сеттеров
@@ -116,8 +141,8 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 	 *
 	 * */
 	afterSet(name, func) {
-		if (!this.behaviorMap.get('lx.SetterListenerBehavior', 'setterEvents'))
-			this.behaviorMap.set('lx.SetterListenerBehavior', 'setterEvents', {
+		if (!this.behaviorMap.get(behKey, 'setterEvents'))
+			this.behaviorMap.set(behKey, 'setterEvents', {
 				beforeMap: [],  // функции, выполняющиеся ДО присваивания, для ВЫБРАННОГО сеттера
 				afterMap: [],   // функции, выполняющиеся ПОСЛЕ присваивания, для ВЫБРАННОГО сеттера
 				before: [],     // функции, выполняющиеся ДО присваивания, для ВСЕХ сеттеров
@@ -130,26 +155,26 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 	/**
 	 *
 	 * */
-	beforeSetIgnore(fieldName, bool) {
-		var beforeSetIgnore = this.behaviorMap.get('lx.SetterListenerBehavior', 'beforeSetIgnore');
-		if (beforeSetIgnore === null) beforeSetIgnore = {};
+	ignoreSetterListener(fieldName, bool) {
+		var ignoreSetterListener = this.behaviorMap.get(behKey, 'ignoreSetterListener');
+		if (ignoreSetterListener === null) ignoreSetterListener = {};
 
 		if (fieldName.isBoolean && bool === undefined) {
-			if (fieldName) beforeSetIgnore.__ALL__ = true;
-			else delete beforeSetIgnore.__ALL__;
-			this.behaviorMap.set('lx.SetterListenerBehavior', 'beforeSetIgnore', beforeSetIgnore);
+			if (fieldName) ignoreSetterListener.__ALL__ = true;
+			else delete ignoreSetterListener.__ALL__;
+			this.behaviorMap.set(behKey, 'ignoreSetterListener', ignoreSetterListener);
 			return;
 		}
 
 		if (!fieldName.isArray) fieldName = [fieldName];
 		if (bool)
 			for (var i=0, l=fieldName.length; i<l; i++)
-				beforeSetIgnore[fieldName[i]] = true;
+				ignoreSetterListener[fieldName[i]] = true;
 		else
 			for (var i=0, l=fieldName.length; i<l; i++)
-				delete beforeSetIgnore[fieldName[i]];
+				delete ignoreSetterListener[fieldName[i]];
 
-		this.behaviorMap.set('lx.SetterListenerBehavior', 'beforeSetIgnore', beforeSetIgnore);
+		this.behaviorMap.set(behKey, 'ignoreSetterListener', ignoreSetterListener);
 	}
 
 
@@ -159,6 +184,8 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 /******************************************************************************************************************************
  * PRIVATE
  *****************************************************************************************************************************/
+
+const behKey = lx.SetterListenerBehavior.lxFullName;
 
 /**
  *
@@ -186,8 +213,8 @@ function __defineFields(supportedClass) {
  * */
 function __getFuncBlank() {
 	var f = (function(){
-		var info = self::behaviorMap.get('lx.SetterListenerBehavior', 'setterEvents'),
-			thisInfo = this.behaviorMap.get('lx.SetterListenerBehavior', 'setterEvents');
+		var info = self::behaviorMap.get(behKey, 'setterEvents'),
+			thisInfo = this.behaviorMap.get(behKey, 'setterEvents');
 		function run(arr) {
 			for (var i=0, l=arr.len; i<l; i++) {
 				var res = arr[i].call(this, name, val);
@@ -202,8 +229,8 @@ function __getFuncBlank() {
 				}
 			}
 		}
-		var beforeSetIgnore = this.behaviorMap.get('lx.SetterListenerBehavior', 'beforeSetIgnore');
-		if (!beforeSetIgnore || (!beforeSetIgnore.__ALL__ && !beforeSetIgnore[name])) {
+		var ignoreSetterListener = this.behaviorMap.get(behKey, 'ignoreSetterListener');
+		if (!ignoreSetterListener || (!ignoreSetterListener.__ALL__ && !ignoreSetterListener[name])) {
 			if (thisInfo) {
 				if (thisInfo.beforeMap && thisInfo.beforeMap[name])
 					if (run.call(this, thisInfo.beforeMap[name]) === false) return;
@@ -218,17 +245,19 @@ function __getFuncBlank() {
 			}
 		}
 		this[key] = val;
-		if (thisInfo) {
-			if (thisInfo.afterMap && thisInfo.afterMap[name])
-				if (run.call(this, thisInfo.afterMap[name]) === false) return;
-			if (thisInfo.after)
-				if (run.call(this, thisInfo.after) === false) return;
-		}
-		if (info) {
-			if (info.afterMap && info.afterMap[name])
-				if (run.call(this, info.afterMap[name]) === false) return;
-			if (info.after)
-				if (run.call(this, info.after) === false) return;
+		if (!ignoreSetterListener || (!ignoreSetterListener.__ALL__ && !ignoreSetterListener[name])) {
+			if (thisInfo) {
+				if (thisInfo.afterMap && thisInfo.afterMap[name])
+					if (run.call(this, thisInfo.afterMap[name]) === false) return;
+				if (thisInfo.after)
+					if (run.call(this, thisInfo.after) === false) return;
+			}
+			if (info) {
+				if (info.afterMap && info.afterMap[name])
+					if (run.call(this, info.afterMap[name]) === false) return;
+				if (info.after)
+					if (run.call(this, info.after) === false) return;
+			}
 		}
 	}).toString();
 	f = f.substring(12, f.length - 1);
@@ -244,15 +273,15 @@ function __beforeSet(name, func) {
 		return;
 	}
 
-	var setterEvents = this.behaviorMap.get('lx.SetterListenerBehavior', 'setterEvents');
+	var setterEvents = this.behaviorMap.get(behKey, 'setterEvents');
 	if (name.isString) {
 		if (!setterEvents.beforeMap[name])
 			setterEvents.beforeMap[name] = [];
-		setterEvents.beforeMap[name].push(func);
+		setterEvents.beforeMap[name].pushUnique(func);
 		return;
 	}
 	if (name.isFunction) {
-		setterEvents.before.push(name);
+		setterEvents.before.pushUnique(name);
 	}
 }
 
@@ -264,14 +293,14 @@ function __afterSet(name, func) {
 		for (let i in name) this.afterSet(i, name[i]);
 		return;
 	}
-	var setterEvents = this.behaviorMap.get('lx.SetterListenerBehavior', 'setterEvents');
+	var setterEvents = this.behaviorMap.get(behKey, 'setterEvents');
 	if (name.isString) {
 		if (!setterEvents.afterMap[name])
 			setterEvents.afterMap[name] = [];
-		setterEvents.afterMap[name].push(func);
+		setterEvents.afterMap[name].pushUnique(func);
 		return;
 	}
 	if (name.isFunction) {
-		setterEvents.after.push(name);
+		setterEvents.after.pushUnique(name);
 	}
 }
