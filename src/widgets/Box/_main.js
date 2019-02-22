@@ -30,6 +30,7 @@
  *
  * * 3. Content navigation
  * get(path)
+ * getAll(path)
  * find(key, all=true)
  * findAll(key, all=true)
  * findOne(key, all=true)
@@ -493,6 +494,9 @@ class Box extends Rect #lx:namespace lx {
 
 	//=========================================================================================================================
 	/* 3. Content navigation */
+	/**
+	 *
+	 * */
 	get(path) {
 		if (path instanceof Rect) return path;
 
@@ -511,6 +515,13 @@ class Box extends Rect #lx:namespace lx {
 				? children[key].children
 				: children[key][index].children;
 		}
+	}
+
+	/**
+	 * Возвращает всегда коллекцию потомков
+	 * */
+	getAll(path) {
+		return new lx.Collection(this.get(path));
 	}
 
 	find(key, all=true) {

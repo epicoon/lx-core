@@ -146,7 +146,7 @@ lx.Binder = {
 		c.afterMethod('add', function(){newRow.call(this);});
 		c.beforeMethod('removeAt', (i)=> delObject(i));
 		c.beforeMethod('clear', unbindAll);
-		c.afterMethod('set', (i, obj)=> lx.Binder.bind(c.at(i), widget.get('r')[i], type) );
+		c.afterMethod('set', (i, obj)=>lx.Binder.bind(c.at(i), widget.getAll('r').at(i), type));
 	},
 
 	bindAgregation: function(c, widget, type=lx.Binder.BIND_TYPE_FULL) {

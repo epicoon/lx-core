@@ -183,8 +183,6 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 
 		this.behaviorMap.set(behKey, 'ignoreSetterListener', ignoreSetterListener);
 	}
-
-
 }
 
 
