@@ -45,6 +45,17 @@ class ServiceConductor {
 	}
 
 	/**
+	 *
+	 * */
+	public function getDefaultModelPath() {
+		$models = $this->service->getConfig('service.models');
+		if ($models === null) return false;
+
+		$models = (array)$models;
+		return $this->getFullPath($models[0]);
+	}
+
+	/**
 	 * Ищет путь к файлу модели. Файл должен называться как модель, расширение только .yaml
 	 * */
 	public function getModelPath($name) {

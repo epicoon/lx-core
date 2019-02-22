@@ -4,7 +4,6 @@ namespace lx;
 
 /**
  * Используется в качестве исполняющего инструмента by MigrationManager
- * //todo - отсюда вопрос - может в тот файл и засунуть? Нигде вроде больше этот класс не нужен?
  * */
 class ModelMigrateExecutor {
 	private $service;
@@ -99,16 +98,21 @@ class ModelMigrateExecutor {
 	public function runParseCode() {
 		$this->parseInnerActions();
 		$modelProvider = $this->service->modelProvider;
+		$migrationMaker = new MigrationMaker($this->service);
 
 		if ($modelProvider->checkModelNeedTable($this->modelName)) {
 			$this->correctInnerYaml();
-			$this->createTableMigration();
+			$migrationMaker->createTableMigration($this->modelName, $this->tableName);
 			if (!$modelProvider->createTable($this->modelName)) {
 				return false;
 			}
 		} else {
 			if (!empty($this->innerActions)) {
-				$this->createInnerMigration();
+				$migrationMaker->createInnerMigration(
+					$this->modelName,
+					$this->tableName,
+					$this->innerActions
+				);
 				$correctResult = $modelProvider->correctModel(
 					$this->modelName,
 					$this->tableName,
@@ -123,7 +127,11 @@ class ModelMigrateExecutor {
 		}
 
 		if (!empty($this->outerActions)) {
-			$this->createOuterMigration();
+			$migrationMaker->createOuterMigration(
+				$this->modelName,
+				$this->tableName,
+				$this->outerActions
+			);
 			$correctResult = $modelProvider->addModelEssences(
 				$this->modelName,
 				$this->tableName,
@@ -139,12 +147,18 @@ class ModelMigrateExecutor {
 	}
 
 	/**
-	 *
+	 * Для корректировки моделей извне
 	 * */
 	public function runCorrectActions($actions) {
 		$this->tableName = $this->modelData['table'];
 		$this->innerActions = $actions;
-		$this->createInnerMigration();
+
+		$migrationMaker = new MigrationMaker($this->service);
+		$migrationMaker->createInnerMigration(
+			$this->modelName,
+			$this->tableName,
+			$this->innerActions
+		);
 
 		$modelProvider = $this->service->modelProvider;
 		$correctResult = $modelProvider->correctModel(
@@ -355,73 +369,5 @@ class ModelMigrateExecutor {
 
 		$file = new File($this->path);
 		$file->put($code);
-	}
-
-	/**
-	 * Сгенерировать миграции, отметить их выполненными
-	 * */
-	private function createTableMigration() {
-		$migrationData = [
-			'type' => 'table_create',
-			'model' => $this->modelName,
-			'schema' => $this->service->modelProvider->getSchemaArray($this->modelName),
-		];
-		$namePrefix = 'm_new_table';
-		$this->saveMigration($namePrefix, $migrationData);
-	}
-
-	/**
-	 * Сгенерировать миграции, отметить их выполненными
-	 * */
-	private function createInnerMigration() {
-		$migrationData = [
-			'type' => 'table_alter',
-			'model' => $this->modelName,
-			'table_name' => $this->tableName,
-			'actions' => $this->innerActions,
-		];
-		$namePrefix = 'm_alter_table';
-		$this->saveMigration($namePrefix, $migrationData);
-	}
-
-	/**
-	 * Сгенерировать миграции, отметить их выполненными
-	 * */
-	private function createOuterMigration() {
-		$migrationData = [
-			'type' => 'table_content',
-			'model' => $this->modelName,
-			'table_name' => $this->tableName,
-			'actions' => $this->outerActions,
-		];
-		$namePrefix = 'm_content_table';
-		$this->saveMigration($namePrefix, $migrationData);
-	}
-
-	/**
-	 * Создание файла миграции
-	 * */
-	private function saveMigration($namePrefix, $migrationData) {
-		$time = explode(' ', microtime());
-		$time = $time[1] . '_' . $time[0];
-		$migrationFileName = $namePrefix .'__'. $this->tableName .'_' . $time . '.json';
-
-		$dir = $this->service->conductor->getMigrationDirectory();
-		$file = $dir->makeFile($migrationFileName);
-		$code = json_encode($migrationData);
-		$file->put($code);
-
-		$mapFile = $dir->contain('map.json')
-			? $dir->get('map.json')
-			: $dir->makeFile('map.json');
-		$map = $mapFile->exists()
-			? json_decode($mapFile->get(), true)
-			: ['list' => []];
-		$map['list'][] = [
-			'applied' => true,
-			'time' => $time,
-			'name' => $migrationFileName,
-		];
-		$mapFile->put(json_encode($map));
 	}
 }

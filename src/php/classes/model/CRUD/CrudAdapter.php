@@ -17,6 +17,9 @@ abstract class CrudAdapter {
 
 	abstract public function checkNeedTable($schema);
 
+	abstract public function createTable($schema);
+	abstract public function deleteTable($tableName);
+
 	abstract public function correctModel($modelName, $tableName, $actions);
 	abstract public function addModelEssences($modelName, $tableName, $actions);
 }

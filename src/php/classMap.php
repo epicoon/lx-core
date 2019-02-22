@@ -45,6 +45,7 @@ return [
 
 	'MigrationManager' => 'classes/system/migration',
 	'ModelMigrateExecutor' => 'classes/system/migration',
+	'MigrationMaker' => 'classes/system/migration',
 
 	'DataObject' => 'classes/dataClasses',
 

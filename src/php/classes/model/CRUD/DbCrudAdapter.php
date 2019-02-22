@@ -164,6 +164,17 @@ class DbCrudAdapter extends CrudAdapter {
 	}
 
 	/**
+	 *
+	 * */
+	public function deleteTable($schema) {
+		$db = $this->getDb();
+
+		$tableName = $schema->getTableName();
+
+		return $db->dropTable($tableName);
+	}
+
+	/**
 	 * //todo!!!! нормально с транзакциями сделать
 	 * */
 	public function correctModel($modelName, $tableName, $actions) {

@@ -26,6 +26,9 @@ class ActiveBox extends Box #lx:namespace lx {
 	postBuild(config) {
 		super.postBuild(config);
 
+		if (this.width() === null) this.width(this.width('px')+'px');
+		if (this.height() === null) this.height(this.height('px')+'px');
+
 		if (this.adhesive) {
 			ActiveBoxAdhesor.makeAdhesion(this);
 		}

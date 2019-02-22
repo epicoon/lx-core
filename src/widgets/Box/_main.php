@@ -293,7 +293,9 @@ class Box extends Rect {
 		}
 	}
 
-	//todo - возврат коллекции или элемента - насколько это удобно?
+	/**
+	 * Возвращает коллекцию, если найдено более одного элемента, либо единственный найденный элемент
+	 * */
 	public function find($key, $all=true) {
 		$c = $this->getChildren([
 			'hasProperties' => ['key' => $key],
@@ -303,7 +305,21 @@ class Box extends Rect {
 		return $c;
 	}
 
-	public function findOne($key, $all) {
+	/**
+	 * Всегда возвращает коллекцию, даже для одного элемента
+	 * */
+	public function findAll($key, $all=true) {
+		$c = $this->getChildren([
+			'hasProperties' => ['key' => $key],
+			'all' =>  $all
+		]);
+		return $c;
+	}
+
+	/**
+	 * Всегда возвращает один элемент (первый наденный)
+	 * */
+	public function findOne($key, $all=true) {
 		$c = new Collection( $this->find($key, $all) );
 		if ($c->isEmpty) return null;
 		return $c->at(0);

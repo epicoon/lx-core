@@ -31,7 +31,8 @@
  * * 3. Content navigation
  * get(path)
  * find(key, all=true)
- * findOne(key, all)
+ * findAll(key, all=true)
+ * findOne(key, all=true)
  * contain(key)
  * childrenCount(key)
  * child(num)
@@ -518,7 +519,12 @@ class Box extends Rect #lx:namespace lx {
 		return c;
 	}
 
-	findOne(key, all) {
+	findAll(key, all=true) {
+		var c = this.getChildren({hasProperties:{key}, all});
+		return c;
+	}
+
+	findOne(key, all=true) {
 		var c = lx.Collection.cast(this.find(key, all));
 		if (c.isEmpty) return null;
 		return c.at(0);

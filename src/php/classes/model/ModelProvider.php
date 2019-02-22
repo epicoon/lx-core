@@ -133,6 +133,42 @@ class ModelProvider {
 	}
 
 	/**
+	 *
+	 * */
+	public function createModel($modelName) {
+		$tableName = preg_replace_callback('/[A-Z]/', function($match) {
+			return '_' . strtolower($match[0]);
+		}, $modelName);
+		$tableName = preg_replace('/^_/', '', $tableName);
+
+		$path = $this->service->conductor->getDefaultModelPath() . '/' . $modelName . '.yaml';
+		$code = $modelName . ':' . PHP_EOL
+				. '  table: ' . $tableName
+				. PHP_EOL . '  fields:'
+				. PHP_EOL . '    name: {type: string}' . PHP_EOL;
+
+		$file = new File($path);
+		$file->put($code);
+
+		$this->createTable($modelName);
+	}
+
+	/**
+	 *
+	 * */
+	public function deleteModel($modelName) {
+		$adapter = $this->getCrudAdapter($modelName);
+		$schema = $this->getSchema($modelName);
+		$adapter->deleteTable($schema);
+
+		$path = $this->getSchemaPath($modelName);
+		$file = new \lx\File($path);
+		$file->remove();
+
+		return true;
+	}
+
+	/**
 	 * Директивы для внесения изменений в структуре данных CRUD-адаптером для модели
 	 * */
 	public function correctModel($modelName, $tableName, $actions) {
