@@ -32,6 +32,10 @@ class TextBox extends Rect #lx:namespace lx {
 		c.each((a)=> a.setFontSize(min));
 	}
 
+	text(val) {
+		return this.value(val);
+	}
+
 	value(val) {
 		if (val === undefined) return this.html();
 		this.html(val);

@@ -16,6 +16,10 @@ class TextBox extends Rect {
 		return parent::preBuild($config);
 	}
 	
+	public function text($val) {
+		return $this->value($val);
+	}
+
 	public function value($val=null) {
 		if ($val === null) return $this->html();
 		$this->html($val);

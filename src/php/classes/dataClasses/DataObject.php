@@ -2,7 +2,7 @@
 
 namespace lx;
 
-Class DataObject {
+class DataObject {
 	protected
 		$nullCash = null,
 		$_prop = [];

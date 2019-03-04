@@ -223,8 +223,9 @@ class AlignRuleAbstract {
 			}
 		};
 
+
 		switch (+h) {
-			case lx.LEFT:
+			case lx.LEFT:		
 				if (direction == lx.HORIZONTAL) {
 					var x = indents.paddingLeft;
 					els.each((a)=> {
@@ -314,7 +315,9 @@ class AlignRuleDefault extends AlignRuleAbstract {
 			},
 			rule = new this(owner, config);
 
-		if (info.len > 3) rule.indents = lx.IndentData.unpackOrNull(info[3]);
+		if (info.len > 3) {
+			rule.indents = lx.IndentData.unpackOrNull(info[3].split('=')[1]);
+		}
 		owner.defaultRule = rule;
 	}
 }
@@ -350,7 +353,9 @@ class AlignRule extends AlignRuleAbstract {
 			},
 			rule = new this(owner, config, id);
 
-		if (info.len > 5) rule.indents = lx.IndentData.unpackOrNull(info[5]);
+		if (info.len > 5) {
+			rule.indents = lx.IndentData.unpackOrNull(info[5].split('=')[1]);
+		}
 		owner.rules[id] = rule;
 	}
 

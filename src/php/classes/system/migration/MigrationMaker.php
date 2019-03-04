@@ -93,10 +93,11 @@ class MigrationMaker {
 			? json_decode($mapFile->get(), true)
 			: ['list' => []];
 		$map['list'][] = [
-			'applied' => true,
 			'time' => $time,
 			'name' => $migrationFileName,
 		];
 		$mapFile->put(json_encode($map));
+
+		MigrationMap::getInstance()->up($this->service->name, $migrationFileName);
 	}
 }

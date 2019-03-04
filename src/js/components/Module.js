@@ -170,6 +170,14 @@ lx.Module = function(info, block) {
 			return c;
 		},
 
+		findOne: function(key, all) {
+			var c = this.root.find(key, all);
+			if (c instanceof lx.Rect) return c;
+			if (this.root.key == key) c.add(this.root);
+			if (c.empty) return null;
+			return c.at(0);
+		},
+
 		getImage: function(name='') {
 			return this.images + '/' + name;
 		},

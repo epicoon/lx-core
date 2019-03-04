@@ -3,7 +3,12 @@
 namespace lx;
 
 /**
- * Самое общее, централизованное управление миграциями
+ * Класс для:
+ * 1. Накатывания новых миграций
+ * 2. Поиска директив для изменения моделей со стороны сервера:
+ * - отсутствие таблиц для моделей
+ * - наличие директив в yaml-схемах моделей
+ * 3. Выполнение этих директив и создание для них миграций
  * */
 class MigrationManager {
 	/**
@@ -13,7 +18,11 @@ class MigrationManager {
 	private $migrationsChecked = [];
 
 	/**
-	 * Инициация накатывания всех миграций
+	 * 1. Поиск и выполнение существующих ненакаченных миграций
+	 * 2. Поиск директив для изменения моделей
+	 * 3. Выполнение этих директив
+	 * 4. Создание соответствующих миграций
+	 * - делается по всему приложению
 	 * */
 	public function run($services = null) {
 		if ($services === null) {
@@ -24,15 +33,23 @@ class MigrationManager {
 			}
 		}
 
+		MigrationMap::getInstance()->open();
 		foreach ($services as $service) {
 			$this->runService($service);
 		}
+		MigrationMap::getInstance()->close();
 	}
 
 	/**
-	 * Инициация накатывания всех миграций в конкретном сервисе
+	 * 1. Поиск и выполнение существующих ненакаченных миграций
+	 * 2. Поиск директив для изменения моделей
+	 * 3. Выполнение этих директив
+	 * 4. Создание соответствующих миграций
+	 * - делается по выбранному сервису
 	 * */
 	public function runService($service) {
+		MigrationMap::getInstance()->open();
+
 		// Проверка существующих миграций - все ли накачены
 		$this->checkMigrations($service);
 
@@ -43,12 +60,19 @@ class MigrationManager {
 				$this->runModel($service, $modelName, $modelInfo['path'], $modelInfo['code']);
 			}
 		}
+		MigrationMap::getInstance()->close();
 	}
 
 	/**
-	 * Проверка конкретной модели на измение и если они есть - генерация и накатывание миграций
+	 * 1. Поиск и выполнение существующих ненакаченных миграций
+	 * 2. Поиск директив для изменения модели
+	 * 3. Выполнение этих директив
+	 * 4. Создание соответствующих миграций
+	 * - делается по выбранной модели
 	 * */
 	public function runModel($service, $modelName, $path = null, $code = null) {
+		MigrationMap::getInstance()->open();
+
 		// Проверка существующих миграций - все ли накачены
 		$this->checkMigrations($service);
 
@@ -69,6 +93,8 @@ class MigrationManager {
 		if (!$modelMigrater->runParseCode()) {
 			throw new \Exception("Migration failed for model '$modelName' in service '{$service->mame}'", 400);
 		}
+
+		MigrationMap::getInstance()->close();
 	}
 
 	/**************************************************************************************************************************
@@ -76,7 +102,7 @@ class MigrationManager {
 	 *************************************************************************************************************************/
 
 	/**
-	 * Проверка ненакаченных миграций для сервиса
+	 * Поиск ненакаченных миграций для сервиса и выполнение
 	 * */
 	private function checkMigrations($service) {
 		if (array_search($service->name, $this->migrationsChecked) !== false) {
@@ -84,29 +110,61 @@ class MigrationManager {
 		}
 		$this->migrationsChecked[] = $service->name;
 
-		$dir = $service->conductor->getMigrationDirectory();
-		if (!$dir->contain('map.json')) {
+		$migrationMap = new ServiceMigrationMap($service);
+		$list = $migrationMap->getUnappliedList();
+		if (empty($list)) {
 			return;
 		}
 
-		$mapFile = $dir->get('map.json');
-		$map = json_decode($mapFile->get(), true);
-		$list = $map['list'];
-		usort($list, function($a, $b) {
-			if ($a['time']===$b['time']) return 0;
-			return ($a['time'] < $b['time']) ? -1 : 1;
-		});
-
-		foreach ($list as &$migrationRow) {
-			if (!$migrationRow['applied']) {
-				$migration = json_decode($dir->get($migrationRow['name'])->get(), true);
-				ModelMigrateExecutor::runMigration($service, $migration);
-				$migrationRow['applied'] = true;
-			}
+		$dir = $service->conductor->getMigrationDirectory();
+		foreach ($list as $migrationName) {
+			$migration = json_decode($dir->get($migrationName)->get(), true);
+			$this->runMigrationProcess($service, $migrationName, $migration);
 		}
-		unset($migrationRow);
+	}
 
-		$map['list'] = $list;
-		$mapFile->put(json_encode($map));
+	/**
+	 * Накатывание конкретной миграции
+	 * */
+	private function runMigrationProcess($service, $migrationName, $migration) {
+		$modelProvider = $service->modelProvider;
+		switch ($migration['type']) {
+			case 'table_create':
+				$name = $migration['model'];
+				$schema = new ModelSchema($name, $migration['schema']);
+				if (!$modelProvider->createTable($name, $schema)) {
+					return false;
+				}
+				break;
+			case 'table_delete':
+				$name = $migration['model'];
+				if (!$modelProvider->deleteTable($name)) {
+					return false;
+				}
+				break;
+			case 'table_alter':
+				$correctResult = $modelProvider->correctModel(
+					$migration['model'],
+					$migration['table_name'],
+					$migration['actions']
+				);
+				if (!$correctResult) {
+					return false;
+				}
+				break;
+			case 'table_content':
+				$correctResult = $modelProvider->correctModelEssences(
+					$migration['model'],
+					$migration['table_name'],
+					$migration['actions']
+				);
+				if (!$correctResult) {
+					return false;
+				}
+				break;
+		}
+
+		MigrationMap::getInstance()->up($service->name, $migrationName);
+		return true;
 	}
 }

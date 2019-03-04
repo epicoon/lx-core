@@ -41,6 +41,7 @@
 	public static function runConsole($argv)
 
 5. Сборка ответа
+ 	private static function getResponse()
 	private static function compileJsCore()
 	private static function compileJsBootstrap()
 	private static function compileJsMain()
@@ -201,6 +202,19 @@ class lx {
 	}
 
 	/**
+	 * 
+	 * */
+	public static function getPackagePath($name) {
+		$map = \lx\Autoloader::getInstance()->map;
+		if (!array_key_exists($name, $map->packages)) {
+			return false;
+		}
+
+		$path = $map->packages[$name];
+		return self::$conductor->getFullPath($path);
+	}
+
+	/**
 	 * Получение модуля из сервиса
 	 * */
 	public static function getModule($serviceName, $moduleName = null) {
@@ -232,10 +246,11 @@ class lx {
 
  	/**
  	 * Проверяет текущий режим работы приложения
+ 	 * Если режим не установлен - разрешен любой
  	 * */
 	public static function isMode($mode) {
 		$currentMode = self::getConfig('mode');
-		if (!$currentMode) return false;
+		if (!$currentMode) return true;
 
 		if (is_array($mode)) {
 			foreach ($mode as $value) {
@@ -273,40 +288,7 @@ class lx {
 			}
 		}
 
-		$routerData = self::getConfig('router');
-		if (!$routerData) {
-			//todo - возможно будет работать дефолтный роутер
-			require_once(__DIR__ . '/stdResponses/404.php');
-			return;
-		}
-
-		$router = null;
-		if (isset($routerData['type'])) {
-			switch ($routerData['type']) {
-				case 'map':
-					$data = null;
-					if (isset($routerData['path'])) {
-						$path = self::$conductor->getFullPath($routerData['path']);
-						$file = new lx\ConfigFile($path);
-						if ($file->exists()) $data = $file->get();
-					} elseif (isset($routerData['routes'])) {
-						$data = $routerData['routes'];
-					}
-					if ($data) {
-						$router = new lx\Router();
-						$router->setMap($data);
-					}
-					break;
-				case 'class':
-					if (isset($routerData['name']) && lx\ClassHelper::exists($routerData['name'])) {
-						$router = new $routerData['name']();
-					}
-					break;
-			}
-		}
-
-		$response = false;
-		if ($router !== null) $response = $router->route();
+		$response = self::getResponse();
 		if ($response === false) {
 			require_once(__DIR__ . '/stdResponses/404.php');
 			return;
@@ -357,6 +339,47 @@ class lx {
 
 	//=========================================================================================================================
  	/* * *  5. Сборка ответа  * * */
+
+ 	/**
+ 	 * Роутинг на уровне приложения
+ 	 * */
+ 	private static function getResponse() {
+		$routerData = self::getConfig('router');
+		if (!$routerData) {
+			return false;
+		}
+
+		$router = null;
+		if (isset($routerData['type'])) {
+			switch ($routerData['type']) {
+				case 'map':
+					$data = null;
+					if (isset($routerData['path'])) {
+						$path = self::$conductor->getFullPath($routerData['path']);
+						$file = new lx\ConfigFile($path);
+						if ($file->exists()) $data = $file->get();
+					} elseif (isset($routerData['routes'])) {
+						$data = $routerData['routes'];
+					}
+					if ($data) {
+						$router = new lx\Router();
+						$router->setMap($data);
+					}
+					break;
+				case 'class':
+					if (isset($routerData['name']) && lx\ClassHelper::exists($routerData['name'])) {
+						$router = new $routerData['name']();
+					}
+					break;
+			}
+		}
+
+		if ($router === null) {
+			return false;
+		}
+
+		return $router->route();
+ 	}
 
 	/**
 	 * Собирает js-ядро

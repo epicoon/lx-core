@@ -221,6 +221,6 @@ class ModelBrowser {
 			- экземпляры моделей по значениям полей
 		!!query : выполнение запроса (видимо, с синтаксисом SQL)
 		*/
-		return (bool)preg_match('/!!(change|add|remove|query)/', $this->code);
+		return (bool)preg_match('/!!(change|add|edit|remove|query)/', $this->code);
 	}
 }

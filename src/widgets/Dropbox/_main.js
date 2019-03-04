@@ -28,13 +28,13 @@ class Dropbox extends Box #lx:namespace lx {
 			});
 		}
 
-		this.keys = [];
 		this.data = [];
 		this.options(config.options || []);
 		this.value(config.value !== undefined ? config.value : null);
 	}
 
 	postBuild(config) {
+		if (this.keys === undefined) this.keys = [];
 		if (this.children.but)
 			this.children.but.width(this.height('px')+'px');
 		this.children.but.right(0);

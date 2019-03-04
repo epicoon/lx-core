@@ -132,7 +132,9 @@ class DBmysql extends DB {
 
 			if (isset($item['column_default'])) $data['default'] = $item['column_default'];
 
-			if ($item['column_key'] == 'PRI') $data['type'] = 'pk';
+			if ($item['column_key'] == 'PRI') {
+				$data['type'] = 'pk';
+			}
 
 			$data['notNull'] = $item['is_nullable'] == 'NO';
 

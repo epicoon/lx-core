@@ -17,7 +17,8 @@ class DbTableSchemaProvider {
 			$notNull = [];
 			foreach ($schema as $key => $value) {
 				// Определение первичного ключа
-				if (array_key_exists('default', $value) && $value['default'] == '@PK') {
+				if ($value['type'] == 'pk') {
+				// if (array_key_exists('default', $value) && $value['default'] == '@PK') {
 					$pk = $key;
 				// Выбрасываем первичный ключ из проверки на null, т.к. технически он может зануляться в режиме DbRecord
 				} else {
@@ -38,7 +39,8 @@ class DbTableSchemaProvider {
 				$defaults[$key] = $default;
 
 				// Определение типов
-				$types[$key] = $value['type'];
+				//todo!!!!!!!!!!!!! жесткая привязка первичного ключа к одному полю типа int - также смотреть где схема строится. И схему моделей.
+				$types[$key] = $value['type'] == 'pk' ? 'integer' : $value['type'];
 			}
 
 			self::$map[$tableKey] = [

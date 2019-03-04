@@ -58,10 +58,7 @@ class AutoloadMapBuilder {
 	 * - (lx-config|lx-config/main).(yaml|php) || composer.json
 	 * */
 	private function analizeDirectory($path) {
-		$config = null;
-		if ($path != \lx::$conductor->lx) {
-			$config = $this->tryGetPackageConfig($path);
-		}
+		$config = $this->tryGetPackageConfig($path);
 
 		if ($config === null) {
 			$dir = new Directory($path);

@@ -99,6 +99,7 @@
  * nextSibling()
  * prevSibling()
  * ancestor(info={})
+ * hasAncestor(box)
  * parentBlock()
  * rootBlock()
  * neighbor(key)
@@ -1478,6 +1479,18 @@ class Rect #lx:namespace lx {
 			p = p.parent;
 		}
 		return null;
+	}
+
+	/**
+	 * Определяет имеет ли элемент данного предка
+	 * */
+	hasAncestor(box) {
+		var temp = this.parent
+		while (temp) {
+			if (temp === box) return true;
+			temp = temp.parent;
+		}
+		return false;
 	}
 
 	/*

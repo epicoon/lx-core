@@ -128,12 +128,18 @@ class ModelListDisplayer #lx:namespace lx {
 				if (formModifier) formModifier(form);
 
 				pre.each((a)=>{
-					var widget = new a.widget({width: 1/*todo!!!!!*/});
+					var w = a.widget, c = {};
+					if (w.isArray) { c = w[1]; w = w[0]; }
+					if (!c.width) c.width = 1;
+					var widget = new w(c);
 					a.render(widget);
 				});
 				form.fields(fields);
 				post.each((a)=>{
-					var widget = new a.widget({width: 1/*todo!!!!!*/});
+					var w = a.widget, c = {};
+					if (w.isArray) { c = w[1]; w = w[0]; }
+					if (!c.width) c.width = 1;
+					var widget = new w(c);
 					a.render(widget);
 				});
 

@@ -28,94 +28,126 @@ class ServiceRouter {
 	/**
 	 * Должен возвращать данные от объекте, куда перенаправляется запрос
 	 * */
-	public function route() {
+	public function route($route) {
 		$map = $this->getMap();
 		/*
 		Пример карты:
 		[
 			'test/view' => [
 				'controller' => 'psrTest\controller\MainController',
-				'action' => 'eee',
 				'method' => 'get',
 				'access' => 'full',
+				'on-mode' => 'dev',
+				'on-service-mode' => 'someMode',
 			],
 			'test/a' => 'psrTest\controller\SomeController',  // Контроллер должен иметь метод ::run() - именно он будет запущен
-			'test/b' => 'psrTest\action\SomeAction',          // Экшен должен иметь метод ::run() - именно он будет запущен
 			'test/a' => 'psrTest\controller\SomeController::someAction',
+			'test/b' => ['action' => 'psrTest\action\SomeAction'],  // Экшен должен иметь метод ::run() - именно он будет запущен
 
-			'route/c' => '{module:someModule}',  // Сразу замыкает на модуль - он будет отрендерен
+			'route/c' => ['module' => 'someModule'],  // Сразу замыкает на модуль - он будет отрендерен
 		]
 		*/
 
 		$className = null;
-		$route = \lx::$dialog->route();
 		foreach ($map as $routeKey => $data) {
+			// На уровне роутера сервиса должно быть точное соответствие роута
 			if ($route != $routeKey) {
 				continue;
 			}
 
-			$className = '';
-			$actionMethod = 'run';
+			// Строка может означать только имя класса контроллера
 			if (is_string($data)) {
-				if ($data{0} == '{' || $data{0} == '[') {
-					return $this->routeByObject($data);
+				return $this->responseByController($data);
+			}
+
+			// Массив отработает по-разному в зависимости от наличия одного из ключей 'controller', 'action', 'module'
+			if (is_array($data)) {
+				// Проверка мода приложения
+				if (isset($data['on-mode'])) {
+					if (!\lx::isMode($data['on-mode'])) {
+						return false;
+					}					
 				}
 
-				$arr = explode('::', $data);
-				$className = $arr[0];
-				if (isset($arr[1])) $actionMethod = $arr[1];
-			} else {
-				//todo проверка метода
-				if (isset($data['method'])) {
-
+				// Проверка мода сервиса
+				if (isset($data['on-service-mode'])) {
+					if (!$this->service->isMode($data['on-service-mode'])) {
+						return false;
+					}
 				}
+
+				//todo - проверки метода, доступа
 
 				if (isset($data['controller'])) {
-					$className = $data['controller'];
-					if (isset($data['action'])) {
-						$actionMethod = $data['action'];
-					}
-				} elseif (isset($data['action'])) {
-					$className = $data['action'];
+					return $this->responseByController($data['controller']);
 				}
-			}
-		}
 
-		if ($className === null || !ClassHelper::exists($className)) {
-			return false;
-		}
+				if (isset($data['action'])) {
+					return $this->responseByAction($data['action']);
+				}
 
-		$instance = new $className($this->service);
-		$response = $instance->$actionMethod(\lx::$dialog->params());
-
-		return $response;
-	}
-
-	/**
-	 * Вернет отрендеренный модуль
-	 * {module:name}
-	 * */
-	private function routeByObject($info) {
-		$info = trim($info, '{}[]');
-		$data = explode(':', $info);
-		$key = trim($data[0], ' ');
-		$value = trim($data[1], ' ');
-
-		if ($key == 'module') {
-			$module = $this->service->getModule($value);
-			if (!$module) return false;
-
-			/*
-			//todo AJAX остался в app.php - в общей картине будет яснее. Нужна ли поддержка "ручного" управления AJAX-запросами на стороне сервера?
-			было бы неплохо, но как это сделать
-			*/
-			if (!\lx::$dialog->isAjax()) {
-				return ServiceResponse::renderModule($module);
-			// } else {
-			// 	return ServiceResponse::ajaxForModule($module);
+				if (isset($data['module'])) {
+					return $this->responseByModule($data['module']);
+				}
 			}
 		}
 
 		return false;
+	}
+
+	/**
+	 *
+	 * */
+	public function responseByController($nameWithAction) {
+		$className = '';
+		$actionMethod = 'run';
+		$arr = explode('::', $nameWithAction);
+		$className = $arr[0];
+		if (isset($arr[1])) $actionMethod = $arr[1];
+
+		if (!ClassHelper::exists($className)) {
+			return false;
+		}
+
+		$controller = new $className($this->service);
+		if (!method_exists($controller, $actionMethod)) {
+			return false;
+		}
+
+		return $controller->$actionMethod(\lx::$dialog->params());
+	}
+
+	/**
+	 *
+	 * */
+	public function responseByAction($className) {
+		if (!ClassHelper::exists($className)) {
+			return false;
+		}
+
+		$action = new $className($this->service);
+		if (!method_exists($action, 'run')) {
+			return false;
+		}
+
+		return $action->run(\lx::$dialog->params());		
+	}
+
+	/**
+	 *
+	 * */
+	public function responseByModule($moduleName) {
+		$module = $this->service->getModule($moduleName);
+		if (!$module) return false;
+
+		/*
+		//todo AJAX остался в app.php - в общей картине будет яснее. Нужна ли поддержка "ручного" управления AJAX-запросами на стороне сервера?
+		было бы неплохо, но как это сделать
+		*/
+		if (!\lx::$dialog->isAjax()) {
+			return ServiceResponse::renderModule($module);
+		// } else {
+		// 	return ServiceResponse::ajaxForModule($module);
+		}
 	}
 }

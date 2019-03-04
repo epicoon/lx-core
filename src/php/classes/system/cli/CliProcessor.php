@@ -421,13 +421,22 @@ class CliProcessor {
 		if (empty($servicesMigrateInfo)) {
 			$this->outln('No models need migrations', ['decor' => 'b']);
 		} else {
-			$this->outln('Following models need migrations:', ['decor' => 'b']);
+			$this->outln('Following migrations and models need be applied:', ['decor' => 'b']);
 			foreach ($servicesMigrateInfo as $info) {
 				$service = $info['service'];
 				$this->out('Service: ', ['decor' => 'b']);
 				$this->outln($service->name);
-				foreach ($info['models'] as $data) {
-					$this->outln('- ' . $data['name']);
+				if (!empty($info['migrations'])) {
+					$this->outln('* Migrations:', ['decor' => 'b']);
+					foreach ($info['migrations'] as $name) {
+						$this->outln('- ' . $name);
+					}
+				}
+				if (!empty($info['models'])) {
+					$this->outln('* Models:', ['decor' => 'b']);
+					foreach ($info['models'] as $data) {
+						$this->outln('- ' . $data['name']);
+					}
 				}
 			}
 		}
@@ -461,10 +470,7 @@ class CliProcessor {
 			$this->out('Migration for service: ', ['decor' => 'b'] );
 			$this->outln($info['service']->name, '...');
 
-			foreach ($info['models'] as $data) {
-				$this->outln('--- model:', $data['name']);
-				$migrator->runModel($info['service'], $data['name'], $data['path']);
-			}
+			$migrator->runService($info['service']);
 		}
 
 		$this->outln('Done', ['decor' => 'b']);
@@ -769,6 +775,16 @@ class CliProcessor {
 				}
 			}
 
+			$migrationMap = new ServiceMigrationMap($service);
+			$list = $migrationMap->getUnappliedList();
+			if (!empty($list)) {
+				$map[$service->name] = [
+					'service' => $service,
+					'models' => [],
+					'migrations' => $list,
+				];
+			}
+
 			foreach ($serviceModels as $modelName => $path) {
 				$analizer = new ModelBrowser([
 					'service' => $service,
@@ -784,6 +800,7 @@ class CliProcessor {
 					$map[$service->name] = [
 						'service' => $service,
 						'models' => [],
+						'migrations' => [],
 					];
 				}
 				$map[$service->name]['models'][] = [

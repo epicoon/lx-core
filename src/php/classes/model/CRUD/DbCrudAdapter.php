@@ -24,6 +24,9 @@ class DbCrudAdapter extends CrudAdapter {
 	 * */
 	public function loadModelsData($schema, $condition) {
 		$table = $this->getTable($schema);
+		if (!$table) {
+			return [];
+		}
 		return $table->select('*', $condition);
 	}
 
@@ -42,6 +45,10 @@ class DbCrudAdapter extends CrudAdapter {
 		unset($temp[$pkName]);
 
 		$table = $this->getTable($schema);
+		if (!$table) {
+			return false;
+		}
+
 		// Если запись новая
 		if ($pk === null) {
 			$model->setPk( $table->insert(array_keys($temp), array_values($temp)) );
@@ -50,6 +57,8 @@ class DbCrudAdapter extends CrudAdapter {
 		} else {
 			$table->update($temp, [$pkName => $pk]);
 		}
+
+		return true;
 	}
 
 	/**
@@ -60,6 +69,9 @@ class DbCrudAdapter extends CrudAdapter {
 
 		$schema = $model->getSchema();
 		$table = $this->getTable($schema);
+		if (!$table) {
+			return;
+		}
 
 		$table->delete([$schema->pkName() => $model->pk()]);
 		$model->drop();
@@ -89,6 +101,9 @@ class DbCrudAdapter extends CrudAdapter {
 		}
 
 		$table = $this->getTable($schema);
+		if (!$table) {
+			return false;
+		}
 
 		if (!empty($forUpdate)) {
 			$rows = [];
@@ -115,6 +130,8 @@ class DbCrudAdapter extends CrudAdapter {
 				$model->setPk($ids[$i++]);
 			}
 		}
+
+		return true;
 	}
 
 	/**
@@ -135,6 +152,10 @@ class DbCrudAdapter extends CrudAdapter {
 
 		$pkName = $schema->pkName();
 		$table = $this->getTable($schema);
+		if (!$table) {
+			return;
+		}
+
 		$table->delete([$pkName => $pks]);
 	}
 
@@ -176,6 +197,7 @@ class DbCrudAdapter extends CrudAdapter {
 
 	/**
 	 * //todo!!!! нормально с транзакциями сделать
+	 * //todo есть сомнения по архитектуре - зачем крад-адаптеру так глубоко знать про миграционные экшены?
 	 * */
 	public function correctModel($modelName, $tableName, $actions) {
 		/*
@@ -215,51 +237,21 @@ class DbCrudAdapter extends CrudAdapter {
 	/**
 	 *
 	 * */
-	public function addModelEssences($modelName, $tableName, $actions) {
+	public function correctModelEssences($modelName, $tableName, $actions) {
 		/*
-		$actions - ассоциативный массив, примеры:
-			!!add:
-			  - f0: val1_0
-			    f1: val1_1
-			  - f0: val2_0
-			    f1: val2_1
-			!!add:
-			  vars:
-			    $field1: SomeModel('slug1')->field
-			    $field2: SomeModel('slug2')->field + '_' + SomeModel('slug1')->field
-			  models:
-			    - f0: $field1
-			      f1: val1_1
-			    - f0: $field2
-			      f1: val2_1
-			!!addTable: [
-			  [ f0,     f1     ],
-			  [ val1_0, val1_1 ],
-			  [ val2_0, val2_1 ]
-			]
-			!!addTable:
-			  vars:
-			    $field1: SomeModel('slug1')->field;
-			    $field2: SomeModel('slug2')->field . '_' . SomeModel('slug1')->field;
-			  models: [
-			    [ f0,      f1     ],
-			    [ $field1, val1_1 ],
-			    [ $field2, val2_1 ]
-			  ]
-			!!remove:
-			  slug: val
-			!!remove:
-			  vars:
-			    $slug: SomeModel('slug1')->field;
-			  where:
-			    slug: $slug
-			!!query: "--SOME SQL QUERY"
-		*/
+		$actions - ассоциативный массив, варианты диерктив:
+			['query', $query]
+			['add', $modelName, $data]
+			['del', $modelName, $data]
+			['edit', $modelName, $dataPares]
 
+			//todo del-force - быстрое удаление без запоминания
+			//todo edit-force - быстрое изменение без запоминания
+		*/
 		$db = $this->getDb();
 		$db->query('BEGIN;');
 		try {
-			$this->applyOuterActions($modelName, $actions);
+			$this->applyOuterActions($actions);
 		} catch (\Exception $e) {
 			$db->query('ROLLBACK;');
 			throw $e;
@@ -284,6 +276,7 @@ class DbCrudAdapter extends CrudAdapter {
 		return (!$db->tableExists($tableName));
 	}
 
+
 	/*************************************************************************************************************************
 	 * PROTECTED
 	 *************************************************************************************************************************/
@@ -300,6 +293,7 @@ class DbCrudAdapter extends CrudAdapter {
 		return $this->db;
 	}
 
+
 	/*************************************************************************************************************************
 	 * PRIVATE
 	 *************************************************************************************************************************/
@@ -315,54 +309,17 @@ class DbCrudAdapter extends CrudAdapter {
 			throw new \Exception("Not found db-connection for model '{$schema->getName()}'", 400);
 		}
 
-		if (!$db->tableExists($tableName)) $this->createTable($schema);
-		return $db->table($tableName);
+		if ($db->tableExists($tableName)) {
+			return $db->table($tableName);
+		}
+
+		return null;
 	}
 
 	/**
 	 *
 	 * */
 	private function definitionByField($field) {
-		// $type = $field->getType();
-		// $dbType;
-		// $conf = [];
-		// switch ($type) {
-		// 	case ModelField::TYPE_INTEGER:
-		// 		$dbType = 'integer';
-		// 		break;
-
-		// 	case ModelField::TYPE_STRING:
-		// 		$dbType = 'varchar';
-		// 		$conf['size'] = $field->len();
-		// 		break;
-
-		// 	case ModelField::TYPE_BOOLEAN:
-		// 		$dbType = 'boolean';
-		// 		break;
-
-		// 	// case ModelField::TYPE_MODEL:
-		// 	// 	/*
-		// 	// 	Это явно заявка на внешний ключ
-		// 	// 	*/
-		// 	// 	break;
-
-		// 	// case ModelField::TYPE_MODEL_ARRAY:
-		// 	// 	// Здесь надо выяснить - возможно нужна промежуточная таблица, если вторая модель тоже с массивом
-		// 	// 	// Если вторая модель с одиночной ссылкой - это внешний ключ во второй модели
-		// 	// 	// Если во второй модели нет ссылки на первую - это расценивать как ошибку?
-
-		// 	// 	// $manager = $this->modelProvider->getManager( $field->getModelName() );
-		// 	// 	// var_dump($manager);
-		// 	// 	// die();
-
-		// 	// 	break;
-		// }
-
-		// if (!$dbType) return null;
-
-		// $conf['default'] = $field->getDefault();
-		// $conf['notNull'] = $field->isNotNull();
-
 		$fieldDefinition = $field->getDefinition();
 		$dbType = $fieldDefinition['dbType'];
 
@@ -432,20 +389,21 @@ class DbCrudAdapter extends CrudAdapter {
 	/**
 	 *
 	 * */
-	private function applyOuterActions($modelName, $outerActions) {
-		foreach ($outerActions as $actionKey => $actionData) {
+	private function applyOuterActions($outerActions) {
+		foreach ($outerActions as $action) {
+			$actionKey = $action[0];
 			switch ($actionKey) {
-				case '!!query':
-					$this->getDb()->query($actionData);
+				case 'add':
+					$this->addModelsFromMigration($action[1], $action[2]);
 					break;
-				case '!!add':
-					$this->migrationAddModels($modelName, $actionData);
+				case 'edit':
+					$this->editModelsFromMigration($action[1], $action[2]);
 					break;
-				case '!!addTable':
-					$this->migrationAddModelsFromArray($modelName, $actionData);
+				case 'del':
+					$this->delModelsFromMigration($action[1], $action[2]);
 					break;
-				case '!!remove':
-					$this->migrationRemoveModels($modelName, $actionData);
+				case 'query':
+					$this->getDb()->query($action[1]);
 					break;
 			}
 		}
@@ -454,35 +412,11 @@ class DbCrudAdapter extends CrudAdapter {
 	/**
 	 *
 	 * */
-	private function migrationAddModels($__modelName, $__data) {
-		if (array_key_exists('models', $__data)) {
-			// Создаем переменные
-			$__vars = [];
-			if (array_key_exists('vars', $__data)) {
-				foreach ($__data['vars'] as $varName => $varCode) {
-					if (!preg_match('/;$/', $varCode)) $varCode .= ';';
-					eval('$__vars[\''. $varName .'\']=' . $varCode);
-				}
-			}
-
-			// Парсим данные на использование переменных
-			$__data = $__data['models'];
-			foreach ($__data as $i => &$params) {
-				foreach ($params as $param => &$value) {
-					if (array_key_exists($value, $__vars)) {
-						$value = $__vars[$value];
-					}
-				}
-				unset($value);
-			}
-			unset($params);
-		}
-
-		// Создаем модели
-		$manager = $this->modelProvider->getManager($__modelName);
-		$models = $manager->newModels( count($__data) );
+	private function addModelsFromMigration($modelName, $data) {
+		$manager = $this->modelProvider->getManager($modelName);
+		$models = $manager->newModels( count($data) );
 		if (!is_array($models)) $models = [$models];
-		foreach ($__data as $i => $params) {
+		foreach ($data as $i => $params) {
 			$models[$i]->setFields($params);
 		}
 		$manager->saveModels($models);
@@ -491,67 +425,31 @@ class DbCrudAdapter extends CrudAdapter {
 	/**
 	 *
 	 * */
-	private function migrationAddModelsFromArray($modelName, $data) {
-		$parse = function($data) {
-			$header = array_shift($data);
-			if (is_string($header)) {
-				$header = preg_split('/\s*/', $header);
+	private function editModelsFromMigration($modelName, $pares) {
+		$manager = $this->modelProvider->getManager($modelName);
+		$models = [];
+		foreach ($pares as $pare) {
+			$tempModels = $manager->loadModels($pare[0]);
+			foreach ($tempModels as $model) {
+				$model->setFields($pare[1]);
+				$models[] = $model;
 			}
-			$result = [];
-			foreach ($data as $params) {
-				if (is_string($params)) {
-					$params = preg_split('/\s*/', $params);
-				}
-				$row = [];
-				foreach ($header as $i => $fieldName) {
-					$row[$fieldName] = $params[$i];
-				}
-				$result[] = $row;
-			}
-			return $result;
-		};
-
-		if (array_key_exists('models', $data)) {
-			$data['models'] = $parse($data['models']);
-		} else {
-			$data = $parse($data);
 		}
 
-		$this->migrationAddModels($modelName, $data);
+		// var_dump($models);
+
+		$manager->saveModels($models);
 	}
 
 	/**
 	 *
 	 * */
-	private function migrationRemoveModels($__modelName, $__data) {
-		if (array_key_exists('condition', $__data)) {
-			// Создаем переменные
-			$__vars = [];
-			if (array_key_exists('vars', $__data)) {
-				foreach ($__data['vars'] as $varName => $varCode) {
-					if (!preg_match('/;$/', $varCode)) $varCode .= ';';
-					eval( $varName . '=' . $varCode . '$__vars[\''. $varName .'\']=' . $varName . ';' );
-				}
-			}
-
-			// Парсим данные на использование переменных
-			$__data = $__data['condition'];
-			if (is_string($__data)) {
-				foreach ($__vars as $key => $value) {
-					$__data = str_replace($key, $value, $__data);
-				}
-			} else {
-				foreach ($__data as $i => &$param) {
-					if (array_key_exists($param, $__vars)) {
-						$param = $__vars[$param];
-					}
-				}
-				unset($params);
-			}
+	private function delModelsFromMigration($modelName, $data) {
+		$manager = $this->modelProvider->getManager($modelName);
+		$models = [];
+		foreach ($data as $params) {
+			$models[] = $manager->loadModel($params);
 		}
-
-		$manager = $this->modelProvider->getManager($__modelName);
-		$models = $manager->loadModels($__data);
 		$manager->deleteModels($models);
 	}
 }

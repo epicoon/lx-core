@@ -135,6 +135,17 @@ class ModelProvider {
 	/**
 	 *
 	 * */
+	public function deleteTable($modelName, $schema = null) {
+		$adapter = $this->getCrudAdapter($modelName);
+		if ($schema === null) {
+			$schema = $this->getSchema($modelName);
+		}
+		return $adapter->deleteTable($schema);
+	}
+
+	/**
+	 *
+	 * */
 	public function createModel($modelName) {
 		$tableName = preg_replace_callback('/[A-Z]/', function($match) {
 			return '_' . strtolower($match[0]);
@@ -151,6 +162,7 @@ class ModelProvider {
 		$file->put($code);
 
 		$this->createTable($modelName);
+		return $tableName;
 	}
 
 	/**
@@ -179,9 +191,9 @@ class ModelProvider {
 	/**
 	 *
 	 * */
-	public function addModelEssences($modelName, $tableName, $actions) {
+	public function correctModelEssences($modelName, $tableName, $actions) {
 		$adapter = $this->getCrudAdapter($modelName);
-		return $adapter->addModelEssences($modelName, $tableName, $actions);
+		return $adapter->correctModelEssences($modelName, $tableName, $actions);
 	}
 
 

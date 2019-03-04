@@ -119,7 +119,7 @@ lx.Binder = {
 			r.begin();
 			itemRender(r, obj);
 			r.end();
-			t.bind(obj, r);
+			t.bind(obj, r, type);
 			if (afterBind) afterBind(r, obj);
 			r.matrixItems = function() {return this.parent.matrixItems;};
 			r.matrixIndex = function() {return this.index || 0;};
@@ -127,14 +127,15 @@ lx.Binder = {
 		};
 
 		function delObject(i) {
-			unbindObject(c.at(i));
+			unbindObject(c.at(i), widget.getAll('r').at(i));
 			widget.del('r', i);
 		};
 
 		function unbindAll() {
 			c.first();
+			let i = 0;
 			while (c.current()) {
-				unbindObject(c.current());
+				unbindObject(c.current(), widget.getAll('r').at(i++));
 				c.next();
 			}
 			widget.del('r');
@@ -143,7 +144,7 @@ lx.Binder = {
 
 		c.each(function(a){newRow.call(this, a);});
 		c.addBehavior(lx.MethodListenerBehavior);
-		c.afterMethod('add', function(){newRow.call(this);});
+		c.afterMethod('add', function(){ newRow.call(this);});
 		c.beforeMethod('removeAt', (i)=> delObject(i));
 		c.beforeMethod('clear', unbindAll);
 		c.afterMethod('set', (i, obj)=>lx.Binder.bind(c.at(i), widget.getAll('r').at(i), type));
@@ -218,8 +219,9 @@ lx.Binder = {
 		function unbindAll() {
 			if (c.isEmpty) return;
 			c.first();
+			let i = 0;
 			while(c.current()) {
-				unbindObject(c.current());
+				unbindObject(c.current(), widget.getAll('r').at(i++));
 				c.next();
 			}
 		};
@@ -303,18 +305,26 @@ function action(obj, name, newVal) {
 	arr.each((a)=> valueToWidget(a, newVal));
 }
 
-// Отвязать от модели все привязанные виджеты по всем полям
-function unbindObject(obj) {
+// Отвязать от модели все привязанные виджеты по всем полям (в рамках определенного виджета, если передан)
+function unbindObject(obj, widget=null) {
 	if (!obj.lxBindId) return;
-	var bb = getBind(obj.lxBindId);
+	var bb = getBind(obj.lxBindId),
+		total = 0,
+		unbinded = 0;
 	for (let name in bb) bb[name].each((a)=> {
-		delete a.lxBindId;
-		valueToWidgetWithoutBind(a, '');
-		// a.off('blur');
-		a.off('change');
+		total++;
+		if (!widget || (a === widget || a.hasAncestor(widget))) {
+			delete a.lxBindId;
+			valueToWidgetWithoutBind(a, '');
+			// a.off('blur');
+			a.off('change');
+			unbinded++;
+		}
 	});
-	delete binds[obj.lxBindId];
-	delete obj.lxBindId;
+	if (total == unbinded) {
+		delete binds[obj.lxBindId];
+		delete obj.lxBindId;
+	}
 }
 
 // Без обновления модели

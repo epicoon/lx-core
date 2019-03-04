@@ -198,7 +198,7 @@ class AlignRuleDefault extends AlignRuleAbstract {
 
 	public function pack() {
 		$str = parent::pack();
-		if ($this->indents) $str .= '+' . $this->indents->pack();
+		if ($this->indents) $str .= '+' . $this->indents->pack('=');
 		return $str;
 	}
 }
@@ -228,7 +228,7 @@ class AlignRule extends AlignRuleAbstract {
 		});
 		$str .= '+' . $v->join(',');
 
-		if ($this->indents) $str .= '+' . $this->indents->pack();
+		if ($this->indents) $str .= '+' . $this->indents->pack('=');
 
 		return $str;
 	}

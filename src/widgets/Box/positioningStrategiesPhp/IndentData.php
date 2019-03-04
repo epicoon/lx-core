@@ -8,9 +8,9 @@ class IndentData extends DataObject {
 	}
 
 	//todo отптимизировать упаковку-распаковку
-	public function pack() {
+	public function pack($delimiter=':') {
 		$indents = $this->get();
-		return 'i:' . implode(',', $indents['step']) . ',' . implode(',', $indents['padding'][0]) . ',' . implode(',', $indents['padding'][1]);
+		return 'i' . $delimiter . implode(',', $indents['step']) . ',' . implode(',', $indents['padding'][0]) . ',' . implode(',', $indents['padding'][1]);
 	}
 
 	public static function createOrNull($config) {

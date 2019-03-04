@@ -114,6 +114,7 @@ class Tree {
 		foreach ($this->keys as $key) {
 		// for ($i=0, $l=count($this->keys); $i<$l; $i++)
 			$this->branches[$key]->collectJSON($arr, $keys, $index);
+		}
 	}
 
 	public function toJSON() {  // инфа только о вложенных узлах

@@ -26,44 +26,6 @@ class ModelMigrateExecutor {
 	/**
 	 *
 	 * */
-	public static function runMigration($service, $migration) {
-		$modelProvider = $service->modelProvider;
-		switch ($migration['type']) {
-			case 'table_create':
-				$name = $migration['model'];
-				$schema = new ModelSchema($name, $migration['schema']);
-				if (!$modelProvider->createTable($name, $schema)) {
-					return false;
-				}
-				break;
-			case 'table_alter':
-				$correctResult = $modelProvider->correctModel(
-					$migration['model'],
-					$migration['table_name'],
-					$migration['actions']
-				);
-				if (!$correctResult) {
-					return false;
-				}
-				break;
-			case 'table_content':
-				$correctResult = $modelProvider->addModelEssences(
-					$migration['model'],
-					$migration['table_name'],
-					$migration['actions']
-				);
-				if (!$correctResult) {
-					return false;
-				}
-				break;
-		}
-
-		return true;
-	}
-
-	/**
-	 *
-	 * */
 	public function __construct($service, $modelName, $modelArray=null, $actions=null, $path=null, $code=null) {
 		$this->service = $service;
 		$this->modelName = $modelName;
@@ -93,13 +55,13 @@ class ModelMigrateExecutor {
 	}
 
 	/**
-	 * Для запуска парсинга yaml-кода модели
+	 * Парсинг текста yaml-схемы модели для поиска директив изменения (изменение структуры, изменение контента)
 	 * */
 	public function runParseCode() {
-		$this->parseInnerActions();
 		$modelProvider = $this->service->modelProvider;
 		$migrationMaker = new MigrationMaker($this->service);
 
+		$this->parseInnerActions();
 		if ($modelProvider->checkModelNeedTable($this->modelName)) {
 			$this->correctInnerYaml();
 			$migrationMaker->createTableMigration($this->modelName, $this->tableName);
@@ -126,20 +88,23 @@ class ModelMigrateExecutor {
 			}
 		}
 
-		if (!empty($this->outerActions)) {
+		$actions = $this->parseOuterActions();
+		if (!empty($actions)) {
 			$migrationMaker->createOuterMigration(
 				$this->modelName,
 				$this->tableName,
-				$this->outerActions
+				$actions
 			);
-			$correctResult = $modelProvider->addModelEssences(
+
+			$correctResult = $modelProvider->correctModelEssences(
 				$this->modelName,
 				$this->tableName,
-				$this->outerActions
+				$actions
 			);
 			if (!$correctResult) {
 				return false;
 			}
+
 			$this->correctOuterYaml();
 		}
 
@@ -147,7 +112,27 @@ class ModelMigrateExecutor {
 	}
 
 	/**
-	 * Для корректировки моделей извне
+	 *
+	 * */
+	public function runChangeEssences($actions) {
+		$modelProvider = $this->service->modelProvider;
+		$migrationMaker = new MigrationMaker($this->service);
+
+		$migrationMaker->createOuterMigration(
+			$this->modelName,
+			$this->tableName,
+			$actions
+		);
+
+		return $modelProvider->correctModelEssences(
+			$this->modelName,
+			$this->tableName,
+			$actions
+		);
+	}
+
+	/**
+	 * Корректировки моделей готовым набором директив (только изменение структуры)
 	 * */
 	public function runCorrectActions($actions) {
 		$this->tableName = $this->modelData['table'];
@@ -211,7 +196,7 @@ class ModelMigrateExecutor {
 	 *************************************************************************************************************************/
 
 	/**
-	 * Собираем инфу - что делать со схемой
+	 * Парсинг непосредственно текста yaml-схемы, если директивы изменения написали прямо в файле
 	 * */
 	private function parseInnerActions() {
 		// Проверка на переименование таблицы
@@ -290,7 +275,7 @@ class ModelMigrateExecutor {
 	}
 
 	/**
-	 * Отформатировать Yaml-конфиг
+	 * Отформатировать Yaml-схему
 	 * */
 	private function correctInnerYaml() {
 		if (empty($this->innerActions)) {
@@ -355,6 +340,237 @@ class ModelMigrateExecutor {
 
 		$reg = '/' . $regFace . $data['currentFieldName'] . '[\w\W]+?' . $regTail . '/';
 		$code = preg_replace($reg, '$1', $code);
+	}
+
+	/**
+	 *
+	 * */
+	private function parseOuterActions() {
+		if (empty($this->outerActions)) return;
+
+		$list = [];
+
+		/*
+		$this->outerActions - ассоциативный массив, примеры:
+			!!add:
+			  - f0: val1_0
+			    f1: val1_1
+			  - f0: val2_0
+			    f1: val2_1
+			!!add:
+			  vars:
+			    $field1: SomeModel('slug1')->field
+			    $field2: SomeModel('slug2')->field + '_' + SomeModel('slug1')->field
+			  models:
+			    - f0: $field1
+			      f1: val1_1
+			    - f0: $field2
+			      f1: val2_1
+			!!addTable: [
+			  [ f0,     f1     ],
+			  [ val1_0, val1_1 ],
+			  [ val2_0, val2_1 ]
+			]
+			!!addTable:
+			  vars:
+			    $field1: SomeModel('slug1')->field;
+			    $field2: SomeModel('slug2')->field . '_' . SomeModel('slug1')->field;
+			  models: [
+			    [ f0,      f1     ],
+			    [ $field1, val1_1 ],
+			    [ $field2, val2_1 ]
+			  ]
+			!!edit:
+			  vars:
+			    $slug: someSlug
+			    $field: SomeModel('slug1')->field;
+			  for:
+			    slug: $slug
+			  fields:
+			    - field: $field
+			  for:
+			    slug: $slug2
+			  fields:
+			    - field: $field2
+			!!remove:
+			  slug: val
+			!!remove:
+			  vars:
+			    $slug: SomeModel('slug1')->field;
+			  for:
+			    slug: $slug
+			!!query: "--SOME SQL QUERY"
+		*/
+		foreach ($this->outerActions as $actionKey => $actionData) {
+			switch ($actionKey) {
+				case '!!query':
+					$list[] = ['query', $actionData];
+					break;
+				case '!!add':
+					$list[] = ['add', $this->modelName, $this->outerAddModels($actionData)];
+					break;
+				case '!!addTable':
+					$list[] = ['add', $this->modelName, $this->outerAddModelsFromArray($actionData)];
+					break;
+				case '!!edit':
+					$arr = $this->outerEditModels($actionData);
+					if ($arr) {
+						$list[] = ['edit', $this->modelName, $arr];
+					}
+					break;
+				case '!!remove':
+					$list[] = ['del', $this->modelName, $this->outerRemoveModels($actionData)];
+					break;
+			}
+		}
+
+		return $list;
+	}
+
+	/**
+	 *
+	 * */
+	private function outerAddModels($__data) {
+		if (array_key_exists('models', $__data)) {
+			// Создаем переменные
+			$__vars = [];
+			if (array_key_exists('vars', $__data)) {
+				foreach ($__data['vars'] as $varName => $varCode) {
+					if (!preg_match('/;$/', $varCode)) $varCode .= ';';
+					eval('$__vars[\''. $varName .'\']=' . $varCode);
+				}
+			}
+
+			// Парсим данные на использование переменных
+			$__data = $__data['models'];
+			foreach ($__data as $i => &$params) {
+				foreach ($params as $param => &$value) {
+					if (array_key_exists($value, $__vars)) {
+						$value = $__vars[$value];
+					}
+				}
+				unset($value);
+			}
+			unset($params);
+		}
+
+		return $__data;
+	}
+
+	/**
+	 *
+	 * */
+	private function outerAddModelsFromArray($data) {
+		$parse = function($data) {
+			$header = array_shift($data);
+			if (is_string($header)) {
+				$header = preg_split('/\s*/', $header);
+			}
+			$result = [];
+			foreach ($data as $params) {
+				if (is_string($params)) {
+					$params = preg_split('/\s*/', $params);
+				}
+				$row = [];
+				foreach ($header as $i => $fieldName) {
+					$row[$fieldName] = $params[$i];
+				}
+				$result[] = $row;
+			}
+			return $result;
+		};
+
+		if (array_key_exists('models', $data)) {
+			$data['models'] = $parse($data['models']);
+		} else {
+			$data = $parse($data);
+		}
+
+		return $this->outerAddModels($data);
+	}
+
+	/**
+	 *
+	 * */
+	private function outerEditModels($__data) {
+		// Создаем переменные
+		$__vars = [];
+		if (array_key_exists('vars', $__data)) {
+			foreach ($__data['vars'] as $__varName => $__varCode) {
+				if (!preg_match('/;$/', $__varCode)) $__varCode .= ';';
+				eval( $__varName . '=' . $__varCode . '$__vars[\''. $__varName .'\']=' . $__varName . ';' );
+			}
+		}
+
+		$result = [];
+		$pare = [null, null];
+		//todo добавить проверок на корректность директивы
+		foreach ($__data as $__key => $__value) {
+			if ($__key == 'vars') continue;
+
+			// Парсим на использование переменных
+			if (is_string($__value)) {
+				foreach ($__vars as $key => $value) {
+					$__value = str_replace($key, $value, $__value);
+				}
+			} else {
+				foreach ($__value as $i => &$param) {
+					if (array_key_exists($param, $__vars)) {
+						$param = $__vars[$param];
+					}
+				}
+				unset($params);
+			}
+
+			if ($__key == 'for') {
+				$pare[0] = $__value;
+			} elseif ($__key == 'fields') {
+				$pare[1] = $__value;
+				$result[] = $pare;
+			}
+		}
+
+		if (empty($result)) return false;
+		return $result;
+	}
+
+	/**
+	 *
+	 * */
+	private function outerRemoveModels($__data) {
+		if (array_key_exists('for', $__data)) {
+			// Создаем переменные
+			$__vars = [];
+			if (array_key_exists('vars', $__data)) {
+				foreach ($__data['vars'] as $varName => $varCode) {
+					if (!preg_match('/;$/', $varCode)) $varCode .= ';';
+					eval( $varName . '=' . $varCode . '$__vars[\''. $varName .'\']=' . $varName . ';' );
+				}
+			}
+
+			// Парсим условие на использование переменных
+			$__data = $__data['for'];
+			if (is_string($__data)) {
+				foreach ($__vars as $key => $value) {
+					$__data = str_replace($key, $value, $__data);
+				}
+			} else {
+				foreach ($__data as $i => &$param) {
+					if (array_key_exists($param, $__vars)) {
+						$param = $__vars[$param];
+					}
+				}
+				unset($params);
+			}
+		}
+
+		$manager = $this->service->modelProvider->getManager($this->modelName);
+		$models = $manager->loadModels($__data);
+		$data = [];
+		foreach ($models as $model) {
+			$data[] = $model->getFields();
+		}
+		return $data;
 	}
 
 	/**

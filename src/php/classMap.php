@@ -19,6 +19,7 @@ return [
 	'ServiceRouter' => 'classes/package',
 	'ServiceController' => 'classes/package',
 	'ServiceConductor' => 'classes/package',
+	'ServiceMigrationMap' => 'classes/package/system',
 	'ServiceResponse' => 'classes/package/response',
 	'RenderServiceResponse' => 'classes/package/response',
 
@@ -43,6 +44,7 @@ return [
 	'CrudAdapter' => 'classes/model/CRUD',
 	'DbCrudAdapter' => 'classes/model/CRUD',
 
+	'MigrationMap' => 'classes/system/migration',
 	'MigrationManager' => 'classes/system/migration',
 	'ModelMigrateExecutor' => 'classes/system/migration',
 	'MigrationMaker' => 'classes/system/migration',

@@ -226,9 +226,198 @@ class SintaxExtender {
 			$code = str_replace($matches[0][$i], $text, $code);
 		}
 
+		$code = self::applyHtmlTemplater($code);
+
 		return $code;
 	}
 
+	/**
+	 *
+	 * */
+	public static function applyHtmlTemplater($code) {
+		$reg = '/#lx:(?P<tpl>\<((?>[^<>]+)|(?P>tpl))*\>)/';
+		return preg_replace_callback($reg, function($match) {
+			$tpl = $match['tpl'];
+
+			$tags = [];
+			$content = [];
+			$counter = -1;
+			$result = '\'';
+
+			$cutNext = function($str) use (&$tags, &$content, &$counter, &$result) {
+				$str = preg_replace('/^\s*/', '', $str);
+
+				if ($str{0} == '<') {
+					if ($counter > -1) {
+						$result .= '<' . end($tags);
+						if ($content[$counter]['id']) {
+							$result .= ' id="' . $content[$counter]['id'] . '"';
+						}
+						if ($content[$counter]['name']) {
+							$result .= ' name="' . $content[$counter]['name'] . '"';
+						}
+						if (!empty($content[$counter]['css'])) {
+							$css = implode(' ', $content[$counter]['css']);
+							$result .= ' class="' . $css . '"';
+						}
+						if ($content[$counter]['style']) {
+							$result .= ' style=' . $content[$counter]['style'];
+						}
+						if ($content[$counter]['data']) {
+							$result .= ' lx-data="' . $content[$counter]['data'] . '"';
+						}
+						$result .= '>';
+						if ($content[$counter]['text']) {
+							$result .= $content[$counter]['text'];
+						}
+						array_pop($content);
+						$counter--;
+					}
+
+					$content[] = [
+						'id' => null,
+						'name' => null,
+						'css' => [],
+						'style' => null,
+						'data' => null,
+						'text' => null,
+						'rendered' => false,
+					];
+					$counter++;
+
+					$arr = preg_split('/^<(.+?\b)/', $str, 0, PREG_SPLIT_DELIM_CAPTURE);
+					$tag = $arr[1];
+					$newStr = $arr[2];
+					$tags[] = $tag;
+					return $newStr;
+				}
+				if ($str{0} == '>') {
+					$newStr = preg_replace('/^>/', '', $str);
+
+					$tag = array_pop($tags);
+					if ($counter > -1 && !$content[$counter]['rendered']) {
+						$result .= '<' . $tag;
+						if ($content[$counter]['id']) {
+							$result .= ' id="' . $content[$counter]['id'] . '"';
+						}
+						if ($content[$counter]['name']) {
+							$result .= ' name="' . $content[$counter]['name'] . '"';
+						}
+						if (!empty($content[$counter]['css'])) {
+							$css = implode(' ', $content[$counter]['css']);
+							$result .= ' class="' . $css . '"';
+						}
+						if ($content[$counter]['style']) {
+							$result .= ' style=' . $content[$counter]['style'];
+						}
+						if ($content[$counter]['data']) {
+							$result .= ' lx-data="' . $content[$counter]['data'] . '"';
+						}
+						$result .= '>';
+						if ($content[$counter]['text']) {
+							$result .= $content[$counter]['text'];
+						}
+						array_pop($content);
+						$counter--;
+					}
+					$result .= "</$tag>";
+
+					return $newStr;
+				}
+				if ($str{0} == '#') {
+					if ($str{1} == '{') {
+						$reg = '/^#(?P<re>{((?>[^{}]+)|(?P>re))*})/';
+						$arr = preg_split($reg, $str, 0, PREG_SPLIT_DELIM_CAPTURE);
+						$idCode = preg_replace('/(^{|}$)/', '', $arr[1]);
+						$newStr = $arr[3];
+						$content[$counter]['id'] = "'+$idCode+'";
+						return $newStr;
+					} else {
+						$arr = preg_split('/^#(.+?\b)/', $str, 0, PREG_SPLIT_DELIM_CAPTURE);
+						$id = $arr[1];
+						$newStr = $arr[2];
+						$content[$counter]['id'] = $id;
+						return $newStr;
+					}
+				}
+				if ($str{0} == ':') {
+					if ($str{1} == '{') {
+						$reg = '/^:(?P<re>{((?>[^{}]+)|(?P>re))*})/';
+						$arr = preg_split($reg, $str, 0, PREG_SPLIT_DELIM_CAPTURE);
+						$nameCode = preg_replace('/(^{|}$)/', '', $arr[1]);
+						$newStr = $arr[3];
+						$content[$counter]['name'] = "'+$nameCode+'";
+						return $newStr;
+					} else {
+						$arr = preg_split('/^:(.+?\b)/', $str, 0, PREG_SPLIT_DELIM_CAPTURE);
+						$name = $arr[1];
+						$newStr = $arr[2];
+						$content[$counter]['name'] = $name;
+						return $newStr;
+					}
+				}
+				if ($str{0} == '.') {
+					if ($str{1} == '{') {
+						$reg = '/^\.(?P<re>{((?>[^{}]+)|(?P>re))*})/';
+						$arr = preg_split($reg, $str, 0, PREG_SPLIT_DELIM_CAPTURE);
+						$cssCode = preg_replace('/(^{|}$)/', '', $arr[1]);
+						$newStr = $arr[3];
+						$content[$counter]['css'][] = "'+$cssCode+'";
+						return $newStr;
+					} else {
+						$arr = preg_split('/^\.(.+?\b)/', $str, 0, PREG_SPLIT_DELIM_CAPTURE);
+						$css = $arr[1];
+						$newStr = $arr[2];
+						$content[$counter]['css'][] = $css;
+						return $newStr;
+					}
+				}
+				if ($str{0} == '"') {
+					$arr = preg_split('/^("[^"]*?")/', $str, 0, PREG_SPLIT_DELIM_CAPTURE);
+					$style = $arr[1];
+					$newStr = $arr[2];
+					$content[$counter]['style'] = $style;
+					return $newStr;
+				}
+				if ($str{0} == '[') {
+					$reg = '/^(?P<re>\[((?>[^\[\]]+)|(?P>re))*\])/';
+					$arr = preg_split($reg, $str, 0, PREG_SPLIT_DELIM_CAPTURE);
+					$data = preg_replace('/(^\[|\]$)/', '', $arr[1]);
+					$newStr = $arr[3];
+					$reg = '/(?P<re>{((?>[^{}]+)|(?P>re))*})/';
+					$data = preg_replace_callback($reg, function($dataMatch) {
+						$res = preg_replace('/(^{|}$)/', '', $dataMatch[1]);
+						return "'+$res+'";
+					}, $data);
+					$content[$counter]['data'] = $data;
+					return $newStr;
+				}
+				if ($str{0} == '=') {
+					$reg = '/^=(?P<re>\(((?>[^\(\)]+)|(?P>re))*\))/';
+					$arr = preg_split($reg, $str, 0, PREG_SPLIT_DELIM_CAPTURE);
+					$text = preg_replace('/(^\(|\)$)/', '', $arr[1]);
+					$newStr = $arr[3];
+					if ($text{0} == '{') {
+						$text = preg_replace('/(^{|}$)/', '', $text);
+						$content[$counter]['text'] = "'+$text+'";
+					} else {
+						$content[$counter]['text'] = $text;
+					}
+					return $newStr;
+				}
+
+				return $str;
+			};
+
+			while ($tpl != '') {
+				$tpl = $cutNext($tpl);
+			}
+
+			$result .= '\'';
+			return $result;
+		}, $code);
+	}
+	
 	/**
 	 *
 	 * */

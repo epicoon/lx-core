@@ -3,7 +3,18 @@
 namespace lx;
 
 class Dialog {
+	/**
+	 * regerg
+	 * */
+	public $test;
+
+	/**
+	 * URL
+	 * */
 	private $_url = null;
+	/**
+	 * Путь
+	 * */
 	private $_route = null;
 	private $_headers = null;
 	private $_method = null;
@@ -242,13 +253,6 @@ class Dialog {
 	/**
 	 *
 	 * */
-	protected function result() {
-		return 'hi';
-	}
-
-	/**
-	 *
-	 * */
 	private function retrieveLocation($url) {
 		$this->_location = $this->urlToLocation($url);
 	}
@@ -339,4 +343,11 @@ class Dialog {
 		}
 		$this->_post = $post;
 	}
+}
+
+/**
+ * Дока дока
+ * */
+class TestDialog extends Dialog {
+
 }

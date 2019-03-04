@@ -169,6 +169,33 @@ class Service {
 	}
 
 	/**
+	 *
+	 * */
+	public function getMode() {
+		return $this->getConfig('service.mode');
+	}
+
+	/**
+ 	 * Проверяет текущий режим работы сервиса
+ 	 * Если режим не установлен - разрешен любой
+	 * */
+	public function isMode($mode) {
+		$currentMode = self::getConfig('mode');
+		if (!$currentMode) return true;		
+
+		if (is_array($mode)) {
+			foreach ($mode as $value) {
+				if ($value == $currentMode) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		return $mode == $currentMode;
+	}
+
+	/**
 	 * Уникальный идентификатор сервиса - по умолчанию это его имя
 	 * */
 	public function getID() {

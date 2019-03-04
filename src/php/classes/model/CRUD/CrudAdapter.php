@@ -21,5 +21,5 @@ abstract class CrudAdapter {
 	abstract public function deleteTable($tableName);
 
 	abstract public function correctModel($modelName, $tableName, $actions);
-	abstract public function addModelEssences($modelName, $tableName, $actions);
+	abstract public function correctModelEssences($modelName, $tableName, $actions);
 }
