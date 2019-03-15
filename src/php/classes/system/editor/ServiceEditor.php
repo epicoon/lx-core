@@ -45,6 +45,8 @@ class ServiceEditor {
 		$serviceDir->makeDirectory($modulesDirName);
 		$serviceDir->makeDirectory($modelsDirName);
 
-		return $serviceDir;
+		(new AutoloadMapBuilder())->createCommonAutoloadMap();
+		Autoloader::getInstance()->map->reset();
+		return Service::create($name);
 	}
 }

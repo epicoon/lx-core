@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * @group {i18n:widgets}
+ * */
 class CheckboxGroup extends LabeledGroup {
 	public function preBuild($config) {
 		$config = DataObject::create($config);

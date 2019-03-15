@@ -6,7 +6,6 @@ class Cli {
 	const COMMANDS = [
 		'exit' => '\q',
 		'help' => ['\h', 'help'],
-		'commands_list' => ['\cl', 'commands-list'],
 		'move' => ['\g', 'goto'],
 		'full_path' => ['\p', 'fullpath'],
 		'reset_autoload_map' => ['\amr', 'autoload-map-reset'],

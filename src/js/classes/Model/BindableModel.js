@@ -39,10 +39,10 @@ class BindableModel extends lx.Model #lx:namespace lx {
 	}
 
 	/**
-	 * Отвязать от модели все привязанные виджеты по всем полям
+	 * Отвязать от модели все привязанные виджеты по всем полям (или переданный виджет)
 	 * */
-	unbind() {
-		lx.Binder.unbind(this);
+	unbind(widget = null) {
+		lx.Binder.unbind(this, widget);
 	}
 
 	/**

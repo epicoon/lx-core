@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * @group {i18n:widgets}
+ * */
 class Box extends Rect {
 	public
 		$_children = null,  // линейный массив потомков, для воссоздания потока

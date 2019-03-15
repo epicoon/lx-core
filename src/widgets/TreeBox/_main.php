@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * @group {i18n:widgets}
+ * */
 class TreeBox extends Box {
 	/* config = {
 		// стандартные для lx.Widget,

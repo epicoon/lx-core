@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * @group {i18n:widgets}
+ * */
 class RequestButton extends Button {
 	public function __construct($config=[]) {
 		$config = Data::create($config);

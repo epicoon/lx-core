@@ -33,7 +33,11 @@ class Block extends Box {
 	/**
 	 * Для использования во вьюхах
 	 * */
-	public static function render($blockConfig, $boxConfig = []) {
+	public static function render($blockConfig, $boxConfig = null) {
+		if ($boxConfig === null) {
+			$boxConfig = isset($blockConfig['config']) ? $blockConfig['config'] : [];
+		}
+
 		if (!array_key_exists('key', $boxConfig)) {
 			$key = null;
 			if (is_string($blockConfig)) {
@@ -57,7 +61,7 @@ class Block extends Box {
 	 *
 	 * */
 	public function setRenderPath($path) {
-		if ($path && !preg_match('/\/$/', $path)) $path .= '/';
+		if ($path != '' && !preg_match('/\/$/', $path)) $path .= '/';
 		$this->relativeRenderPath = $path;
 	}
 
@@ -119,8 +123,8 @@ class Block extends Box {
 					if (!array_key_exists('path', $blockConfig)) continue;
 					$path = $blockConfig['path'];
 					if (isset($blockConfig['config'])) $config = $blockConfig['config'];
-					if (isset($blockConfig['renderParams'])) $config = $blockConfig['renderParams'];
-					if (isset($blockConfig['clientParams'])) $renderParams = $blockConfig['clientParams'];
+					if (isset($blockConfig['renderParams'])) $renderParams = $blockConfig['renderParams'];
+					if (isset($blockConfig['clientParams'])) $clientParams = $blockConfig['clientParams'];
 				} elseif (is_string($blockConfig)) {
 					$path = $blockConfig;
 				} else continue;

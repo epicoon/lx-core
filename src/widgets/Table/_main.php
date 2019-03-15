@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * @group {i18n:widgets}
+ * */
 class Table extends Box {
 	const DEFAULT_ROW_HEIGHT = '25px';
 

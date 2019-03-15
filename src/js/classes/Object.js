@@ -32,6 +32,13 @@ class Object #lx:namespace lx {
 	/**
 	 *
 	 * */
+	hasBehavior(behavior) {
+		return this.behaviorMap.has(behavior) || self::behaviorMap.has(behavior);
+	}
+
+	/**
+	 *
+	 * */
 	static addBehavior(behavior, config=null) {
 		if (this.behaviorMap.has(behavior)) return;
 		behavior.inject(this, config);

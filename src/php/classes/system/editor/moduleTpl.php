@@ -3,9 +3,9 @@
 $respondentCode = <<<EOT
 <?php
 
-namespace ;
+namespace;
 
-class Respondent extends \lx\Respondent {
+class RespondentName extends \lx\Respondent {
 
 }
 

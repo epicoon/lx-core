@@ -24,6 +24,18 @@ class ClassHelper {
 	}
 
 	/**
+	 * Получить пространство имен для класса или объекта
+	 * */
+	public static function getNamespace($obj) {
+		$reflected = new \ReflectionClass($obj);
+		if (!$reflected->inNamespace()) {
+			return '';
+		}
+
+		return $reflected->getNamespaceName();
+	}
+
+	/**
 	 * Разделяет имя класса на пространство имен и собственное имя класса
 	 * */
 	public static function splitClassName($className) {

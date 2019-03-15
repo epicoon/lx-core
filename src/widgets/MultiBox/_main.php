@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * @group {i18n:widgets}
+ * */
 class MultiBox extends Box {
 	/**
 	 * $config = [

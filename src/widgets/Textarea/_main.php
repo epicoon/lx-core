@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * @group {i18n:widgets}
+ * */
 class Textarea extends Input {
 	/**
 	 * Тэг класса

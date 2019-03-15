@@ -108,6 +108,21 @@ class ModelListDisplayer #lx:namespace lx {
 	}
 
 	/**
+	 *
+	 * */
+	dropData() {
+		if (!this.data) return;
+
+		if (this.box.contain('side'))
+			lx.Binder.unbindMatrix(this.box->side);
+		if (this.box.contain('body'))
+			lx.Binder.unbindMatrix(this.box->body);
+
+		this.data = null;
+		this.box.clear();
+	}
+
+	/**
 	 * Наполенние основных контейнеров содержимым согласно переданной коллекции моделей
 	 * */
 	__buildComponentContent(data, pre, fields, post, colsCount, head, body) {
@@ -116,15 +131,21 @@ class ModelListDisplayer #lx:namespace lx {
 		var fieldsModifier = this.fieldsModifier,
 			formModifier = this.formModifier;
 
-
 		pre.each((a)=>head.add(lx.Box, {text:a.label}).align(lx.CENTER, lx.MIDDLE));
 		for (var name in fields) head.add(lx.Box, {text: name}).align(lx.CENTER, lx.MIDDLE);
 		post.each((a)=>head.add(lx.Box, {text:a.label}).align(lx.CENTER, lx.MIDDLE));
 
+
+		lx.timetest.start();
+
+		//!!!!!!!!! попробовать без этого
+		body.stopPositioning();
 		body.matrix({
 			items: data,
 			itemBox: [lx.Form, {grid: {cols: colsCount, indent: '10px'}}],
 			itemRender: (form)=> {
+				form.stopPositioning();
+
 				if (formModifier) formModifier(form);
 
 				pre.each((a)=>{
@@ -147,8 +168,11 @@ class ModelListDisplayer #lx:namespace lx {
 					if (fieldsModifier[a.key]) fieldsModifier[a.key](a);
 					else if (fieldsModifier['default']) fieldsModifier['default'](a);
 				});
+
+				form.startPositioning();
 			}
 		});
+		body.startPositioning();
 	}
 
 	/**

@@ -126,18 +126,19 @@ class Renderer {
 		надо делать выход на какую-то конфигурацию
 		*/
 		$blockPath = is_dir($path)
-			? $this->getBlockMainPhpPath($path) // . '/_main.php'
+			? $this->getBlockMainPhpPath($path)
 			: $path;
 		if (!file_exists($blockPath)) {
 			return null;
 		}
 		$key = $this->keyByPathAndParams($blockPath, $renderParams);
-		if (array_key_exists($key, $this->blocksByKey))
+		if (array_key_exists($key, $this->blocksByKey)) {
 			return $this->blocksByKey[$key];
+		}
 
 		$b = $this->createBlock($blockPath, $renderParams, $clientParams);
 		if (is_dir($path)) {
-			$js = $this->getBlockMainJsPath($path); // . '/_main.js';
+			$js = $this->getBlockMainJsPath($path);
 			if (file_exists($js)) {
 				$f = new File($js);
 				$code = JsCompiler::compileCode($f->get(), $f->getPath());

@@ -31,7 +31,6 @@ class CliProcessor {
 
 		$methodMap = [
 			'help' => 'showHelp',
-			'commands_list' => 'showCommands',
 			'move' => 'move',
 			'full_path' => 'fullPath',
 			'reset_autoload_map' => 'resetAutoloadMap',
@@ -80,17 +79,10 @@ class CliProcessor {
 	 *************************************************************************************************************************/
 
 	/**
-	 * //todo - когда будет что описывать в помощи, будет смысл ее делать
-	 * */
-	private function showHelp() {
-		$this->outln('Help is in developing... sorry. Use "\cl" or "commands-list" instead ;)');
-	}
-
-	/**
 	 * Исходя из self::COMMAND автоматически строит список существующих команд.
 	 * Поэтому важно этому массиву давать вразумительные ключи
 	 * */
-	private function showCommands() {
+	private function showHelp() {
 		$arr = [];
 		foreach ($this->commandsList as $key => $keywords) {
 			$arr[] = [
@@ -820,14 +812,11 @@ class CliProcessor {
 	private function createServiceProcess($name, $path) {
 		$editor = new ServiceEditor();
 		try {
-			$dir = $editor->createService($name, $path);
-
-			(new AutoloadMapBuilder())->createCommonAutoloadMap();
-			Autoloader::getInstance()->map->reset();
+			$service = $editor->createService($name, $path);
 			$this->resetServicesList();
 
 			$this->out('New service created in: ');
-			$this->outln($dir->getPath(), ['decor' => 'u']);
+			$this->outln($service->getPath(), ['decor' => 'u']);
 		} catch (\Exception $e) {
 			$this->outln('Module was not created. ' . $e->getMessage());
 		}
@@ -839,7 +828,8 @@ class CliProcessor {
 	private function createModuleProcess($service, $name, $path) {
 		$editor = new ModuleEditor($service);
 		try {
-			$dir = $editor->createModule($name, $path);
+			$module = $editor->createModule($name, $path);
+			$dir = $module->directory;
 			$this->out('New module created in: ');
 			$this->outln($dir->getPath(), ['decor' => 'u']);
 		} catch (\Exception $e) {

@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 /**
- * Добавляет в корень проекта папку 'lx' - вердце платформы в проекте
+ * Добавляет в корень проекта папку 'lx' - сердце платформы в проекте
  * Папка будет содержать:
  * 1. Каталог 'config' - настройки платформы, необходимые в рамках этого приложения
  * 2. Файл 'lx' - для запуска встроенной в платформу CLI командой: php lx cli
@@ -16,7 +16,6 @@ require_once(__DIR__ . '/src/php/app.php');
 
 lx::installInitialisation();
 
-
 // Создаем в корне папку lx
 $site = new lx\Directory(lx::$conductor->site);
 $lx = $site->getOrMakeDirectory('lx');
@@ -24,6 +23,9 @@ $system = $lx->getOrMakeDirectory('.system');
 
 // Создаем файл для работы в консольном режиме
 require(__DIR__ . '/install-src/lxConsole.php');
+/**
+ * @var $lxConsoleCode
+ * */
 $lxConsole = $lx->makeFile('lx');
 $lxConsole->put($lxConsoleCode . 'lx::runConsole($argv);');
 
@@ -54,6 +56,17 @@ if (!$lx->contain('config')) {
 
 	$configDb = $config->makeFile('db.php');
 	$configDb->put($configDbCode);
+}
+
+// Если нет HelloWorld-ного сервиса - создадим
+if (!lx\Service::exists('hiFromLx')) {
+	$service = (new lx\ServiceEditor())->createService('hiFromLx', '@site/services');
+	$moduleEditor = new lx\ModuleEditor($service);
+	$module = $moduleEditor->createModule('main', 'module');
+
+	$dir = $module->directory;
+	$view = $dir->get('view/_root.php');
+	$view->put(require(__DIR__ . '/install-src/hiModule/viewTpl.php'));
 }
 
 // Строим карту автозагрузки

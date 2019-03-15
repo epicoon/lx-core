@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * @group {i18n:widgets}
+ * */
 class ImageSlider extends BoxSlider {
 	public function __construct($config=[]) {
 		$config = DataObject::create($config);

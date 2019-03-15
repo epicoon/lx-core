@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * @group {i18n:widgets}
+ * */
 class LabeledGroup extends Box {
 	/**
 	 * params = [

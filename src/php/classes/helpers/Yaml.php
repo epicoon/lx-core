@@ -12,8 +12,10 @@ class Yaml {
 	private $templates = [];
 	private $references = [];
 
-	public function __construct($text, $referencesRootPath = null) {
-		$this->reset($text, $referencesRootPath);
+	public function __construct($text = null, $referencesRootPath = null) {
+		if ($text !== null) {
+			$this->reset($text, $referencesRootPath);
+		}
 	}
 
 	/**
@@ -474,6 +476,8 @@ class Yaml {
 	 * */
 	private function translateString($sourceString) {
 		$str = $sourceString;
+		if ($str == '') return $sourceString;
+
 		if ($str{0} == '{' || $str{0} == '[') {
 			$str = str_replace('{', '[', $str);
 			$str = str_replace('}', ']', $str);
@@ -483,7 +487,7 @@ class Yaml {
 		$parts = $this->splitJsonLikeString($str);
 		$result = [];
 		foreach ($parts as $part) {
-			if ($part{0} == '[') {
+			if (strlen($part) > 0 && $part{0} == '[') {
 				$result[] = $this->translateString($part);
 			} elseif (preg_match('/^\s*\b.+?\b\s*:\s*\[/', $part)) {
 				preg_match_all('/^\s*(\b.+?\b)\s*:\s*(\[.*)/', $part, $matches);

@@ -101,11 +101,11 @@ class Router {
 	private function responceByServiceRoute($serviceRoute) {
 		preg_match_all('/^([^:]*?):(.*?)$/', $serviceRoute, $matches);
 		$serviceName = $matches[1][0];
-		$service = Service::create($serviceName);
-		if ($service === null) {
+		if (!Service::exists($serviceName)) {
 			return false;
 		}
 
+		$service = Service::create($serviceName);
 		$route = $matches[2][0];
 		$serviceRouter = $service->router();
 		return $serviceRouter->route($route);
@@ -117,11 +117,11 @@ class Router {
 	private function responceByServiceController($serviceController) {
 		preg_match_all('/^([^:]*?):(.*?)$/', $serviceController, $matches);
 		$serviceName = $matches[1][0];
-		$service = Service::create($serviceName);
-		if ($service === null) {
+		if (!Service::exists($serviceName)) {
 			return false;
 		}
 
+		$service = Service::create($serviceName);
 		$controller = $matches[2][0];
 		$serviceRouter = $service->router();
 		return $serviceRouter->responseByController($controller);
@@ -133,11 +133,11 @@ class Router {
 	private function responceByServiceAction($serviceAction) {
 		preg_match_all('/^([^:]*?):(.*?)$/', $serviceAction, $matches);
 		$serviceName = $matches[1][0];
-		$service = Service::create($serviceName);
-		if ($service === null) {
+		if (!Service::exists($serviceName)) {
 			return false;
 		}
 
+		$service = Service::create($serviceName);
 		$action = $matches[2][0];
 		$serviceRouter = $service->router();
 		return $serviceRouter->responseByAction($action);
@@ -149,11 +149,11 @@ class Router {
 	private function responceByServiceModule($serviceModule) {
 		preg_match_all('/^([^:]*?):(.*?)$/', $serviceModule, $matches);
 		$serviceName = $matches[1][0];
-		$service = Service::create($serviceName);
-		if ($service === null) {
+		if (!Service::exists($serviceName)) {
 			return false;
 		}
 
+		$service = Service::create($serviceName);
 		$module = $matches[2][0];
 		$serviceRouter = $service->router();
 		return $serviceRouter->responseByModule($module);

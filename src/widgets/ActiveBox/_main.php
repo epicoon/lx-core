@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * @group {i18n:widgets}
+ * */
 class ActiveBox extends Box {
 	public static
 		$DEFAULT_MOVE = true,

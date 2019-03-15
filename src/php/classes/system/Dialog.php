@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * Класс для работы с параметрами запроса и формирования ответа
+ * */
 class Dialog {
 	/**
 	 * regerg
@@ -343,11 +346,4 @@ class Dialog {
 		}
 		$this->_post = $post;
 	}
-}
-
-/**
- * Дока дока
- * */
-class TestDialog extends Dialog {
-
 }

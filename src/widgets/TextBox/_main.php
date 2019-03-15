@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * @group {i18n:widgets}
+ * */
 class TextBox extends Rect {
 	protected function preBuild($config='') {
 		if (is_string($config)) $config = ['text' => $config];

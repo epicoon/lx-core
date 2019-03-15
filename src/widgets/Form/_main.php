@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * @group {i18n:widgets}
+ * */
 class Form extends Box {
 	public function fields($list) {
 		foreach ($list as $key => $item) {

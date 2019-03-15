@@ -13,7 +13,7 @@ class ServiceController {
 	 *
 	 * */
 	public function run($params) {
-		
+		return false;
 	}
 
 	/**

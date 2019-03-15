@@ -52,13 +52,6 @@ class ModuleEditor {
 		$d = (new Directory($moduleRootPath))->makeDirectory($name);
 		$moduleConfig = \lx::getDefaultModuleConfig();
 
-		$backendName = $moduleConfig['respondents'];
-		//todo - может же быть и массивом?
-		$backend = $d->makeDirectory($backendName);
-		$respondent = $backend->makeFile('Respondent.php');
-		$respondentCode = str_replace('namespace ', 'namespace ' . $namespace . '\\'. $backendName, $respondentCode);
-		$respondent->put($respondentCode);
-
 		$frontend = $d->makeDirectory($moduleConfig['frontend']);
 		$mainJs = $frontend->makeFile($moduleConfig['jsMain']);
 		$mainJs->put($mainJsCode);
@@ -74,15 +67,60 @@ class ModuleEditor {
 		$module->put($moduleCode);
 
 		$config = $d->makeFile('lx-config.yaml');
-		$text = 'class: ' . $namespace . '\\Module' . chr(10) . chr(10);
-		$text .= 'view: ' . $moduleConfig['view'] . chr(10);
-		$text .= 'viewIndex: ' . $moduleConfig['viewIndex'] . chr(10) . chr(10);
-		$text .= 'frontend: ' . $moduleConfig['frontend'] . chr(10);
-		$text .= 'jsMain: ' . $moduleConfig['jsMain'] . chr(10);
-		$text .= 'jsBootstrap: ' . $moduleConfig['jsBootstrap'] . chr(10) . chr(10);
-		$text .= 'respondents: ' . $moduleConfig['respondents'] . chr(10);
+		$text = 'class: ' . $namespace . '\\Module' . PHP_EOL . PHP_EOL;
+		$text .= 'view: ' . $moduleConfig['view'] . PHP_EOL;
+		$text .= 'viewIndex: ' . $moduleConfig['viewIndex'] . PHP_EOL . PHP_EOL;
+		$text .= 'frontend: ' . $moduleConfig['frontend'] . PHP_EOL;
+		$text .= 'jsMain: ' . $moduleConfig['jsMain'] . PHP_EOL;
+		$text .= 'jsBootstrap: ' . $moduleConfig['jsBootstrap'] . PHP_EOL . PHP_EOL;
+
+		if (is_array($moduleConfig['respondents'])) {
+			if (empty($moduleConfig['respondents'])) {
+				$text .= 'respondents: {}';
+			} else {
+				$text .= $this->createRespondents($moduleConfig['respondents'], $d, $namespace, $respondentCode);
+			}
+		} else {
+			$text .= 'respondents: ' . $moduleConfig['respondents'] . chr(10);
+		}
 		$config->put($text);
 
-		return $d;
+		return Module::create($this->service, $name, $fullPath);
+	}
+
+	/**
+	 *
+	 * */
+	private function createRespondents($respondents, $moduleDir, $moduleNamespace, $code) {
+		$text = 'respondents:';
+
+		foreach ($respondents as $key => $respondent) {
+			$arr = preg_split('/^(.*?)\\\([^\\\\' . ']+)$/', $respondent, 0, PREG_SPLIT_DELIM_CAPTURE);
+			if (count($arr) == 1) {
+				$namespace = '';
+				$className = $arr[0];
+			} else {
+				$namespace = $arr[1];
+				$className = $arr[2];
+			}
+
+			$fullNamespace = $namespace == ''
+				? $moduleNamespace
+				: $moduleNamespace . '\\' . $namespace;
+
+			$path = str_replace('\\', '/', $namespace);
+			$dir = $path == ''
+				? $moduleDir
+				: $moduleDir->makeDirectory($path);
+
+			$file = $dir->makeFile($className . '.php');
+			$respondentCode = str_replace('namespace', 'namespace ' . $fullNamespace, $code);
+			$respondentCode = str_replace('RespondentName', $className, $respondentCode);
+			$file->put($respondentCode);
+
+			$text .= PHP_EOL . "  $key: $respondent";
+		}
+
+		return $text;
 	}
 }

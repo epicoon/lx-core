@@ -1,5 +1,5 @@
-lx.timetest = function(msg) {
-	if (!lx.timetest.status) return;
+lx.timetest = function(msg, forse=false) {
+	if (!forse && !lx.timetest.status) return;
 	msg = msg ? (msg+'>>> ') : '';
 	var time = new Date().getTime(),
 		last = lx.timetest.last;

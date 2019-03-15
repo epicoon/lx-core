@@ -4,26 +4,28 @@ $configMainCode = <<<EOT
 <?php
 
 return [
-	// Режим работы приложения
+	// Application mode
 	'mode' => 'dev',
 
-	// Роутинг по сервисам
-	'router' => require __DIR__ . '/routes.php',
-	// Настройки базы данных
-	'db' => require __DIR__ . '/db.php',
-
-	// Каталоги, в которых расположены пакеты
+	// Directories for packages
 	'packagesMap' => [
 		'vendor',
+		'services',
 	],
 
-	// Алиасы уровня приложения
+	// Routing to services
+	'router' => require __DIR__ . '/routes.php',
+
+	// Data base settings
+	'db' => require __DIR__ . '/db.php',
+
+	// Application aliases
 	'aliases' => [
 	],
 
-	// Глобальный js-код, выполняемый до разворачивания корневого модуля
+	// Global js-code executed before rendered module load
 	//'jsBootstrap' => '',
-	// Глобальный js-код, выполняемый после разворачивания корневого модуля
+	// Global js-code executed after rendered module load
 	//'jsMain' => '',
 ];
 
@@ -33,15 +35,15 @@ EOT;
 $configRoutesCode = <<<EOT
 <?php
 /*
-Настройка для инструмента, маршрутизирующего запросы
-Варианты типов:
-	- map (поясняющий параметр 'routes' - сама карта, либо 'path' - где лежит карта. Сама карта - массив, где ключ - URL запроса (или регулярка), значение - данные от объекте, куда перенаправляется запрос)
-	- class ((поясняющий параметр 'name' - имя класса роутера. Должен реализовать метод route(), который должен возвращать данные от объекте, куда перенаправляется запрос)
+Router settings
+Type variants:
+	- map (require parameter 'routes' - routes map, or 'path' - path to routes map)
+	- class (require parameter 'name' - Router class name)
 */
 return [
 	'type' => 'map',
 	'routes' => [
-		// '/' => '', //TODO - must be required
+		'/' => ['service-module' => 'hiFromLx:main'],
 	],
 ];
 
@@ -50,35 +52,33 @@ EOT;
 
 $configModuleCode = <<<EOT
 <?php
-
-/*
-В каждом модуле может быть создан файл (config|config/main).(php|yaml|json) с индивидуальными настройками.
-Если файла нет, или в нем отсутствуют какие-либо настройки, они будут браться из этого файла
-*/
-
 return [
-	// Набор алиасов уровня модуля, используемый всеми модулями
+	// Common module aliases
 	'commonAliases' => [],
-	// В конкретном модуле можно установить значение false, тогда общие алиасы не будут импортироваться
+	// Flag for use common module aliases
 	'useCommonAliases' => true,
 
-	// Соглашения внутренней структуры модуля - не включены в алиасы, т.к. имеют особое значение для целостности модуля, ключи неизменны
-	// каталог с js-кодом, основным кодом приложения, исполняемым на клиенте
+
+	// Infrastructure
+
+	// Directory for js-code
 	'frontend' => 'frontend',
-	// js-код, выполняемый до загрузки блоков модуля
+	// File name for js-code executed before module blocks load
 	'jsBootstrap' => '_bootstrap.js',
-	// основной js-код
+	// File name for js-code executed after module blocks load
 	'jsMain' => '_main.js',
 
-	// пути к ответчикам (php-классам, обрабатывающим ajax-запросы). Может быть несколько (массив)
-	'respondents' => 'backend',
+	// Respondents map
+	'respondents' => [
+		'Respondent' => 'backend\Respondent',
+	],
 
-	// каталог с блоками интерфейса
+	// Directory for view
 	'view' => 'view',
-	// корневой блок
+	// View root block
 	'viewIndex' => '_root.php',
 
-	// расположение ресурсов
+	// Asset directories
 	'images' => 'assets/images',
 	'css' => 'assets/css',
 ];
@@ -89,13 +89,13 @@ EOT;
 $configServiceCode = <<<EOT
 <?php
 return [
-	// Каталог(и) с модулями
+	// Directory(ies) for modules
 	'modules' => 'module',
 
-	// Каталог(и) с моделями
+	// Directory(ies) for models
 	'models' => 'model',
 
-	// Класс, управляющий сохранением/загрузкой моделей
+	// Models save/load manage class
 	'modelCrudAdapter' => '\lx\DbCrudAdapter',
 ];
 

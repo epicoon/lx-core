@@ -74,9 +74,12 @@ class Collection extends lx.Object #lx:namespace lx {
 
 	clear() {
 		this.actPart = null;
+		this.actI = null;
+		this.actPartI = null;
+
+		this.isCopy = false;
 		this.elements = [];
 		this.map = [];
-		this.isCopy = false;
 	}
 
 	at(k) {
@@ -268,17 +271,13 @@ class Collection extends lx.Object #lx:namespace lx {
 	}
 
 	add() {
-
-		// console.log(arguments);
-
 		if ( arguments == undefined ) return this;
 		if (this.isCopy) return this.addCopy.apply(this, arguments);
 
 		for (var i=0, l=arguments.length; i<l; i++) {
 			var arg = arguments[i];
-			if (arg === null) continue;
 
-			// console.log(arg);
+			if (arg === null) continue;
 
 			if (arg.isArray) {
 				this.map.push(arg);
@@ -290,15 +289,13 @@ class Collection extends lx.Object #lx:namespace lx {
 				if ( this.map.len && this.map.last().singles ) {
 					this.map.last().push(arg);
 				} else {
-
-					// console.log(arg);
-
 					var arr = [arg];
 					Object.defineProperty(arr, "singles", { get: function() { return true; } });
 					this.map.push(arr);
 				}
 			}
 		}
+
 		return this;
 	}
 

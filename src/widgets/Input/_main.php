@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * @group {i18n:widgets}
+ * */
 class Input extends Rect {
 	public function __construct($config = []) {
 		$config = DataObject::create($config);

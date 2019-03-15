@@ -147,39 +147,24 @@ class ModuleConductor {
 	 * */
 	public function findRespondent($name) {
 		$module = $this->module;
-		$service = $module->getService();
 
 		$respondents = (array)$module->getConfig('respondents');
-
-		//todo - привести все в порядок. Сейчас нет нормального протокола объявления респондентов
-		if (array_key_exists($name, $respondents)) {
-			$className = $respondents[$name];
-			return new $className($module);
+		if (!array_key_exists($name, $respondents)) {
+			return false;
 		}
 
-		$servicePath = $service->getPath();
-		$modulePath = $this->getModulePath();
-
-		$namespacePrefixes = $service->getConfig('autoload.psr-4');
-		foreach ($namespacePrefixes as $namespacePrefix => $innerPath) {
-			$basePath = $innerPath == ''
-				? $servicePath . '/'
-				: $servicePath . '/' . $innerPath . '/';
-
-			//todo - при заимствовании модуля другим сервисом тут получается хрень
-			$relativePath = explode($basePath, $modulePath)[1];
-
-			foreach ($respondents as $path) {
-				$fullPath = $relativePath . '/' . $path;
-				$namespace = $namespacePrefix . str_replace('/', '\\', $fullPath);
-				$className = $namespace . '\\' . $name;
-				if (ClassHelper::exists($className)) {
-					return new $className($module);
-				}
-			}
+		$namespace = $module->getConfig('respondentsNamespace');
+		if (!$namespace) {
+			$namespace = ClassHelper::getNamespace($module);
 		}
 
-		return false;
+		$className = $namespace . '\\' . $respondents[$name];
+
+		if (!ClassHelper::exists($className)) {
+			return false;
+		}
+
+		return new $className($module);
 	}
 
 	/**

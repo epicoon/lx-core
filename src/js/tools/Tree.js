@@ -221,6 +221,22 @@ class Tree #lx:namespace lx {
 		return this;
 	}
 
+	has(key) {
+		if (key === '') return true;
+
+		// if ( lx.isNumber(key) ) return this.nodes[ this.keys[key] ];
+
+		var arr = (key.isArray) ? key : (''+key).split(lx.treeSeparator);
+		if (!arr.length) return this;
+		if ( !(arr[0] in this.nodes) ) return false;
+		var b = this.nodes[ arr[0] ];
+		for (var i=1; i<arr.length; i++) {
+			if ( !(arr[i] in b.nodes) ) return false;
+			b = b.nodes[ arr[i] ];
+		}
+		return true;
+	}
+
 	get(key) {
 		if (key === '') return this;
 

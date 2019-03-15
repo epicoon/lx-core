@@ -240,8 +240,10 @@ class ScrollingCalc extends AbstractCalc {
 	}
 
 	allocateStream(info={}) {
-		var stream = this.owner,
-			current = info && info.from
+		var stream = this.owner;
+		if (!stream.autoActualize) return false;
+
+		var current = info && info.from
 				? info.from
 				: stream.owner.child(0);
 		if (!current) return false;
@@ -250,7 +252,7 @@ class ScrollingCalc extends AbstractCalc {
 			counter = 0,
 			scrollPos;
 		if (stream.lock) {
-			scrollPos = lx.VERTICAL
+			scrollPos = stream.direction == lx.VERTICAL
 				? stream.owner.scrollPos().y
 				: stream.owner.scrollPos().x;
 		}
@@ -329,8 +331,10 @@ class ProportionalCalc extends AbstractCalc {
 	actualize() {
 		if (!this.owner.owner.childrenCount()) return;
 
-		var stream = this.owner,
-			division = stream.owner.divideChildren({hasProperties: 'streamProportion'});
+		var stream = this.owner;
+		if (!stream.autoActualize) return;
+
+		var division = stream.owner.divideChildren({hasProperties: 'streamProportion'});
 
 		division.notMatch.each((a)=> this.setAlongSize(a));
 

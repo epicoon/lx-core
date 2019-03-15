@@ -1,5 +1,4 @@
-/**
- * * 1. Constructor
+/* * 1. Constructor
  * constructor(config = {})
  * static rise(DOMelem)
  * __construct()
@@ -130,6 +129,10 @@
  * unpackGeom()
  * unpackScreenDependencies()
  * unpackProperties(loaderContext)
+ */
+
+/**
+ * @group {i18n:widgets}
  * */
 class Rect #lx:namespace lx {
 

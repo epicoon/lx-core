@@ -206,6 +206,7 @@ class TreeBox extends Box #lx:namespace lx {
 
 	createLeafs(data, after) {
 		if (!data) return;
+
 		var config = {
 			parent: this.children.work,
 			key: 'leaf',
@@ -214,12 +215,14 @@ class TreeBox extends Box #lx:namespace lx {
 		};
 		if (after) config.after = after;
 
-		return TreeLeaf.construct(data.keys.len, config, {
+		var result = TreeLeaf.construct(data.keys.len, config, {
 			preBuild:(config,i)=> {
 				config.node = data.getNth(i);
 				return config;
 			}
 		});
+
+		return result;
 	}
 
 
@@ -446,15 +449,15 @@ class TreeLeaf extends Box {
 	create() {
 		var tw = this.box,
 			but = new Rect({
-			parent: this,
-			key: 'open',
-			size: [tw.leafHeight+'px', tw.leafHeight+'px'],
-			css: 'lx-TW-Button',
-			click: lx.TreeBox.toggleOpened
-		}).addClass(
-			(this.node.keys.length || (this.node.fill !== undefined && this.node.fill))
-				? 'lx-TW-Button-closed' : 'lx-TW-Button-empty'
-		);
+				parent: this,
+				key: 'open',
+				size: [tw.leafHeight+'px', tw.leafHeight+'px'],
+				css: 'lx-TW-Button',
+				click: lx.TreeBox.toggleOpened
+			}).addClass(
+				(this.node.keys.length || (this.node.fill !== undefined && this.node.fill))
+					? 'lx-TW-Button-closed' : 'lx-TW-Button-empty'
+			);
 		but.opened = false;
 
 		var lbl = new Box({

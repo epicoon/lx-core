@@ -2,8 +2,7 @@
 
 #lx:use lx.Rect as Rect;
 
-/**
- * * 1. Constructor
+/* * 1. Constructor
  * build(config)
  * postBuild(config)
  * postUnpack(config)
@@ -63,6 +62,10 @@
  * bind(model)
  * matrix(config)
  * agregator(c, toWidget=true, fromWidget=true)
+ */
+
+/**
+ * @group {i18n:widgets}
  * */
 class Box extends Rect #lx:namespace lx {
 
@@ -240,6 +243,7 @@ class Box extends Rect #lx:namespace lx {
 		var next = config.before;
 		var positioning = this.positioning();
 		if (this.positioningStrategy) this.positioningStrategy.autoActualize = false;
+
 		var map = [];
 		c.each((a)=> {
 			a.dropParent();
@@ -645,6 +649,17 @@ class Box extends Rect #lx:namespace lx {
 
 	//=========================================================================================================================
 	/* 4. PositioningStrategies */
+	stopPositioning() {
+		if (this.positioningStrategy) this.positioningStrategy.autoActualize = false;
+	}
+
+	startPositioning() {
+		if (this.positioningStrategy) {
+			this.positioningStrategy.autoActualize = true;
+			this.positioningStrategy.actualize();
+		}
+	}
+
 	preparePositioningStrategy(strategy) {
 		if (this.positioningStrategy) {
 			if (this.positioningStrategy.lxClassName == strategy.name) return;

@@ -156,6 +156,9 @@ class AlignPositioningStrategy extends PositioningStrategy {
 }
 
 
+/**
+ * @hidden
+ * */
 abstract class AlignRuleAbstract {
 	protected
 		$owner,
@@ -188,6 +191,9 @@ abstract class AlignRuleAbstract {
 	}
 }
 
+/**
+ * @hidden
+ * */
 class AlignRuleDefault extends AlignRuleAbstract {
 	public function getElements() {
 		// Все потомки, у которых нет динамического свойства ruleId
@@ -203,6 +209,9 @@ class AlignRuleDefault extends AlignRuleAbstract {
 	}
 }
 
+/**
+ * @hidden
+ * */
 class AlignRule extends AlignRuleAbstract {
 	public function __construct($owner, $config, $id) {
 		parent::__construct($owner, $config);
