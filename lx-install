@@ -60,6 +60,8 @@ if (!$lx->contain('config')) {
 
 // Если нет HelloWorld-ного сервиса - создадим
 if (!lx\Service::exists('hiFromLx')) {
+	$site->getOrMakeDirectory('services');
+
 	$service = (new lx\ServiceEditor())->createService('hiFromLx', '@site/services');
 	$moduleEditor = new lx\ModuleEditor($service);
 	$module = $moduleEditor->createModule('main', 'module');

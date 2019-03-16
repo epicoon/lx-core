@@ -22,7 +22,15 @@ class ServiceEditor {
 		$modulesDirName = $serviceConfig['modules'];
 		$modelsDirName = $serviceConfig['models'];
 
-		$namespace = str_replace('/', '\\', $name);
+		$namespace = $name;
+		preg_match_all('/^([^\/]+?)\//', $namespace, $matches);
+		if (!empty($matches[1])) {
+			$vendor = $matches[1][0];
+			$namespace = preg_replace('/^([^\/]+?\/)'. $vendor .'-/', '$1', $namespace);
+		}
+		$namespace = str_replace('-', '', ucwords($namespace, '-'));
+		$namespace = lcfirst($namespace);
+		$namespace = str_replace('/', '\\', $namespace);
 		$serviceName = $namespace . '\\Service';
 		$arr = explode('/', $name);
 		$route = array_pop($arr);

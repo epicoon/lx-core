@@ -43,7 +43,7 @@ Type variants:
 return [
 	'type' => 'map',
 	'routes' => [
-		'/' => ['service-module' => 'hiFromLx:main'],
+		'/' => ['service-module' => 'hiFromLx:main', 'on-mode' => 'dev'],
 	],
 ];
 
