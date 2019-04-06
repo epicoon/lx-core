@@ -1,13 +1,12 @@
-[Russian version (Русская версия)](https://github.com/epicoon/lx-core/README-ru.md)
+[Russian version (Русская версия)](https://github.com/epicoon/lx-core/blob/master/README-ru.md)
 
 # Lx - web-application development platform
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!
 В данном репозитории находится ядро платформы. Одного его уже достаточно для создания вэб-приложений, но рекомендуем ознакомиться с прочими полезными репозиториями, содержащими документацию, инструменты и примеры для данной платформы:
-* [lx-doc](https://github.com/epicoon/lx-doc/README-ru.md)
-* [lx-demo](https://github.com/epicoon/lx-demo/README-ru.md)
-* [lx-dev-wizard](https://github.com/epicoon/lx-dev-wizard/README-ru.md)
-* [lx-tools](https://github.com/epicoon/lx-tools/README-ru.md)
+* [lx-doc](https://github.com/epicoon/lx-doc/blob/master/README-ru.md)
+* [lx-demo](https://github.com/epicoon/lx-demo/blob/master/README-ru.md)
+* [lx-dev-wizard](https://github.com/epicoon/lx-dev-wizard/blob/master/README-ru.md)
+* [lx-tools](https://github.com/epicoon/lx-tools/blob/master/README-ru.md)
 
 
 ## Оглавление
@@ -15,7 +14,7 @@
 * [Установка](#deploy)
 * [Описание архитектуры](#architecture)
 * [CLI](#cli)
-* [Пример разработки приложения](https://github.com/epicoon/lx-doc-articles/ru/app-dev/main.md)
+* [Пример разработки приложения](https://github.com/epicoon/lx-doc-articles/blob/master/ru/app-dev/main.md)
 
 
 <a name="properties"><h2>Основные принципы</h2></a>
@@ -44,7 +43,7 @@
         ]
    }
    ```
-   Чтобы использовать прочие lx-пакеты, просто добавьте их в конфигурационный файл по аналогии с пакетом `lx/lx-core`, например: [конфигурация с прочими lx-пакетами](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/composer-example.md).<br>
+   Чтобы использовать прочие lx-пакеты, просто добавьте их в конфигурационный файл по аналогии с пакетом `lx/lx-core`, например: [конфигурация с прочими lx-пакетами](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/doc/composer-example.md).<br>
    В корне проекта выполните команду `composer install`.<br>
    В результате будет создан каталог `vendor` (если еще не существовал). В нем в папке `lx` будут располагаться указанные в зависимостях пакеты.
 2. Настройка сервера для `nginx` под `Ubuntu`.<br>
@@ -88,7 +87,7 @@
    lx::run();
    ```
 5. Если в браузере по домену, указанному в конфигурации сервера и файле `/etc/hosts`, вы видите страницу:
-   ![Стартовая страница lx](https://github.com/epicoon/lx-doc-articles/ru/lx-core/images/lx-start-page.png)
+   ![Стартовая страница lx](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/images/lx-start-page.png)
    то все удалось.
 
 
@@ -121,7 +120,7 @@
   В файле lx-конфигурации рекомендуется описывать правила автозагрузки (а не в `composer.json`), т.к. платформа имеет свой автозагрузчик, не противоречащий автозагрузчику композера, но имеющий расширенные возможности.<br>
   Файл `composer.json` может быть использован для описания зависимостей.<br>
   О прочих особенностях lx-конфигурации далее.<br>
-  Пакеты могут располагаться в нескольких каталогах внутри приложения. В каких именно - определяется в конфигурации приложения. [Подробнее о конфигурации приложения](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/app-config.md)
+  Пакеты могут располагаться в нескольких каталогах внутри приложения. В каких именно - определяется в конфигурации приложения. [Подробнее о конфигурации приложения](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/doc/app-config.md)
 
 * <a name="arch-service"><h3>Сервисы</h3></a>
   Сервис это пакет, умеющий отвечать на запросы. Имеет специальное поле с настройками в lx-конфигурации. Пример конфигурации на `yaml`:
@@ -145,7 +144,7 @@
     ...
   ```
   Имеет определенную инфраструктуру, описываемую с помощью lx-конфигурации.
-  [Подробнее о конфигурации сервиса](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/service-config.md)
+  [Подробнее о конфигурации сервиса](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/doc/service-config.md)
 
 * <a name="arch-router"><h3>Роутер уровня приложения</h3></a>
   Приложение распределяет запросы по сервисам с помощью роутера. Он существует в приложении в единственном числе.<br>
@@ -171,8 +170,8 @@
       test-page: {service-module: 'your/some-service:some-module', on-mode: dev}
   ...
   ```
-  ![Схема роутинга приложения](https://github.com/epicoon/lx-doc-articles/ru/lx-core/images/architecture-scheme.png)
-  [Подробнее о роутинге](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/app-routing.md)
+  ![Схема роутинга приложения](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/images/architecture-scheme.png)
+  [Подробнее о роутинге](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/doc/app-routing.md)
 
 * <a name="arch-service-router"><h3>Роутеры уровня сервиса</h3></a>
   Управлением запросами внутри сервисов занимаются роутеры сервисов.<br>
@@ -201,8 +200,8 @@
         some-route-4: {module: moduleName}
     ...
   ```
-  ![Схема внутрисервисного роутинга](https://github.com/epicoon/lx-doc-articles/ru/lx-core/images/service-routing.png)
-  [Подробнее о внутрисервисном роутинге](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/service-routing.md)
+  ![Схема внутрисервисного роутинга](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/images/service-routing.png)
+  [Подробнее о внутрисервисном роутинге](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/doc/service-routing.md)
 
 * <a name="arch-controller"><h3>Контроллеры</h3></a>
   Контроллер является таким элементом сервиса, который отвечает на запросы и может обрабатывать много разных URL.<br>
@@ -266,7 +265,7 @@
   # Путь к директории с css-файлами
   css: assets/css
   ```
-  [Подробнее о конфигурации модуля](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/module-config.md)
+  [Подробнее о конфигурации модуля](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/doc/module-config.md)
 
   Нижнее подчеркивание в названиях файлов - выбор автора платформы для обозначения особого статуса файлов (корневые файлы, точки входа для выполнения и т.п.), а также упрощения их визуального поиска в проводнике проекта при сортировке каталогов и файлов по алфавиту (нижнее подчеркивание находится между прописными и строчными символами). При желании все соглашения о путях меняются с помощью конфигурации.
 
@@ -447,4 +446,4 @@
 Это все!<br>
 Модуль создан, по указанному адресу можно проверить что именно создалось, сверить с описанной в этой документации инфраструктурой модуля.
 
-Теперь можно узнать подробнее как разрабатывать свое приложение по [ссылке](https://github.com/epicoon/lx-doc-articles/ru/app-dev/main.md).
+Теперь можно узнать подробнее как разрабатывать свое приложение по [ссылке](https://github.com/epicoon/lx-doc-articles/blob/master/ru/app-dev/main.md).
