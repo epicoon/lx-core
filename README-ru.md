@@ -1,6 +1,6 @@
-[English version (Английская версия)](https://github.com/epicoon/lx-core/blob/master/README-ru.md)
+[English version (Английская версия)](https://github.com/epicoon/lx-core/blob/master/README.md)
 
-# Lx - web-application development platform
+# Lx - платформа для разработки web-приложений
 
 В данном репозитории находится ядро платформы. Одного его уже достаточно для создания вэб-приложений, но рекомендуем ознакомиться с прочими полезными репозиториями, содержащими документацию, инструменты и примеры для данной платформы:
 * [lx-doc](https://github.com/epicoon/lx-doc/blob/master/README-ru.md)
