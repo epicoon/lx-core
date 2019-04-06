@@ -69,6 +69,8 @@ function parseInfo(info) {
 	// Парсим инфу по модулям
 	var reg = /<module (.+?)>/g,
 		match;
+
+
 	while (match = reg.exec(modulesInfo)) {
 		var key = match[1],
 			moduleString = modulesInfo.match(new RegExp('<module '+key+'>([\\w\\W]*?)</module '+key+'>'))[1];
@@ -226,7 +228,6 @@ function createModule(moduleInfo, el, parent, clientCallback) {
 	loadData.blocksInfo[m.key] = blocks;
 	(new BlockBuilder(m, null, el, 0)).unpack();
 	
-
 	//todo - с ним явно что-то не то
 	// Явно обнулим замыкание после использования
 	loaderContext = null;
@@ -403,14 +404,15 @@ class BlockBuilder {
 			var info = infoLx[index],
 				namespace = info._namespace ? info._namespace : 'lx';
 
-			if (!(namespace in window)) {
+			var namespaceObj = lx.getNamespace(namespace);
+			if (!(namespaceObj)) {
 				console.error('Widget not found:', namespace + '.' + info.type);
 				continue;
 			}
 
 			var type = null;
 
-			if (info.type in window[namespace]) type = window[namespace][info.type];
+			if (info.type in namespaceObj) type = namespaceObj[info.type];
 			else if (namespace == 'lx') type = lx.Box;
 
 			if (type === null) {

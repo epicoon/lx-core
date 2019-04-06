@@ -8,6 +8,7 @@ class ModuleBuilder {
 	private static
 		$instanceStack = [],
 
+		$i18nMap = [],
 		$dynamicModules = [],
 		$commonWidgetList = [],
 		$scriptMap = [],
@@ -40,6 +41,10 @@ class ModuleBuilder {
 			return false;
 		}
 
+		$module = $this->getModule();
+		$title = $module->title ? $module->title : self::DEFAULT_MODULE_TITLE;
+		$title = I18nHelper::localizeModule($module, $title);
+
 		$data = self::getModulesData();
 		if (\lx::$dialog->isAjax()) {
 			$arr = ['moduleInfo' => $data];
@@ -62,9 +67,8 @@ class ModuleBuilder {
 		$scripts = self::getScriptsHtml();
 		$css = self::getCssHtml();
 
-		$module = $this->getModule();
 		return [
-			'title' => $module->title ? $module->title : self::DEFAULT_MODULE_TITLE,
+			'title' => $title,
 			'moduleInfo' => $data,
 			'scripts' => $scripts,
 			'css' => $css,
@@ -97,6 +101,7 @@ class ModuleBuilder {
 			. "<bs $uniqKey>$bootstrapJs</bs $uniqKey>"
 			. "<bl $uniqKey>$blocks</bl $uniqKey>"
 			. "<mj $uniqKey>$mainJs</mj $uniqKey>";
+		$data = I18nHelper::localizeModule($module, $data, self::$i18nMap);
 
 		self::registerModuleData($uniqKey, $data);
 		if (!\lx::$dialog->isAjax()) {
@@ -181,7 +186,7 @@ class ModuleBuilder {
 
 		// Если виджет уже зарегистрирован
 		if (array_key_exists($namespace, self::$commonWidgetList) 
-			&& array_key_exists($name, self::$commonWidgetList[$namespace])
+			&& in_array($name, self::$commonWidgetList[$namespace])
 		) {
 			return false;
 		}
@@ -189,9 +194,25 @@ class ModuleBuilder {
 		if (!array_key_exists($namespace, self::$commonWidgetList)) {
 			self::$commonWidgetList[$namespace] = [];
 		}
-		self::$commonWidgetList[$namespace][$name] = 1;
+		self::$commonWidgetList[$namespace][] = $name;
 
 		return true;
+	}
+
+	/**
+	 * Проверить использование карты локализации
+	 * */
+	public static function hasI18nMap($name) {
+		return array_key_exists($name, self::$i18nMap);
+	}
+
+	/**
+	 * Добавить дополнительную карту локализации
+	 * */
+	public static function addI18nMap($key, $map) {
+		if (!array_key_exists($key, self::$i18nMap)) {
+			self::$i18nMap[$key] = $map;
+		}
 	}
 
 	/**
@@ -441,7 +462,7 @@ class ModuleBuilder {
 		$result = [];
 		foreach ($list as $namespace => $names) {
 			$result[$namespace] = [];
-			foreach ($names as $name => $emptyData) {
+			foreach ($names as $name) {
 				$result[$namespace][] = $name;
 			}
 		}

@@ -44,6 +44,16 @@ class ActiveBox extends Box {
 
 		if ($config->move !== false && self::$DEFAULT_MOVE)
 			$header->move(['parentMove' => true]);
+
+		if ($config->closeButton) {
+			$butConfig = is_array($config->closeButton) ? $config->closeButton : [];
+			if (!isset($butConfig['geom'])) $butConfig['geom'] = [null, '2px', '20px', '20px', '2px'];
+			if (!isset($butConfig['style'])) $butConfig['style'] = ['fill' => 'red', 'cursor' => 'pointer'];
+			if (!isset($butConfig['click'])) $butConfig['click'] = '()=> this.parent.parent.hide();';
+			$butConfig['parent'] = $header;
+			$className = isset($butConfig['widget']) ? $butConfig['widget'] : Box::class;
+			new className($butConfig);
+		}
 	}
 
 	protected function setResizer($config) {

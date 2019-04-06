@@ -87,6 +87,7 @@ class lx {
 	public static
 		$dialog,
 		$conductor,
+		$language,
 		$data;
 
 	private static
@@ -126,6 +127,58 @@ class lx {
 		echo '</lx-alert>';
 	}
 
+	/**
+	 * Оборачивает ключ локализации тегом
+	 * */
+	public static function i18n($tag, $params = []) {
+		$text = $tag;
+		$paramsText = '';
+
+		if (!empty($params)) {
+			$arr = [];
+			foreach ($params as $key => $value) {
+				$arr[] = "$key:$value";
+			}
+			$paramsText = ',{:'. implode(',', $arr) .'}';
+		}
+
+		return '#lx:i18n' . $text . $paramsText . 'i18n:lx#';
+	}
+
+	/**
+	 * Использовать карты локализации
+	 * @param $name имя сервиса, модуля, или путь к файлу с массивом переводов
+	 * */
+	public static function useI18n($name) {
+		if (lx\ModuleBuilder::hasI18nMap($name)) {
+			return;
+		}
+
+		$map = [];
+
+		if ($name{0} == '@' || $name{0} == '/' || $name{0} == '{') {
+			$path = self::$conductor->getFullPath($name);
+			$file = new lx\ConfigFile($path);
+			if ($file->exists()) {
+				$data = $file->get();
+				if (is_array($data)) {
+					$map = $data;
+				}
+			}
+		} else {
+			$map = preg_match('/:/', $name)
+				? self::getModule($name)->i18nMap->getSelfMap()
+				: self::getService($name)->i18nMap->getSelfMap();
+		}
+
+		if (!empty($map)) {
+			lx\ModuleBuilder::addI18nMap($name, $map);
+		}
+	}
+
+
+
+
 
 	//=========================================================================================================================
  	/* * *  1. Взаимодействие с различными настройками приложения  * * */
@@ -152,7 +205,8 @@ class lx {
 	 * */
 	public static function getDefaultServiceConfig() {
 		if (self::$defaultServiceConfig === null) {
-			self::$defaultServiceConfig = (new lx\File(self::$conductor->defaultServiceConfig))->load();
+			self::$defaultServiceConfig =
+				(new lx\File(self::$conductor->getSystemPath('defaultServiceConfig')))->load();
 		}
 		return self::$defaultServiceConfig;
 	}
@@ -162,7 +216,8 @@ class lx {
 	 * */
 	public static function getDefaultModuleConfig() {
 		if (self::$defaultModuleConfig === null) {
-			self::$defaultModuleConfig = (new lx\File(self::$conductor->defaultModuleConfig))->load();
+			self::$defaultModuleConfig =
+				(new lx\File(self::$conductor->getSystemPath('defaultModuleConfig')))->load();
 		}
 		return self::$defaultModuleConfig;
 	}
@@ -385,7 +440,7 @@ class lx {
 	 * Собирает js-ядро
 	 * */
 	private static function compileJsCore() {
-		$path = self::$conductor->jsCore;
+		$path = self::$conductor->getSystemPath('jsCore');
 		$code = file_get_contents($path);
 		$code = lx\JsCompiler::compileCode($code, $path);
 		return $code;
@@ -398,7 +453,7 @@ class lx {
 		$path = self::getConfig('jsBootstrap');
 		if ($path === null || $path === false) return '';
 
-		$path = self::$conductor->decodeAlias($path);
+		$path = self::$conductor->getFullPath($path);
 		if (!file_exists($path)) return '';
 
 		$code = file_get_contents($path);
@@ -413,7 +468,7 @@ class lx {
 		$path = self::getConfig('jsMain');
 		if ($path === null || $path === false) return '';
 
-		$path = self::$conductor->decodeAlias($path);
+		$path = self::$conductor->getFullPath($path);
 		if (!file_exists($path)) return '';
 
 		$code = file_get_contents($path);
@@ -529,6 +584,8 @@ class lx {
 		if (!$aliases) $aliases = [];
 		self::$conductor->setAliases($aliases);
 
+		self::retrieveLanguage();
+
 		self::$data = new lx\DataObject();
 		self::$dialog = new lx\Dialog();
 	}
@@ -588,5 +645,17 @@ class lx {
 	private static function loadConfig() {
 		$path = self::$conductor->appConfig;
 		self::$_config = require($path);
+	}
+
+	/**
+	 * Загрузка конфига языка
+	 * */
+	private static function retrieveLanguage() {
+		$config = lx\ClassHelper::prepareConfig(
+			self::getConfig('language'),
+			lx\Language::class
+		);
+
+		self::$language = new $config['class']($config['params']);
 	}
 }

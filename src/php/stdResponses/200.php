@@ -4,11 +4,8 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title><?=$title?></title>
-		<link rel="shortcut icon" href="/lx/web/icon.png" type="image/png">
-		
-		<?= $lxCss ?>
-		<!--<link href="/lx/_core/css/lx.css" type="text/css" rel="stylesheet">-->
-		
+		<link rel="shortcut icon" href="<?=$icon?>" type="image/png">
+		<?= $lxCss ?>		
 		<?= $css ?>
 		<?= $headScripts ?>
 	</head>

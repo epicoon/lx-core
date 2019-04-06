@@ -7,50 +7,40 @@ namespace lx;
  * */
 class ConfigFile extends File {
 	protected $extensions = ['php', 'yaml', 'json'];
+	protected $extension = null;
 
 	/**
 	 *
 	 * */
-	public function getPath() {
-		if (preg_match('/\.[^.]+$/', $this->path)) {
-			return $this->path;
+	public function __construct($name, $path=null) {
+		parent::__construct($name, $path);
+
+		preg_match_all('/\.([^.\/]+)$/', $this->path, $matches);
+		if (!empty($matches[1])) {
+			$this->extension = $matches[1][0];
+		} else {
+			foreach ($this->extensions as $extension) {
+				if ( file_exists($this->path . '.' . $extension) ) {
+					$this->extension = $extension;
+					$this->path .= '.' . $extension;
+					$this->name .= '.' . $extension;
+					break;
+				}
+			}
 		}
 
-		$extension = $this->getExtension();
-		if (!$extension) return false;
-
-		return $this->path . '.' . $extension;
-	}
-
-	/**
-	 *
-	 * */
-	public function getName() {
-		if (preg_match('/\.[^.]+$/', $this->path)) {
-			return $this->name;
+		if (!$this->extension) {
+			$this->extension = 'php';
+			$this->path .= '.php';
+			$this->name .= '.php';
 		}
-
-		$extension = $this->getExtension();
-		if (!$extension) return false;
-
-		return $this->name . '.' . $extension;
 	}
 
 	/**
 	 *
 	 * */
 	public function getExtension() {
-		preg_match_all('/\.([^.]+)$/', $this->path, $matches);
-		if (!empty($matches[1])) {
-			return $matches[1][0];
-		}
-
-		foreach ($this->extensions as $extension) {
-			if ( file_exists($this->path . '.' . $extension) ) {
-				return $extension;
-			}
-			return false;
-		}
+		return $this->extension;
 	}
 
 	/**

@@ -12,6 +12,9 @@ return [
 	'ModuleEditor' => 'classes/system/editor',
 	'ServiceEditor' => 'classes/system/editor',
 
+	'Language' => 'classes/i18n',
+	'I18nMap' => 'classes/i18n',
+
 	'PackageDirectory' => 'classes/package',
 	'PackageBrowser' => 'classes/package',
 	'ServicesMap' => 'classes/package',
@@ -74,6 +77,7 @@ return [
 	'Cli' => 'classes/system/cli',
 	'CliProcessor' => 'classes/system/cli',
 
+	'ConfigHelper' => 'classes/helpers',
 	'ClassHelper' => 'classes/helpers',
 	'Math' => 'classes/helpers',
 	'ArrayHelper' => 'classes/helpers',
@@ -81,6 +85,7 @@ return [
 	'Yaml' => 'classes/helpers',
 	'Htmp' => 'classes/helpers',
 	'WidgetHelper' => 'classes/helpers',
+	'I18nHelper' => 'classes/helpers',
 
 	'IndentData' => '../widgets/Box/positioningStrategiesPhp',
 	'PositioningStrategy' => '../widgets/Box/positioningStrategiesPhp',

@@ -7,11 +7,11 @@ class DBmysql extends DB {
 	 * Соединение, выбор базы данных
 	 * */
 	public function connect() {
-		if ($this->connect !== null) return;
+		if ($this->connection !== null) return;
 		$res = mysqli_connect($this->hostname, $this->username, $this->password);
 		if (!$res) return false;
 		mysqli_select_db($res, $this->dbName);
-		$this->connect = $res;
+		$this->connection = $res;
 		$this->query('set names \'utf8\'');
 		$this->query('set character set \'utf8\'');
 		return true;
@@ -21,9 +21,9 @@ class DBmysql extends DB {
 	 * Закрытие соединения
 	 * */
 	public function close() {
-		if ($this->connect === null) return;
-		mysqli_close($this->connect);
-		$this->connect = null;
+		if ($this->connection === null) return;
+		mysqli_close($this->connection);
+		$this->connection = null;
 	}
 
 	/**
@@ -33,11 +33,11 @@ class DBmysql extends DB {
 		if (substr($query, 0, 6) == 'SELECT') return $this->query($query);
 
 		$result;
-		$res = mysqli_query($this->connect, $query);
+		$res = mysqli_query($this->connection, $query);
 		if ($res === false) return false;
 
 		if (substr($query, 0, 6) == 'INSERT') {
-			$lastId = mysqli_query($this->connect, 'SELECT LAST_INSERT_ID();');
+			$lastId = mysqli_query($this->connection, 'SELECT LAST_INSERT_ID();');
 			$result = mysqli_fetch_array($lastId)[0];
 		} else {
 			$result = 'done';
@@ -50,7 +50,7 @@ class DBmysql extends DB {
 	 * Обязательно SELECT-запрос
 	 * */
 	public function select($query, $selectType = DB::SELECT_TYPE_MAP) {
-		$res = mysqli_query($this->connect, $query);
+		$res = mysqli_query($this->connection, $query);
 		if ($res === false) return false;
 
 		$arr = [];
@@ -66,11 +66,11 @@ class DBmysql extends DB {
 	 * Обязательно INSERT-запрос
 	 * */
 	public function insert($query, $returnId=true) {
-		$res = mysqli_query($this->connect, $query);
+		$res = mysqli_query($this->connection, $query);
 		if (!$returnId) return $res;
 
 		if ($res === false) return false;
-		$lastId = mysqli_query($this->connect, 'SELECT LAST_INSERT_ID();');
+		$lastId = mysqli_query($this->connection, 'SELECT LAST_INSERT_ID();');
 		return mysqli_fetch_array($lastId)[0];
 	}
 

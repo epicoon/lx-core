@@ -367,8 +367,8 @@ class ModelMigrateExecutor {
 			    - f0: $field2
 			      f1: val2_1
 			!!addTable: [
-			  [ f0,     f1     ],
-			  [ val1_0, val1_1 ],
+			  [ f0,     f1     ]
+			  [ val1_0, val1_1 ]
 			  [ val2_0, val2_1 ]
 			]
 			!!addTable:
@@ -376,8 +376,8 @@ class ModelMigrateExecutor {
 			    $field1: SomeModel('slug1')->field;
 			    $field2: SomeModel('slug2')->field . '_' . SomeModel('slug1')->field;
 			  models: [
-			    [ f0,      f1     ],
-			    [ $field1, val1_1 ],
+			    [ f0,      f1     ]
+			    [ $field1, val1_1 ]
 			    [ $field2, val2_1 ]
 			  ]
 			!!edit:

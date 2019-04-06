@@ -102,4 +102,8 @@ Object.defineProperty(lx, "treeSeparator", {
 	get: function() { return settings.treeSeparator || '/'; }
 });
 
+Object.defineProperty(lx, "language", {
+	get: function() { return settings.lang || {}; }
+});
+
 window.lx = lx;

@@ -4,7 +4,7 @@ namespace lx;
 
 class ModuleDirectory extends Directory {
 	public function getConfigFile() {
-		$configPathes = \lx::$conductor->packageConfig;
+		$configPathes = \lx::$conductor->getSystemPath('packageConfig');
 		$path = $this->getPath();
 		foreach ($configPathes as $configPath) {
 			$fullPath = $path . '/' . $configPath;

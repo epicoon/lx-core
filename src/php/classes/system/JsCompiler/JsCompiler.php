@@ -50,10 +50,11 @@ class JsCompiler {
 	public static function noteUsedWidget($widgetClass) {
 		list($namespace, $name) = ClassHelper::splitClassName($widgetClass);
 
-		$note = ModuleBuilder::noteUsedWidget($namespace, $name);
+		$note = ModuleBuilder::noteUsedWidget(str_replace('\\', '.', $namespace), $name);
 		if (!$note) return false;
 
 		$filePath = WidgetHelper::getJsFilePath($namespace, $name);
+
 		$file = new File($filePath);
 		if ($file->exists()) {
 			$code = $file->get();
@@ -61,6 +62,44 @@ class JsCompiler {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Преобразование php-массива в строку, которую можно вставить в js-код
+	 * */
+	public static function arrayToJsCode($array) {
+		$rec = function($val) use (&$rec) {
+			// на рекурсию
+			if (is_array($val)) {
+				$arr = [];
+				$keys = [];
+				$assoc = false;
+				foreach ($val as $key => $item) {
+					$keys[] = $key;
+					$arr[] = $rec($item);
+					if (is_string($key)) $assoc = true;
+				}
+				if (!$assoc) return '[' . implode(',', $arr) . ']';
+
+				$temp = [];
+				foreach ($keys as $i => $key) {
+					$temp[] = "'$key':{$arr[$i]}";
+				}
+				return '{' . implode(',', $temp) . '}';
+			}
+
+			if (is_string($val)) {
+				if ($val == '') return '\'\'';
+				if ($val{0} != '\'') return "'$val'";
+			}
+			if ($val === true) return 'true';
+			if ($val === false) return 'false';
+			if ($val === null) return 'null';
+			return $val;
+		};
+
+		$result = $rec($array);
+		return $result;
 	}
 
 	/**
@@ -117,8 +156,8 @@ class JsCompiler {
 		// Применить расширенный синтаксис
 		$code = SintaxExtender::applyExtendedSintax($code);
 
-		// Парсит yaml-файлы
-		$code = SourcePluger::loadYaml($code, $parentDir);
+		// Парсит конфиг-файлы
+		$code = SourcePluger::loadConfig($code, $parentDir);
 
 		// Ищет указания о подключении скриптов
 		$code = SourcePluger::plugScripts($code);

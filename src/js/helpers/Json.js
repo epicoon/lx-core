@@ -53,13 +53,23 @@ function eliminateParseProblem(str) {
 		var result = JSON.parse(str);
 		return {success: true, result};
 	} catch (e) {
-		// Проблема неэкранированной двойной кавычки
 		var i = e.message.match(/Unexpected (?:token|number) .+?(\d+)$/);
 		if (i === null) {
 			return false;
 		} else i = +i[1];
 		var pre = str.substring(0, i),
 			post = str.substring(i);
+
+		// Проблема неэкранированного экрана
+		if (pre[i - 1] == '\\') {
+			pre += '\\';
+			return {
+				success: false,
+				string: pre + post
+			};
+		}
+
+		// Проблема неэкранированной двойной кавычки
 		pre = pre.replace(/"([^"]*)$/, String.fromCharCode(92) + '"$1');
 		return {
 			success: false,

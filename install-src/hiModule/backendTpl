@@ -1,0 +1,38 @@
+<?php
+
+namespace lx\hello\module\world\backend;
+
+use lx\ModuleBuilder;
+
+class Respondent extends \lx\Respondent {
+	public function loadModule($key) {
+		$name = null;
+		switch ($key) {
+			case 'cli': $name = 'lx/lx-dev-wizard:webcli'; break;
+			case 'doc': $name = 'lx/lx-doc:docParser'; break;
+			case 'demo': $name = 'lx/lx-demo:_main'; break;
+		}
+		if (!$name) {
+			return false;
+		}
+
+		return $this->prepareModule($name);
+	}
+
+	private function prepareModule($name) {
+		try {
+			$module = \lx::getModule($name);
+			if (!$module) {
+				return false;
+			}
+		} catch (\Exception $e) {
+			return false;
+		}
+
+		$builder = new ModuleBuilder($module);
+		$builder->build();
+		$result = $builder->getResult();
+
+		return $result;		
+	}
+}

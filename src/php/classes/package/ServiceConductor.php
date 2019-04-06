@@ -20,12 +20,15 @@ class ServiceConductor {
 	}
 
 	/**
-	 * @param $path string - путь относительно корня сервиса
+	 * @param $fileName string - путь относительно корня сервиса
 	 * @return string - полный путь к файлу
 	 * */
-	public function getFullPath($path) {
-		return $this->getPath() . '/' . $path;
+	public function getFullPath($fileName) {
+		if ($fileName{0} == '@') {
+			$fileName = $this->decodeAlias($fileName);
+		}
 
+		return \lx::$conductor->getFullPath($fileName, $this->getPath());
 	}
 
 	/**
@@ -37,6 +40,7 @@ class ServiceConductor {
 		foreach ($moduleDirs as $dir) {
 			if ($dir != '') $dir .= '/';
 			$fullPath = $this->getPath() . '/' . $dir . $moduleName;
+
 			if (file_exists($fullPath)) {
 				return $fullPath;
 			}
@@ -131,4 +135,24 @@ class ServiceConductor {
 		return $migrationsDirectory;
 	}
 
+	/**
+	 *
+	 * */
+	private function decodeAlias($path) {
+		$aliases = $this->service->getConfig('service.aliases');
+		if (!$aliases) return $path;
+
+		$result = $path;
+		while (true) {
+			preg_match_all('/^@([_\w][_\-\w\d]*?)(\/|$)/', $result, $arr);
+			if (empty($arr) || empty($arr[0])) return $result;
+
+			$mask = $arr[0][0];
+			$alias = $arr[1][0];
+			if (!array_key_exists($alias, $aliases)) return $result;
+
+			$alias = $aliases[$alias] . $arr[2][0];
+			$result = str_replace($mask, $alias, $result);
+		}
+	}
 }

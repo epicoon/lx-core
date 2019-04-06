@@ -44,21 +44,6 @@ class ModelData {
 	 *
 	 * */
 	public static function load($manager, $condition = null) {
-		if (is_array($condition)) {
-			$isIds = true;
-			foreach ($condition as $item) {
-				if (filter_var($item, FILTER_VALIDATE_INT) === false) {
-					$isIds = false;
-					break;
-				}
-			}
-			if ($isIds) $condition = [$manager->getSchema()->pkName() => $condition];
-		} elseif ($condition) {
-			if (!is_string($condition) || !preg_match('/ /', $condition)) {
-				$condition = [$manager->getSchema()->pkName() => $condition];
-			}
-		}
-
 		$data = $manager->loadModelsData($condition);
 		if (empty($data)) return [];
 

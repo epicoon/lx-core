@@ -13,8 +13,6 @@ namespace lx;
 	public function getScriptPath($name)
 	public function getFile($name)
 	public function findRespondent($name)
-	public function getModuleFrontendDirectory()
-	public function getJsFile($name)
 	public function getJsMain()
 	public function getJsBootstrap()
 	public function getCssAssets()
@@ -56,23 +54,11 @@ class ModuleConductor {
 	 * Получить полное имя файла с учетом использования алиасов (модуля и приложения)
 	 * */
 	public function getFullPath($fileName) {
-		// Если начинается с '/' - это путь от корня сайта
-		if ($fileName{0} == '/') return \lx::$conductor->site . $fileName;
-
 		if ($fileName{0} == '@') {
-			$path = $this->decodeAlias($fileName);
-			if ($path{0} == '@') {
-				$path = \lx::$conductor->decodeAlias($path);
-				if ($path === false) return false;
-				return $path;
-			}
-			$fileName = $path;
+			$fileName = $this->decodeAlias($fileName);
 		}
 
-		// Если это уже полный путь
-		if (preg_match($this->getSitePathReg(), $fileName)) return $fileName;
-
-		return $this->getModulePath() . '/' . $fileName;
+		return \lx::$conductor->getFullPath($fileName, $this->getModulePath());
 	}
 
 	/**
@@ -91,21 +77,11 @@ class ModuleConductor {
 	 * Если имя блока явно не задано, будет возвращен путь к корневому блоку модуля
 	 * */
 	public function getBlockPath($name = null) {
-		if (!$name) $name = $this->module->getConfig('viewIndex');
+		if (!$name) $name = $this->module->getConfig('view');
 		if (!$name) return null;
 
 		if (!preg_match('/\.php$/', $name)) $name .= '.php';
-
-		if ($name{0} == '@') return $this->getFullPath($name);
-
-		$dir = $this->module->getConfig('view');
-		if (!$dir) return null;
-		if ($dir{0} == '@') return $this->getFullPath($dir) . '/' . $name;
-		
-		$path = "$dir/$name";
-
-		if (!$this->moduleContain($path)) return null;
-		return $this->getModulePath() . '/'. $path;
+		return $this->getFullPath($name);
 	}
 
 	/**
@@ -168,33 +144,12 @@ class ModuleConductor {
 	}
 
 	/**
-	 * Если есть фронтенд-директория для модуля - будет возвращен объект-директория
-	 * */
-	public function getModuleFrontendDirectory() {
-		$frontend = $this->module->getConfig('frontend');
-		if ($frontend === null) return null;
-
-		return $this->getFile($frontend);
-	}
-
-	/**
-	 *
-	 * */
-	public function getJsFile($name) {
-		if ($name{0} == '@') return $this->getFile($name);
-
-		$frontend = $this->getModuleFrontendDirectory();
-		if (!$frontend) return null;
-		return $frontend->get($name);
-	}
-
-	/**
 	 *
 	 * */
 	public function getJsMain() {
 		$jsMain = $this->module->getConfig('jsMain');
 		if (!$jsMain) return null;
-		return $this->getJsFile($jsMain);
+		return $this->getFile($jsMain);
 	}
 
 	/**
@@ -203,7 +158,7 @@ class ModuleConductor {
 	public function getJsBootstrap() {
 		$jsBootstrap = $this->module->getConfig('jsBootstrap');
 		if (!$jsBootstrap) return null;
-		return $this->getJsFile($jsBootstrap);
+		return $this->getFile($jsBootstrap);
 	}
 
 	/**
@@ -256,19 +211,11 @@ class ModuleConductor {
 	/**
 	 * Путь к изображениям модуля относительно самого модуля
 	 * Рендерер отсюда берет путь к изображениям
-	 * Можно использовать алиасы
-	 * Можно использовать путь другого модуля, указав 'images' => '{module: moduleName}'
+	 * Можно использовать @, / и {}
 	 * */
 	public function getImagePathInSite() {
 		$images = $this->module->getConfig('images');
 		if ($images === null) return false;
-
-		preg_match_all('/^{([^\s]+?)\s*:\s*([^\s]+?)}$/', $images, $arr);
-		$key = empty($arr[1]) ? null : $arr[1][0];
-		$value = empty($arr[2]) ? null : $arr[2][0];
-		if ($key !== null && $value !== null) {
-			if ($key == 'module') return \lx::getModule($value)->conductor->getImagePathInSite();
-		}
 
 		return $this->getPathInSite($images);
 	}
@@ -279,13 +226,6 @@ class ModuleConductor {
 	public function getImagePath() {
 		$images = $this->module->getConfig('images');
 		if ($images === null) return false;
-
-		preg_match_all('/^{([^\s]+?)\s*:\s*([^\s]+?)}$/', $images, $arr);
-		$key = empty($arr[1]) ? null : $arr[1][0];
-		$value = empty($arr[2]) ? null : $arr[2][0];
-		if ($key !== null && $value !== null) {
-			if ($key == 'module') return \lx::getModule($value)->conductor->getImagePath();
-		}
 
 		return $this->getFullPath($images);
 	}
@@ -326,7 +266,7 @@ class ModuleConductor {
 
 			$alias = $aliases[$alias] . $arr[2][0];
 			$result = str_replace($mask, $alias, $result);
-		}		
+		}
 	}
 
 	/**

@@ -1,8 +1,7 @@
-[Russian version (Русская версия)](https://github.com/epicoon/lx-core/README-ru.md)
+[Английская версия (English version)](https://github.com/epicoon/lx-core/README.md)
 
-# Lx - web-application development platform
+# Lx - платформа для создания вэб-приложений
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!
 В данном репозитории находится ядро платформы. Одного его уже достаточно для создания вэб-приложений, но рекомендуем ознакомиться с прочими полезными репозиториями, содержащими документацию, инструменты и примеры для данной платформы:
 * [lx-doc](https://github.com/epicoon/lx-doc/README-ru.md)
 * [lx-demo](https://github.com/epicoon/lx-demo/README-ru.md)
@@ -15,7 +14,8 @@
 * [Установка](#deploy)
 * [Описание архитектуры](#architecture)
 * [CLI](#cli)
-* [Пример разработки приложения](https://github.com/epicoon/lx-doc-articles/ru/app-dev/main.md)
+* [Пример разработки приложения](https://github.com/epicoon/lx-doc-articles/ru/app-dev/expl1/main.md)
+* [Список статей по документации](#doc-list)
 
 
 <a name="properties"><h2>Основные принципы</h2></a>
@@ -59,7 +59,7 @@
       server_name server.name;
       root /path/to/project;
       index path/to/index.php;
-	
+  
       location / {
          try_files $uri /path/to/index.php?$args;
       }
@@ -74,7 +74,7 @@
    Обратите внимание на пути и версию php-fpm, подставьте свои значения.<br>
    Создайте запись в `/etc/hosts`.<br>
    Перезапустите сервер.<br>
-3. Чтобы развернуть платформу в проекте, нужно запустить php-скрипт `vendor/lx/lx-core/lx-install`.<br>
+3. Чтобы развернуть платформу в проекте, нужно запустить PHP-скрипт `vendor/lx/lx-core/lx-install`.<br>
    В результате в корне проекта будут созданы каталоги:
    * lx - каталог для конфигурационных и системных файлов платформы. Обязателен.
    * services - каталог для сервисов приложения (подробности ниже). Содержит первый сервис для приложения. Необязателен, работа с сервисами настраивается в конфигурации приложения.
@@ -87,9 +87,9 @@
    require_once __DIR__ . '/vendor/lx/lx-core/main.php';
    lx::run();
    ```
-5. Если в браузере по домену, указанному в конфигурации сервера и файле `/etc/hosts`, вы видите страницу:
+5. Если в браузере по домену, указанному в конфигурации сервера и файле `/etc/hosts`, вы видите такую страницу, то все удалось.
    ![Стартовая страница lx](https://github.com/epicoon/lx-doc-articles/ru/lx-core/images/lx-start-page.png)
-   то все удалось.
+   Если Вы поставили рекумендуемые пакеты, то со стартовой страницы будут доступны документация (из пакета `lx/lx-doc`), набор демонстраций (из пакета `lx/lx-demo`) и CLI в web-режиме (из пакета `lx/lx-dev-wizard`).
 
 
 <a name="architecture"><h2>Описание архитектуры</h2></a>
@@ -158,9 +158,7 @@
   #   карта - массив, где ключ - URL запроса (или регулярное выражение, если начинается с символа '~'),
   #   значение - данные от объекте, куда перенаправляется запрос
   # - class 
-  #   необходим параметр 'name' - имя класса роутера
-  #   роутер наследуется от [[lx\Router]] и должен реализовать метод [[route()]],
-  #   который будет возвращать данные от объекте, куда перенаправляется запрос
+  #   необходим параметр 'name' - имя класса роутера, отнаследованного от [[lx\Router]]
   router:
     type: map
     routes:
@@ -172,37 +170,37 @@
   ...
   ```
   ![Схема роутинга приложения](https://github.com/epicoon/lx-doc-articles/ru/lx-core/images/architecture-scheme.png)
-  [Подробнее о роутинге](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/app-routing.md)
+  [Подробнее о роутинге](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/routing.md)
 
 * <a name="arch-service-router"><h3>Роутеры уровня сервиса</h3></a>
   Управлением запросами внутри сервисов занимаются роутеры сервисов.<br>
-  По аналогии с роутером приложения, роутер сервиса можно настройить с помощью файла lx-конфигурации сервиса, либо переопределить класс `lx.ServiceRouter`.<br>
+  По аналогии с роутером приложения, роутер сервиса можно настройить с помощью файла lx-конфигурации сервиса, либо переопределить класс `lx\ServiceRouter`.<br>
   Пример настройки через файл lx-конфигурации:
   ```yaml
-  name: lx/lx-dev-wizard
+  name: some-vendor/some-service
   ...
 
   service:
-    class: lx\devWizard\Service
-
     # Настройки роутера сервиса
     router:
       type: map
       routes:
         # Направление запроса на контроллер
-        # Будет возвращен результат вызова метода(экшена) контроллера [[run()]]
+        # Будет возвращен результат вызова метода контроллера [[run()]]
         some-route-1: ControllerClassName
+
         # Направление запроса на контроллер
         # Будет возвращен результат вызова метода(экшена) контроллера [[actionName()]]
         some-route-2: ControllerClassName::actionName
+
         # Направление запроса на экшен. Будет возвращен результат вызова метода экшена [[run()]]
         some-route-3: {action: ActionClassName}
+
         # Направление запроса на модуль. Будет возвращен результат рендеринга модуля
         some-route-4: {module: moduleName}
     ...
   ```
   ![Схема внутрисервисного роутинга](https://github.com/epicoon/lx-doc-articles/ru/lx-core/images/service-routing.png)
-  [Подробнее о внутрисервисном роутинге](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/service-routing.md)
 
 * <a name="arch-controller"><h3>Контроллеры</h3></a>
   Контроллер является таким элементом сервиса, который отвечает на запросы и может обрабатывать много разных URL.<br>
@@ -447,4 +445,14 @@
 Это все!<br>
 Модуль создан, по указанному адресу можно проверить что именно создалось, сверить с описанной в этой документации инфраструктурой модуля.
 
-Теперь можно узнать подробнее как разрабатывать свое приложение по [ссылке](https://github.com/epicoon/lx-doc-articles/ru/app-dev/main.md).
+Также полезная команда `\amr` (или `autoload-map-reset`). В случае добавления сервисов вручную, или изменения правил автозагрузки в конфигурациях сервисов, эта команда обновляет карту автозагрузки PHP-классов.
+
+
+<a name="doc-list"><h2>Список статей по документации</h2></a>
+* [Пример содержимого файла composer.json](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/composer-example.md)
+* [Роутинг](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/routing.md)
+* [Конфигурация приложения](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/app-config.md)
+* [Конфигурация сервиса](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/service-config.md)
+* [Конфигурация модуля](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/module-config.md)
+* [Интернационализация](https://github.com/epicoon/lx-doc-articles/ru/lx-core/doc/i18n.md)
+* [Пример создания приложения](https://github.com/epicoon/lx-doc-articles/ru/app-dev/expl1/main.md)

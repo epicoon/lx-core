@@ -52,14 +52,12 @@ class ModuleEditor {
 		$d = (new Directory($moduleRootPath))->makeDirectory($name);
 		$moduleConfig = \lx::getDefaultModuleConfig();
 
-		$frontend = $d->makeDirectory($moduleConfig['frontend']);
-		$mainJs = $frontend->makeFile($moduleConfig['jsMain']);
+		$mainJs = $d->makeFile($moduleConfig['jsMain']);
 		$mainJs->put($mainJsCode);
-		$bootstrapJs = $frontend->makeFile($moduleConfig['jsBootstrap']);
+		$bootstrapJs = $d->makeFile($moduleConfig['jsBootstrap']);
 		$bootstrapJs->put($bootstrapJsCode);
 
-		$view = $d->makeDirectory($moduleConfig['view']);
-		$root = $view->makeFile($moduleConfig['viewIndex']);
+		$root = $d->makeFile($moduleConfig['view']);
 		$root->put($viewCode);
 
 		$module = $d->makeFile('Module.php');
@@ -68,9 +66,7 @@ class ModuleEditor {
 
 		$config = $d->makeFile('lx-config.yaml');
 		$text = 'class: ' . $namespace . '\\Module' . PHP_EOL . PHP_EOL;
-		$text .= 'view: ' . $moduleConfig['view'] . PHP_EOL;
-		$text .= 'viewIndex: ' . $moduleConfig['viewIndex'] . PHP_EOL . PHP_EOL;
-		$text .= 'frontend: ' . $moduleConfig['frontend'] . PHP_EOL;
+		$text .= 'view: ' . $moduleConfig['view'] . PHP_EOL . PHP_EOL;
 		$text .= 'jsMain: ' . $moduleConfig['jsMain'] . PHP_EOL;
 		$text .= 'jsBootstrap: ' . $moduleConfig['jsBootstrap'] . PHP_EOL . PHP_EOL;
 

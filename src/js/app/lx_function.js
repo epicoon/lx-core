@@ -19,6 +19,14 @@ lx.getHandler = function(name) {
 };
 
 /**
+ *
+ * */
+lx.callFunction = function(data, args = []) {
+	if (data.isFunction) data.apply(null, args);
+	else if (data.isArray) data[0].apply(data[1], args);
+};
+
+/**
  * По переданным строкам аргументов и кода создает функцию и сразу ее запускает
  * */
 lx.createAndCallFunction = function(args, code, context=null, params=[]) {

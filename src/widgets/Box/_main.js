@@ -317,12 +317,12 @@ class Box extends Rect #lx:namespace lx {
 	}
 
 	/**
-	 * Удаляет всех потомков
+	 * Проход по всем потомкам
 	 * */
-	clear() {
-		// Сначала все потомки должны освободить используемые ресурсы
+	eachChild(func) {
 		function re(elem) {
-			if (elem.destruct) elem.destruct();
+			func(elem);
+			// if (elem.destruct) elem.destruct();
 			if (!elem.child) return;
 			var num = 0,
 				child = elem.child(num);
@@ -332,9 +332,21 @@ class Box extends Rect #lx:namespace lx {
 			}
 		}
 		re(this);
+	}
 
-		// После чего можно разум обнулить содержимое
+	/**
+	 * Удаляет всех потомков
+	 * */
+	clear() {
+		// Сначала все потомки должны освободить используемые ресурсы
+		this.eachChild((child)=>{
+			if (child.destruct) child.destruct();
+		});
+
+		// После чего можно разом обнулить содержимое
 		this.DOMelem.innerHTML = '';
+		lx.WidgetHelper.checkFrontMap();
+
 		this.children = {};
 		this.positioning().reset();
 	}
@@ -380,8 +392,8 @@ class Box extends Rect #lx:namespace lx {
 			if (el.key && el.key in el.parent.children) return this.del(el.key, el._index, 1);
 
 			// Если ключа нет - удаляем проще
+			lx.WidgetHelper.removeFromFrontMap(el);
 			var pre = el.prevSibling();
-
 			this.DOMelem.removeChild(el.DOMelem);
 			this.positioning().actualize({from: pre, deleted: [el]});
 			return 1;
@@ -394,6 +406,7 @@ class Box extends Rect #lx:namespace lx {
 		if (!this.children[el].isArray) {
 			var elem = this.children[el],
 				pre = elem.prevSibling();
+			lx.WidgetHelper.removeFromFrontMap(elem);
 			this.DOMelem.removeChild(elem.DOMelem);
 			delete this.children[el];
 			this.positioning().actualize({from: pre, deleted: [elem]});
@@ -415,6 +428,7 @@ class Box extends Rect #lx:namespace lx {
 			var elem = this.children[el][i];
 
 			deleted.push(elem);
+			lx.WidgetHelper.removeFromFrontMap(elem);
 			this.DOMelem.removeChild(elem.DOMelem);
 		}
 		this.children[el].splice(index, count);
@@ -757,6 +771,7 @@ class Box extends Rect #lx:namespace lx {
 	dropModule() {
 		if (this.module) {
 			this.module.del();
+			delete this.module;
 		}
 	}
 

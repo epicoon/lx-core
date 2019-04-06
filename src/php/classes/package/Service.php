@@ -16,6 +16,8 @@ class Service {
 	protected $_conductor = null;
 	/** @var $_modelProvider lx\ModelProvider - провайдер моделей сервиса */
 	protected $_modelProvider = null;
+	/** @var $_i18nMap lx\I18nMap - карта интернационализации */
+	protected $_i18nMap = null;
 
 	/** @var $dbConnections array - соединения с базами банных */
 	private $dbConnections = [];
@@ -23,25 +25,33 @@ class Service {
 	/**
 	 * Сервис - картированный вариант синглтона
 	 * */
-	protected function __construct($name, $config) {
+	protected function __construct($params = []) {}
+	protected function __clone() {}
+
+	/**
+	 * 
+	 * */
+	private function setName($name) {
 		$this->_name = $name;
 		$this->_path = \lx\Autoloader::getInstance()->map->packages[$this->_name];
+	}
 
+	/**
+	 * 
+	 * */
+	private function setConfig($config) {
 		// Общие настройки
 		$commonConfig = \lx::getDefaultServiceConfig();
+		ConfigHelper::prepareServiceConfig($commonConfig, $config);
 
-		// Дефолтные настройки
-		foreach ($commonConfig as $key => $value) {
-			if (!array_key_exists($key, $config['service'])) {
-				$config['service'][$key] = $commonConfig[$key];
-			}
-		}
+		// Инъекция настроек
+		$injections = \lx::getConfig('configInjection');
+		ConfigHelper::serviceInject($this->_name, $injections, $config);
 
-		$config['dbList'] = $this->getDbConfig($config);
-		unset($config['db']);
+		$config['service']['dbList'] = $this->getDbConfig($config);
+		unset($config['service']['db']);
 		$this->_config = $config;
 	}
-	protected function __clone() {}
 
 	/**
 	 * Проверяет существует ли сервис
@@ -90,15 +100,22 @@ class Service {
 			throw new \Exception("Package '$name' is not service", 400);
 		}
 
-		$className = isset($config['service']['class'])
-			? $config['service']['class']
-			: self::class;
+		if (isset($config['service']['class'])) {
+			$data = ClassHelper::prepareConfig($config['service']['class'], self::class);	
+			$className = $data['class'];
+			$params = $data['params'];
+		} else {
+			$className = self::class;
+			$params = [];
+		}
 
 		if (!ClassHelper::exists($className)) {
 			throw new \Exception("Class '$className' for service '$name' does not exist", 400);			
 		}
 
-		$service = new $className($name, $config);
+		$service = new $className($params);
+		$service->setName($name);
+		$service->setConfig($config);
 		ServicesMap::newService($name, $service);
 		return $service;
 	}
@@ -109,26 +126,49 @@ class Service {
 	public function __get($name) {
 		switch ($name) {
 			case 'name': return $this->_name;
+
 			case 'relativePath': return $this->_path;
+
 			case 'directory':
 				if ($this->_dir === null) {
 					$this->_dir = new PackageDirectory(\lx::sitePath() . '/' . $this->_path);
 				}
+
 				return $this->_dir;
+
 			case 'conductor':
 				if ($this->_conductor === null) {
 					$this->_conductor = new ServiceConductor($this);
 				}
+
 				return $this->_conductor;
+
 			case 'modelProvider':
 				if ($this->_modelProvider === null) {
 					$crudAdapterClass = $this->getConfig('service.modelCrudAdapter');
-					$crudAdapter = $crudAdapterClass === null
-						? null
-						: new $crudAdapterClass();
+					if ($crudAdapterClass === null) {
+						$crudAdapter = null;
+					} else {
+						$config = ClassHelper::prepareConfig($crudAdapterClass);
+						$crudAdapter = new $config['class']($config['params']);
+					}
+
 					$this->_modelProvider = new ModelProvider($this, $crudAdapter);
 				}
+
 				return $this->_modelProvider;
+
+			case 'i18nMap':
+				if ($this->_i18nMap === null) {
+					$config = ClassHelper::prepareConfig(
+						$this->getConfig('service.i18nMap'),
+						I18nMap::class
+					);
+					$config['params']['service'] = $this;
+					$this->_i18nMap = new $config['class']($config['params']);
+				}
+
+				return $this->_i18nMap;
 		}
 
 		return null;
@@ -168,6 +208,21 @@ class Service {
 	/**
 	 *
 	 * */
+	public function getFilePath($name) {
+		return $this->conductor->getFullPath($name);
+	}
+
+	/**
+	 *
+	 * */
+	public function getFile($name) {
+		$path = $this->getFullPath($name);
+		return new BaseFile($path);
+	}
+
+	/**
+	 *
+	 * */
 	public function router() {
 		$routerData = $this->getConfig('service.router');
 
@@ -178,6 +233,13 @@ class Service {
 		$router = new $className($this);
 
 		return $router;
+	}
+
+	/**
+	 *
+	 * */
+	public function getModelManager($modelName) {
+		return $this->modelProvider->getManager($modelName);
 	}
 
 	/**
@@ -246,7 +308,7 @@ class Service {
 					throw new \Exception("Module '$moduleName' not found", 400);
 				}
 				$path = \lx::getModulePath($info['prototype']);
-				$module = Module::create($this, $moduleName, $path);
+				$module = Module::create($this, $moduleName, $path, $info['prototype']);
 				if (isset($info['params'])) {
 					$configParams = $info['params'];
 					if (isset($configParams['method'])) {
@@ -292,7 +354,7 @@ class Service {
 	 * */
 	public function db($db = 'db') {
 		if (!array_key_exists($db, $this->dbConnections)) {
-			$dbList = $this->getConfig('dbList');
+			$dbList = $this->getConfig('service.dbList');
 
 			if (!isset($dbList[$db])) {
 				throw new \Exception("There is no settings for connection service '{$this->name}' with DB '$db'", 400);
@@ -317,51 +379,32 @@ class Service {
 	}
 
 	/**
-	 *
+	 * В конфиге может быть dbList - это ассоциативный массив настроек для подключений, ключи используются для выбора нужного подключения
+	 * В конфиге может быть db - это настройки для одного подключения (ключ 'db' используется по умочанию)
 	 * */
 	protected function getDbConfig($config) {
-		/*
-		В конфиге может быть dbList
-			- если это ассоциативный массив, то это подключения к базе - собственные настройки сервиса
-			- если это перечислимый массив, то это ключи настроек подключений, которые нужны сервису - нужно их определить в общем конфиге
-		В конфиге может быть db
-			- это настройки для одного подключения
-		*/
 		$dbList = [];
-		if (isset($config['db'])) {
-			$dbList['db'] = $config['db'];
+		if (isset($config['service']['db'])) {
+			$dbList['db'] = $config['service']['db'];
 		}
-		if (isset($config['dbList'])) {
-			$dbList += $config['dbList'];
-		}
-
-		$lxDb = \lx::getConfig('db');
-		if (!$lxDb) return $dbList;
-
-		if (isset($lxDb['dbMap'][$this->name])) {
-			$dbList += $lxDb['dbMap'][$this->name];
+		if (isset($config['service']['dbList'])) {
+			$dbList += $config['service']['dbList'];
 		}
 
-		if (empty($dbList) && isset($lxDb['dbMap']['__default__'])) {
-			$dbList = $lxDb['dbMap']['__default__'];
+		$commonConfig = \lx::getDefaultServiceConfig();
+		$commonDbList = [];
+		if (isset($commonConfig['db'])) {
+			$commonDbList['db'] = $commonConfig['db'];
+		}
+		if (isset($commonConfig['dbList'])) {
+			$commonDbList += $commonConfig['dbList'];
 		}
 
-		if (empty($dbList)) return $dbList;
-
-		foreach ($dbList as $key => $value) {
-			if (is_numeric($key)) {
-				if (!array_key_exists($value, $dbList)) {
-					throw new \Exception("Service '{$this->name}' require settings for DB '$value'", 400);
-				}
-				unset($dbList[$key]);
-			} elseif (is_string($value)) {
-				if (!isset($lxDb['dbList'][$value])) {
-					throw new \Exception("There is no settings for DB '$value'", 400);
-				}
-				$dbList[$key] = $lxDb['dbList'][$value];
-			}
+		if (empty($commonDbList)) {
+			return $dbList;
 		}
 
+		$dbList += $commonDbList;
 		return $dbList;
 	}
 }

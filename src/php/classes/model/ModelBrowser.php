@@ -202,8 +202,8 @@ class ModelBrowser {
 		!!addTable : можно добавить
 			- новые экземпляры моделей в формате
 				!!addTable: [
-				  [ f0,     f1     ],
-				  [ val1_0, val1_1 ],
+				  [ f0,     f1     ]
+				  [ val1_0, val1_1 ]
 				  [ val2_0, val2_1 ]
 				]
 				или
@@ -212,8 +212,8 @@ class ModelBrowser {
 				    $slug1: SomeModel('slug1')->field;
 				    $slug2: SomeModel('slug2')->field . '_' . SomeModel('slug1')->field;
 				  models: [
-				    [ f0,     f1     ],
-				    [ $slug1, val1_1 ],
+				    [ f0,     f1     ]
+				    [ $slug1, val1_1 ]
 				    [ $slug2, val2_1 ]
 				  ]
 		!!remove : можно удалить

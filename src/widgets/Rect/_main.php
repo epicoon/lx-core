@@ -28,7 +28,7 @@ class Rect extends DataObject {
 
 		$this->type = $this->className(false);
 		$namespace = $this->namespaceName();
-		if ($namespace != 'lx') $this->_namespace = $namespace;
+		if ($namespace != 'lx') $this->_namespace = str_replace('\\', '.', $namespace);
 
 		$this->tag = $config->tag ? $config->tag : $this->tagForDOM();
 

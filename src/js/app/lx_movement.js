@@ -2,15 +2,12 @@
 
 /*
 lx.move(event)
-lx.resetMovedElement(event)
-lx.watchForMove(event)
-lx.useElementMoving()
+lx.useElementMoving(bool = true)
 */
 
 let moved = false,
 	movedDelta = { x: 0, y: 0 },
-	movedElement = null,
-	lastMovedElement = null;
+	movedElement = null;
 
 lx.move = function(event) {
 	event = event || window.event;
@@ -23,9 +20,7 @@ lx.move = function(event) {
 		Y = event.clientY || event.changedTouches[0].clientY;
 
 	var el = (this.moveParams.parentMove || this.moveParams.parentResize) ? this.parent : this;
-	if (lastMovedElement) lastMovedElement.style('z-index', 0);
-	el.style('z-index', 1);
-	lastMovedElement = el;
+	lx.WidgetHelper.bringToFront(el);
 
 	if (this.moveParams.parentResize) {
 		var p = this.parent;
@@ -43,7 +38,15 @@ lx.move = function(event) {
 	el.trigger('moveBegin', event);
 };
 
-lx.resetMovedElement = function(event) {
+lx.useElementMoving = function(bool = true) {
+	var method = bool ? 'on' : 'off';
+	this[method]('mousemove', watchForMove);
+	this[method]('mouseup', resetMovedElement);
+	this[method]('touchmove', watchForMove);
+	this[method]('touchend', resetMovedElement);
+};
+
+function resetMovedElement(event) {
 	if (movedElement == null) return;
 
 	var el = movedElement;
@@ -52,9 +55,9 @@ lx.resetMovedElement = function(event) {
 
 	el.trigger('moveEnd', event);
 	if (el.moveParams.parentResize) el.parent.trigger('resizeEnd', event);
-};
+}
 
-lx.watchForMove = function(event) {
+function watchForMove(event) {
 	if (!moved) return;
 	if (movedElement == null) return;
 
@@ -104,9 +107,9 @@ lx.watchForMove = function(event) {
 			if (newPos.x < 0) newPos.x = 0;
 		}
 
-		if (info.xMinMove) {
-			console.log(123);
-		}
+		// if (info.xMinMove) {
+		// 	console.log(123);
+		// }
 
 		movedEl.left( newPos.x + 'px' );
 	}
@@ -123,11 +126,4 @@ lx.watchForMove = function(event) {
 
 	if (info.parentMove) el.trigger('move', event);
 	movedEl.trigger('move', event);
-};
-
-lx.useElementMoving = function() {
-	this.on('mousemove', this.watchForMove);
-	this.on('mouseup', this.resetMovedElement);
-	this.on('touchmove', this.watchForMove);
-	this.on('touchend', this.resetMovedElement);
-};
+}

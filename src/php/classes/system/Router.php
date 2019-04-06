@@ -25,7 +25,7 @@ class Router {
 	public function route() {
 		$map = $this->getMap();
 		$route = \lx::$dialog->route();
-		$seviceRoute = $route;
+		$serviceRoute = $route;
 		foreach ($map as $routeKey => $serviceData) {
 			// Проверка мода
 			if (is_array($serviceData)) {
@@ -41,12 +41,16 @@ class Router {
 			}
 
 			if ($routeKey{0} == '!') {
-				$seviceRoute = (explode(preg_replace('/^!/', '', $routeKey), $route))[1];
+				$serviceRoute = (explode(preg_replace('/^!/', '', $routeKey), $route))[1];
+				$serviceRoute = preg_replace('/^\//', '', $serviceRoute);
+				if ($serviceRoute == '') {
+					$serviceRoute = '/';
+				}
 			}
 
 			$serviceName = null;
 			if (is_string($serviceData)) {
-				return $this->responceByService($serviceData, $seviceRoute);
+				return $this->responseByService($serviceData, $serviceRoute);
 			}
 
 			if (!is_array($serviceData)) {
@@ -54,23 +58,23 @@ class Router {
 			}
 
 			if (isset($serviceData['service'])) {
-				return $this->responceByService($serviceData['service'], $seviceRoute);
+				return $this->responseByService($serviceData['service'], $serviceRoute);
 			}
 
 			if (isset($serviceData['service-route'])) {
-				return $this->responceByServiceRoute($serviceData['service-route']);
+				return $this->responseByServiceRoute($serviceData['service-route']);
 			}
 
 			if (isset($serviceData['service-controller'])) {
-				return $this->responceByServiceController($serviceData['service-controller']);
+				return $this->responseByServiceController($serviceData['service-controller']);
 			}
 
 			if (isset($serviceData['service-action'])) {
-				return $this->responceByServiceAction($serviceData['service-action']);
+				return $this->responseByServiceAction($serviceData['service-action']);
 			}
 
 			if (isset($serviceData['service-module'])) {
-				return $this->responceByServiceModule($serviceData['service-module']);
+				return $this->responseByServiceModule($serviceData['service-module']);
 			}
 		}
 
@@ -85,7 +89,7 @@ class Router {
 	/**
 	 *
 	 * */
-	private function responceByService($serviceName, $route) {
+	private function responseByService($serviceName, $route) {
 		$service = Service::create($serviceName);
 		if ($service === null) {
 			return false;
@@ -98,7 +102,7 @@ class Router {
 	/**
 	 * serviceName:route/in/service
 	 * */
-	private function responceByServiceRoute($serviceRoute) {
+	private function responseByServiceRoute($serviceRoute) {
 		preg_match_all('/^([^:]*?):(.*?)$/', $serviceRoute, $matches);
 		$serviceName = $matches[1][0];
 		if (!Service::exists($serviceName)) {
@@ -114,7 +118,7 @@ class Router {
 	/**
 	 * serviceName:ControllerName::actionName
 	 * */
-	private function responceByServiceController($serviceController) {
+	private function responseByServiceController($serviceController) {
 		preg_match_all('/^([^:]*?):(.*?)$/', $serviceController, $matches);
 		$serviceName = $matches[1][0];
 		if (!Service::exists($serviceName)) {
@@ -130,7 +134,7 @@ class Router {
 	/**
 	 * serviceName:ActionName
 	 * */
-	private function responceByServiceAction($serviceAction) {
+	private function responseByServiceAction($serviceAction) {
 		preg_match_all('/^([^:]*?):(.*?)$/', $serviceAction, $matches);
 		$serviceName = $matches[1][0];
 		if (!Service::exists($serviceName)) {
@@ -146,7 +150,7 @@ class Router {
 	/**
 	 * serviceName:moduleName
 	 * */
-	private function responceByServiceModule($serviceModule) {
+	private function responseByServiceModule($serviceModule) {
 		preg_match_all('/^([^:]*?):(.*?)$/', $serviceModule, $matches);
 		$serviceName = $matches[1][0];
 		if (!Service::exists($serviceName)) {

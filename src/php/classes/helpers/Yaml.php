@@ -63,39 +63,7 @@ class Yaml {
 	 * */
 	public function parseToJs($text = null, $referencesRootPath = null) {
 		$arr = $this->parse($text, $referencesRootPath);
-
-		$rec = function($val) use (&$rec) {
-			// на рекурсию
-			if (is_array($val)) {
-				$arr = [];
-				$keys = [];
-				$assoc = false;
-				foreach ($val as $key => $item) {
-					$keys[] = $key;
-					$arr[] = $rec($item);
-					if (is_string($key)) $assoc = true;
-				}
-				if (!$assoc) return '[' . implode(',', $arr) . ']';
-
-				$temp = [];
-				foreach ($keys as $i => $key) {
-					$temp[] = "$key:{$arr[$i]}";
-				}
-				return '{' . implode(',', $temp) . '}';
-			}
-
-			if (is_string($val)) {
-				if ($val == '') return '\'\'';
-				if ($val{0} != '\'') return "'$val'";
-			}
-			if ($val === true) return 'true';
-			if ($val === false) return 'false';
-			if ($val === null) return 'null';
-			return $val;
-		};
-
-		$result = $rec($arr);
-		return $result;
+		return JsCompiler::arrayToJsCode($arr);
 	}
 
 	/**
@@ -239,7 +207,6 @@ class Yaml {
 		}
 
 		if ($modeConcat != 0) $dropModeConcat();
-
 		return $source;
 	}
 
@@ -350,11 +317,11 @@ class Yaml {
 		$value = null;
 		$row = preg_replace('/^-\s*/', '', $sourceRow);
 
-		if ($row{0} == '[' || $row{0} == '{') {
+		if ($row != '' && ($row{0} == '[' || $row{0} == '{')) {
 			return [null, $this->translateString($row)];
 		}
 
-		preg_match_all('/((?:[\w_!\/$\\\ -][\w\d_!\/$\\\ -]*?)|(?:<<)):\s*(.*)/', $row, $matches);
+		preg_match_all('/((?:[\w_.!\/$\\\ -][\w\d_.!\/$\\\ -]*?)|(?:<<)):\s*(.*)/', $row, $matches);
 
 		// Если вида '- value'
 		if (empty($matches[0])) {
@@ -367,9 +334,19 @@ class Yaml {
 
 		// Если ключа нет
 		if ($key === null) {
-			// Если есть содержимое - это текст на нескольких строках
-			if (!empty($content))
-				foreach ($content as $item) $value .= ' ' . $item['row'];
+			// Если есть содержимое - это текст на нескольких строках, либо массив
+			if (!empty($content)) {
+				if ($content[0]['row']{0} == '-') {
+					$value = '[';
+					$temp = [];
+					foreach ($content as $item) $temp[] = trim($item['row'], '- ');
+					$temp = implode(',', $temp);
+					if (strlen($value) > 1) $value .= ',';
+					$value .= $temp . ']';
+				} else {
+					foreach ($content as $item) $value .= ' ' . $item['row'];
+				}
+			}
 		// С ключом
 		} else {
 			$content = $this->translateSource($content);
@@ -393,7 +370,7 @@ class Yaml {
 	private function translateNotEnumElement($row, $content) {
 		$key = null;
 		$value = null;
-		preg_match_all('/((?:[\w_!\/$\\\ -][\w\d_!\/$\\\ -]*?)|(?:<<)):\s*(.+)/', $row, $matches);
+		preg_match_all('/((?:[\w_.!\/$\\\ -][\w\d_.!\/$\\\ -]*?)|(?:<<)):\s*(.+)/', $row, $matches);
 		// Если вида 'value'
 		if (empty($matches[0])) {
 			$key = preg_replace('/:$/', '', $row);

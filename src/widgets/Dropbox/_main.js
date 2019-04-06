@@ -33,20 +33,27 @@ class Dropbox extends Box #lx:namespace lx {
 		this.value(config.value !== undefined ? config.value : null);
 	}
 
-	postBuild(config) {
-		if (this.keys === undefined) this.keys = [];
+	postBuild(config) {		
 		if (this.children.but)
 			this.children.but.width(this.height('px')+'px');
 		this.children.but.right(0);
 		this.click(self::open);
 	}
-	
+
+	postUnpack() {
+		if (this.data.isObject) this.data = new lx.Dict(this.data);
+	}
+
+	/**
+	 * Выбор по индексу, даже если опции - ассоциативный массив
+	 * */
+	select(index) {
+		this.value(this.data.nthKey(index));
+	}
+
 	options(data) {
 		if (data === undefined) return this.data;
-
-		this.keys = [];
-		this.data = [];
-		this.addOptions(data);
+		this.data = data.isAssoc ? new lx.Dict(data) : data;
 		return this;
 	}
 
@@ -57,63 +64,43 @@ class Dropbox extends Box #lx:namespace lx {
 	selectedText() {
 		if (this.val === null || this.val === '') return '';
 
-		if (this.keys.length) return this.data[this.keys.indexOf(''+this.val)];
 		return this.data[this.val];
 	}
 
-	selectedKey() {
-		if (this.keys.lxEmpty) return this.val;
-		return this.keys[this.val];
-	}
-
 	value(val) {
-		if (val === undefined) return this.selectedKey();
+		if (val === undefined) return this.val;
 
 		this.val = val;
 		this.text(this.selectedText());
 		return this;
 	}
 
-	addOptions(data) {
-		//todo что если начнется смешивание ассоциативных и неассоциативных массивов?
-		if (!data.isAssoc) {
-			this.data = data;
-			return this;
-		}
-
-		for (var key in data) {
-			this.data.push(data[key]);
-			this.keys.push(key);
-		}
-		return this;
-	}
-
 	close() {
-		if (!self::opened) return;
-		self::options.hide();
-		lx.off('click', [this, self::outclick]);
-		self::opened = null;
+		if (!lx.Dropbox.opened) return;
+		lx.Dropbox.options.hide();
+		lx.off('click', [this, lx.Dropbox.outclick]);
+		lx.Dropbox.opened = null;
 	}
 
 	static choose(event) {
 		var dropbox = lx.Dropbox.opened,
 			oldVal = dropbox.value(),
 			num = this.rowIndex();
-		dropbox.value(num);
-		dropbox.trigger('change', event, oldVal, num);
+		dropbox.select(num);
+		dropbox.trigger('change', event, oldVal, dropbox.value());
 	}
 
 	static outclick() {
-		if (self::opened) self::opened.close();
+		if (lx.Dropbox.opened) lx.Dropbox.opened.close();
 	}
 
 	static open(event) {
 		event.stopPropagation();
 
-		self::opened = this;
-		self::initOptions(this).show();
+		lx.Dropbox.opened = this;
+		lx.Dropbox.initOptions(this).show();
 
-		lx.on('click', [this, self::outclick]);
+		lx.on('click', [this, lx.Dropbox.outclick]);
 	}
 
 	/**
@@ -123,7 +110,14 @@ class Dropbox extends Box #lx:namespace lx {
 		var options = this.getOptions();
 
 		options.width( elem.width('px')+'px' );
-		options.resetContent(elem.data, true);
+
+		var data = [];
+		for (var key in elem.data) {
+			data.push(elem.data[key]);
+		}
+
+		options.resetContent(data, true);
+
 		options.cells()
 			.call('align', lx.CENTER, lx.MIDDLE)
 			.call('click', this.choose)
@@ -138,14 +132,14 @@ class Dropbox extends Box #lx:namespace lx {
 	 * Находим или создаем верстку для таблицы опций
 	 * */
 	static getOptions() {
-		if (this.options) return this.options;
-		var options = this.opened.getModule().get('dropboxOptions');
+		if (lx.Dropbox.options) return lx.Dropbox.options;
+		var options = lx.Dropbox.opened.getModule().get('dropboxOptions');
 		if (options) {
-			this.options = options;
+			lx.Dropbox.options = options;
 			return options;
 		}
-		this.options = this.createOptions();
-		return this.options;
+		lx.Dropbox.options = lx.Dropbox.createOptions();
+		return lx.Dropbox.options;
 	}
 
 	/**
@@ -153,6 +147,7 @@ class Dropbox extends Box #lx:namespace lx {
 	 * */
 	static createOptions() {
 		var tab = new Table({
+			parent: lx.body,
 			key: 'dropboxOptions',
 			height: 0,
 			cols: 1

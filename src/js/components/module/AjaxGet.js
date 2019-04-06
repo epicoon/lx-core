@@ -14,13 +14,13 @@ class AjaxGet {
 			handlers: handlers
 		}
 
-		checkUrlInAction(this, url);
+		if (this.module.isMainContext()) checkUrlInAction(this, url);
 	}
 
 	request(url, data={}) {
 		if (!(url in this.activeUrl)) return;
 		requestProcess(this, url, data);
-		renewLocationHash(this);
+		if (this.module.isMainContext()) renewLocationHash(this);
 	}
 }
 

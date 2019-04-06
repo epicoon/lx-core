@@ -102,6 +102,6 @@ class MigrationMap {
 	 *
 	 * */
 	private function fileName() {
-		return \lx::$conductor->systemDirectory . '/migrations.json';
+		return \lx::$conductor->getSystemPath('system') . '/migrations.json';
 	}
 }

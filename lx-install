@@ -39,7 +39,6 @@ if (!$lx->contain('config')) {
 	 * @var $configRoutesCode
 	 * @var $configModuleCode
 	 * @var $configServiceCode
-	 * @var $configDbCode
 	 * */
 
 	$configMain = $config->makeFile('main.php');
@@ -53,22 +52,31 @@ if (!$lx->contain('config')) {
 
 	$configService = $config->makeFile('service.php');
 	$configService->put($configServiceCode);
+}
 
-	$configDb = $config->makeFile('db.php');
-	$configDb->put($configDbCode);
+$data = $lx->getOrMakeDirectory('data');
+if (!$data->contain('languages.php')) {
+	$languages = $data->makeFile('languages.php');
+	$languages->put(require(__DIR__ . '/install-src/data/languages.php'));
 }
 
 // Если нет HelloWorld-ного сервиса - создадим
-if (!lx\Service::exists('hiFromLx')) {
-	$site->getOrMakeDirectory('services');
+if (!lx\Service::exists('lx/lx-hello')) {
+	$site->getOrMakeDirectory('vendor');
 
-	$service = (new lx\ServiceEditor())->createService('hiFromLx', '@site/services');
+	$service = (new lx\ServiceEditor())->createService('lx/lx-hello', '@site/vendor');
 	$moduleEditor = new lx\ModuleEditor($service);
-	$module = $moduleEditor->createModule('main', 'module');
+	$module = $moduleEditor->createModule('world', 'module');
 
 	$dir = $module->directory;
+	$i18n = $dir->makeFile('i18n.yaml');
+	$i18n->put(file_get_contents(__DIR__ . '/install-src/hiModule/i18nTpl'));
 	$view = $dir->get('view/_root.php');
-	$view->put(require(__DIR__ . '/install-src/hiModule/viewTpl.php'));
+	$view->put(file_get_contents(__DIR__ . '/install-src/hiModule/viewTpl'));
+	$view = $dir->get('frontend/_main.js');
+	$view->put(file_get_contents(__DIR__ . '/install-src/hiModule/frontendTpl'));
+	$view = $dir->get('backend/Respondent.php');
+	$view->put(file_get_contents(__DIR__ . '/install-src/hiModule/backendTpl'));
 }
 
 // Строим карту автозагрузки

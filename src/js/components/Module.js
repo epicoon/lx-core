@@ -5,7 +5,7 @@ lx.modules = {};
 lx.Module = function(info, block) {
 	var module = {
 		name: info.name,
-		data: {},
+		params: {},
 		namespaces: [],
 		handlersList: [],
 		root: block,
@@ -117,7 +117,7 @@ lx.Module = function(info, block) {
 			var success = initHandler(onSuccess),
 				waiting = initHandler(onWaiting),
 				error = initHandler(onError),
-				config = {url, data, headers};
+				config = {url, data:{params:this.params, data}, headers};
 			if (success) config.success = success;
 			if (waiting) config.waiting = waiting;
 			if (error) config.error = error;
@@ -140,8 +140,6 @@ lx.Module = function(info, block) {
 		 * Регистрация активного GET AJAX-запроса, который будет актуализировать состояние url
 		 * */
 		registerActiveRequest: function(url, handlers, useServer=true) {
-			if (!this.isMainContext()) return;
-
 			if (!this.activeRequestList)
 				this.activeRequestList = new AjaxGet(this);
 			this.activeRequestList.registerActiveUrl(url, handlers, useServer);
@@ -151,9 +149,8 @@ lx.Module = function(info, block) {
 		 * Вызов активного GET AJAX-запроса, если он был зарегистрирован
 		 * */
 		activeRequest: function(url, data={}) {
-			if (!this.isMainContext() || !this.activeRequestList) return;
-
-			this.activeRequestList.request(url, data);
+			if (this.activeRequestList)
+				this.activeRequestList.request(url, data);
 		},
 
 		// todo селекторы
@@ -287,7 +284,7 @@ lx.Module = function(info, block) {
 
 	if (info.parent) module.parent = info.parent;
 	if (info.main) module.isMain = true;
-	if (info.data) module.data = info.data;
+	if (info.params) module.params = info.params;
 	if (info.screenModes) unpackScreenModes(module, info.screenModes);
 
 	if (info.images) module.images = info.images;

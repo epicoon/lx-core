@@ -126,7 +126,7 @@ class Autoloader {
 		}
 
 		// Проверка на встроенный в платформу виджет
-		$path = \lx::$conductor->lxWidgets . '/' . $name . '/_main.php' ;
+		$path = \lx::$conductor->getSystemPath('lxWidgets') . '/' . $name . '/_main.php' ;
 		if (file_exists($path)) {
 			return $path;
 		}
@@ -176,7 +176,21 @@ class Autoloader {
 				}
 
 				// Расширение логики автолоэйда до возможности использовать директории для классов
-				$fullPath = $path . $relativePath . '/' . \lx::$conductor->classAutoloadMainFile . '.php';
+				$fullPath = $path . $relativePath . '/'
+					. \lx::$conductor->getSystemPath('classAutoloadMainFile') . '.php';
+				if (file_exists($fullPath)) {
+					return $fullPath;
+				}
+
+				preg_match_all('/[^\\'.'\]+$/', $className, $matches);
+				$propClassName = empty($matches[0]) ? '' : $matches[0][0];
+
+				$fullPath = $path . $relativePath . '/_' . $propClassName . '.php';
+				if (file_exists($fullPath)) {
+					return $fullPath;
+				}
+
+				$fullPath = $path . $relativePath . '/' . $propClassName . '.php';
 				if (file_exists($fullPath)) {
 					return $fullPath;
 				}

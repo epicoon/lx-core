@@ -31,8 +31,8 @@ EOT;
 $viewCode = <<<EOT
 <?php
 /**
- * @var lx\Module Module
- * @var lx\Block Block
+ * @var lx\Module $Module
+ * @var lx\Block $Block
  * */
 
 EOT;

@@ -27,4 +27,12 @@ class Respondent {
 	public function getModule() {
 		return $this->_module;
 	}
+
+	public function getService() {
+		return $this->getModule()->getService();
+	}
+
+	public function getModelManager($name) {
+		return $this->getService()->getModelManager($name);
+	}
 }

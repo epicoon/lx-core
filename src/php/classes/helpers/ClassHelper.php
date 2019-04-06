@@ -39,8 +39,43 @@ class ClassHelper {
 	 * Разделяет имя класса на пространство имен и собственное имя класса
 	 * */
 	public static function splitClassName($className) {
-		preg_match_all('/(.*?)\\\([^\\\\].+)$/', $className, $matches);
+		// Справится даже если класс не загружен
+		preg_match_all('/(.*)\\\([^\\'.'\]+)$/', $className, $matches);
 		return [$matches[1][0], $matches[2][0]];
+	}
+
+	/**
+	 * Определение имени класса и параметров для его создания из базовой конфигурации
+	 * Варианты конфигурации:
+	 * 1. 'className' строка, определяющая имя класса
+	 * 2. [ 'class' => 'className', 'params' => [...] ] массив, определяющий имя класса и параметры
+	 * 3. [...] массив, определяющий параметры
+	 * @param $config конфигурация, определяющая класс
+	 * @param $defaultClass класс по умолчанию
+	 * @param $defaultParams ассоциативный массив параметров по умолчанию
+	 * */
+	public static function prepareConfig($config, $defaultClass = null, $defaultParams = []) {
+		$class = $defaultClass;
+		$params = $defaultParams;
+
+		if (is_string($config)) {
+			$class = $config;
+		} elseif (is_array($config)) {
+			if (isset($config['class'])) {
+				$class = $config['class'];
+				unset($config['class']);
+			}
+			if (isset($config['params'])) {
+				$params = $config['params'];
+			} else {
+				$params = $config;
+			}
+		}
+
+		return [
+			'class' => $class,
+			'params' => $params,
+		];
 	}
 
 	/**

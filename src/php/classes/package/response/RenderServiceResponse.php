@@ -16,8 +16,10 @@ class RenderServiceResponse extends ServiceResponse {
 	 * //todo не нравится, что собирается вся страница целиком - с js-ядром... может это и нормально. В общей картине будет видно
 	 * */
 	public function send() {
+		$stdResponses = \lx::$conductor->getSystemPath('stdResponses');
+
 		if (!$this->module) {
-			require_once(\lx::$conductor->stdResponses . '/404.php');
+			require_once($stdResponses . '/404.php');
 			return;
 		}
 
@@ -30,6 +32,11 @@ class RenderServiceResponse extends ServiceResponse {
 			return;
 		}
 
+
+		//todo
+		\lx::addSetting('lang', \lx::$language->getCurrentData());
+
+
 		// JS-ядро
 		$core = ClassHelper::call(\lx::class, 'compileJsCore');
 
@@ -37,12 +44,13 @@ class RenderServiceResponse extends ServiceResponse {
 		$jsBootstrap = ClassHelper::call(\lx::class, 'compileJsBootstrap');
 		// Глобальный js-код, выполняемый после разворачивания корневого модуля
 		$jsMain = ClassHelper::call(\lx::class, 'compileJsMain');
+		//todo - локализация
 
 		// Попытка построить модуль
 		$buildResult = $builder->getResult();
 		if ($buildResult === false) {
 			$error = $builder->getError();
-			require_once(\lx::$conductor->stdResponses . '/400.php');
+			require_once($stdResponses . '/400.php');
 			return;
 		}
 
@@ -61,7 +69,15 @@ class RenderServiceResponse extends ServiceResponse {
 		// Набор глобальных произвольных данных
 		$data = ClassHelper::call(\lx::class, 'toJS', [\lx::$data->getProperties()]);
 
-		$lxCss = '<link href="' . explode(\lx::sitePath(), \lx::$conductor->core)[1] . '/css/lx.css" type="text/css" rel="stylesheet">';
-		require_once(\lx::$conductor->stdResponses . '/200.php');
+
+		$relPath = explode(\lx::sitePath(), \lx::$conductor->getSystemPath('core'))[1];
+		$lxCss = '<link href="'
+			. $relPath
+			. '/css/lx.css" type="text/css" rel="stylesheet">';
+
+		//todo
+		$icon = $relPath . '/img/icon.png';
+
+		require_once($stdResponses . '/200.php');
 	}
 }

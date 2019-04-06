@@ -2,6 +2,7 @@
 #lx:require app/lx;
 #lx:require app/lx_function;
 #lx:require app/lx_start;
+#lx:require app/lx_storage;
 #lx:require app/lx_keyboard;
 #lx:require app/lx_movement;
 #lx:require app/lx_animation;
@@ -50,6 +51,25 @@ lx.getModule = function(name) {
 		if (this.modules[key].name == name) return this.modules[key];
 	}
 	return null;
+};
+
+lx.createNamespace = function(namespace) {
+	var arr = namespace.split('.'),
+		temp = window;
+	for (var i=0, l=arr.length; i<l; i++) {
+		if (temp[arr[i]] === undefined) temp[arr[i]] = {};
+		temp = temp[arr[i]];
+	}
+};
+
+lx.getNamespace = function(namespace) {
+	var arr = namespace.split('.'),
+		temp = window;
+	for (var i=0, l=arr.length; i<l; i++) {
+		if (temp[arr[i]] === undefined) return null;
+		temp = temp[arr[i]];
+	}
+	return temp;
 };
 
 

@@ -5,6 +5,10 @@ namespace lx;
 abstract class CrudAdapter {
 	protected $modelProvider;
 
+	public function __construct($params = []) {
+
+	}
+
 	public function setModelProvider($modelProvider) {
 		$this->modelProvider = $modelProvider;
 	}

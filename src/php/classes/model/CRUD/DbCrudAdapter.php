@@ -310,7 +310,9 @@ class DbCrudAdapter extends CrudAdapter {
 		}
 
 		if ($db->tableExists($tableName)) {
-			return $db->table($tableName);
+			$table = $db->table($tableName);
+			$table->setPkName($schema->pkName());
+			return $table;
 		}
 
 		return null;

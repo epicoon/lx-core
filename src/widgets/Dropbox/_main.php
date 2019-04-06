@@ -20,16 +20,17 @@ class Dropbox extends Box {
 			]);
 		}
 
-		$this->data = $config->options ? $config->options : [];
+		$this->options($config->options ? $config->options : []);
 		$this->value($config->value);
 	}
 
 	public function selectedText() {
-		if ($this->val === null) return '';
+		if ($this->val === null || $this->val == '') return '';
+
 		return $this->data[$this->val];
 	}
 
-	public function value($val=-1) {
+	public function value($val = -1) {
 		if ($val === -1) return $this->val;
 
 		$this->val = $val;
@@ -37,17 +38,10 @@ class Dropbox extends Box {
 		return $this;
 	}
 
-	public function options($content=null) {
-		if ($content===null) return $this->data;
+	public function options($data = null) {
+		if ($data === null) return $this->data;
 
-		$this->data = $content;
-		return $this;
-	}
-
-	public function addOption($text) {
-		//todo .isAssoc - ключи чтобы были не только числовые
-		$this->data[] = $text;
-
+		$this->data = $data;
 		return $this;
 	}
 }

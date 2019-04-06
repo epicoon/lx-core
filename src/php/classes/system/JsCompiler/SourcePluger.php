@@ -17,17 +17,20 @@ class SourcePluger {
 	}
 
 	/**
-	 * Загрузка js-даннфх из yaml-файла
+	 * Загрузка js-данных из конфиг-файла
 	 * */
-	public static function loadYaml($code, $parentDir) {
-		$pattern = '/(?<!\/ )(?<!\/)#lx:yaml [\'"]?(.*?)[\'"]?([;,)])/';
+	public static function loadConfig($code, $parentDir) {
+		$pattern = '/(?<!\/ )(?<!\/)#lx:load\s*\(?\s*[\'"]?(.*?)[\'"]?([;,)])/';
 		$code = preg_replace_callback($pattern, function($matches) use ($parentDir) {
-			$fileName = $matches[1];
-			$file = self::findFile($fileName, $parentDir, ['yaml', 'yml']);
-			if (!$file->exists()) return "null{$matches[2]}";
+			$path = $matches[1];
+			$fullPath = \lx::$conductor->getFullPath($path, $parentDir);
+			$file = new ConfigFile($fullPath);
+			if (!$file->exists()) {
+				return 'undefined';
+			}
 
-			$text = $file->get();
-			$result = (new Yaml($text, $file->getParentDirPath()))->parseToJs();
+			$data = $file->get();
+			$result = JsCompiler::arrayToJsCode($data);
 			return "$result{$matches[2]}";
 		}, $code);
 

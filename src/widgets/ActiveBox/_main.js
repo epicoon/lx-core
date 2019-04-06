@@ -32,6 +32,11 @@ class ActiveBox extends Box #lx:namespace lx {
 		if (this.adhesive) {
 			ActiveBoxAdhesor.makeAdhesion(this);
 		}
+
+		if (this.contain('resizer') || this.contain('header')) {
+			this.click(()=>lx.WidgetHelper.bringToFront(this));
+			lx.WidgetHelper.bringToFront(this);
+		}
 	}	
 
 	setHeader(config) {
@@ -49,6 +54,18 @@ class ActiveBox extends Box #lx:namespace lx {
 
 		if ([config.move, self::DEFAULT_MOVE].lxGetFirstDefined())
 			header.move({parentMove: true});
+
+		if (config.closeButton) {
+			let butConfig = config.closeButton.isObject ? config.closeButton : {};
+			if (!butConfig.geom) butConfig.geom = [null, '2px', '20px', '20px', '2px'];
+			if (!butConfig.style) butConfig.style = {fill:'red', cursor:'pointer'};
+			if (!butConfig.click) butConfig.click = function() {
+				this.parent.parent.hide();
+			};
+			butConfig.parent = header;
+			let className = butConfig.widget ? butConfig.widget : Box;
+			new className(butConfig);
+		}
 	}
 
 	setResizer(config) {

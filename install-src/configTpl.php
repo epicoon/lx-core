@@ -13,15 +13,16 @@ return [
 		'services',
 	],
 
+	// Application aliases
+	'aliases' => [
+		'services' => '@site/services',
+	],
+
 	// Routing to services
 	'router' => require __DIR__ . '/routes.php',
 
 	// Data base settings
 	'db' => require __DIR__ . '/db.php',
-
-	// Application aliases
-	'aliases' => [
-	],
 
 	// Global js-code executed before rendered module load
 	//'jsBootstrap' => '',
@@ -43,7 +44,38 @@ Type variants:
 return [
 	'type' => 'map',
 	'routes' => [
-		'/' => ['service-module' => 'hiFromLx:main', 'on-mode' => 'dev'],
+		'/' => ['service-module' => 'lx/lx-hello:main', 'on-mode' => 'dev'],
+	],
+];
+
+EOT;
+
+
+$configServiceCode = <<<EOT
+<?php
+return [
+	// Common module aliases
+	'aliases' => [],
+	// Flag for use common module aliases
+	'useCommonAliases' => true,
+
+	// Directory(ies) for modules
+	'modules' => 'module',
+
+	// Directory(ies) for models
+	'models' => 'model',
+
+	// Models save/load manage class
+	'modelCrudAdapter' => 'lx\DbCrudAdapter',
+
+	// DB connection settings
+	'dbList' => [
+		'db' => [
+			'hostname' => 'localhost',
+			'username' => 'username',
+			'password' => 'password',
+			'dbName' => 'dbName'
+		],
 	],
 ];
 
@@ -54,69 +86,26 @@ $configModuleCode = <<<EOT
 <?php
 return [
 	// Common module aliases
-	'commonAliases' => [],
+	'aliases' => [],
 	// Flag for use common module aliases
 	'useCommonAliases' => true,
 
-
-	// Infrastructure
-
-	// Directory for js-code
-	'frontend' => 'frontend',
 	// File name for js-code executed before module blocks load
-	'jsBootstrap' => '_bootstrap.js',
+	'jsBootstrap' => 'frontend/_bootstrap.js',
 	// File name for js-code executed after module blocks load
-	'jsMain' => '_main.js',
+	'jsMain' => 'frontend/_main.js',
 
 	// Respondents map
 	'respondents' => [
 		'Respondent' => 'backend\Respondent',
 	],
 
-	// Directory for view
-	'view' => 'view',
 	// View root block
-	'viewIndex' => '_root.php',
+	'view' => 'view/_root.php',
 
 	// Asset directories
 	'images' => 'assets/images',
 	'css' => 'assets/css',
-];
-
-EOT;
-
-
-$configServiceCode = <<<EOT
-<?php
-return [
-	// Directory(ies) for modules
-	'modules' => 'module',
-
-	// Directory(ies) for models
-	'models' => 'model',
-
-	// Models save/load manage class
-	'modelCrudAdapter' => '\lx\DbCrudAdapter',
-];
-
-EOT;
-
-
-$configDbCode = <<<EOT
-<?php
-return [
-	'dbList' => [
-		'dbKey' => [
-			'hostname' => 'localhost',
-			'username' => 'username',
-			'password' => 'password',
-			'dbName' => 'dbName'
-		],
-	],
-
-	'dbMap' => [
-		'__default__' => ['db' => 'dbKey'],
-	],
 ];
 
 EOT;

@@ -3,6 +3,9 @@
 namespace lx;
 
 class ArrayHelper {
+	/**
+	 *
+	 * */
 	public static function map($array, $field) {
 		$result = [];
 
@@ -12,6 +15,20 @@ class ArrayHelper {
 		}
 
 		return $result;
+	}
+
+	/**
+	 *
+	 * */
+	public static function isAssoc($array) {
+		$counter = 0;
+		foreach ($array as $key => $value) {
+			if ($key != $counter++) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

@@ -361,6 +361,17 @@ Object.defineProperty(Array.prototype, "nth", {
 	}
 });
 
+Object.defineProperty(Array.prototype, "nthKey", {
+	value: function(index) {
+		if (!this.isAssoc) return index;
+		var i = 0;
+		for (var key in this) {
+			if (i == index) return key;
+			i++;
+		}
+	}
+});
+
 Object.defineProperty(Array.prototype, "equalTo", {
 	value: function(a) {
 		var b = this;

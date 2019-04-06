@@ -61,6 +61,7 @@ class File extends BaseFile {
 		if (is_object($info)) $info = json_encode($info);
 		if (!is_string($info)) return false;
 
+		$this->checkCanSave();
 		// нужно ли оставлять его открытым
 		$opened = ($this->opened != '');
 		// нужно ли переоткрыть для записи
@@ -87,6 +88,7 @@ class File extends BaseFile {
 		if (is_object($info)) $info = json_encode($info);
 		if (!is_string($info)) return false;
 
+		$this->checkCanSave();
 		file_put_contents($this->path, $info, $flags);
 		return $this;
 	}
@@ -122,5 +124,11 @@ class File extends BaseFile {
 
 	public function requireOnce() {
 		require_once($this->path);
+	}
+
+	private function checkCanSave() {
+		if (!file_exists($this->parentDir)) {
+			mkdir($this->parentDir, 0777, true);
+		}
 	}
 }

@@ -1,0 +1,42 @@
+/**
+ * @const lx.Module Module
+ * */
+
+const body = Module->>work;
+const list = new lx.Dict({
+	cli: {
+		box: null,
+		title: 'CLI',
+		service: 'lx/lx-dev-wizard'
+	},
+	doc: {
+		box: null,
+		title: 'Documentation',
+		service: 'lx/lx-doc'
+	},
+	demo: {
+		box: null,
+		title: 'Demo',
+		service: 'lx/lx-demo'
+	}
+});
+
+list.each((item, key)=>{
+	Module.find(key).click(()=>{
+		if (item.box) return;
+		^Respondent.loadModule(key): (res)=>loadModule(item.service, item.title, key, res);
+	});
+});
+
+function loadModule(name, title, boxName, data) {
+	if (data === false) {
+		lx.Tost.warning('Application need service "'+ name +'"');
+		return;
+	}
+
+	list[boxName].box = new lx.ActiveBox({ parent: body, header: title });
+	var elem = list[boxName].box;
+	elem->body.fill('white');
+	elem->body.injectModule(data);
+	elem->body.style('overflow', 'auto');
+}

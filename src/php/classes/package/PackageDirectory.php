@@ -8,7 +8,7 @@ class PackageDirectory extends Directory {
 	 * Если конфигурационно файла нет - данная директория не пакет
 	 * */
 	public function getConfigFile() {
-		$configPathes = \lx::$conductor->packageConfig;
+		$configPathes = \lx::$conductor->getSystemPath('packageConfig');
 		$path = $this->getPath();
 		foreach ($configPathes as $configPath) {
 			$fullPath = $path . '/' . $configPath;
@@ -24,7 +24,7 @@ class PackageDirectory extends Directory {
 	 * @return bool
 	 * */
 	public function isLx() {
-		$lxConfigPathes = \lx::$conductor->packageLxConfig;
+		$lxConfigPathes = \lx::$conductor->getSystemPath('packageLxConfig');
 		$path = $this->getPath();
 		foreach ($lxConfigPathes as $configPath) {
 			$fullPath = $path . '/' . $configPath;

@@ -9,7 +9,7 @@ class SintaxExtender {
 	public static function applyExtendedSintax($code) {
 		// ? >#id => lx.WidgetHelper.getById('id')
 		$code = preg_replace_callback('/\?>#(\b.+?\b)/', function($matches) {
-			return 'lx.WidgetHelper.getById("' . $matches[1] . '")';
+			return 'lx.WidgetHelper.getById(\'' . $matches[1] . '\')';
 		}, $code);
 		// ? >#{id} => lx.WidgetHelper.getById(id)
 		$code = preg_replace_callback('/\?>#{(.+?)}/', function($matches) {
@@ -18,7 +18,7 @@ class SintaxExtender {
 
 		// ? >.class => lx.WidgetHelper.getByClass('class')
 		$code = preg_replace_callback('/\?>\.(\b.+?\b)/', function($matches) {
-			return 'lx.WidgetHelper.getByClass("' . $matches[1] . '")';
+			return 'lx.WidgetHelper.getByClass(\'' . $matches[1] . '\')';
 		}, $code);
 		// ? >.{class} => lx.WidgetHelper.getByClass(class)
 		$code = preg_replace_callback('/\?>\.{(.+?)}/', function($matches) {
@@ -27,7 +27,7 @@ class SintaxExtender {
 
 		// ? >name => lx.WidgetHelper.getByName('name')
 		$code = preg_replace_callback('/\?>(\b.+?\b)/', function($matches) {
-			return 'lx.WidgetHelper.getByName("' . $matches[1] . '")';
+			return 'lx.WidgetHelper.getByName(\'' . $matches[1] . '\')';
 		}, $code);
 		// ? >{name} => lx.WidgetHelper.getByName(name)
 		$code = preg_replace_callback('/\?>{(.+?)}/', function($matches) {
@@ -37,14 +37,14 @@ class SintaxExtender {
 		// self:: => this.constructor.
 		$code = str_replace('self::', 'this.constructor.', $code);
 
-		// Module->key => Module.get("key")
+		// Module->key => Module.get('key')
 		$code = preg_replace_callback('/\bModule->([\w_][\w\d]*?\b)/', function($matches) {
-			return 'Module.get("' . $matches[1] . '")';
+			return 'Module.get(\'' . $matches[1] . '\')';
 		}, $code);
 
-		// Module->>key => Module.find("key")
+		// Module->>key => Module.find('key')
 		$code = preg_replace_callback('/\bModule->>([\w_][\w\d]*?\b)/', function($matches) {
-			return 'Module.find("' . $matches[1] . '")';
+			return 'Module.find(\'' . $matches[1] . '\')';
 		}, $code);
 
 		// element->child => element.children.child
@@ -52,14 +52,14 @@ class SintaxExtender {
 			return $matches[1] . '.children.' . $matches[2];
 		}, $code);
 
-		// element->>child => element.find("child")
+		// element->>child => element.find('child')
 		$code = preg_replace_callback('/([\w\d_)\[\]])->>([\w_][\w\d]*?\b)/', function($matches) {
-			return $matches[1] . '.find("' . $matches[2] . '")';
+			return $matches[1] . '.find(\'' . $matches[2] . '\')';
 		}, $code);
 
-		// element~>key => element.neighbor("key")
+		// element~>key => element.neighbor('key')
 		$code = preg_replace_callback('/([\w\d_])~>([\w_][\w\d_]*?\b)/', function($matches) {
-			return $matches[1] . '.neighbor("' . $matches[2] . '")';
+			return $matches[1] . '.neighbor(\'' . $matches[2] . '\')';
 		}, $code);
 
 		// someClass.someField = ^Resp.method(arg1, arg2); => Module.callToRespondent('Resp/method', [arg1, arg2], (_result_)=>{someClass.someField=_result_;});
@@ -99,23 +99,27 @@ class SintaxExtender {
 		*/
 		$regexp = '/\^([\w_][\w\d_]*?)\.([\w_][\w\d_]*?)(?P<therec0>\(((?>[^()]+)|(?P>therec0))*\))\s*:\s*\((.*?)\)\s*=>\s*(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
 		preg_match_all($regexp, $code, $matches);
-		for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
-			$respondent = $matches[1][$i];
-			$method = $matches[2][$i];
+		//todo - оптимизировать
+		while (!empty($matches[0])) {
+			for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
+				$respondent = $matches[1][$i];
+				$method = $matches[2][$i];
 
-			$args = $matches[3][$i];
-			/*
-			Аргументы тоже ищутся рекурсивной подмаской - т.к. может быть и так ^Resp.method(f(), f2())...
-			При этом может быть и так ^Resp.method()... а пустые скобки нам не нужны, заменяем их на пустую строку
-			//todo - в остальных вариантах тоже самое надо сделать
-			*/
-			$args = preg_replace('/^\(/', '', $args);
-			$args = preg_replace('/\)$/', '', $args);
+				$args = $matches[3][$i];
+				/*
+				Аргументы тоже ищутся рекурсивной подмаской - т.к. может быть и так ^Resp.method(f(), f2())...
+				При этом может быть и так ^Resp.method()... а пустые скобки нам не нужны, заменяем их на пустую строку
+				//todo - в остальных вариантах тоже самое надо сделать
+				*/
+				$args = preg_replace('/^\(/', '', $args);
+				$args = preg_replace('/\)$/', '', $args);
 
-			$res = $matches[5][$i];
-			$func = $matches[6][$i];
-			$text = "Module.callToRespondent('$respondent/$method',[$args],($res)=>$func)";
-			$code = str_replace($matches[0][$i], $text, $code);
+				$res = $matches[5][$i];
+				$func = $matches[6][$i];
+				$text = "Module.callToRespondent('$respondent/$method',[$args],($res)=>$func)";
+				$code = str_replace($matches[0][$i], $text, $code);
+			}
+			preg_match_all($regexp, $code, $matches);
 		}
 
 		// ^Resp.method(arg1, arg2) : (res)=>someCode; => Module.callToRespondent('Resp/method', [arg1, arg2], (res)=> { someCode... });
@@ -178,27 +182,31 @@ class SintaxExtender {
 		//=====================================================================================================================
 		//=====================================================================================================================
 
-		// #lx:model e = { a, b, sum }; => const e = (function(){ class _am_ extends lx.Model { field a, b, sum; } return new _am_; })();
-		// #lx:model e = #lx:MODEL_NAME someName; => const e = (function(){ class _am_ extends lx.Model { #lx:MODEL_NAME someName; } return new _am_; })();
+		// #lx:model e = { a, b, sum }; => const e = (function(){ class _am_ extends lx.BindableModel { field a, b, sum; } return new _am_; })();
+		// #lx:model e = ModelName; => const e = (function(){ class _am_ extends lx.BindableModel { #lx:modelName ModelName; } return new _am_; })();
 		$regexp = '/#lx:model\s*(\b[\w_][\w\d_]*\b)\s*=\s*([\w\W]+?);/';
 		preg_match_all($regexp, $code, $matches);
 		for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
 			$name = $matches[1][$i];
 			$fields = $matches[2][$i];
 			$fields = trim($fields, ' ');
-			if (preg_match('/^{/', $fields)) $fields = preg_replace('/^{/', '', $fields);
-			if (preg_match('/}$/', $fields)) $fields = preg_replace('/}$/', '', $fields);
-			$fields = trim($fields, ' ');
-			if ($fields{0} != '#') $fields = '#lx:schema ' . $fields;
-			$text = "const $name = (function(){ class _am_ extends lx.Model {" . $fields . ";} return new _am_; })();";
+			if ($fields{0} == '{') {
+				if (preg_match('/^{/', $fields)) $fields = preg_replace('/^{/', '', $fields);
+				if (preg_match('/}$/', $fields)) $fields = preg_replace('/}$/', '', $fields);
+				$fields = trim($fields, ' ');
+				$fields = '#lx:schema ' . $fields;
+			} else{
+				$fields = '#lx:modelName ' . $fields;				
+			}
+			$text = "const $name = (function(){ class _am_ extends lx.BindableModel {" . $fields . ";} return new _am_; })();";
 			$code = str_replace($matches[0][$i], $text, $code);
 		}
 
 		/*
-		#lx:model-collection c = #lx:MODEL_NAME someName; =>
+		#lx:model-collection c = ModelName; =>
 		const c = (function(){
 			let c = new lx.ModelCollection();
-			class _am_ extends lx.Model { #lx:MODEL_NAME someName; }
+			class _am_ extends lx.BindableModel { #lx:modelName ModelName; }
 			c.setModelClass(_am_);
 			return c;
 		})();
@@ -206,7 +214,7 @@ class SintaxExtender {
 		#lx:model-collection c2 = { x, y }; =>
 		const c2 = (function(){
 			let c = new lx.ModelCollection();
-			class _am_ extends lx.Model { field x, y; }
+			class _am_ extends lx.BindableModel { field x, y; }
 			c.setModelClass(_am_);
 			return c;
 		})();
@@ -217,14 +225,27 @@ class SintaxExtender {
 			$name = $matches[1][$i];
 			$fields = $matches[2][$i];
 			$fields = trim($fields, ' ');
-			$fields = preg_replace('/^{/', '', $fields);
-			$fields = preg_replace('/}$/', '', $fields);
-			$fields = preg_replace('/(\n\r|\r\n|\r|\n)$/', '', $fields);
-			$fields = trim($fields, ' ');
-			if ($fields{0} != '#') $fields = '#lx:schema ' . $fields;
-			$text = "const $name = (function(){ let c=new lx.ModelCollection; class _am_ extends lx.Model {" . $fields . ';} c.setModelClass(_am_); return c; })();';
+			if ($fields{0} == '{') {
+				$fields = preg_replace('/^{/', '', $fields);
+				$fields = preg_replace('/}$/', '', $fields);
+				$fields = preg_replace('/(\n\r|\r\n|\r|\n)$/', '', $fields);
+				$fields = trim($fields, ' ');
+				$fields = '#lx:schema ' . $fields;
+			} else {
+				$fields = '#lx:modelName ' . $fields;				
+			}
+			$text = "const $name = (function(){ let c=new lx.ModelCollection; class _am_ extends lx.BindableModel {" . $fields . ';} c.setModelClass(_am_); return c; })();';
 			$code = str_replace($matches[0][$i], $text, $code);
 		}
+
+		//=====================================================================================================================
+		//=====================================================================================================================
+		//=====================================================================================================================
+
+
+		$code = preg_replace_callback('/#lx:i18n(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/', function($match) {
+			return '\'#lx:i18n' . $match[2] . 'i18n:lx#\'';
+		}, $code);
 
 		$code = self::applyHtmlTemplater($code);
 
@@ -499,8 +520,8 @@ class SintaxExtender {
 					return $matches[1] . $behaviorsCode;
 				}, $implementResult);
 
-				// 3. #lx:MODEL_NAME xxx;
-				$implementResult = preg_replace_callback('/#lx:MODEL_NAME[\s\r]+([^;]+)?;/', function ($matches) {
+				// 3. #lx:modelName xxx;
+				$implementResult = preg_replace_callback('/#lx:modelName[\s\r]+([^;]+)?;/', function ($matches) {
 					$modelName = $matches[1];
 
 					$mp = ModuleBuilder::active()->getModule()->getService()->modelProvider;
@@ -545,7 +566,7 @@ class SintaxExtender {
 			preg_match_all('/class (\b.+?\b)/', $class, $className);
 			$className = $className[1][0];
 
-			$str = "if(window.$namespace === undefined)window.$namespace = {};";
+			$str = "lx.createNamespace('$namespace');";
 			$str .= "if('$className' in $namespace)return;";
 			$str .= $class . $implementation;
 			$str .= "$className.__namespace='$namespace';$namespace.$className=$className;";

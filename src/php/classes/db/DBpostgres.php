@@ -7,11 +7,11 @@ class DBpostgres extends DB {
 	 * Соединение, выбор базы данных
 	 * */
 	public function connect() {
-		if ($this->connect !== null) return true;
+		if ($this->connection !== null) return true;
 		if (!function_exists('\pg_connect')) return false;
 		$res = \pg_connect("host={$this->hostname} dbname={$this->dbName} user={$this->username} password={$this->password}");
 		if (!$res) return false;
-		$this->connect = $res;
+		$this->connection = $res;
 		return true;
 	}
 
@@ -19,9 +19,9 @@ class DBpostgres extends DB {
 	 * Закрытие соединения
 	 * */
 	public function close() {
-		if ($this->connect === null) return;
-		pg_close($this->connect);
-		$this->connect = null;
+		if ($this->connection === null) return;
+		pg_close($this->connection);
+		$this->connection = null;
 	}
 
 	/**
@@ -32,7 +32,7 @@ class DBpostgres extends DB {
 
 		if (substr($query, 0, 6) == 'INSERT') {
 			$query .= ' RETURNING id';
-			$res = pg_query($query);
+			$res = pg_query($this->connection, $query);
 			$arr = [];
 			while ($row = pg_fetch_array($res)) $arr[] = $row[0];
 			pg_free_result($res);
@@ -41,7 +41,7 @@ class DBpostgres extends DB {
 		}
 
 		$result;
-		$res = pg_query($query);
+		$res = pg_query($this->connection, $query);
 		if ($res === false) return false;
 		$result = 'done';
 
@@ -53,7 +53,7 @@ class DBpostgres extends DB {
 	 * Обязательно SELECT-запрос
 	 * */
 	public function select($query, $selectType = DB::SELECT_TYPE_MAP) {
-		$res = pg_query($query);
+		$res = pg_query($this->connection, $query);
 		if ($res === false) return false;
 
 		$arr = [];
@@ -68,10 +68,10 @@ class DBpostgres extends DB {
 	 * Добавление новой строки
 	 * */
 	public function insert($query, $returnId=true) {
-		if (!$returnId) return pg_query($query);
+		if (!$returnId) return pg_query($this->connection, $query);
 
 		$query .= ' RETURNING id';
-		$res = pg_query($query);
+		$res = pg_query($this->connection, $query);
 		$arr = [];
 		while ($row = pg_fetch_array($res)) $arr[] = $row[0];
 		pg_free_result($res);
@@ -125,7 +125,7 @@ class DBpostgres extends DB {
 
 		$query = "UPDATE {$table->getName()} SET $set FROM (SELECT $values) as t WHERE {$table->getName()}.$pk = t.$pk";
 		$result;
-		$res = pg_query($query);
+		$res = pg_query($this->connection, $query);
 		if ($res === false) return false;
 		$result = 'done';
 

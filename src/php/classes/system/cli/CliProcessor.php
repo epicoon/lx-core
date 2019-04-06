@@ -788,6 +788,7 @@ class CliProcessor {
 				if (!$needTable && !$changed) {
 					continue;
 				}
+
 				if (!array_key_exists($service->name, $map)) {
 					$map[$service->name] = [
 						'service' => $service,
@@ -795,6 +796,7 @@ class CliProcessor {
 						'migrations' => [],
 					];
 				}
+
 				$map[$service->name]['models'][] = [
 					'name' => $modelName,
 					'path' => $path,
@@ -803,6 +805,7 @@ class CliProcessor {
 				];
 			}
 		}
+
 		return $map;
 	}
 

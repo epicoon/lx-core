@@ -22,12 +22,9 @@ abstract class DB {
 		$username = '',
 		$password = '',
 		$dbName = '',
-		$connect = null;
+		$connection = null;
 
-	public static function create($settings=null) {
-		if ($settings === null) {
-			$settings = require(Conductor::$lx . '/config/db.php');		
-		}
+	public static function create($settings) {
 		if (isset($settings['db'])) {
 			return self::createProc(strtolower($settings['db']) , $settings);
 		}

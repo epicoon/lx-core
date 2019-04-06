@@ -35,6 +35,14 @@ class Dict #lx:namespace lx {
 		}
 	}
 
+	nthKey(index) {
+		var i = 0;
+		for (var key in this) {
+			if (i == index) return key;
+			i++;
+		}		
+	}
+
 	last() {
 		var result;
 		for (var i in this) result = this[i];

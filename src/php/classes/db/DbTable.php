@@ -5,7 +5,8 @@ namespace lx;
 class DbTable {
 	protected 
 		$db,
-		$name;
+		$name,
+		$_pkName = null;
 
 	public function __construct($name, $db) {
 		$this->name = $name;
@@ -40,7 +41,18 @@ class DbTable {
 	 *
 	 * */
 	public function pkName() {
-		return $this->schema()['pk'];
+		if ($this->_pkName === null) {
+			$this->_pkName = $this->schema()['pk'];
+		}
+
+		return $this->_pkName;
+	}
+
+	/**
+	 *
+	 * */
+	public function setPkName($name) {
+		$this->_pkName = $name;
 	}
 
 	/**
@@ -106,24 +118,81 @@ class DbTable {
 
 	/**
 	 * Парсим условие
-	 * //todo пока только на AND
 	 * */
 	protected function parseCondition($condition) {
-		if ($condition === null) return null;
-		if (is_array($condition)) {
-			$conds = [];
-			foreach ($condition as $key => $value) {
+		if ($condition === null) return '';
+
+		$data = new DataObject();
+		$data->where = [];
+
+		// Проверка что это число
+		if (filter_var($condition, FILTER_VALIDATE_INT) !== false) {		
+			$data->where += [$this->pkName() => $condition];
+		} elseif (is_string($condition)) {
+			$data->where[] = $condition;
+		} elseif (is_array($condition)) {
+			$isMap = false;
+			if (array_key_exists('WHERE', $condition)) {
+				$isMap = true;
+				$where = $condition['WHERE'];
+			}
+
+			if (array_key_exists('ORDER BY', $condition)) {
+				$isMap = true;
+				$data->order = $condition['ORDER BY'];
+			}
+
+			if (!$isMap) {
+				$where = $condition;
+			}
+
+			if (isset($where)) {
+				$isIds = true;
+				if (is_array($where)) {
+					foreach ($where as $key => $item) {
+						if (is_string($key) || filter_var($item, FILTER_VALIDATE_INT) === false) {
+							$isIds = false;
+							break;
+						}
+					}
+				}
+
+				$data->where += $isIds ? [$this->pkName() => $where] : $where;
+			}
+		}
+
+		$whereText = '';
+		foreach ($data->where as $key => $value) {
+			if (is_string($key)) {
 				if (is_array($value)) {
 					foreach ($value as &$val) $val = DB::valueForQuery($val);
 					unset($val);
-					$conds[] = $key . ' IN (' . implode(', ', $value) . ')';
+					$part = $key . ' IN (' . implode(', ', $value) . ')';
 				} else {
-					$conds[] = $key . '=' . DB::valueForQuery($value);
+					$part = $key . '=' . DB::valueForQuery($value);
 				}
+			} else {
+				$part = $value;
 			}
-			$condition = implode(' AND ', $conds);
-		} 
-		$condition = preg_replace('/^(WHERE |where |(?<!WHERE )|(?<!where ))/', ' WHERE ', $condition);
-		return $condition;
+
+			if (!preg_match('/^AND/', $part) && !preg_match('/^OR/', $part)) {
+				$part = ' AND ' . $part;
+			}
+
+			$whereText .= $part;
+		}
+
+		$result = '';
+
+		if ($whereText != '') {
+			$whereText = preg_replace('/^ AND /', '', $whereText);
+			$result .= ' WHERE (' . $whereText . ')';
+		}
+
+		if ($data->order) {
+			$result .= ' ORDER BY ' . $data->order;
+		}
+
+		return $result;
 	}
 }

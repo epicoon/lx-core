@@ -10,7 +10,7 @@ namespace lx;
 	public function setMain($bool)
 	public function setConfig($name, $value)
 	public function setScreenModes($arr)
-	public function addParams($data)
+	public function addParams($params)
 	public function preJs($code)
 	public function postJs($code)
 	public function setHandler($name, $handler)
@@ -26,6 +26,8 @@ namespace lx;
 	public function getConfig($key = null)
 	public function getImageRoute($name)
 	public function extractScripts()
+	public function prototypeModule()
+	public function prototypeService()
 
 * * *  4. Методы формирования ответов  * * *
 	protected function scripts()
@@ -36,6 +38,8 @@ namespace lx;
 * * *  6. Скрытое создание модуля  * * *
 	protected function __construct($data)
 	protected function init()
+	protected function beforeAddParams($params)
+	protected function afterAddParams($params)
 
 * * *  7. Информация необходимая для билдера  * * *
 	public function getSelfInfo()
@@ -47,18 +51,20 @@ namespace lx;
 class Module {
 	public
 		$title = null,   // Заголовок страницы модуля (для использования модуля во фрэйме не актуально)
-		$data = null,    // Данные, которые будут реплицированы на стороне клиента
+		$clientParams = null,    // Данные, которые будут реплицированы на стороне клиента
 		$params = null;  // Параметры, используемые модулем на стороне сервера
 
 	protected
 		$service = null,
 		$_name = '',
+		$_prototype = null,
 		$config = [];    // Собственные конфиги модуля, определенные в конфигурационном файле в его каталоге
 
 	private
-		$_directory = null,      // Каталог, связанный с модулем
-		$_conductor = null,      // Проводник по структуре модуля
-		$isMain = false,         // Главный модуль - который рендерился с ядром, при начальной загрузке страницы
+		$_directory = null,  // Каталог, связанный с модулем
+		$_conductor = null,  // Проводник по структуре модуля
+		$_i18nMap = null,    // Карта переводов
+		$isMain = false,     // Главный модуль - который рендерился с ядром, при начальной загрузке страницы
 		
 		$screenModes = [],
 
@@ -77,7 +83,7 @@ class Module {
 	/**
 	 * //todo - модуль должен вызываться всегда опосредованно через сервис. Может закрыть этот метод?
 	 * */
-	public static function create($service, $moduleName, $modulePath) {
+	public static function create($service, $moduleName, $modulePath, $prototype = null) {
 		$dir = new ModuleDirectory($modulePath);
 		if (!$dir->exists()) {
 			return null;
@@ -92,12 +98,18 @@ class Module {
 		$moduleClass = isset($config['class']) ? $config['class'] : self::class;
 		unset($config['class']);
 
-		$module = new $moduleClass([
+		$data = [
 			'service' => $service,
 			'name' => $moduleName,
 			'directory' => $dir,
 			'config' => $config,
-		]);
+		];
+
+		if ($prototype) {
+			$data['prototype'] = $prototype;
+		}
+
+		$module = new $moduleClass($data);
 
 		return $module;
 	}
@@ -133,17 +145,17 @@ class Module {
 	/**
 	 * Добавить сразу несколько параметров при помощи массива
 	 * */
-	public function addParams($data) {
-		$data = $this->beforeAddParams($data);
-		if ($data === false) {
+	public function addParams($params) {
+		$params = $this->beforeAddParams($params);
+		if ($params === false) {
 			return;
 		}
 
-		foreach ($data as $key => $value) {
+		foreach ($params as $key => $value) {
 			$this->params->$key = $value;
 		}
 
-		$this->afterAddParams($data);
+		$this->afterAddParams($params);
 	}
 
 	public function preJs($code) {
@@ -188,8 +200,19 @@ class Module {
 
 	public function __get($field) {
 		if ($field == 'name') return $this->_name;
+		if ($field == 'prototype') return $this->_prototype;
 		if ($field == 'conductor') return $this->_conductor;
 		if ($field == 'directory') return $this->_directory;
+		if ($field == 'i18nMap') {
+			if ($this->_i18nMap === null) {
+				$config = ClassHelper::prepareConfig($this->getConfig('i18nMap'), I18nMap::class);
+				$config['params']['module'] = $this;
+				$this->_i18nMap = new $config['class']($config['params']);
+			}
+
+			return $this->_i18nMap;
+		}
+
 		return null;
 	}
 
@@ -252,6 +275,29 @@ class Module {
 		return $result + $this->scripts();
 	}
 
+	/**
+	 *
+	 * */
+	public function prototypeModule() {
+		if ($this->prototype) {
+			return \lx::getModule($this->prototype);
+		}
+
+		return null;
+	}
+
+	/**
+	 *
+	 * */
+	public function prototypeService() {
+		if ($this->prototype) {
+			$serviceName = explode(':', $this->prototype)[0];
+			return \lx::getService($serviceName);
+		}
+
+		return null;
+	}
+
 
 	//=========================================================================================================================
 	/* * *  4. Методы формирования ответов  * * */
@@ -275,6 +321,11 @@ class Module {
 	 * Формирование ответа для AJAX-запроса
 	 * */
 	private function sendAjaxResponse($requestData) {
+		$params = $requestData['params'];
+		$this->clientParams->setProperties($params);
+
+		$requestData = $requestData['data'];
+
 		// Вопрошаем к конкретному респонденту
 		if (isset($requestData['__respondent__'])) {
 			$respondent = $requestData['__respondent__'];
@@ -331,30 +382,25 @@ class Module {
 		$this->_conductor = new ModuleConductor($this);
 
 		$this->_name = $this->service->getID() . ':' . $data['name'];
-		$this->data = new DataObject();
+		$this->clientParams = new DataObject();
 		$this->params = new DataObject();
+
+		if (isset($data['prototype'])) {
+			$this->_prototype = $data['prototype'];
+		}
 
 		// Конфиги
 		$config = $data['config'];
 
 		// Общие настройки
 		$commonConfig = \lx::getDefaultModuleConfig();
+		ConfigHelper::prepareModuleConfig($commonConfig, $config);
 
-		// Дефолтные настройки
-		foreach ($commonConfig as $key => $value) {
-			if (!array_key_exists($key, $config)) {
-				$config[$key] = $commonConfig[$key];
-			}
-		}
-
-		// Импорт общих для всех модулей алиасов, если требуются
-		if ($config['useCommonAliases'] === true) {
-			if (!isset($config['aliases'])) $config['aliases'] = [];
-			$config['aliases'] += $config['commonAliases'];
-		}
+		// Инъекция конфигов
+		$injections = \lx::getConfig('configInjection');
+		ConfigHelper::moduleInject($this->name, $this->prototype, $injections, $config);
 
 		$this->config = $config;
-
 		$this->init();
 	}
 
@@ -370,14 +416,14 @@ class Module {
 	/**
 	 *
 	 * */
-	protected function beforeAddParams($data) {
-		return $data;
+	protected function beforeAddParams($params) {
+		return $params;
 	}
 
 	/**
 	 *
 	 * */
-	protected function afterAddParams($data) {
+	protected function afterAddParams($params) {
 	}
 
 
@@ -389,7 +435,7 @@ class Module {
 	 * @return array : $info = [
 	 *	'name'
 	 *	'main'
-	 *	'data'
+	 *	'params'
 	 *	'images'
 	 *	'screenModes'
 	 * ]
@@ -404,8 +450,8 @@ class Module {
 		if ($this->isMain) $info['main'] = 1;
 
 		// Набор произвольных данных
-		$data = $this->data->getProperties();
-		if (!empty($data)) $info['data'] = $data;
+		$params = $this->clientParams->getProperties();
+		if (!empty($params)) $info['params'] = $params;
 
 		// Источник изображений модуля
 		if (isset($config['images']))
