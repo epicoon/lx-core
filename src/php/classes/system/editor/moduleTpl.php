@@ -37,6 +37,13 @@ $viewCode = <<<EOT
 
 EOT;
 
+$viewCode =
+'<?php' . PHP_EOL .
+'/**' . PHP_EOL .
+' * @var lx\Module $Module' . PHP_EOL .
+' * @var lx\Block $Block' . PHP_EOL .
+' * */' . PHP_EOL;
+
 
 $moduleCode = <<<EOT
 <?php
