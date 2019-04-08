@@ -21,9 +21,6 @@ return [
 	// Routing to services
 	'router' => require __DIR__ . '/routes.php',
 
-	// Data base settings
-	'db' => require __DIR__ . '/db.php',
-
 	// Global js-code executed before rendered module load
 	//'jsBootstrap' => '',
 	// Global js-code executed after rendered module load
@@ -44,7 +41,7 @@ Type variants:
 return [
 	'type' => 'map',
 	'routes' => [
-		'/' => ['service-module' => 'lx/lx-hello:main', 'on-mode' => 'dev'],
+		'/' => ['service-module' => 'lx/lx-hello:world', 'on-mode' => 'dev'],
 	],
 ];
 
