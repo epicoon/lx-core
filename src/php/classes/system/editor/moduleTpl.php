@@ -28,15 +28,6 @@ $mainJsCode = <<<EOT
 EOT;
 
 
-$viewCode = <<<EOT
-<?php
-/**
- * @var lx\Module $Module
- * @var lx\Block $Block
- * */
-
-EOT;
-
 $viewCode =
 '<?php' . PHP_EOL .
 '/**' . PHP_EOL .
