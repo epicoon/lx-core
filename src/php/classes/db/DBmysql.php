@@ -8,12 +8,19 @@ class DBmysql extends DB {
 	 * */
 	public function connect() {
 		if ($this->connection !== null) return;
-		$res = mysqli_connect($this->hostname, $this->username, $this->password);
-		if (!$res) return false;
-		mysqli_select_db($res, $this->dbName);
-		$this->connection = $res;
-		$this->query('set names \'utf8\'');
-		$this->query('set character set \'utf8\'');
+
+		try {
+			$this->connection = mysqli_connect($this->hostname, $this->username, $this->password);
+		} catch (\Exception $e) {
+			return false;
+		}
+
+		if (!$this->connection) {
+			return false;
+		}
+
+		mysqli_select_db($this->connection, $this->dbName);
+		mysqli_set_charset($this->connection, 'utf8');
 		return true;
 	}
 
@@ -27,16 +34,32 @@ class DBmysql extends DB {
 	}
 
 	/**
+	 * Формирует запрос для создания новой таблицы
+	 * */
+	public function newTableQuery($name, $columns) {
+		$query = parent::newTableQuery($name, $columns);
+		return $query .= ' CHARACTER SET utf8 COLLATE utf8_general_ci';
+	}
+
+	/**
 	 * Запрос строкой с SQL-кодом
+	 * @param $query
 	 * */
 	public function query($query) {
-		if (substr($query, 0, 6) == 'SELECT') return $this->query($query);
+		$this->error = null;
+
+		if (preg_match('/^\s*SELECT/', $query)) {
+			return $this->select($query);
+		}
 
 		$result;
 		$res = mysqli_query($this->connection, $query);
-		if ($res === false) return false;
+		if ($res === false) {
+			$this->error = mysqli_error($this->connection);
+			return false;
+		}
 
-		if (substr($query, 0, 6) == 'INSERT') {
+		if (preg_match('/^\s*INSERT/', $query)) {
 			$lastId = mysqli_query($this->connection, 'SELECT LAST_INSERT_ID();');
 			$result = mysqli_fetch_array($lastId)[0];
 		} else {
@@ -47,18 +70,23 @@ class DBmysql extends DB {
 	}
 
 	/**
-	 * Обязательно SELECT-запрос
+	 * SELECT-запрос
+	 * @param $query
 	 * */
 	public function select($query, $selectType = DB::SELECT_TYPE_MAP) {
+		$this->error = null;
+
 		$res = mysqli_query($this->connection, $query);
-		if ($res === false) return false;
+		if ($res === false) {
+			$this->error = mysqli_error($this->connection);
+			return false;
+		}
 
 		$arr = [];
-		/*
-		необязательный параметр принимает значение константы, которая указывает на тип массива, в который требуется поместить данные. Возможные значения параметра: MYSQLI_ASSOC, MYSQLI_NUM или MYSQLI_BOTH
-		*/
-		while ($row = mysqli_fetch_array($res))
+		while ($row = mysqli_fetch_array($res)) {
 			$arr[] = $this->applySelectType($row, $selectType);
+		}
+
 		return $arr;
 	}
 
@@ -66,10 +94,16 @@ class DBmysql extends DB {
 	 * Обязательно INSERT-запрос
 	 * */
 	public function insert($query, $returnId=true) {
+		$this->error = null;
+
 		$res = mysqli_query($this->connection, $query);
 		if (!$returnId) return $res;
 
-		if ($res === false) return false;
+		if ($res === false) {
+			$this->error = mysqli_error($this->connection);
+			return false;
+		}
+
 		$lastId = mysqli_query($this->connection, 'SELECT LAST_INSERT_ID();');
 		return mysqli_fetch_array($lastId)[0];
 	}

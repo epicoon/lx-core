@@ -129,6 +129,7 @@
  * unpackGeom()
  * unpackScreenDependencies()
  * unpackProperties(loaderContext)
+ * static ajax(method, params = [], handlers = null)
  */
 
 /**
@@ -1797,6 +1798,22 @@ class Rect #lx:namespace lx {
 
 			delete this.handlers;
 		}
+	}
+
+	/**
+	 *
+	 * */
+	static ajax(method, params = [], handlers = null) {
+		var config = lx.Dialog.handlersToConfig(handlers);
+		config.data = params;
+		config.url = method;
+
+		var headers = [];
+		headers['lx-type'] = 'widget';
+		headers['lx-widget'] = this.lxFullName;
+		config.headers = headers;
+
+		lx.Dialog.post(config);
 	}
 	/* 9. Load */
 	//=========================================================================================================================

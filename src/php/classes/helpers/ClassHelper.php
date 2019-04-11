@@ -117,7 +117,7 @@ class ClassHelper {
 		if (is_object($object)) {
 			$result = $method->invokeArgs($object, $args);
 		} else {
-			$result = $method->invokeArgs(null, $args);			
+			$result = $method->invokeArgs(null, $args);
 		}
 		if ($isPrivate) {
 			$method->setAccessible(false);

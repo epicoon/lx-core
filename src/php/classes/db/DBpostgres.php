@@ -9,9 +9,17 @@ class DBpostgres extends DB {
 	public function connect() {
 		if ($this->connection !== null) return true;
 		if (!function_exists('\pg_connect')) return false;
-		$res = \pg_connect("host={$this->hostname} dbname={$this->dbName} user={$this->username} password={$this->password}");
-		if (!$res) return false;
-		$this->connection = $res;
+
+		try {
+			$this->connection = \pg_connect("host={$this->hostname} dbname={$this->dbName} user={$this->username} password={$this->password}");
+		} catch (\Exception $e) {
+			return false;
+		}
+
+		if (!$this->connection) {
+			return false;
+		}
+
 		return true;
 	}
 
@@ -28,21 +36,36 @@ class DBpostgres extends DB {
 	 * Запрос строкой с SQL-кодом
 	 * */
 	public function query($query) {
-		if (substr($query, 0, 6) == 'SELECT') return $this->select($query);
+		if (preg_match('/^\s*SELECT/', $query)) {
+			return $this->select($query);
+		}
 
-		if (substr($query, 0, 6) == 'INSERT') {
+		if (preg_match('/^\s*INSERT/', $query)) {
 			$query .= ' RETURNING id';
 			$res = pg_query($this->connection, $query);
+			if ($res === false) {
+				$this->error = pg_last_error($this->connection);
+				return false;
+			}
+
 			$arr = [];
 			while ($row = pg_fetch_array($res)) $arr[] = $row[0];
+
 			pg_free_result($res);
-			if (count($arr) == 1) return $arr[0];
+			if (count($arr) == 1) {
+				return $arr[0];
+			}
+
 			return $arr;
 		}
 
 		$result;
 		$res = pg_query($this->connection, $query);
-		if ($res === false) return false;
+		if ($res === false) {
+			$this->error = pg_last_error($this->connection);
+			return false;
+		}
+
 		$result = 'done';
 
 		pg_free_result($res);
@@ -54,7 +77,10 @@ class DBpostgres extends DB {
 	 * */
 	public function select($query, $selectType = DB::SELECT_TYPE_MAP) {
 		$res = pg_query($this->connection, $query);
-		if ($res === false) return false;
+		if ($res === false) {
+			$this->error = pg_last_error($this->connection);
+			return false;
+		}
 
 		$arr = [];
 		while ($row = pg_fetch_array($res)) {
@@ -126,7 +152,11 @@ class DBpostgres extends DB {
 		$query = "UPDATE {$table->getName()} SET $set FROM (SELECT $values) as t WHERE {$table->getName()}.$pk = t.$pk";
 		$result;
 		$res = pg_query($this->connection, $query);
-		if ($res === false) return false;
+		if ($res === false) {
+			$this->error = pg_last_error($this->connection);
+			return false;
+		}
+
 		$result = 'done';
 
 		pg_free_result($res);

@@ -481,9 +481,12 @@ class lx {
 	 * */
 	private static function ajaxResponse() {
 		switch (self::$dialog->header('lx-type')) {
-			// Ajax-запрос, произошедший явно в контексте какого-то модуля
+			// Ajax-запрос, произошедший в контексте какого-то модуля
 			case 'module': self::moduleAjaxResponse(); break;
 			
+			// Ajax-запрос, произошедший в контексте какого-то виджета
+			case 'widget': self::widgetAjaxResponse(); break;
+
 			// Служебный (системный) ajax-запрос
 			case 'service': self::serviceAjaxResponse(); break;
 
@@ -525,21 +528,48 @@ class lx {
 			throw new Exception('Module-ajax-request without module!', 400);
 		}
 
-		$arr = explode(':', $moduleName);
-		$service = self::getService($arr[0]);
-
-		$module = null;
-		if ($service) {
-			$module = $service->getModule($arr[1]);
-		}
-
+		$module = self::getModule($moduleName);
 		if ($module === null) {
 			self::$dialog->send("Module '$moduleName' not found");
 			return;
 		}
 
-		$result = lx\ClassHelper::call($module, 'sendAjaxResponse', [\lx::$dialog->params()]);
+		$result = lx\ClassHelper::call($module, 'sendAjaxResponse', [self::$dialog->params()]);
 		self::$dialog->send($result);
+	}
+
+	/**
+	 * Формирование ajax-ответа для виджета
+	 * */
+	private static function widgetAjaxResponse() {
+		$widgetName = self::$dialog->header('lx-widget');
+		$widgetName = str_replace('.', '\\', $widgetName);
+
+		if (!lx\ClassHelper::exists($widgetName) ) {
+			self::$dialog->send("Widget response error");
+			return;
+		}
+
+		$ref = new ReflectionClass($widgetName);
+		if (!$ref->isSubclassOf( lx\Rect::class )) {
+			self::$dialog->send("Widget response error");
+			return;
+		}
+
+		$params = self::$dialog->params();
+		$url = self::$dialog->url();
+		$url = preg_replace('/^\//', '', $url);
+
+		$method = $ref->getMethod('ajax');
+		try {
+			$result = $method->invokeArgs(null, [
+				'url' => $url,
+				'params' => $params
+			]);
+			self::$dialog->send($result);
+		} catch (\Exception $e) {
+			self::$dialog->send("Widget response error");
+		}
 	}
 
 	/**

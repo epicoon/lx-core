@@ -77,3 +77,5 @@ lx.getNamespace = function(namespace) {
 #lx:require components/;
 #lx:require -R classes/;
 #lx:require tools/;
+
+lx.modules = new lx.Dict();

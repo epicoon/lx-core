@@ -22,7 +22,8 @@ abstract class DB {
 		$username = '',
 		$password = '',
 		$dbName = '',
-		$connection = null;
+		$connection = null,
+		$error = null;
 
 	public static function create($settings) {
 		if (isset($settings['db'])) {
@@ -63,6 +64,21 @@ abstract class DB {
 	}
 
 	/**
+	 * Проверить есть ли ошибки
+	 * */
+	public function hasError() {
+		return $this->error !== null;
+	}
+
+	/**
+	 * Получить текст ошибки, если есть
+	 * @return string|null
+	 * */
+	public function getError() {
+		return $this->error;
+	}
+
+	/**
 	 * Создание новой таблицы
 	 * @param $name - имя новой таблицы
 	 * @param $column - массив DbColumnDefinition
@@ -72,10 +88,20 @@ abstract class DB {
 		if ($rewrite) {
 			$this->query("DROP TABLE IF EXISTS $name");
 		} else {
-			if ($this->tableExists($name))
+			if ($this->tableExists($name)) {				
 				return false;
+			}
 		}
 
+		$query = $this->newTableQuery($name, $columns);
+		$res = $this->query($query);
+		return $res;
+	}
+
+	/**
+	 * Формирует запрос для создания новой таблицы
+	 * */
+	public function newTableQuery($name, $columns) {
 		$query = "CREATE TABLE $name (";
 		$cols = [];
 		foreach ($columns as $colName => $definition) {
@@ -86,9 +112,7 @@ abstract class DB {
 		$cols = implode(', ', $cols);
 		$cols = str_replace('#pkey#', $name, $cols);
 		$query .= "$cols);";
-
-		$res = $this->query($query);
-		return $res;
+		return $query;
 	}
 
 	/**
@@ -103,6 +127,14 @@ abstract class DB {
 	 * */
 	public function table($name) {
 		return new DbTable($name, $this);
+	}
+
+	/**
+	 * Проверяет пустая ли таблица
+	 * */
+	public function tableIsEmpty($name) {
+		$res = $this->query("SELECT * FROM $name LIMIT 1;");
+		return empty($res);
 	}
 
 	/**

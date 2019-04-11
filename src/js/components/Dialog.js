@@ -211,6 +211,38 @@ Object.defineProperty(lx, 'Dialog', {
 			 * */
 			requestParamsFromString: function(params) {
 				return requestParamsFromString(params);
+			},
+
+			/**
+			 * 
+			 * */
+			handlersToConfig: function(handlers) {
+				var onSuccess,
+					onWaiting,
+					onError;
+				if (handlers) {
+					if (handlers.isFunction || handlers.isArray) {
+						onSuccess = handlers;
+					} else if (handlers.isObject) {
+						onWaiting = handlers.waiting;
+						onSuccess = handlers.success;
+						onError = handlers.error;
+					}
+				}
+				function initHandler(handlerData) {
+					if (!handlerData) return null;
+					if (handlerData.isFunction) return handlerData;
+					if (handlerData.isArray) return (res)=>handlerData[1].call(handlerData[0], res);
+					return null;
+				}
+				var config = {},
+					success = initHandler(onSuccess),
+					waiting = initHandler(onWaiting),
+					error = initHandler(onError);
+				if (success) config.success = success;
+				if (waiting) config.waiting = waiting;
+				if (error) config.error = error;
+				return config;
 			}
 		}
 	}

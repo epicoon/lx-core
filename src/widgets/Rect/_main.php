@@ -1008,17 +1008,17 @@ class Rect extends DataObject {
 				break;
 		}
 	}
-	/* 3.11. Events */
+	/* 7. Events */
 	//---------------------------------------------------------
 
 
 	//---------------------------------------------------------
-	/* 3.12. Debugging */
-	/* 3.12. Debugging */
+	/* 8. Debugging */
+	/* 8. Debugging */
 	//---------------------------------------------------------
 
 
-	/* 3.13. Render */
+	/* 9. Render */
 	//---------------------------------------------------------
 	public function getModule() {
 		return Renderer::active()->getModule();
@@ -1094,6 +1094,42 @@ class Rect extends DataObject {
 		$this->whileRender($block);
 		$block->renderWidgetEnd($this->tag);
 	}
-	/* 3.13. Render */
+	/* 9. Render */
+	//---------------------------------------------------------
+
+
+	//---------------------------------------------------------
+	/* 10. Ajax */
+	/**
+	 * Метод возвращает массив имен методов, к которым можно напрямую обращаться по ajax
+	 * */
+	protected static function ajaxMethods() {
+		return [];
+	}
+
+	/**
+	 * Метод возвращает имя метода, который нужно выполнить по URL. Можно переопределить у потомков, добавить проверки и т.п.
+	 * */
+	protected static function ajaxRoute($url) {
+		if (in_array($url, static::ajaxMethods())) {
+			return $url;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Метод формирования ajax-ответа для виджета. Управлять роутом ajax-запросов виджетов можно переопределяя метод [[ajaxRoute()]]
+	 * */
+	public static function ajax($url, $params = []) {
+		$methodName = static::ajaxRoute($url);
+
+		if ($methodName === false) {
+			throw new \Exception("Error while widget responsing", 400);
+		}
+
+		return \call_user_func_array([static::class, $methodName], $params);
+	}
+	/* 10. Ajax */
 	//---------------------------------------------------------
 }

@@ -423,8 +423,11 @@ class Yaml {
 	 * */
 	private function splitJsonLikeString($sourceString) {
 		preg_match_all('/^\[\s*(.*?)\s*\]$/', $sourceString, $matches);
-		$str = $matches[1][0];
+		if (empty($matches[1])) {
+			return [];
+		}
 
+		$str = $matches[1][0];
 		$arr = explode(',', $str);
 		$opened = 0;
 		$closed = 0;

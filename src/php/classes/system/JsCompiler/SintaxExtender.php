@@ -79,6 +79,39 @@ class SintaxExtender {
 		//=====================================================================================================================
 		//=====================================================================================================================
 
+		// ^self::method(arg1, arg2) : (res)=> { someCode... }; => self.ajax('method', [arg1, arg2], (res)=> { someCode... });
+		// С учетом, что 'self::' уже декодирован в 'this.constructor.'
+		/*
+		Рекурсивная подмаска регулярного выражения:
+		(?P<name>{ ( (?>[^{}]+)|(?P>name) )* })
+		(?P<name>reg) - задает имя группе
+		(?P>name) - рекурсивно вызывает группу. Без именования рекурсия замыкается на все выражение, обозначается (?R)
+		*/
+		$regexp = '/\^this\.constructor\.([\w_][\w\d_]*?)(?P<therec0>\(((?>[^()]+)|(?P>therec0))*\))\s*:\s*\((.*?)\)\s*=>\s*(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
+		preg_match_all($regexp, $code, $matches);
+		while (!empty($matches[0])) {
+			for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
+				$method = $matches[1][$i];
+
+				$args = $matches[2][$i];
+				/*
+				Аргументы тоже ищутся рекурсивной подмаской - т.к. может быть и так ^Resp.method(f(), f2())...
+				При этом может быть и так ^Resp.method()... а пустые скобки нам не нужны, заменяем их на пустую строку
+				//todo - в остальных вариантах тоже самое надо сделать
+				*/
+				$args = preg_replace('/^\(/', '', $args);
+				$args = preg_replace('/\)$/', '', $args);
+
+				$res = $matches[4][$i];
+				$func = $matches[5][$i];
+				$text = "this.constructor.ajax('$method',[$args],($res)=>$func)";
+				$code = str_replace($matches[0][$i], $text, $code);
+			}
+			preg_match_all($regexp, $code, $matches);
+		}
+
+		//---------------------------------------------------------------------------------------------------------------------
+
 		// ^Resp.method(arg1, arg2); => Module.callToRespondent('Resp/method', [arg1, arg2]);
 		$regexp = '/\^([\w_][\w\d_]*?)\.([\w_][\w\d_]*?)\(([^)]*?)\);/';
 		preg_match_all($regexp, $code, $matches);
@@ -167,6 +200,8 @@ class SintaxExtender {
 			$text = "Module.callToRespondent('$respondent/$method',[$args],{success:$onLoad,error:$onError});";
 			$code = str_replace($matches[0][$i], $text, $code);
 		}
+
+		//---------------------------------------------------------------------------------------------------------------------
 
 		/*
 		//todo
@@ -455,7 +490,27 @@ class SintaxExtender {
 				$implementResult = $implement;
 
 				// Среди таких классов - отнаследованные от модели имеют свой синтаксис:
-				// 1. #lx:schema ...;
+				// 1. #lx:const NAME = value;
+				$implementResult = preg_replace_callback(self::inClassReg('const'), function ($matches) {
+					$constString = $matches[2];
+
+					//todo учесть возможные запятые внутри строк, сделать стандартный алгоритм такого разбиения и вынести куда-то в хелпер
+					$constPareArray = preg_split('/\s*,\s*/', $constString);
+					$code = '';
+					foreach ($constPareArray as $constPare) {
+						preg_match_all('/^([^=]+?)\s*=\s*(.+)$/', $constPare, $pare);
+						$name = $pare[1][0];
+						$value = $pare[2][0];
+						if ($value{0} != '\'' && $value{0} != '"' && preg_match('/::/', $value)) {
+							$value = eval('return ' . $value . ';');
+						}
+						$code .= "static get $name(){return $value;}";
+					}
+
+					return $matches[1] . $code;
+				}, $implementResult);
+
+				// 2. #lx:schema ...;
 				/*
 					#lx:schema
 						aaa : {type:'integer', default: 11},
@@ -503,7 +558,7 @@ class SintaxExtender {
 					return $matches[1] . $code;
 				}, $implementResult);
 
-				// 2. #lx:behaviors ...;
+				// 3. #lx:behaviors ...;
 				/*
 				//todo
 				нужно генерить код, проверяющий, что предложенные бихевиоры это реально существующие
@@ -520,7 +575,7 @@ class SintaxExtender {
 					return $matches[1] . $behaviorsCode;
 				}, $implementResult);
 
-				// 3. #lx:modelName xxx;
+				// 4. #lx:modelName xxx;
 				$implementResult = preg_replace_callback('/#lx:modelName[\s\r]+([^;]+)?;/', function ($matches) {
 					$modelName = $matches[1];
 
