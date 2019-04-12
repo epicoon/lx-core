@@ -2,34 +2,34 @@
 
 # Lx - web-application development platform
 
-В данном репозитории находится ядро платформы. Одного его уже достаточно для создания вэб-приложений, но рекомендуем ознакомиться с прочими полезными репозиториями, содержащими документацию, инструменты и примеры для данной платформы:
-* [lx-doc](https://github.com/epicoon/lx-doc/blob/master/README-ru.md)
-* [lx-demo](https://github.com/epicoon/lx-demo/blob/master/README-ru.md)
-* [lx-dev-wizard](https://github.com/epicoon/lx-dev-wizard/blob/master/README-ru.md)
-* [lx-tools](https://github.com/epicoon/lx-tools/blob/master/README-ru.md)
+This repository contains platform core. The core is enough for web application developing. But we recommend check other useful repositories containing documentation, tools and examples for this platform:
+* [lx-doc](https://github.com/epicoon/lx-doc/blob/master/README.md)
+* [lx-demo](https://github.com/epicoon/lx-demo/blob/master/README.md)
+* [lx-dev-wizard](https://github.com/epicoon/lx-dev-wizard/blob/master/README.md)
+* [lx-tools](https://github.com/epicoon/lx-tools/blob/master/README.md)
 
 
-## Оглавление
-* [Основные принципы](#properties)
-* [Установка](#deploy)
-* [Описание архитектуры](#architecture)
+## Contents:
+* [Basic principles](#properties)
+* [Deploy](#deploy)
+* [Architecture](#architecture)
 * [CLI](#cli)
-* [Пример разработки приложения](https://github.com/epicoon/lx-doc-articles/blob/master/ru/app-dev/expl1/main.md)
+* [Application developing example](https://github.com/epicoon/lx-doc-articles/blob/master/en/app-dev/expl1/main.md)
 
 
-<a name="properties"><h2>Основные принципы</h2></a>
-* Платформа относится к категории фуллстак-технологий. Объединяет рабработку бэкенда и фронтенда.
-* Мультисервисная архитектура. Приложение состоит из сервисов - независымых друг от друга фрагментов логики.
-* Повторное использование кода. Все элементы архитектуры реиспользуемы.
-* Гибко настраиваемый роутинг.
-* Работа с минимумом перезагрузок страницы. Поддержка простой работы через AJAX.
-* Объектно-ориентированный подход к построению графических интерфейсов.
-* Простая, легко расширяемая интернационализация.
+<a name="properties"><h2>Basic principles</h2></a>
+* The platform belongs to the category of full-stack technologies. Combines backend and frontend.
+* Multiservice architecture. The application consists of services - pieces of logic that are independent of each other.
+* Reuse code. All elements of the architecture are reusable.
+* Flexible routing.
+* Work with a minimum of page reloads. Simple work via AJAX.
+* Object-oriented approach to building graphical interfaces.
+* Simple, easily expandable internationalization.
 
 
-<a name="deploy"><h2>Установка</h2></a>
-1. Для установки платформы воспользуйтесь менеджером php-пакетов `Composer`
-   Пример файла `composer.json`:
+<a name="deploy"><h2>Deploy</h2></a>
+1. For deploy the platform use PHP-package manager `Composer`.<br>
+   Composer configuration file example (`composer.json`):
    ```
    {
        "require":{
@@ -43,11 +43,11 @@
         ]
    }
    ```
-   Чтобы использовать прочие lx-пакеты, просто добавьте их в конфигурационный файл по аналогии с пакетом `lx/lx-core`, например: [конфигурация с прочими lx-пакетами](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/doc/composer-example.md).<br>
-   В корне проекта выполните команду `composer install`.<br>
-   В результате будет создан каталог `vendor` (если еще не существовал). В нем в папке `lx` будут располагаться указанные в зависимостях пакеты.
-2. Настройка сервера для `nginx` под `Ubuntu`.<br>
-   Конфигурация:
+   To use other lx-packages, simply add them to the composer configuration file. [Example](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/doc/composer-example.md).<br>
+   At the root of the project, run the command `composer install`.<br>
+   As a result a directory `vendor` will be created. It will contain composer packages in a directory `lx`.
+2. Setting up a server for `nginx` for `Ubuntu`.<br>
+   Configuration:
    ```
    server {
       charset utf-8;
@@ -70,114 +70,113 @@
       }
    }
    ```
-   Обратите внимание на пути и версию php-fpm, подставьте свои значения.<br>
-   Создайте запись в `/etc/hosts`.<br>
-   Перезапустите сервер.<br>
-3. Чтобы развернуть платформу в проекте, нужно запустить php-скрипт `vendor/lx/lx-core/lx-install`.<br>
-   В результате в корне проекта будут созданы каталоги:
-   * lx - каталог для конфигурационных и системных файлов платформы. Обязателен.
-   * services - каталог для сервисов приложения (подробности ниже). Содержит первый сервис для приложения. Необязателен, работа с сервисами настраивается в конфигурации приложения.
-4. Осталось вызвать запуск lx-приложения.
-   Для этого в индексном файле нужно добавить код:
+   Note the paths and version of php-fpm, substitute your values.<br>
+   Add an entity in `/etc/hosts`.<br>
+   Restart server.<br>
+3. To deploy the platform in the project run php-script `vendor/lx/lx-core/lx-install`.<br>
+   As a result in the root of the project follow directories will be created:
+   * lx - directory for platform configuration and system files. Mandatory.
+   * services - catalog for application services (details below). It contains the first service for the application.. Optional. Work with services is configured in the application configuration.
+4. It remains to trigger the launch of the lx application in your code.
+   To do this, add the code in the index file:
    ```php
-   /* Пример приведен для ситуации, когда индексный файл находится в корне проекта
-    * Если он находится в каталоге (например web), нужно скорректировать путь
+   /* An example is given for the situation when the index file is in the project root
+    * If it is in a directory (for example web), you need to correct the path
     */
    require_once __DIR__ . '/vendor/lx/lx-core/main.php';
    lx::run();
    ```
-5. Если в браузере по домену, указанному в конфигурации сервера и файле `/etc/hosts`, вы видите страницу:
-   ![Стартовая страница lx](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/images/lx-start-page.png)
-   то все удалось.
+5. If in the browser on the domain specified in the server configuration and the file `/etc/hosts` you see the page:
+   ![lx start page](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/images/lx-start-page.png)
+   then everything worked out.
 
 
-<a name="architecture"><h2>Описание архитектуры</h2></a>
-Элементы приложения, из которых складывается архитектура:
-* [Пакеты](#arch-package)
-* [Сервисы](#arch-service)
-* [Роутер уровня приложения](#arch-router)
-* [Роутеры уровня сервисов](#arch-service-router)
-* [Контроллеры](#arch-controller)
-* [Действия (экшены)](#arch-action)
-* [Модули](#arch-module)
-* [Блоки](#arch-block)
-* [Виджеты](#arch-widget)
-* [Респонденты](#arch-respondent)
+<a name="architecture"><h2>Architecture</h2></a>
+Elements of the application that make up the architecture:
+* [Packages](#arch-package)
+* [Services](#arch-service)
+* [Application router](#arch-router)
+* [Service routers](#arch-service-router)
+* [Controllers](#arch-controller)
+* [Actions](#arch-action)
+* [Modules](#arch-module)
+* [Blocks](#arch-block)
+* [Widgets](#arch-widget)
+* [Respondents](#arch-respondent)
 
-Из всех элементов архитектуры конфигурируются специальными файлами два: сервис и модуль. А также конфигурируется само приложение.
+Of all the elements of the architecture a service and a module are configurable with special files. And also the application is configurable.
 
-* <a name="arch-package"><h3>Пакеты</h3></a>
-  Приложение состоит из пакетов.
-  Пакет это каталог, имеющий особый конфигурационный файл. Варианты названий конфигурационного файла:
+* <a name="arch-package"><h3>Packages</h3></a>
+  The application consists of packages.
+  A package is a directory with a specific configuration file. Variants of the names of the configuration file:
   * `composer.json`
   * `lx-config.php`
   * `lx-config.yaml`
   * `lx-config/main.php`
   * `lx-config/main.yaml`<br>
-  Наличие конфигурационного файла `composer.json` означает, что каталог является composer-пакетом.<br>
-  Наличие конфигурационного файла с префиксом `lx` означает, что каталог является lx-пакетом.<br>
-  Пакет может быть composer-пакетом и lx-пакетом одновременно (иметь оба конфигурационных файла).<br>
-  В файле lx-конфигурации рекомендуется описывать правила автозагрузки (а не в `composer.json`), т.к. платформа имеет свой автозагрузчик, не противоречащий автозагрузчику композера, но имеющий расширенные возможности.<br>
-  Файл `composer.json` может быть использован для описания зависимостей.<br>
-  О прочих особенностях lx-конфигурации далее.<br>
-  Пакеты могут располагаться в нескольких каталогах внутри приложения. В каких именно - определяется в конфигурации приложения. [Подробнее о конфигурации приложения](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/doc/app-config.md)
+  The presence of the configuration file `composer.json` means that the directory is a composer-package.<br>
+  The presence of a configuration file with the prefix `lx` means that the directory is an lx-package.<br>
+  A package can be a composer package and an lx package at the same time (if it has both configuration files).<br>
+  It is recommended to describe the autoload rules in the lx-configuration file (and not in `composer.json`), since the platform has its own autoloader which does not contradict the autoloader of the composer but has advanced capabilities.<br>
+  The `composer.json` file can be used to describe dependencies.<br>
+  Packages can be located in multiple directories within the application, in which ones it is defined in the application configuration. [Application configuration details](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/doc/app-config.md)
 
-* <a name="arch-service"><h3>Сервисы</h3></a>
-  Сервис это пакет, умеющий отвечать на запросы. Имеет специальное поле с настройками в lx-конфигурации. Пример конфигурации на `yaml`:
+* <a name="arch-service"><h3>Services</h3></a>
+  Service is a package that can respond to requests. It has a special field with settings in the lx-configuration. Configuration example in `yaml`:
   ```yaml
-  # Имя сервиса
+  # Service name
   name: lx/lx-dev-wizard
 
-  # Правила автозагрузки
+  # Autoload rules
   autoload:
     psr-4:
       lx\devWizard\: ''
 
-  # Поле с настройками сервиса - наличие именно этого поля превращает пакет в сервис
+  # The field with the service settings
+  # the presence of this field turns the package into a service
   service:
-    # Если сервис представлен собственным классом, здесь указывается его имя
+    # The name of the service class (if exists)
     class: lx\devWizard\Service
 
-    # Прочие настройки сервиса
+    # Other service settings
     modules: module
     models: model
     ...
   ```
-  Имеет определенную инфраструктуру, описываемую с помощью lx-конфигурации.
-  [Подробнее о конфигурации сервиса](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/doc/service-config.md)
+  Service has a specific infrastructure described using the lx-configuration.
+  [Service configuration details](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/doc/service-config.md)
 
-* <a name="arch-router"><h3>Роутер уровня приложения</h3></a>
-  Приложение распределяет запросы по сервисам с помощью роутера. Он существует в приложении в единственном числе.<br>
-  Настраивается роутер в конфигурации приложения. Пример:
+* <a name="arch-router"><h3>Application router</h3></a>
+  The application distributes requests for services by the router. It exists in the application in the singular.<br>
+  The router is configured in the application configuration. Example:
   ```yaml
   ...
-  # Варианты типов:
+  # Available types:
   # - map
-  #   необходим параметр 'routes' - сама карта, либо 'path' - где лежит карта
-  #   карта - ассоциативный массив:
-  #     ключ - URL запроса (или регулярное выражение, если начинается с символа '~')
-  #     значение - данные от объекте, куда перенаправляется запрос
+  #   require parameter 'routes' - map of the routes or 'path' - of file with map
+  #   map of the routes - associative array:
+  #     key - URL of the query (or regular expression if it starts with '~')
+  #     value - data for the object where the request is redirected
   # - class 
-  #   необходим параметр 'name' - имя класса роутера
-  #   роутер наследуется от [[lx\Router]] и должен реализовать метод [[route()]],
-  #   который будет возвращать данные от объекте, куда перенаправляется запрос
+  #   require parameter 'name' - name of the router class
+  #   the router is extended from [[lx\Router]]
   router:
     type: map
     routes:
-      # Домашняя страница
+      # Home page
       /: your/home-service
-      # URL, ориентированный непосредственно на модуль сервиса,
-      # причем работающий только для определенного режима приложения
+      # URL oriented directly to the service module
+      # working only for a specific application mode
       test-page: {service-module: 'your/some-service:some-module', on-mode: dev}
   ...
   ```
-  ![Схема роутинга приложения](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/images/architecture-scheme.png)
-  [Подробнее о роутинге](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/doc/routing.md)
+  ![Application routing schema](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/images/architecture-scheme.png)
+  [Routing details](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/doc/routing.md)
 
-* <a name="arch-service-router"><h3>Роутеры уровня сервиса</h3></a>
-  Управлением запросами внутри сервисов занимаются роутеры сервисов.<br>
-  По аналогии с роутером приложения, роутер сервиса можно настройить с помощью файла lx-конфигурации сервиса, либо переопределить класс `lx.ServiceRouter`.<br>
-  Пример настройки через файл lx-конфигурации:
+* <a name="arch-service-router"><h3>Service routers</h3></a>
+  Request management within services is handled by service routers.<br>
+  By analogy with the application’s router, the service’s router can be configured by the service’s lx-configuration file or it can be extended by class `lx.ServiceRouter`.<br>
+  Example of configuration via the lx-configuration file:
   ```yaml
   name: lx/lx-dev-wizard
   ...
@@ -185,183 +184,187 @@
   service:
     class: lx\devWizard\Service
 
-    # Настройки роутера сервиса
+    # Service router settings
     router:
       type: map
       routes:
-        # Направление запроса на контроллер
-        # Будет возвращен результат вызова метода(экшена) контроллера [[run()]]
+        # Request to controller
+        # The result of the controller method [[run()]] will be returned
         some-route-1: ControllerClassName
-        # Направление запроса на контроллер
-        # Будет возвращен результат вызова метода(экшена) контроллера [[actionName()]]
+        # Request to controller
+        # The result of the controller method [[actionName()]] will be returned
         some-route-2: ControllerClassName::actionName
-        # Направление запроса на экшен. Будет возвращен результат вызова метода экшена [[run()]]
+        # Request to action. The result of the method [[run()]] will be returned
         some-route-3: {action: ActionClassName}
-        # Направление запроса на модуль. Будет возвращен результат рендеринга модуля
+        # Request to module. Module rendering result will be returned
         some-route-4: {module: moduleName}
     ...
   ```
-  ![Схема внутрисервисного роутинга](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/images/service-routing.png)
+  ![Service routing schema](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/images/service-routing.png)
 
-* <a name="arch-controller"><h3>Контроллеры</h3></a>
-  Контроллер является таким элементом сервиса, который отвечает на запросы и может обрабатывать много разных URL.<br>
-  Если в настройках роутера уровня сервиса для определенного URL указано только имя класса контроллера, для обработки запроса будет вызван метод `run()`.<br>
-  Если в настройках роутера уровня сервиса для определенного URL указано имя класса контроллера и метод (н-р так: `ControllerClassName::actionName`), то для обработки запроса будет вызван указанный метод.
-
-* <a name="arch-action"><h3>Действия (экшены)</h3></a>
-  Действие (экшен) является таким элементом сервиса, который отвечает на какой-то один запрос.<br>
-  Для обработки запроса будет вызван метод `run()`.
-
-* <a name="arch-module"><h3>Модули</h3></a>
-  Модуль является элементом сервиса, представляющим собой совокупность логики, выполняющейся на клиенте и графического интерфейса, ее обслуживающего. По своей идее напоминает SPA.
+* <a name="arch-controller"><h3>Controllers</h3></a>
+  The controller is such a service element that responds to requests and can handle many different URLs.<br>
+  If only the name of the controller class is specified in the settings of the service router for a specific URL, the method `run()` will be called to process the request.<br>
   
-  Свойства модуля:
-  * рендерится и загружается браузером однократно
-  * выполняется без перезагрузки страницы
-  * в структуре проекта имеет свою директорию с определенной инфраструктурой
-  * имеет свой файл lx-конфигурации для настройки некоторых параметров и инфраструктуры
-  * имеет свои ресурсы (JS-код, CSS-код, изображения и т.п.)
-  * в JS-коде экземпляр самого модуля доступен в виде контекстной переменной `Module`
-  * данные с сервера запрашивает при помощи ajax-запросов
-  * для формирования данных, отдаваемых сервером имеет свои инструменты (респонденты)
-  * любой модуль может загрузить любой другой модуль и поместить его в элемент на своей странице
-  * рендеринг модуля можно инициировать с передачей параметров, в случае, если они предусмотрены
+  If the name of the controller class and the name of the method are specified in the settings of the service router for a specific URL (f.e.: `ControllerClassName::actionName`), this method will be called to process the request.
+
+* <a name="arch-action"><h3>Actions</h3></a>
+  Action is such an element of the service, which responds to a single request.<br>
+  The `run()` method will be called to process the request.
+
+* <a name="arch-module"><h3>Modules</h3></a>
+  The module is a service element representing a set of logic running on the client, the graphical interface and the server part represented by the respondents (AJAX-controllers operating in the context of specific modules). In its idea reminds SPA.
   
-  Перечень элементов инфраструктуры модуля:
-  * Js-код модуля. Для него предусмотрена отдельная директория (ключ конфигурации `frontend`). Корневых файлов для исполнения два - один будет выполняться до разворачивания модуля (ключ конфигурации `jsMain`), другой после (ключ конфигурации `jsBootstrap`).
-  * Респонденты. Классы, которые пишутся на php, представляют собой ajax-контроллеры, отдающие данные клиентской части модуля (ключ конфигурации `respondents`).
-  * Представление. Для него предусмотрена отдельная директория (ключ конфигурации `view`). Рендеринг модуля начинается с корневого блока, код которого описывается в корневом файле представления (ключ конфигурации `viewIndex`).
-  * Изображения (ключ конфигурации `images`). Можно задать каталог, в котором будут лежать изображения модуля.
-  * Css-ресурсы (ключ конфигурации `css`). Можно задать каталог, в котором будут лежать css-файлы модуля. При загрузке модуля эти файлы будут использоваться автоматически.<br>
-  Пример настройки элементов инфраструктуры модуля в lx-конфигурации:
+  Module features:
+  * rendered and loaded by the browser once
+  * runs without page reload
+  * in the project structure has its own directory with a specific infrastructure
+  * has its own lx-configuration file to configure some parameters and infrastructure
+  * has its own resources (JS code, CSS code, images, etc.)
+  * the module is available as a context variable `$Module` in its blocks code (view PHP-files)
+  * the module is available as a context variable `Module` in its JS code
+  * requests data from the server via AJAX
+  * to generate data sent by the server has its own tools (respondents)
+  * any module can load any other module and place it in an element on its page
+  * module rendering can be initiated with passing parameters if they are provided
+  
+  List of module infrastructure elements:
+  * Module JS-code. There are two main executed files: the first one will be executed before the module is loaded on the client (the file path specified by the configuration key `jsMain`), the second one will be executed after the module is loaded on the client (the file path specified by the configuration key `jsBootstrap`).
+  * Respondents. PHP Classes. They are AJAX controllers that send data to the module client side (configuration key `respondents`).
+  * View. Module rendering starts from the root block, whose code is described in the root view file (the file path specified by the configuration key `view`).
+  * Images (configuration key `images`). You can set the directory in which the images of the module will lie.
+  * CSS files (configuratoin key `css`). You can set the directory in which the CSS files will lie. When the module is loaded, these files will be automatically added to the page.<br>
+  An example of setting up the elements of the module infrastructure in the lx-configuration:
   ```yaml
-  # В корне модуля каталог 'frontend' будет содержать js-код
-  frontend: frontend
-  # В каталоге 'frontend' js-код, который выполнится до разворачивания модуля,
-  # будет находиться в файле '_bootstrap.js'
-  jsBootstrap: _bootstrap.js
-  # В каталоге 'frontend' js-код, который выполнится после разворачивания модуля,
-  # будет находиться в файле '_main.js'
-  jsMain: _main.js
+  # JS-code that runs before the module is loaded, will be in the file
+  # 'frontend/_bootstrap.js' relative to the root directory of the module
+  jsBootstrap: frontend/_bootstrap.js
+  # JS-code that runs after the module is loaded, will be in the file
+  # 'frontend/_main.js' relative to the root directory of the module
+  jsMain: frontend/_main.js
 
-  # Карта респондентов
+  # Respondents map
   respondents:
-    # Ключ - псевдоним респондента для клиентской стороны
-    # Значение - имя класса респондента
-    # (!)пространство имен указывается относительно пространства имен модуля
+    # Key - respondent alias for client side
+    # Value - respondent class name
+    # (!)the namespace is specified relative to the module namespace
     Respondent: backend\Respondent
 
-  # В корне модуля каталог 'view' будет содержать код графического интерфейса
-  view: view
-  # В каталоге 'view' корневым файлом графического интерфейса будет '_root.php',
-  # он содержит код корневого блока модуля
-  viewIndex: _root.php
+  # GUI root file will be 'view/_root.php',
+  # it contains the module root block code
+  viewIndex: view/_root.php
 
-  # Путь к директории с изображениями
-  # Можно использовать алиасы приложения - тогда путь будет построен согласно алиасу
-  # Можно начать с символа '/' - тогда путь будет считаться относительно корня сайта
+  # Image directory path
+  # You can use application aliases - then the path will be constructed according to the alias
+  # You can start with the symbol '/' - then the path will be considered relative to the root of the site
   images: assets/images
 
-  # Путь к директории с css-файлами
+  # CSS files directory path
   css: assets/css
   ```
-  [Подробнее о конфигурации модуля](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/doc/module-config.md)
+  [Module configuration details](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/doc/module-config.md)
 
-  Нижнее подчеркивание в названиях файлов - выбор автора платформы для обозначения особого статуса файлов (корневые файлы, точки входа для выполнения и т.п.), а также упрощения их визуального поиска в проводнике проекта при сортировке каталогов и файлов по алфавиту (нижнее подчеркивание находится между прописными и строчными символами). При желании все соглашения о путях меняются с помощью конфигурации.
+  Underscore in file names is the author of the platform select to indicate the special status of files (root files, code enter points etc.), and also simplify their visual search in the project explorer when sorting directories and files in alphabetical order. If desired, all path agreements are changed by configuration.
 
-* <a name="arch-block"><h3>Блоки</h3></a>
-  Блоки это обособленные фрагменты графического интерфейса. Код блоков пишется в процедурном стиле (в противовес виджетам, код которых пишется в стиле ООП, см. ниже). Могут быть представлены либо отдельным php-файлом, либо каталогом, в котором должен присутствовать php-файл с представлением (в таком случае, имя php-файла должно соответствовать имени каталога блока, при этом возможно, но не обязательно предварение имени файла нижним подчеркиванием).<br>
-  Примеры путей к файлам блоков:
+* <a name="arch-block"><h3>Blocks</h3></a>
+  The blocks are separate parts of the graphical interface. The code of the blocks is written in a procedural style (as opposed to widgets whose code is written in the OOP style, see below). They can be either a separate php file or a directory in which there should be a php file with a view (in this case, the name of the php file must match the name of the block directory and may begin with an underscore)<br>
+  Path to the block named `blockName` variants:
   * path/to/block/blockName.php
   * path/to/block/blockName/blockName.php
   * path/to/block/blockName/_blockName.php
-  Таким образом, философия блоков подразумевает их использование в ситуациях, когда для фрагмента интерфейса не нужно применение ОО-приемов (инкапсуляция, наследование, полиморфизм), т.е. это часть интерфейса специфичная для данного участка приложения (опять же в противовес виджетам). Однако это не означает, что отсутствует механизм повторного использования кода блоков.
+  Thus, the philosophy of the blocks implies their use in situations where the use of OO techniques is not necessary for an interface fragment (encapsulation, inheritance, polymorphism). This part of the GUI is specific to this part of the application. However, this does not mean that there is no mechanism for reusing the code for blocks.
 
-  Блок может иметь свой js-код, управляющий описываемым фрагментом графического интерфейса (как раз для этого нужен вариант блока-каталога). В этом случае главный исполняемый js-файл должен иметь такое же имя, как файл представления блока (но с расширением `.js` вместо `.php`).<br>
-  Пример:
+  The block can have its own JS-code that controls the described fragment of the graphical interface (just for this a directory block version is exist). In this case, the file name requirements are the same as for the view file (but with the extension `.js`).
+  Examples:
   * path/to/block/blockName/blockName.php
   * path/to/block/blockName/blockName.js
-  или:
+  or:
   * path/to/block/blockName/_blockName.php
   * path/to/block/blockName/_blockName.js
 
-  При написании кода блока доступны две контекстные переменные:
+  Two context variables are available while writing PHP block code:
   * $Module - объект модуля, к которому относится блок
   * $Block - объект самого блока, с которым можно работать как с обычным виджетом класса `lx\Box`
 
-  Блоки строятся из виджетов. Блоки могут включать в себя другие блоки посредством вызова рендеринга в коде. Пример:
+  При написании JS-кода блока доступны три контекстные переменные:
+  * Module - the module object to which the block belongs
+  * Block - the object of the block itself. You can work with it like this is instance of `lx\Box`
+  * clientParams - an object with fields that can be set in PHP when a block is loaded into an element
+
+  Blocks are built from widgets. Blocks can include other blocks by invoking rendering. Example:
   ```php
-  // Создим виджет
+  // Make a widget
   $menu = new lx\Box($menuConfig);
 
-  // Виджет добавляется внутрь другого виджета
+  // The widget is added inside another widget
   $button = $menu->add(lx\Button::class, $buttonConfig);
 
-  // Добавим пару виджетов, чтобы вложить в них блоки
+  // Add a couple of widgets to put blocks into them
   $box1 = new lx\Box($config1);
   $box2 = new lx\Box($config2);
 
-  // Вкладываем блок - в данном случае имя это путь относительно файла описываемого
-  // в данный момент блока
-  // Можно использовать алиасы приложения
-  // Если путь начать с '/', то он считается относительно корня сайта
+  // Insert the block - in this case the name is the path relative to the code file
+  // You can use application aliases
+  // If the path starts with '/', then it is considered relative to the root of the site.
   $box1->setBlock('blockName1');
 
-  // Вкладываем еще один блок - указываем конфигурацию
-  // @param path - тот же путь, что в предыдущем случае
-  // @param renderParams - массив параметров, которые будут доступны в качестве переменных
-  //                       в файле, описывающем вкладываемый блок
-  // @param clientParams - массив параметров, которые будут доступны в js-коде блока
-  //                       на стороне клиента
+  // Insert one more block and specify the configuration
+  // @param path - the same path as in the previous case
+  // @param renderParams - array of parameters that will be available as variables
+  //                       in the file describing the embed block
+  // @param clientParams - array of parameters that will be available in the client-side
+  //                       block js-code in the context object 'clientParams'
   $box2->setBlock([
     'path' => 'blockName2',
     'renderParams' => [],
     'clientParams' => [],
   ]);
 
-  // Добавление блока: $blockName - имя блока, $config - конфигурация виджета,
-  // в который срендерится блок
+  // Block adding: $blockName - the block name, $config - configuration for widget
+  // in which the block is being rendered
   $Block->addBlock($blockName, $config);
 
-  // Добавление нескольких блоков
+  // Several blocks adding
   $Block->addBlocks([
     $blockName1 => $config,
     $blockName2 => $config,
   ]);
 
-  // Добавление нескольких блоков-попапов - они будут срендерены в виджет lx\ActiveBox
-  // и изначально скрыты
+  // Several blocks-popups adding 
+  // they will be rendered to the lx\ActiveBox widget and initially hidden
   $Block->addPopups([
     $popupName1 => $config,
     $popupName2 => $config,
   ]);
 
-  // Очень просто написать метод для сервиса, который будет рендерить часто используемые блоки:
-  // Получаем сервис, имеющий метод рендеринга содержащихся в нем блоков
+  // It is very easy to write a method for a service that will render frequently used blocks:
+  // Get such a service
   $tools = \lx::getService('lx/lx-tools');
-  // Рендерим пару блоков в текущий блок
+  // Render a couple of blocks into the current block
   $tools->renderBlock('inputPopup');
   $tools->renderBlock('confirmPopup');
   ```
 
-  При выполнении js-кода блока в браузере, доступно пространство имен родительского блока, но недоступно пространство имен вложенных блоков. Например, в блок `A` вложен блок `B`, в блок `B` вложен блок `C`: `A -> B -> C`. В блоках объявлены соответственно переменные `a`, `b` и `c`. Тогда в блоке `A` будет доступна только переменная `a`. В блоке `B` будут доступны переменные `a` и `b`. В блоке `C` будут доступны переменные `a`, `b` и `c`.
 
-  Корневой блок модуля находится в его каталоге представления. Имена каталога представления и файла корневого блока задаются в lx-конфигурации модуля.
 
-* <a name="arch-widget"><h3>Виджеты</h3></a>
-  Виджеты это узкофункциональные фрагменты графического интерфейса. Код виджетов пишется в стиле ООП (в противовес блокам).<br>
-  Механизм работы виджетов имеет существенные особенности:
-  * Экземпляр виджета можно создать как на серверной стороне, так и на клиентской
-  * Экземпляр виджета, созданный на серверной стороне, инициирует создание экземпляра на клиентской стороне
-  * Код виджета представлен двумя классами - один на стороне сервера (пишется на PHP), второй на стороне клиента (пишется на JS)
-  * PHP и JS классы виджета должны находиться в отдельных файлах, в общем каталоге, пример:
+  When the block js code is executed in the browser, the execution context of the parent block is available, but execution contexts of the nested blocks are not available. For example, the `B` block is nested in the` A` block, the `C` block is nested in the` B` block: `A -> B -> C`. In the blocks, the variables `a`,` b` and `c` are declared respectively. Then in the `A` block only the variable `a` will be available. The variables `a` and `b` will be available in the `B` block. The variables` a`, `b` and` c` will be available in the `C` block.
+
+  The path to the module root block is specified in the module lx-configuration by the key `view`.
+
+* <a name="arch-widget"><h3>Widgets</h3></a>
+  Widgets are specialized parts of the graphical interface. The widget code is written in OOP style (as opposed to blocks).<br>
+  The mechanism of the widget has significant features:
+  * The widget instance can be created both on the server side and on the client side
+  * Creating a widget on the server side, initiates the creation of an instance on the client side
+  * The widget code is represented by two classes - one on the server side (PHP code), the second on the client side (JS code)
+  * Widget classes (PHP and JS) should be in separate files in a shared directory. Example:
     * path/to/widget/MyWidget/MyWidget.php
     * path/to/widget/MyWidget/MyWidget.js
-    или:
+    or:
     * path/to/widget/MyWidget/_MyWidget.php
     * path/to/widget/MyWidget/_MyWidget.js
-    Имя класса такого виджета должно соответствовать имени каталога 'MyWidget'.
-    Код на PHP:
+    The class name of such widget must match the directory name `MyWidget`.
+    PHP code:
     ```php
     <?php
 
@@ -371,47 +374,47 @@
 
     class MyWidget extends Box
     {
-      // ... код
+      // ... code
     }
     ```
-    Код на JS:
+    JS code:
     ```js
     class MyWidget extends lx.Box #lx:namespace nmsp.example
     {
-      // ... код
+      // ... code
     }
     ```
-  * Конструктор виджета принимает конфигурацию в виде ассоциативного массива. Для легкого поиска на стороне клиента виджета, созданного на серверной стороне, важным параметром конфигурации является `key`.
-  * Экземпляр виджета на стороне сервера поддерживает создание динамических свойств в стиле JS. Эти свойства будут доступны у экземпляра на стороне клиента.
-  Пример:
-  Код PHP:
+  * A widget constructor takes a configuration as an associative array. Configuration parameter `key` is important for easy search on the client side.
+  * A server-side widget instance supports creation of JS-style dynamic properties. These properties will be available on the client side.
+  Example:
+  PHP code:
   ```php
-  // Создаем виждет с ключом
+  // Make a widget with a key
   $button = new lx\Button(['key' => 'myButton']);
 
-  // Добавим динамическое свойство
+  // Add a dynamic property
   $button->testField = 'some text';
   ```
-  Код JS:
+  JS code:
   ```js
-  // Получаем экземпляр виджета lx.Button по ключу
-  // Оператор "->>" означает поиск виджета по ключу на любом уровне вложенности дерева виджетов
+  // Get the widget instance by the key
+  // Operator "->>" means widget finding by the key
   const myButton = Module->>myButton;
 
-  // Проверим динамическое свойство, в консоли увидим 'some text'
+  // By checking the dynamic property we can see 'some text' in the console
   console.log(myButton.testField);
   ```
-  Таким образом, философия виджетов подразумевает использование их для описания наиболее часто используемых, узкофункциональных и универсаных фрагментов графического интерфейса. Можно провести аналогию - если блоки это здания, то виджеты - кирпичи.
+  Thus, the philosophy of widgets involves using them to describe the most frequently used and universal fragments of the graphical interface. You can draw an analogy - if the blocks are buildings, the widgets are bricks.
 
-* <a name="arch-respondent"><h3>Респонденты</h3></a>
-  Респонденты это функциональные элементы модуля. Фактически являются php классами. Представляют собой ajax-контроллеры, которые отдают данные клиентской части модуля.
-  Пример респондента:
-  * Определение в конфигурации модуля
+* <a name="arch-respondent"><h3>Respondents</h3></a>
+  Respondents are functional elements of a module. In fact, are php classes. They are AJAX-controllers that give data to the client part of a module.
+  Example:
+  * Definition in the module configuration
     ```yaml
     respondents:
       Respondent: backend\Respondent
     ```
-  * Код респондента (согласно приведенной конфигурации должен находиться в файле `backend/Respondent.php` относительно корня модуля)
+  * Respondent code (according to the given configuration, it should be in the file `backend/Respondent.php` relative to the module root)
     ```php
     <?php
 
@@ -425,29 +428,29 @@
       }
     }
     ```
-  * Использование респондента в js-коде модуля
+  * Using respondent in the JS code
     ```js
     ^Respondent.test() : (result) => {
-      // result содержит строку 'Hello from server'
+      // result contains string 'Hello from server'
       console.log(result);
     };
     ```
 
 
 <a name="cli"><h2>CLI</h2></a>
-Приложение поддерживает интерфейс командной строки.<br>
-Чтобы его запустить нужно перейти в директорию `path\to\project\lx` и выполнить команду `php lx cli`.<br>
-Команда `\h` (или `help`) отобразит список доступных команд.
+The application supports command line interface.<br>
+You may run it by going to the directory `path\to\project\lx` and executing the command `php lx cli`.<br>
+The command `\h` (or `help`) display a list of available commands.
 
-Создадим свой сервис. Для этого введем команду `\cs` (или `create-service`).<br>
-Нам предложат ввести имя сервиса. Введем что-то вроде `i-am-vendor/my-service`.<br>
-Так как в конфигурации приложения указано несколько директорий для пакетов (и сервисов в частности), нам предложат выбрать нужную директорию. Выберем вторую (services) - вводим `2`.<br>
-Готово!<br>
-По указанному адресу можно проверить что именно создалось, сверить с описанной в этой документации инфраструктурой сервиса.
+Let's create your service. To do this, enter the command `\cs` (or `create-service`).<br>
+We will be prompted to enter the name of the service. Let's enter something like `i-am-vendor/my-service`.<br>
+Since the application configuration contains several directories for packages (and services in particular), we will be asked to select the desired directory. Let's select the second (services) - enter `2`.<br>
+Done!<br>
+At the specified address you can check what exactly was created, verify with the service infrastructure described in this documentation.
 
-Теперь создадим в сервисе модуль. Для этого перейдем в сервис. Сделать это можно несколькими путями, например введем команду `\g i-am-vendor/my-service` (если назвали сервис по-своему - используйте свое название). Признаком того, что мы перешли в сервис является смена `lx-cli<app>` на `lx-cli<service:i-am-vendor/my-service>`. Другой способ попасть в сервис - по индексу. Узнать индекс можно командой `\sl` - будет отображен список имеющихся сервисов, порядковый номер сервиса и есть его индекс. Например, если индекс 2, то перейти к сервису можно командой `\g -i=2`.<br>
-Наконец создаем модуль командой `\cm`. Нас снова попросят ввести имя, вводим, например, `myModule`.<br>
-Это все!<br>
-Модуль создан, по указанному адресу можно проверить что именно создалось, сверить с описанной в этой документации инфраструктурой модуля.
+Now let's create your module in the service. At first we need enter the service. Enter the command `\g i-am-vendor/my-service` (use your name if you called the service in your own way). The console location `lx-cli<app>` should change to `lx-cli<service:i-am-vendor/my-service>`. Another way to enter a service is using its index. You can find out a service index by command `\sl`. You will see numbered list of services. Each number is a service index. So in case of index is 2 you can enter the service by command `\g -i=2`.<br>
+Finaly we can create a new module by command `\cm`. We will again be asked to enter a name. Enter something like `myModule`.<br>
+It's done!<br>
+The module has created. At the specified address you can check what exactly was created, verify with the module infrastructure described in this documentation.
 
-Теперь можно узнать подробнее как разрабатывать свое приложение по [ссылке](https://github.com/epicoon/lx-doc-articles/blob/master/ru/app-dev/expl1/main.md).
+Now you can study the way to develop your own application by [link](https://github.com/epicoon/lx-doc-articles/blob/master/en/app-dev/expl1/main.md).

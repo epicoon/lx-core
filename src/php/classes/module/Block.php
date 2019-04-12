@@ -17,8 +17,7 @@ class Block extends Box {
 		$lx = [],    // пояснительная записка к содержимому
 
 		$blocks = [],  // вложенные блоки
-		$js = null,
-		$bootstrap = null;
+		$js = null;
 
 	public function __construct($path) {
 		$this->parent = false;
@@ -78,13 +77,6 @@ class Block extends Box {
 	 * */
 	public function setJs($code) {
 		$this->js = $code;
-	}
-
-	/**
-	 *
-	 * */
-	public function setBootstrap($code) {
-		$this->bootstrap = $code;
 	}
 
 	/**
@@ -333,7 +325,6 @@ class Block extends Box {
 		if ($hasContent($this->htmlContent)) $result['html'] = $this->htmlContent;
 		if ($hasContent($this->lx)) $result['lx'] = $this->lx;
 		if ($hasContent($this->js)) $result['js'] = $this->js;
-		if ($hasContent($this->bootstrap)) $result['bs'] = $this->bootstrap;
 		return $result;
 	}
 }

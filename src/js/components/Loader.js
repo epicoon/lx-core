@@ -509,12 +509,6 @@ class BlockBuilder {
 	unpackJs(info) {
 		let clientParams = this.block.lxExtract('ibp');
 
-		// Если есть js-код для немедленного запуска
-		if (info.bs) {
-			let f = new Function('Block, clientParams', info.bs);
-			f(this.block, clientParams);
-		}
-
 		// Если есть js-код для запуска после загрузки блока
 		if (info.js) {
 			this.node.js = info.js;

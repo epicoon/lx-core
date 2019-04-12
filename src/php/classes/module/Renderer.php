@@ -149,19 +149,6 @@ class Renderer {
 
 				$b->setJs($code);
 			}
-
-			$bootstrap = $path . '/_bootstrap.js';
-			if (file_exists($bootstrap)) {
-				$f = new File($bootstrap);
-
-				$code = JsCompiler::compileCode($f->get(), $f->getPath());
-
-				//todo!!!!!!!!!!!!!!!!
-				$code = Minimizer::clearSpacesKOSTYL($code);
-				$code = preg_replace('/"/', '\"', $code);
-
-				$b->setBootstrap($code);
-			}
 		}
 
 
