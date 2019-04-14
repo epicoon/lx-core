@@ -76,7 +76,7 @@ This repository contains platform core. The core is enough for web application d
 3. To deploy the platform in the project run php-script `vendor/lx/lx-core/lx-install`.<br>
    As a result in the root of the project follow directories will be created:
    * lx - directory for platform configuration and system files. Mandatory.
-   * services - catalog for application services (details below). It contains the first service for the application.. Optional. Work with services is configured in the application configuration.
+   * services - catalog for application services (details below). Optional. Work with services is configured in the application configuration.
 4. It remains to trigger the launch of the lx application in your code.
    To do this, add the code in the index file:
    ```php

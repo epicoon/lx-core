@@ -16,8 +16,12 @@ require_once(__DIR__ . '/src/php/app.php');
 
 lx::installInitialisation();
 
-// Создаем в корне папку lx
 $site = new lx\Directory(lx::$conductor->site);
+
+// Создаем в корне папку services
+$lx = $site->getOrMakeDirectory('services');
+
+// Создаем в корне папку lx
 $lx = $site->getOrMakeDirectory('lx');
 $system = $lx->getOrMakeDirectory('.system');
 

@@ -31,7 +31,7 @@ function requestProcess(ctx, url, data={}) {
 
 	if (activeUrl.useServer) {
 		var request = new lx.Request(url, data);
-		request.setMethod('get');
+		// request.setMethod('get');
 		request.setModule(ctx.module);
 		request.setHandlers(activeUrl.handlers);
 		request.send();
@@ -47,7 +47,7 @@ function renewLocationHash(ctx) {
 		let activeUrl = ctx.activeUrl[url];
 		if (activeUrl.state === false) continue;
 
-		let params = lx.Dialog.requestParamsToString(activeUrl.state);
+		let params = lx.Dialog.requestParamsToString(activeUrl.state.data);
 		let fullUrl = params == '' ? url : url + '?' + params;
 		arr.push(fullUrl);
 	}
@@ -71,6 +71,6 @@ function checkUrlInAction(ctx, url) {
 		if (currentUrl != url) continue;
 
 		var data = lx.Dialog.requestParamsFromString(urlInfo[1]);
-		requestProcess(ctx, url, data);
+		requestProcess(ctx, url, {params:{}, data});
 	}
 }

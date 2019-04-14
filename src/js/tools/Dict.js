@@ -6,6 +6,12 @@ class Dict #lx:namespace lx {
 	get isArray() { return true; }
 	get isAssoc() { return true; }
 
+	get len() {
+		var count = 0;
+		for (var i in this) count++;
+		return count;
+	}
+
 	each(func) {
 		var context = null;
 		if (func.isArray) {
@@ -19,12 +25,6 @@ class Dict #lx:namespace lx {
 		var result = [];
 		for (var key in this) result.push(key);
 		return result;
-	}
-
-	len() {
-		var count = 0;
-		for (var i in this) count++;
-		return count;
 	}
 
 	nth(index) {

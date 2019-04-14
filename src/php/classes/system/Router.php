@@ -41,8 +41,11 @@ class Router {
 			}
 
 			if ($routeKey{0} == '!') {
-				$serviceRoute = (explode(preg_replace('/^!/', '', $routeKey), $route))[1];
-				$serviceRoute = preg_replace('/^\//', '', $serviceRoute);
+				$serviceRoute = preg_replace('/^!/', '', $routeKey);
+				if ($serviceRoute != '') {
+					$serviceRoute = (explode($serviceRoute, $route))[1];
+					$serviceRoute = preg_replace('/^\//', '', $serviceRoute);
+				}
 				if ($serviceRoute == '') {
 					$serviceRoute = '/';
 				}
@@ -168,12 +171,12 @@ class Router {
 	 * */
 	private function validateRouteKey($routeKey, $route) {
 		if ($routeKey{0} == '~') {
-			$reg = preg_replace('/^~/', '/', $routeKey) . '/';
+			$reg = preg_replace('/^~/', '/', str_replace('/', '\/', $routeKey)) . '/';
 			return preg_match($reg, $route);
 		}
 
 		if ($routeKey{0} == '!') {
-			$reg = preg_replace('/^!/', '/^', $routeKey) . '/';
+			$reg = preg_replace('/^!/', '/^', str_replace('/', '\/', $routeKey)) . '/';
 			return preg_match($reg, $route);
 		}
 

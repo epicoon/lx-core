@@ -125,7 +125,9 @@ lx.Module = function(info, block) {
 		 * */
 		activeRequest: function(url, data={}) {
 			if (this.activeRequestList)
-				this.activeRequestList.request(url, data);
+				//todo params не срастается с ними логика - при перезагрузке страницы
+				// параметры не сохраняются, а data в хэше остается
+				this.activeRequestList.request(url, {params:this.params, data});
 		},
 
 		// todo селекторы
