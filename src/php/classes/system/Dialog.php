@@ -7,11 +7,6 @@ namespace lx;
  * */
 class Dialog {
 	/**
-	 * regerg
-	 * */
-	public $test;
-
-	/**
 	 * URL
 	 * */
 	private $_url = null;
@@ -37,6 +32,23 @@ class Dialog {
 			// сюда попадаем в случае AJAX-запроса
 			$this->_ajax = true;
 		}
+
+
+		// var_dump($this->headers());
+
+		/*
+		Из браузера прилетает такое:
+		<b>array</b> <i>(size=9)</i>
+		'COOKIE' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'y-scroll=0; treeState=0%2C4%2C8%2C22; lang=en-EN'</font> <i>(length=48)</i>
+		'ACCEPT_LANGUAGE' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'</font> <i>(length=35)</i>
+		'ACCEPT_ENCODING' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'gzip, deflate'</font> <i>(length=13)</i>
+		'ACCEPT' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,* / *;q=0.8'</font> <i>(length=85)</i>
+		'USER_AGENT' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'</font> <i>(length=105)</i>
+		'UPGRADE_INSECURE_REQUESTS' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'1'</font> <i>(length=1)</i>
+		'CACHE_CONTROL' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'max-age=0'</font> <i>(length=9)</i>
+		'CONNECTION' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'keep-alive'</font> <i>(length=10)</i>
+		'HOST' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'lx_loc'</font> <i>(length=6)</i>
+		*/
 	}
 
 	/**

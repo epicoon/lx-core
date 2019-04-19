@@ -4,12 +4,15 @@ return [
 	'AutoloadMap' => 'classes/system/autoload',
 
 	'Conductor' => 'classes/system',
-	'JsCompiler' => 'classes/system/JsCompiler',
 	'Dialog' => 'classes/system',
 	'Router' => 'classes/system',
-	'Respondent' => 'classes/system',
-	'Console' => 'classes/system',
+	'ResponseSource' => 'classes/system',
+	'Response' => 'classes/system',
+	'ComponentList' => 'classes/system',
+	'User' => 'classes/system',
+	'JsCompiler' => 'classes/system/JsCompiler',
 	'ModuleEditor' => 'classes/system/editor',
+	'Console' => 'classes/system',
 	'ServiceEditor' => 'classes/system/editor',
 
 	'Language' => 'classes/i18n',
@@ -23,8 +26,6 @@ return [
 	'ServiceController' => 'classes/package',
 	'ServiceConductor' => 'classes/package',
 	'ServiceMigrationMap' => 'classes/package/system',
-	'ServiceResponse' => 'classes/package/response',
-	'RenderServiceResponse' => 'classes/package/response',
 
 	'ModuleDirectory' => 'classes/module',
 	'ModuleBrowser' => 'classes/module',
@@ -33,6 +34,7 @@ return [
 	'ModuleBuilder' => 'classes/module',
 	'ModuleConductor' => 'classes/module',
 	'Renderer' => 'classes/module',
+	'Respondent' => 'classes/module',
 
 	'Model' => 'classes/model',
 	'ModelBrowser' => 'classes/model',
@@ -94,4 +96,7 @@ return [
 	'StreamPositioningStrategy' => '../widgets/Box/positioningStrategiesPhp',
 	'GridPositioningStrategy' => '../widgets/Box/positioningStrategiesPhp',
 	'SlotPositioningStrategy' => '../widgets/Box/positioningStrategiesPhp',
+
+	'AuthenticationInterface' => 'interfaces',
+	'AuthorizationInterface' => 'interfaces',
 ];

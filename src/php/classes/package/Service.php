@@ -280,6 +280,30 @@ class Service {
 	/**
 	 *
 	 * */
+	public function moduleExists($moduleName) {
+		$dynamicModules = $this->getConfig('service.dynamicModules');
+		if ($dynamicModules && array_key_exists($moduleName, $dynamicModules)) {
+			$info = $dynamicModules[$moduleName];
+			if (is_array($info)) {
+				if (isset($info['method'])) {
+					return method_exists($this, $info['method']);
+				}
+
+				return isset($info['prototype']);
+			} else {
+				//todo - если не массив?
+				return false;
+			}
+		}
+
+		// Поиск статических модулей
+		$modulePath = $this->conductor->getModulePath($moduleName);
+		return $modulePath !== null;
+	}
+
+	/**
+	 *
+	 * */
 	public function getModule($moduleName, $params = []) {
 		// Карта динамических модулей
 		/*

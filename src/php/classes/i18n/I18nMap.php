@@ -138,7 +138,7 @@ class I18nMap extends DataObject {
 	 *
 	 * */
 	private function mapMerge($map) {
-		$codes = \lx::$language->codes;
+		$codes = \lx::$components->language->codes;
 
 		foreach ($map as $key => $value) {
 			if (!in_array($key, $codes)) {

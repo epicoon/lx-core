@@ -39,7 +39,7 @@ class I18nHelper {
 	 * @param $mapExtends дополнительные карты переводов
 	 * */
 	public static function translate($key, $map, $mapExtends = []) {
-		$lang = \lx::$language->current;
+		$lang = \lx::$components->language->current;
 
 		if (array_key_exists($lang, $map) && array_key_exists($key, $map[$lang])) {
 			return $map[$lang][$key];

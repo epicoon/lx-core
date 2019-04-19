@@ -3,15 +3,18 @@
 namespace lx;
 
 abstract class Model {
-	private static $_service = null;
-	private static $_manager = null;
+	protected static $_service = null;
+	protected static $_manager = null;
+	protected static $_name = null;
 
-	protected $data;
+	protected $data = null;
 
 	public function __construct($data = null) {
 		if ($data === null) {
 			$manager = self::manager();
-			$this->data = $manager->newModel();
+			if ($manager) {
+				$this->data = $manager->newModel();
+			}
 		} else {
 			//todo if ($data->getManager() !== self::manager()) ...
 
@@ -27,6 +30,10 @@ abstract class Model {
 	public function __set($prop, $val) {
 		if ($this->data->hasField($prop)) $this->data->$prop = $val;
 		//todo свои поля?
+	}
+
+	public function setData($data) {
+		$this->data = $data;
 	}
 
 	public function getData() {
@@ -75,21 +82,43 @@ abstract class Model {
 	public function drop()             { $this->data->drop();                 }
 
 	public static function service() {
-		if (self::$_service === null) {
+		if (static::$_service === null) {
 			$serviceName = ClassHelper::defineService(static::class);
 			if ($serviceName) {
-				self::$_service = Service::create($serviceName);
+				static::$_service = Service::create($serviceName);
 			}
 		}
-		return self::$_service;
+		return static::$_service;
+	}
+
+	public static function setService($service) {
+		static::$_service = $service;
+	}
+
+	public static function name() {
+		if (static::$_name === null) {
+			if (defined(static::class . '::MODEL_NAME')) {
+				static::$_name = static::MODEL_NAME;
+			}
+		}
+
+		return static::$_name;
+	}
+
+	public static function setName($name) {
+		static::$_name = $name;
 	}
 
 	public static function manager() {
-		if (self::$_manager === null) {
+		if (static::$_manager === null) {
 			$service = self::service();
-			self::$_manager = $service->modelProvider->getManager(static::MODEL_NAME);
+			$name = self::name();
+			if ($service && $name) {
+				static::$_manager = $service->modelProvider->getManager(self::name());
+			}
 		}
-		return self::$_manager;
+
+		return static::$_manager;
 	}
 
 	private static function getForModelsData($models) {

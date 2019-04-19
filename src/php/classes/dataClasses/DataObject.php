@@ -4,7 +4,7 @@ namespace lx;
 
 class DataObject {
 	protected
-		$nullCash = null,
+		$nullCache = null,
 		$_prop = [];
 
 	public static function create($arr=[]) {
@@ -29,8 +29,8 @@ class DataObject {
 			return $this->$prop;
 		if (array_key_exists($prop, $this->_prop))
 			return $this->_prop[$prop];
-		$this->nullCash = null;
-		return $this->nullCash;
+		$this->nullCache = null;
+		return $this->nullCache;
 	}
 
 	/*

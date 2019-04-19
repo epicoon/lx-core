@@ -41,11 +41,11 @@
 	public static function runConsole($argv)
 
 5. Сборка ответа
- 	private static function getResponse()
+ 	private static function runProcess()
 	private static function compileJsCore()
 	private static function compileJsBootstrap()
 	private static function compileJsMain()
-	private static function ajaxResponse()
+	private static function ajaxRunProcess()
 	private static function serviceAjaxResponse()
 	private static function moduleAjaxResponse()
 	private static function toJS($str)
@@ -84,10 +84,13 @@ class lx {
 	/**
 	 * Системные компоненты
 	 * */
+	public static $components;
+
 	public static
 		$dialog,
-		$conductor,
-		$language,
+		$conductor;
+
+	public static
 		$data;
 
 	private static
@@ -295,6 +298,19 @@ class lx {
 		return self::getService($serviceName)->conductor->getModulePath($moduleName);
 	}
 
+	/**
+	 * Получение менеджера модели из сервиса
+	 * */
+	public function getModelManager($serviceName, $modelName = null) {
+		if ($modelName === null) {
+			$arr = explode('.', $serviceName);
+			$serviceName = $arr[0];
+			$modelName = $arr[1];
+		}
+
+		return self::getService($serviceName)->getModelManager($modelName);
+	}
+
 
 	//=========================================================================================================================
  	/* * *  3. Вспомогательные и информационные методы  * * */
@@ -338,18 +354,15 @@ class lx {
 
 		// Если удастся автоматически ответить на AJAX-запрос, то хорошо (при наличии заголовка lx-type)
 		if (self::$dialog->isAjax()) {
-			if (self::ajaxResponse()) {
+			// if (self::ajaxResponse()) {
+			if (self::ajaxRunProcess()) {
 				return;
 			}
 		}
 
-		$response = self::getResponse();
-		if ($response === false) {
+		if (!self::runProcess()) {
 			require_once(__DIR__ . '/stdResponses/404.php');
-			return;
 		}
-
-		$response->send();
 	}
 
 	/**
@@ -398,10 +411,84 @@ class lx {
  	/**
  	 * Роутинг на уровне приложения
  	 * */
- 	private static function getResponse() {
+ 	private static function runProcess() {
+ 		$router = self::getRouter();
+		if ($router === null) {
+			return false;
+		}
+
+		$responseSource = $router->route();
+		if (!$responseSource) {
+			return false;
+		}
+
+		$responseSource = self::checkAccess($responseSource);
+		if (!$responseSource) {
+			return false;
+		}
+
+		$response = new lx\Response($responseSource);
+		$response->send();
+		return true;
+ 	}
+
+ 	/**
+ 	 *
+ 	 * */
+ 	private static function checkAccess($responseSource) {
+		// Если нет компонента "пользователь"
+		if (!self::$components->user) {
+			return $responseSource;
+		}
+
+		/*
+		1. Пытаемся аутентифицировать юзера
+			- если удалось - модель пользователя будет в компоненте "user"
+			- если не удалось - компонент "user" определяется как гость
+		2. Пытаемся авторизовать права юзера на ресурс:
+			- пользователь гость
+				- ресурс доступен
+					=> отдаем ресурс
+				- ресурс недоступен
+					- если запрос из браузера
+						=> инициация аутентификации
+					- если запрос не из браузера
+						=> ошибка 403 "вам недостаточно прав"
+			- пользователь аутентифицирован
+				- ресурс доступен
+					=> отдаем ресурс
+				- ресурс недоступен
+					=> ошибка 403 "вам недостаточно прав"
+		*/
+
+		// Если есть компонент аутентификации, получим пользователя
+		if (self::$components->authenticationGate) {
+			self::$components->authenticationGate->authenticateUser();
+		}
+
+
+		// var_dump( self::$components->user );
+
+ 		//todo ПОКА ПРОСТО ВЕРНЕМ
+ 		return $responseSource;
+
+
+		// Если есть компонент авторизации, проверим права пользователя
+		if (self::$components->authorizationGate) {
+			return self::$components->authorizationGate->checkAccess(
+				self::$components->user,
+				$responseSource
+			);
+		}
+ 	}
+
+ 	/**
+ 	 * Получить экземпляр роутера уровня приложения
+ 	 * */
+ 	private static function getRouter() {
 		$routerData = self::getConfig('router');
 		if (!$routerData) {
-			return false;
+			return null;
 		}
 
 		$router = null;
@@ -429,11 +516,7 @@ class lx {
 			}
 		}
 
-		if ($router === null) {
-			return false;
-		}
-
-		return $router->route();
+		return $router;
  	}
 
 	/**
@@ -479,7 +562,7 @@ class lx {
 	/**
 	 * Формирование ajax-ответа
 	 * */
-	private static function ajaxResponse() {
+	private static function ajaxRunProcess() {
 		switch (self::$dialog->header('lx-type')) {
 			// Ajax-запрос, произошедший в контексте какого-то модуля
 			case 'module': self::moduleAjaxResponse(); break;
@@ -613,11 +696,15 @@ class lx {
 		$aliases = self::getConfig('aliases');
 		if (!$aliases) $aliases = [];
 		self::$conductor->setAliases($aliases);
+		self::$dialog = new lx\Dialog();
 
-		self::retrieveLanguage();
+		self::$components = new lx\ComponentList();
+		self::$components->load(self::getConfig('components'), [
+			'language' => lx\Language::class,
+			'user' => lx\User::class,
+		]);
 
 		self::$data = new lx\DataObject();
-		self::$dialog = new lx\Dialog();
 	}
 
 	/**
@@ -675,17 +762,5 @@ class lx {
 	private static function loadConfig() {
 		$path = self::$conductor->appConfig;
 		self::$_config = require($path);
-	}
-
-	/**
-	 * Загрузка конфига языка
-	 * */
-	private static function retrieveLanguage() {
-		$config = lx\ClassHelper::prepareConfig(
-			self::getConfig('language'),
-			lx\Language::class
-		);
-
-		self::$language = new $config['class']($config['params']);
 	}
 }

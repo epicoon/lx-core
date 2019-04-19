@@ -154,7 +154,6 @@ class Autoloader {
 	 * */
 	private function getClassPathWithNamespaceMap($className) {
 		$namespaces = $this->map->namespaces;
-
 		foreach ($namespaces as $namespace => $data) {
 			$reg = '/^' . $namespace . '/';
 			$reg = str_replace('\\', '\\\\', $reg);

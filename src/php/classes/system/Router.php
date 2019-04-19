@@ -20,65 +20,25 @@ class Router {
 	}
 
 	/**
-	 * Роутер уровня приложения определяет на какой сервис перенаправить запрос и передает управление запросом на роутер сервиса
+	 * Роутер уровня приложения определяет на какой сервис перенаправить запрос
+	 * передает управление запросом на роутер сервиса
+	 * возвращает информацию о запрашиваемом ресурсе
 	 * */
 	public function route() {
 		$map = $this->getMap();
-		$route = \lx::$dialog->route();
-		$serviceRoute = $route;
-		foreach ($map as $routeKey => $serviceData) {
-			// Проверка мода
-			if (is_array($serviceData)) {
-				if (isset($serviceData['on-mode'])) {
-					if (!\lx::isMode($serviceData['on-mode'])) {
-						continue;
-					}
-				}
-			}
-
-			if (!$this->validateRouteKey($routeKey, $route)) {
+		foreach ($map as $routeKey => $data) {
+			$routeData = $this->determineRouteData($data);
+			if (!$this->validateRouteData($routeData)) {
 				continue;
 			}
 
-			if ($routeKey{0} == '!') {
-				$serviceRoute = preg_replace('/^!/', '', $routeKey);
-				if ($serviceRoute != '') {
-					$serviceRoute = (explode($serviceRoute, $route))[1];
-					$serviceRoute = preg_replace('/^\//', '', $serviceRoute);
-				}
-				if ($serviceRoute == '') {
-					$serviceRoute = '/';
-				}
+			$route = $this->determineRoute($routeKey, \lx::$dialog->route());
+			if (!$route) {
+				continue;
 			}
 
-			$serviceName = null;
-			if (is_string($serviceData)) {
-				return $this->responseByService($serviceData, $serviceRoute);
-			}
-
-			if (!is_array($serviceData)) {
-				return false;
-			}
-
-			if (isset($serviceData['service'])) {
-				return $this->responseByService($serviceData['service'], $serviceRoute);
-			}
-
-			if (isset($serviceData['service-route'])) {
-				return $this->responseByServiceRoute($serviceData['service-route']);
-			}
-
-			if (isset($serviceData['service-controller'])) {
-				return $this->responseByServiceController($serviceData['service-controller']);
-			}
-
-			if (isset($serviceData['service-action'])) {
-				return $this->responseByServiceAction($serviceData['service-action']);
-			}
-
-			if (isset($serviceData['service-module'])) {
-				return $this->responseByServiceModule($serviceData['service-module']);
-			}
+			$serviceRouteData = $this->determineServiceRouteData($routeData, $route);
+			return ServiceRouter::route($serviceRouteData);
 		}
 
 		return false;
@@ -92,78 +52,79 @@ class Router {
 	/**
 	 *
 	 * */
-	private function responseByService($serviceName, $route) {
-		$service = Service::create($serviceName);
-		if ($service === null) {
-			return false;
+	private function determineServiceRouteData($routeData, $route) {
+		if (isset($routeData['service'])) {
+			return [
+				'service' => $routeData['service'],
+				'route' => $route,
+			];
 		}
 
-		$serviceRouter = $service->router();
-		return $serviceRouter->route($route);
+		if (isset($routeData['service-route'])) {
+			preg_match_all('/^([^:]*?):(.*?)$/', $routeData['service-route'], $matches);
+			return [
+				'service' => $matches[1][0],
+				'route' => $matches[2][0],
+			];
+		}
+
+		if (isset($routeData['service-controller'])) {
+			preg_match_all('/^([^:]*?):(.*?)$/', $routeData['service-controller'], $matches);
+			return [
+				'service' => $matches[1][0],
+				'controller' => $matches[2][0],
+			];
+		}
+
+		if (isset($routeData['service-action'])) {
+			preg_match_all('/^([^:]*?):(.*?)$/', $routeData['service-action'], $matches);
+			return [
+				'service' => $matches[1][0],
+				'action' => $matches[2][0],
+			];
+		}
+
+		if (isset($routeData['service-module'])) {
+			preg_match_all('/^([^:]*?):(.*?)$/', $routeData['service-module'], $matches);
+			return [
+				'service' => $matches[1][0],
+				'module' => $matches[2][0],
+			];
+		}
 	}
 
 	/**
-	 * serviceName:route/in/service
+	 *
 	 * */
-	private function responseByServiceRoute($serviceRoute) {
-		preg_match_all('/^([^:]*?):(.*?)$/', $serviceRoute, $matches);
-		$serviceName = $matches[1][0];
-		if (!Service::exists($serviceName)) {
-			return false;
+	private function determineRouteData($data) {
+		if (is_string($data)) {
+			return ['service' => $data];
 		}
 
-		$service = Service::create($serviceName);
-		$route = $matches[2][0];
-		$serviceRouter = $service->router();
-		return $serviceRouter->route($route);
+		return $data;
 	}
 
 	/**
-	 * serviceName:ControllerName::actionName
+	 *
 	 * */
-	private function responseByServiceController($serviceController) {
-		preg_match_all('/^([^:]*?):(.*?)$/', $serviceController, $matches);
-		$serviceName = $matches[1][0];
-		if (!Service::exists($serviceName)) {
+	private function determineRoute($routeKey, $route) {
+		if (!$this->validateRouteKey($routeKey, $route)) {
 			return false;
 		}
 
-		$service = Service::create($serviceName);
-		$controller = $matches[2][0];
-		$serviceRouter = $service->router();
-		return $serviceRouter->responseByController($controller);
-	}
-
-	/**
-	 * serviceName:ActionName
-	 * */
-	private function responseByServiceAction($serviceAction) {
-		preg_match_all('/^([^:]*?):(.*?)$/', $serviceAction, $matches);
-		$serviceName = $matches[1][0];
-		if (!Service::exists($serviceName)) {
-			return false;
+		$serviceRoute = $route;
+		if ($routeKey{0} == '!') {
+			$serviceRoute = preg_replace('/^!/', '', $routeKey);
+			if ($serviceRoute != '') {
+				$serviceRoute = (explode($serviceRoute, $route))[1];
+				$serviceRoute = preg_replace('/^\//', '', $serviceRoute);
+			}
+			if ($serviceRoute == '') {
+				$serviceRoute = '/';
+			}
 		}
 
-		$service = Service::create($serviceName);
-		$action = $matches[2][0];
-		$serviceRouter = $service->router();
-		return $serviceRouter->responseByAction($action);
-	}
-
-	/**
-	 * serviceName:moduleName
-	 * */
-	private function responseByServiceModule($serviceModule) {
-		preg_match_all('/^([^:]*?):(.*?)$/', $serviceModule, $matches);
-		$serviceName = $matches[1][0];
-		if (!Service::exists($serviceName)) {
-			return false;
-		}
-
-		$service = Service::create($serviceName);
-		$module = $matches[2][0];
-		$serviceRouter = $service->router();
-		return $serviceRouter->responseByModule($module);
+		return $serviceRoute;
 	}
 
 	/**
@@ -181,5 +142,17 @@ class Router {
 		}
 
 		return $routeKey == $route;
+	}
+
+	/**
+	 * Проверка общих условий доступа
+	 * */
+	private function validateRouteData($routeData) {
+		// Проверка мода
+		if (isset($routeData['on-mode']) && !\lx::isMode($routeData['on-mode'])) {
+			return false;
+		}
+
+		return true;
 	}
 }

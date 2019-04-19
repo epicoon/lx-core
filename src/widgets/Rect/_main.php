@@ -162,8 +162,8 @@ class Rect extends DataObject {
 			//todo если достаточно получения родителя false, то вообще можно не переопределять геттеры и сеттеры
 			// если корневой блок-элемент модуля - у него поле родителя явно в false стоит
 			if ($this->_parent === false) {
-				$this->nullCash = null;
-				return $this->nullCash;
+				$this->nullCache = null;
+				return $this->nullCache;
 			}
 			return $this->_parent;
 		}

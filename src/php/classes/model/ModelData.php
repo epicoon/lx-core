@@ -7,7 +7,7 @@ class ModelData {
 	protected
 		$_prop = [],
 		$_oldProp = [],
-		$nullCash = null;
+		$nullCache = null;
 
 	/**
 	 *
@@ -126,8 +126,8 @@ class ModelData {
 		if (array_key_exists($prop, $this->_prop))
 			return $this->_prop[$prop];
 
-		$this->nullCash = null;
-		return $this->nullCash;
+		$this->nullCache = null;
+		return $this->nullCache;
 	}
 
 	/**

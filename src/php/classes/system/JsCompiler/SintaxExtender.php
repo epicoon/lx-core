@@ -7,6 +7,27 @@ class SintaxExtender {
 	 *
 	 * */
 	public static function applyExtendedSintax($code) {
+		// #lx:php(php-code) => mixed
+		$code = preg_replace_callback('/#lx:php(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/', function($match) {
+			$phpCode = 'return ' . $match[1] . ';';
+			$result = eval($phpCode);
+
+			if (is_string($result)) {
+				$result = "'$result'";
+			} elseif (is_array($result)) {
+				$result = JsCompiler::arrayToJsCode($result);
+			} elseif (is_object($result)) {
+				if (method_exists($result, 'toString')) {
+					$result = "'{$result->toString()}'";
+				} else {
+					$arr = json_decode(json_encode($result), true);
+					$result = JsCompiler::arrayToJsCode($arr);
+				}
+			}
+
+			return $result;
+		}, $code);
+
 		// ? >#id => lx.WidgetHelper.getById('id')
 		$code = preg_replace_callback('/\?>#(\b.+?\b)/', function($matches) {
 			return 'lx.WidgetHelper.getById(\'' . $matches[1] . '\')';

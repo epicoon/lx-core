@@ -20,10 +20,17 @@ const list = new lx.Dict({
 		service: 'lx/lx-demo'
 	}
 });
+const buts = [ Module->>cli, Module->>doc, Module->>demo ];
 
 list.each((item, key)=>{
-	Module.find(key).click(()=>{
-		if (item.box) return;
+	let but = Module.find(key);
+	but.click(()=>{
+		buts.each((a)=>a.fill('orange'));
+		but.fill('lightgreen');
+		if (item.box) {
+			lx.WidgetHelper.bringToFront(item.box);
+			return;
+		}
 		^Respondent.loadModule(key): (res)=>loadModule(item.service, item.title, key, res);
 	});
 });
