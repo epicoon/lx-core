@@ -5,6 +5,7 @@ lx.Dialog = {
 	 * Отправка запроса на сервер указанным методом
 	 * */
 	request: function(config) {
+		if (lx.auth) config = lx.auth(config);
 		return sendRequest(
 			config.method,
 			config.url,

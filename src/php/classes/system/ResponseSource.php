@@ -195,7 +195,14 @@ class ResponseSource {
 		}
 
 		$params = isset($this->data['params']) ? $this->data['params'] : null;
-		$result = \call_user_func_array([$class, $method], $params);
+		if (is_array($params)) {
+			$result = \call_user_func_array([$class, $method], $params);
+		} else {
+			$re = new \ReflectionClass($class);
+			$methodRe = $re->getMethod($method);
+			$result = $methodRe->invoke(null);
+		}
+
 		return $result;
 	}
 }

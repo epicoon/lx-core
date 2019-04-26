@@ -581,6 +581,11 @@ class lx {
 		$path = self::$conductor->getSystemPath('jsCore');
 		$code = file_get_contents($path);
 		$code = lx\JsCompiler::compileCode($code, $path);
+
+		if (self::$components->authenticationGate) {
+			$code .= self::$components->authenticationGate->getJs();
+		}
+
 		return $code;
 	}
 

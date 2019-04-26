@@ -63,9 +63,12 @@ class ServiceRouter {
 	 * */
 	protected function determineRouteData($routeData) {
 		$source = $routeData;
-		if (isset($routeData['route'])) {
-			$route = $routeData['route'];
+		if (isset($source['route'])) {
+			$route = $source['route'];
+			unset($source['route']);
+
 			$map = $this->getMap();
+			$match = false;
 			foreach ($map as $routeKey => $data) {
 				// На уровне роутера сервиса должно быть точное соответствие роута
 				if ($route != $routeKey) {
@@ -100,11 +103,21 @@ class ServiceRouter {
 							return false;
 						}
 						$source['module'] = $data['module'];
+					} elseif (isset($data['static'])) {
+						$arr = explode('::', $data['static']);
+						$source['isStatic'] = true;
+						$source['class'] = $arr[0];
+						$source['method'] = $arr[1];
 					}
 				}
+
+				$match = true;
+				break;
 			}
 
-			unset($source['route']);
+			if (!$match) {
+				return false;
+			}
 		}
 
 		return new ResponseSource($source);
