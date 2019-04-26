@@ -9,6 +9,7 @@ return [
 	'AjaxRouter' => 'classes/system',
 	'ResponseSource' => 'classes/system',
 	'Response' => 'classes/system',
+	'ApplicationComponent' => 'classes/system',
 	'ComponentList' => 'classes/system',
 	'User' => 'classes/system',
 	'JsCompiler' => 'classes/system/JsCompiler',
