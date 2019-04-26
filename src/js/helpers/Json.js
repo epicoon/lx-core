@@ -42,7 +42,8 @@ lx.Json = {
 				} else to[i] = from[i];
 			}
 		}
-		rec(data, result);
+		if (data.isArray || data.isObject) rec(data, result);
+		else result = data;
 		return JSON.stringify(result);
 	},
 	stringify: function(data) {return this.encode(data);}

@@ -4,14 +4,14 @@ namespace lx;
 
 class I18nHelper {
 	/**
-	 * @param $module модуль, в рамках которого осуществляем интернационализацию
-	 * @param $data текст для интернационализации
-	 * @param $mapExtends массив дополнительных карт для локализации
+	 * @param $data string текст для интернационализации
+	 * @param $map array массив основных переводов
+	 * @param $mapExtends array массив дополнительных карт для локализации
 	 * */
-	public static function localizeModule($module, $data, $mapExtends = []) {
+	public static function localize($data, $map, $mapExtends = []) {
 		preg_match_all('/#lx:i18n([\w\W]*?)i18n:lx#/', $data, $matches);
-		$done = [];
-		foreach ($matches[1] as $match) {
+		$keys = array_unique($matches[1]);
+		foreach ($keys as $match) {
 			$arr = preg_split('/^([^,]+?)\s*,\s*([\w\W]+)$/', $match, null, PREG_SPLIT_DELIM_CAPTURE);
 			if (count($arr) == 1) {
 				$key = trim($arr[0], '\'"');
@@ -21,16 +21,25 @@ class I18nHelper {
 				$params = trim($arr[2], ' {}');
 			}
 
-			$map = $module->i18nMap;
-			$translation = self::translate($key, $map->getFullMap(), $mapExtends);
+			$translation = self::translate($key, $map, $mapExtends);
 			if ($params) {
 				$translation = self::parseParams($translation, $params);
 			}
 
 			$data = preg_replace('/#lx:i18n'.$match.'i18n:lx#/', $translation, $data);
-			$done[] = $key;
 		}
 		return $data;
+	}
+
+	/**
+	 * @param $module модуль, в рамках которого осуществляем интернационализацию
+	 * @param $data текст для интернационализации
+	 * @param $mapExtends массив дополнительных карт для локализации
+	 * */
+	public static function localizeModule($module, $data, $mapExtends = []) {
+		$map = $module->i18nMap;
+		$fullMap = $map->getFullMap();
+		return self::localize($data, $fullMap, $mapExtends);
 	}
 
 	/**

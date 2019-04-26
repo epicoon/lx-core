@@ -1108,11 +1108,11 @@ class Rect extends DataObject {
 	}
 
 	/**
-	 * Метод возвращает имя метода, который нужно выполнить по URL. Можно переопределить у потомков, добавить проверки и т.п.
+	 * Метод возвращает имя метода, который нужно выполнить по его ключу. Можно переопределить у потомков, добавить проверки и т.п.
 	 * */
-	protected static function ajaxRoute($url) {
-		if (in_array($url, static::ajaxMethods())) {
-			return $url;
+	protected static function ajaxRoute($methodKey) {
+		if (in_array($methodKey, static::ajaxMethods())) {
+			return $methodKey;
 		}
 
 		return false;
@@ -1121,8 +1121,8 @@ class Rect extends DataObject {
 	/**
 	 * Метод формирования ajax-ответа для виджета. Управлять роутом ajax-запросов виджетов можно переопределяя метод [[ajaxRoute()]]
 	 * */
-	public static function ajax($url, $params = []) {
-		$methodName = static::ajaxRoute($url);
+	public static function ajax($methodKey, $params = []) {
+		$methodName = static::ajaxRoute($methodKey);
 
 		if ($methodName === false) {
 			throw new \Exception("Error while widget responsing", 400);

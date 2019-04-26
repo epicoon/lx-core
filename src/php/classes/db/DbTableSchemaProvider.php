@@ -10,7 +10,6 @@ class DbTableSchemaProvider {
 
 		if (!array_key_exists($tableKey, self::$map)) {
 			$schema = $table->getDb()->tableSchema($table->getName(), DB::SHORT_SCHEMA);
-
 			$pk = null;
 			$defaults = [];
 			$types = [];

@@ -18,9 +18,12 @@ class Dialog {
 	private $_method = null;
 	private $_get = null;
 	private $_post = null;
+	private $_cookie = null;
 	private $_ajax = false;
 	private $_location = null;
 	private $_clientIp;
+
+	private $messages;
 
 	public function __construct() {
 		$this->_clientIp = $_SERVER['REMOTE_ADDR'];
@@ -49,6 +52,15 @@ class Dialog {
 		'CONNECTION' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'keep-alive'</font> <i>(length=10)</i>
 		'HOST' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'lx_loc'</font> <i>(length=6)</i>
 		*/
+
+		$this->messages = [];
+	}
+
+	/**
+	 *
+	 * */
+	public function addMessage($msg) {
+		$this->messages[] = $msg;
 	}
 
 	/**
@@ -144,6 +156,20 @@ class Dialog {
 	}
 
 	/**
+	 * //todo
+	 * */
+	public function isBrowserRequest() {
+		return true;
+	}
+
+	/**
+	 * Является ли текущий запрос - запросом на загрузку страницы
+	 * */
+	public function isPageLoad() {
+		return !$this->isAjax() && $this->isBrowserRequest();
+	}
+
+	/**
 	 *
 	 * */
 	public function get($name=null) {
@@ -169,6 +195,25 @@ class Dialog {
 
 		if (array_key_exists($name, $this->_post)) return $this->_post[$name];
 		return null;
+	}
+
+	/**
+	 *
+	 * */
+	public function cookie($data = null) {
+		if ($this->_cookie === null) $this->retrieveCookie();
+
+		if ($data === null) {
+			return $this->_cookie;
+		}
+
+		if (is_string($data)) {
+			return $this->_cookie->$data;
+		} elseif (is_array($data)) {
+			foreach ($data as $key => $value) {
+				$this->_cookie->$key = $value;
+			}
+		}
 	}
 
 	/**
@@ -249,8 +294,28 @@ class Dialog {
 	/**
 	 *
 	 * */
-	public function send($data) {
-		echo json_encode($data);
+	public function send($data = null) {
+		$content = ob_get_contents();
+		if ($data === null) {
+			header('Content-Type: text/html; charset=utf-8');
+		} else {
+			if ($content != '') {
+				ob_end_clean();
+			}
+
+			$isStr = is_string($data);
+			header('Content-Type: text/' . ($isStr ? 'plane' : 'json') . '; charset=utf-8');
+
+			if ($content != '') {
+				\lx::alert($content);
+			}
+
+			if (is_array($data) && !array_key_exists('message', $data) && !empty($this->messages)) {
+				$data['message'] = implode(PHP_EOL, $this->messages);
+			}
+
+			echo $isStr ? $data : json_encode($data);
+		}
 	}
 
 	/**
@@ -357,5 +422,25 @@ class Dialog {
 			$post = json_decode($input, true);
 		}
 		$this->_post = $post;
+	}
+
+	/**
+	 *
+	 * */
+	private function retrieveCookie() {
+		$this->_cookie = Cookie::create($_COOKIE);
+	}
+}
+
+
+class Cookie extends DataObject {
+	public function __set($prop, $val) {
+		setcookie($prop, $val);
+		parent::__set($prop, $val);
+	}
+
+	public function drop($name) {
+		$this->extract($name);
+		setcookie($name, '', time() - 1);
 	}
 }

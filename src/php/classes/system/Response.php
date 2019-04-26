@@ -16,46 +16,36 @@ class Response {
 	 *
 	 * */
 	public function send() {
+		$result = null;
+
 		if ($this->source->isModule()) {
 			$module = $this->source->getModule();
-			$this->renderModuleProcess($module);
+			if (\lx::$dialog->isPageLoad()) {
+				$this->renderModule($module);
+			} else {
+				$builder = new ModuleBuilder($module);
+				$result = $builder->getResult();
+			}
 		} else {
-			$service = $this->source->getService();
-			list ($class, $method) = $this->source->getClassAndMethod();
-			$instance = new $class($service);
-			$result = $instance->$method();
-
-			\lx::$dialog->send($result);
+			$result = $this->source->invoke();
 		}
+
+		if ($result === false) {
+			return 400;
+		}
+
+		\lx::$dialog->send($result);
+		return 200;
 	}
 	
 	/**
-	 * //todo не нравится, что собирается вся страница целиком - с js-ядром... может это и нормально. В общей картине будет видно
+	 * 
 	 * */
-	public function renderModuleProcess($module) {
-		$stdResponses = \lx::$conductor->getSystemPath('stdResponses');
-
+	private function renderModule($module) {
 		if (!$module) {
-			require_once($stdResponses . '/404.php');
+			\lx::renderStandartResponse(404);
 			return;
 		}
-
-		// Помечаем модуль как собирающийся при загрузке страницы
-		$module->setMain(true);
-		$builder = new ModuleBuilder($module);
-		// Если модуль уже скомпилирован - возвращаем статику
-		if ($builder->isCompiled()) {
-			require_once($builder->compiledFilePath());
-			return;
-		}
-
-
-		//todo
-		\lx::addSetting('lang', \lx::$components->language->getCurrentData());
-
-
-		// JS-ядро
-		$core = ClassHelper::call(\lx::class, 'compileJsCore');
 
 		// Глобальный js-код, выполняемый до разворачивания корневого модуля
 		$jsBootstrap = ClassHelper::call(\lx::class, 'compileJsBootstrap');
@@ -63,11 +53,14 @@ class Response {
 		$jsMain = ClassHelper::call(\lx::class, 'compileJsMain');
 		//todo - локализация
 
+		// Помечаем модуль как собирающийся при загрузке страницы
+		$module->setMain(true);
 		// Попытка построить модуль
+		$builder = new ModuleBuilder($module);
 		$buildResult = $builder->getResult();
 		if ($buildResult === false) {
 			$error = $builder->getError();
-			require_once($stdResponses . '/400.php');
+			\lx::renderStandartResponse(400);
 			return;
 		}
 
@@ -86,15 +79,15 @@ class Response {
 		// Набор глобальных произвольных данных
 		$data = ClassHelper::call(\lx::class, 'toJS', [\lx::$data->getProperties()]);
 
+		// Запуск ядра
+		$js = 'lx.start(' . $settings . ',' . $data . ',`' . $jsBootstrap . '`,`' . $moduleInfo . '`,`' . $jsMain . '`);';
 
-		$relPath = explode(\lx::sitePath(), \lx::$conductor->getSystemPath('core'))[1];
-		$lxCss = '<link href="'
-			. $relPath
-			. '/css/lx.css" type="text/css" rel="stylesheet">';
-
-		//todo
-		$icon = $relPath . '/img/icon.png';
-
-		require_once($stdResponses . '/200.php');
+		\lx::renderStandartResponse(200, [
+			'title' => $title,
+			// 'icon' => $icon,  //todo
+			'css' => $css,
+			'headScripts' => $headScripts,
+			'js' => $js,
+		]);
 	}
 }

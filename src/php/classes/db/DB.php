@@ -14,40 +14,33 @@ abstract class DB {
 		TYPE_STRING = 'string',
 		TYPE_BOOLEAN = 'boolean';
 
-	public
-		$selectType;
+	public static $connections = null;
+
+	public $selectType;
 
 	protected
-		$hostname = '',
-		$username = '',
-		$password = '',
-		$dbName = '',
+		$settings,
 		$connection = null,
 		$error = null;
 
 	public static function create($settings) {
-		if (isset($settings['db'])) {
-			return self::createProc(strtolower($settings['db']) , $settings);
+		if (self::$connections === null) {
+			self::$connections = new DbConnectionList();
 		}
 
-		$arr = ['postgresql', 'mysql'];
-		foreach ($arr as $value) {
-			$db = self::createProc($value, $settings);
-			if (!$db->connect()) continue;
-			$db->close();
-			return $db;
+		list($type, $connection) = self::$connections->add($settings);
+		switch ($type) {
+			case 'pg': return new DBpostgres($settings, $connection);
+			case 'mysql': return new DBmysql($settings, $connection);
 		}
 	}
 
-	public function __construct($settings = null) {
-		$this->hostname = $settings['hostname'];
-		$this->username = $settings['username'];
-		$this->password = $settings['password'];
-		$this->dbName = $settings['dbName'];
+	public function __construct($settings, $connection) {
+		$this->settings = $settings;
+		$this->connection = $connection;
 	}
 
-	abstract public function connect();
-	abstract public function close();
+	abstract public function newTableQuery($name, $columns);
 	abstract public function query($query);
 	abstract public function select($query);
 	abstract public function insert($query, $returnId);
@@ -58,9 +51,10 @@ abstract class DB {
 	abstract public function tableRenameColumn($tableName, $oldName, $newName);
 	abstract public function tableAddColumn($tableName, $name, $definition);
 	abstract public function tableDropColumn($tableName, $name);
+	abstract public function tableName($name);
 
 	public function getName() {
-		return $this->dbName;
+		return $this->settings['dbName'];
 	}
 
 	/**
@@ -79,12 +73,34 @@ abstract class DB {
 	}
 
 	/**
+	 * Соединение, выбор базы данных
+	 * */
+	public function connect() {
+		if ($this->connection !== null) return;
+
+		list($type, $connection) = self::$connections->add($this->settings);
+		$this->connection = $connection;
+	}
+
+	/**
+	 * Закрытие соединения
+	 * */
+	public function close() {
+		if ($this->connection === null) return;
+
+		self::$connection->drop($this->settings);
+		$this->connection = null;
+	}
+
+	/**
 	 * Создание новой таблицы
 	 * @param $name - имя новой таблицы
 	 * @param $column - массив DbColumnDefinition
 	 * @param $rewrite - флаг, показывающий можно ли пересоздать таблицу, если таблица с таким именем уже существует
 	 * */
 	public function newTable($name, $columns, $rewrite=false) {
+		$name = $this->tableName($name);
+
 		if ($rewrite) {
 			$this->query("DROP TABLE IF EXISTS $name");
 		} else {
@@ -99,26 +115,10 @@ abstract class DB {
 	}
 
 	/**
-	 * Формирует запрос для создания новой таблицы
-	 * */
-	public function newTableQuery($name, $columns) {
-		$query = "CREATE TABLE $name (";
-		$cols = [];
-		foreach ($columns as $colName => $definition) {
-			$str = $this->definitionToString($definition);
-			$str = str_replace('#key#', $colName, $str);
-			$cols[] = "$colName $str";
-		}
-		$cols = implode(', ', $cols);
-		$cols = str_replace('#pkey#', $name, $cols);
-		$query .= "$cols);";
-		return $query;
-	}
-
-	/**
 	 * Удаление таблицы
 	 * */
 	public function dropTable($name) {
+		$name = $this->tableName($name);
 		return $this->query("DROP TABLE IF EXISTS $name");
 	}
 
@@ -126,6 +126,7 @@ abstract class DB {
 	 * Получить объектное представление таблицы базы данных
 	 * */
 	public function table($name) {
+		$name = $this->tableName($name);
 		return new DbTable($name, $this);
 	}
 
@@ -133,6 +134,7 @@ abstract class DB {
 	 * Проверяет пустая ли таблица
 	 * */
 	public function tableIsEmpty($name) {
+		$name = $this->tableName($name);
 		$res = $this->query("SELECT * FROM $name LIMIT 1;");
 		return empty($res);
 	}
@@ -235,16 +237,6 @@ abstract class DB {
 			}
 		}
 		return $row;
-	}
-
-	/**
-	 * Процедура создания экземпляра базы
-	 * */
-	private static function createProc($type, $settings) {
-		switch ($type) {
-			case 'postgresql': return new DBpostgres($settings);
-			case 'mysql': return new DBmysql($settings);
-		}
 	}
 
 	abstract protected function definitionToString($definition);

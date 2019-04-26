@@ -28,6 +28,7 @@ class ModelManager {
 
 		$this->checkCrud();
 		$modelData = ModelData::loadOne($this, $condition);
+		// var_dump($modelData);
 		if (!$modelData) return null;
 
 		$this->cacheModel($modelData);

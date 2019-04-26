@@ -45,12 +45,6 @@ lx.start = function(settings, data, jsBootstrap, module, jsMain) {
 	// Глобальный js-код, выполняемый ДО загрузки корневого модуля
 	if (jsBootstrap && jsBootstrap != '') lx.createAndCallFunction('', jsBootstrap, this);
 
-	//todo - выпилить, уехало в lx.Loader
-	// создание lx-объекта для основного div-а фреймворка
-	// lx.body = lx.Box.rise(document.getElementById('lx'));
-	// lx.body.key = 'body';
-	// lx.body.on('scroll', lx.checkDisplay);
-
 	// Запуск загрузчика
 	if (module) lx.Loader.run(module, lx.body);
 

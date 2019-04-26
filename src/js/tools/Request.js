@@ -2,11 +2,11 @@ class Request #lx:namespace lx {
 	constructor(url = '', params = {}) {
 		this.method = 'post';
 		this.url = url;
-		this.isAjax = true;
 
 		this.headers = {};
 		this.params = params;
 
+		this.handler = null;
 		//todo Спорное решение. В рамках платформы может и логично.
 		this.module = null;
 	}
@@ -17,6 +17,16 @@ class Request #lx:namespace lx {
 	success(result, request) {}
 	error(request) {}
 
+	then(func) {
+		this.handler.success = func;
+		return this;
+	}
+
+	catch(func) {
+		this.handler.error = func;
+		return this;
+	}
+
 	send() {
 		var url = this.url,
 			headers = this.headers;
@@ -26,15 +36,16 @@ class Request #lx:namespace lx {
 			headers['lx-module'] = this.module.name;
 		}
 
-		lx.Dialog.request({
+		this.handler = lx.Dialog.request({
 			method: this.method,
 			url: url,
-			isAjax: this.isAjax,
 			headers: headers,
 			data: this.params,
 			success: this[this.successMethodName],
 			error: this[this.errorMethodName]
 		});
+
+		return this;
 	}
 
 	setMethod(method) {

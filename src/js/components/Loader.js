@@ -57,7 +57,7 @@ function parseInfo(info) {
 
 	// Это ajax - если ресурсы пришли, их надо собирать здесь
 	} else {
-		loadData.isAjax = false;
+		loadData.isAjax = true;
 		modulesInfo = info.moduleInfo;
 
 		// Определяем какие ресурсы потребуют отдельной дозагрузки
@@ -142,8 +142,9 @@ function loadAssets(callback) {
 	// Запрос на догрузку виджетов регистрируется в синхронайзере
 	var widgetsRequest = null;
 	if (loadData.necessaryWidgets && !loadData.necessaryWidgets.lxEmpty) {
-		widgetsRequest = new lx.Request('get-widgets', loadData.necessaryWidgets);
+		widgetsRequest = new lx.Request('', loadData.necessaryWidgets);
 		widgetsRequest.setHeader('lx-type', 'service');
+		widgetsRequest.setHeader('lx-service', 'get-widgets');
 		widgetsRequest.success = function(result) {
 			if (result) lx.createAndCallFunction('', result);
 		};

@@ -4,41 +4,32 @@ namespace lx;
 
 class DBmysql extends DB {
 	/**
-	 * Соединение, выбор базы данных
+	 * Имя таблицы с учетом схемы
 	 * */
-	public function connect() {
-		if ($this->connection !== null) return;
-
-		try {
-			$this->connection = mysqli_connect($this->hostname, $this->username, $this->password);
-		} catch (\Exception $e) {
-			return false;
-		}
-
-		if (!$this->connection) {
-			return false;
-		}
-
-		mysqli_select_db($this->connection, $this->dbName);
-		mysqli_set_charset($this->connection, 'utf8');
-		return true;
-	}
-
-	/**
-	 * Закрытие соединения
-	 * */
-	public function close() {
-		if ($this->connection === null) return;
-		mysqli_close($this->connection);
-		$this->connection = null;
+	public function tableName($name) {
+		return str_replace('.', '__', $name);
 	}
 
 	/**
 	 * Формирует запрос для создания новой таблицы
 	 * */
 	public function newTableQuery($name, $columns) {
-		$query = parent::newTableQuery($name, $columns);
-		return $query .= ' CHARACTER SET utf8 COLLATE utf8_general_ci';
+		$query = '';
+		if (preg_match('/\./', $name)) {
+			$name = $this->tableName($name);
+		}
+
+		$query .= "CREATE TABLE $name (";
+		$cols = [];
+		foreach ($columns as $colName => $definition) {
+			$str = $this->definitionToString($definition);
+			$str = str_replace('#key#', $colName, $str);
+			$cols[] = "$colName $str";
+		}
+		$cols = implode(', ', $cols);
+		$cols = str_replace('#pkey#', $name, $cols);
+		$query .= "$cols);CHARACTER SET utf8 COLLATE utf8_general_ci;";
+		return $query;
 	}
 
 	/**
@@ -130,7 +121,8 @@ class DBmysql extends DB {
 	 * Проверяет существование таблицы
 	 * */
 	public function tableExists($name) {
-		$res = $this->select("SHOW TABLES FROM {$this->dbName} LIKE '$name'");
+		$name = $this->tableName($name);
+		$res = $this->select("SHOW TABLES FROM {$this->getName()} LIKE '$name'");
 		return !empty($res);
 	}
 
@@ -138,6 +130,7 @@ class DBmysql extends DB {
 	 * Схема таблицы
 	 * */
 	public function tableSchema($name, $fields=null) {
+		$name = $this->tableName($name);
 		$fieldsString = $fields;
 		if ($fields == self::SHORT_SCHEMA) $fieldsString = 'column_name,column_default,is_nullable,data_type,character_maximum_length,column_key';
 		else if (is_array($fields)) $fieldsString = implode(',', $fields);

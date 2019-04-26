@@ -97,9 +97,13 @@ class Autoloader {
 
 		require_once($path);
 
-		// При подключении виджета сообщаем js-компилятору
+		// При подключении виджета сообщаем js-компилятору и проверяем карту локализации
 		if (ClassHelper::checkInstance($className, Rect::class)) {
 			JsCompiler::noteUsedWidget($className);
+			$i18n = dirname($path) . '/i18n.yaml';
+			if (file_exists($i18n)) {
+				\lx::useI18n($i18n);
+			}
 		}
 	}
 

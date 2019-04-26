@@ -32,7 +32,7 @@ namespace lx;
 * * *  4. Методы формирования ответов  * * *
 	protected function scripts()
 	protected function ajaxResponse($data)
-	private function sendAjaxResponse($requestData)
+	private function getResponseSource($requestData)
 	private function ajaxResponseByRespondent($respondentName, $data)
 
 * * *  6. Скрытое создание модуля  * * *
@@ -320,22 +320,31 @@ class Module {
 	/**
 	 * Формирование ответа для AJAX-запроса
 	 * */
-	private function sendAjaxResponse($requestData) {
-		$params = $requestData['params'];
+	private function getResponseSource($data) {
+		if (!isset($data['params']) || !isset($data['data'])) {
+			//todo логировать?
+			return false;
+		}
+
+		$params = $data['params'];
 		$this->clientParams->setProperties($params);
 
-		$requestData = $requestData['data'];
+		$requestData = $data['data'];
 
 		// Вопрошаем к конкретному респонденту
 		if (isset($requestData['__respondent__'])) {
-			$respondent = $requestData['__respondent__'];
-			$data = isset($requestData['data']) ? $requestData['data'] : null;
+			$respondentName = $requestData['__respondent__'];
+			$respondentParams = isset($requestData['data']) ? $requestData['data'] : null;
 
-			return $this->ajaxResponseByRespondent($respondent, $data);
+			return $this->ajaxResponseByRespondent($respondentName, $respondentParams);
 		}
 
 		// Отсылаем на переопределяемый метод, где вручную должен разруливаться запрос
-		return $this->ajaxResponse($requestData);
+		return new ResponseSource([
+			'object' => $this,
+			'method' => 'ajaxResponse',
+			'params' => [$requestData],
+		]);
 	}
 
 	/**
@@ -345,27 +354,26 @@ class Module {
 	 * 3. Создаем экземпляр респондента и вызываем нужный метод (можно передать в него какие-то данные)
 	 * 4. Результат выполнения метода возвращаем как данные для ответа
 	 * */
-	private function ajaxResponseByRespondent($respondentName, $data) {
+	private function ajaxResponseByRespondent($respondentName, $respondentParams) {
 		// Попробуем найти респондента
 		$respInfo = explode('/', $respondentName);
 		$respondent = $this->conductor->findRespondent($respInfo[0]);
 
 		if (!$respondent) {
-			return "Respondent {$respInfo[0]} not found";
+			//todo логировать? "Respondent {$respInfo[0]} not found";
+			return false;
 		}
 
 		if (!method_exists($respondent, $respInfo[1])) {
-			return "Respondent method {$respInfo[1]} not found";
+			//todo логировать? "Respondent method {$respInfo[1]} not found";
+			return false;
 		}
 
-		$result = (is_array($data))
-			? \call_user_func_array([$respondent, $respInfo[1]], $data)
-			: $respondent->{$respInfo[1]};
-
-		// Если ответ при формировании ничего не вернул - считаем это успехом
-		if ($result === null) $result = true;
-
-		return $result;
+		return new ResponseSource([
+			'object' => $respondent,
+			'method' => $respInfo[1],
+			'params' => $respondentParams,
+		]);
 	}
 
 

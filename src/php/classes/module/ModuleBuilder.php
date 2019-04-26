@@ -37,6 +37,12 @@ class ModuleBuilder {
 	 * Метод, возвращающий данные по модулю для отправки
 	 * */
 	public function getResult() {
+		//todo
+		// // Если модуль уже скомпилирован - возвращаем статику
+		// if ($this->isCompiled()) {
+		// 	return $this->compiledResult();
+		// }
+
 		if (!$this->build()) {
 			return false;
 		}
@@ -166,8 +172,8 @@ class ModuleBuilder {
 	/**
 	 * //todo
 	 * */
-	public function compiledFilePath() {
-		return '';
+	public function compiledResult() {
+		return [];
 	}
 
 	/**
@@ -181,7 +187,9 @@ class ModuleBuilder {
 			if (!array_key_exists($namespace, $active->widgetList)) {
 				$active->widgetList[$namespace] = [];
 			}
-			$active->widgetList[$namespace][$name] = 1;
+			if (!in_array($name, $active->widgetList[$namespace])) {
+				$active->widgetList[$namespace][] = $name;
+			}
 		}
 
 		// Если виджет уже зарегистрирован

@@ -27,6 +27,7 @@ class DbCrudAdapter extends CrudAdapter {
 		if (!$table) {
 			return [];
 		}
+
 		return $table->select('*', $condition);
 	}
 
@@ -51,7 +52,7 @@ class DbCrudAdapter extends CrudAdapter {
 
 		// Если запись новая
 		if ($pk === null) {
-			$model->setPk( $table->insert(array_keys($temp), array_values($temp)) );
+			$model->setPk($table->insert($temp));
 		
 		// Если запись не новая
 		} else {

@@ -4,32 +4,33 @@ namespace lx;
 
 class DBpostgres extends DB {
 	/**
-	 * Соединение, выбор базы данных
+	 * Имя таблицы с учетом схемы
 	 * */
-	public function connect() {
-		if ($this->connection !== null) return true;
-		if (!function_exists('\pg_connect')) return false;
-
-		try {
-			$this->connection = \pg_connect("host={$this->hostname} dbname={$this->dbName} user={$this->username} password={$this->password}");
-		} catch (\Exception $e) {
-			return false;
-		}
-
-		if (!$this->connection) {
-			return false;
-		}
-
-		return true;
+	public function tableName($name) {
+		return $name;
 	}
 
 	/**
-	 * Закрытие соединения
+	 * Формирует запрос для создания новой таблицы
 	 * */
-	public function close() {
-		if ($this->connection === null) return;
-		pg_close($this->connection);
-		$this->connection = null;
+	public function newTableQuery($name, $columns) {
+		$query = '';
+		if (preg_match('/\./', $name)) {
+			$arr = explode('.', $name);
+			$query = "CREATE SCHEMA IF NOT EXISTS {$arr[0]};";
+		}
+
+		$query .= "CREATE TABLE IF NOT EXISTS $name (";
+		$cols = [];
+		foreach ($columns as $colName => $definition) {
+			$str = $this->definitionToString($definition);
+			$str = str_replace('#key#', $colName, $str);
+			$cols[] = "$colName $str";
+		}
+		$cols = implode(', ', $cols);
+		$cols = str_replace('#pkey#', str_replace('.', '_', $name), $cols);
+		$query .= "$cols);";
+		return $query;
 	}
 
 	/**
@@ -167,7 +168,13 @@ class DBpostgres extends DB {
 	 * Проверяет существование таблицы
 	 * */
 	public function tableExists($name) {
-		$res = $this->select("SELECT * FROM pg_tables where tablename='$name'");
+		if (preg_match('/\./', $name)) {
+			$arr = explode('.', $name);
+			$res = $this->select("SELECT * FROM pg_tables where schemaname='{$arr[0]}' AND tablename='{$arr[1]}'");
+		} else {
+			$res = $this->select("SELECT * FROM pg_tables where tablename='$name'");
+		}
+
 		return !empty($res);
 	}
 
@@ -181,7 +188,12 @@ class DBpostgres extends DB {
 		elseif (is_array($fields)) $fieldsString = implode(',', $fields);
 		elseif ($fields === null) $fieldsString = '*';
 
-		$res = $this->select("SELECT $fieldsString FROM information_schema.columns WHERE table_name='$name'");
+		if (preg_match('/\./', $name)) {
+			$arr = explode('.', $name);
+			$res = $this->select("SELECT $fieldsString FROM information_schema.columns WHERE table_schema='{$arr[0]}' AND table_name='{$arr[1]}'");
+		} else {
+			$res = $this->select("SELECT $fieldsString FROM information_schema.columns WHERE table_name='$name'");
+		}
 		if (is_string($fields)) {
 			$arr = [];
 			foreach ($res as $value) $arr[] = $value[$fields];

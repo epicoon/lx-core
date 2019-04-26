@@ -94,10 +94,11 @@ class WidgetHelper {
 	}
 
 	/**
-	 * Собирает код для виджетов согласно переданной карте с учетом пространств имен
+	 * Собирает js-код для виджетов согласно переданной карте с учетом пространств имен
 	 * */
 	public static function getWidgetsCode($list) {
 		$codes = [];
+		$i18n = [];
 		foreach ($list as $namespace => $names) {
 			$path = self::getJsFilePath(str_replace('.', '\\', $namespace), $names[0]);
 
@@ -111,6 +112,10 @@ class WidgetHelper {
 
 			foreach ($names as $name) {
 				$dirPath = $widgetsPath . '/' . $name . '/';
+				if (file_exists($dirPath . 'i18n.yaml')) {
+					$i18n[] = $dirPath . 'i18n.yaml';
+				}
+
 				$fileName = null;
 				if (file_exists($dirPath . '_main.js')) {
 					$fileName = '_main.js';
@@ -132,6 +137,17 @@ class WidgetHelper {
 			$codes[$namespace] = JsCompiler::compileCode($data['code'], $data['path']);
 		}
 
-		return implode('', $codes);
+		$code = implode('', $codes);
+		if (!empty($i18n)) {
+			$map = [];
+			foreach ($i18n as $path) {
+				$file = new YamlFile($path);
+				$map += $file->get();
+			}
+
+			$code = I18nHelper::localize($code, I18nMap::getAppMap(), [$map]);
+		}
+
+		return $code;
 	}
 }

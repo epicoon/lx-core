@@ -3,11 +3,13 @@
 namespace lx;
 
 class ModelData {
+	private static $nullCache = null;
+
 	protected $manager;
 	protected
 		$_prop = [],
-		$_oldProp = [],
-		$nullCache = null;
+		$_oldProp = [];
+		
 
 	/**
 	 *
@@ -126,8 +128,7 @@ class ModelData {
 		if (array_key_exists($prop, $this->_prop))
 			return $this->_prop[$prop];
 
-		$this->nullCache = null;
-		return $this->nullCache;
+		return $this->null();
 	}
 
 	/**
@@ -278,6 +279,14 @@ class ModelData {
 	 * */
 	protected function initProps($arr) {
 		$this->_prop = $arr;
+	}
+
+	/**
+	 *
+	 * */
+	protected function & null() {
+		self::$nullCache = null;
+		return self::$nullCache;
 	}
 
 	/**

@@ -3,14 +3,13 @@
 namespace lx;
 
 class DataObject {
-	protected
-		$nullCache = null,
-		$_prop = [];
+	private static $nullCache;
+	protected $_prop = [];
 
 	public static function create($arr=[]) {
 		if ($arr instanceof DataObject) return $arr;
 
-		$obj = new self();
+		$obj = new static();
 		if (is_array($arr)) $obj->setProperties($arr);
 		return $obj;
 	}
@@ -25,12 +24,15 @@ class DataObject {
 	}
 
 	public function &__get($prop) {
-		if (property_exists($this, $prop))
+		if (property_exists($this, $prop)) {
 			return $this->$prop;
-		if (array_key_exists($prop, $this->_prop))
+		}
+
+		if (array_key_exists($prop, $this->_prop)) {
 			return $this->_prop[$prop];
-		$this->nullCache = null;
-		return $this->nullCache;
+		}
+
+		return $this->null();
 	}
 
 	/*
@@ -148,5 +150,13 @@ class DataObject {
 	 * */
 	public function hasMethod($name) {
 		require method_exists($this, $name);
+	}
+
+	/**
+	 *
+	 * */
+	protected function & null() {
+		self::$nullCache = null;
+		return self::$nullCache;
 	}
 }

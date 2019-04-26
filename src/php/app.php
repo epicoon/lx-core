@@ -51,9 +51,9 @@
 	private static function toJS($str)
 
 6. Базовая инициализация
-	public static function baseInitialisation()
-	public static function consoleInitialisation()
-	public static function installInitialisation()
+	public static function baseInitialization()
+	public static function consoleInitialization()
+	public static function installInitialization()
 	private static function retrieveSitePath()
 	private static function loadConfig()
 */
@@ -119,6 +119,29 @@ class lx {
 
 
 
+
+
+	public static function renderStandartResponse($code, $params = []) {
+		extract($params);
+		switch ($code) {
+			case 200:
+				require_once(__DIR__ . '/stdResponses/200.php');
+				break;
+			case 400:
+				require_once(__DIR__ . '/stdResponses/400.php');
+				break;
+			case 403:
+				require_once(__DIR__ . '/stdResponses/403.php');
+				break;
+			case 404:
+				require_once(__DIR__ . '/stdResponses/404.php');
+				break;
+		}
+	}
+
+
+
+
 	public static function alert($data) {
 		if (self::isMode(self::MODE_PROD)) {
 			return;
@@ -126,8 +149,16 @@ class lx {
 
 		lx\JsCompiler::noteUsedWidget(lx\ActiveBox::class);
 		echo '<lx-alert>';
-		var_dump($data);
+		echo $data;
 		echo '</lx-alert>';
+	}
+
+	public static function varDump($data) {
+		if (self::isMode(self::MODE_PROD)) {
+			return;
+		}
+
+		self::alert(var_dump($data));
 	}
 
 	/**
@@ -301,7 +332,7 @@ class lx {
 	/**
 	 * Получение менеджера модели из сервиса
 	 * */
-	public function getModelManager($serviceName, $modelName = null) {
+	public static function getModelManager($serviceName, $modelName = null) {
 		if ($modelName === null) {
 			$arr = explode('.', $serviceName);
 			$serviceName = $arr[0];
@@ -350,18 +381,18 @@ class lx {
 	 * Запуск формирования ответа клиенту
 	 * */
 	public static function run() {
-		self::baseInitialisation();
+		self::baseInitialization();
 
-		// Если удастся автоматически ответить на AJAX-запрос, то хорошо (при наличии заголовка lx-type)
-		if (self::$dialog->isAjax()) {
-			// if (self::ajaxResponse()) {
-			if (self::ajaxRunProcess()) {
-				return;
+		$result = self::runProcess();
+		if ($result != 200) {
+			if (self::$dialog->isPageLoad()) {
+				self::renderStandartResponse($result);
+			} else {
+				self::$dialog->send([
+					'success' => false,
+					'error' => $result,
+				]);
 			}
-		}
-
-		if (!self::runProcess()) {
-			require_once(__DIR__ . '/stdResponses/404.php');
 		}
 	}
 
@@ -369,7 +400,7 @@ class lx {
 	 * Запуск консольного приложения
 	 * */
 	public static function runConsole($argv) {
-		self::consoleInitialisation();
+		self::consoleInitialization();
 
 		$command = array_pop($argv);
 		switch ($command) {
@@ -378,10 +409,8 @@ class lx {
 				lx\Console::outln('Done');
 				break;
 
-			/*
-			Выводит список пакетов с поясняющей записью (description)
+			// Выводит список пакетов с поясняющей записью (description)
 			//todo - перенести функционал в Cli
-			*/
 			case 'pkt':
 				$list = lx\Autoloader::getInstance()->getPackagesList();
 				foreach ($list as $i => $data) {
@@ -391,10 +420,10 @@ class lx {
 				}
 				break;
 
-
 			case 'cli':
 				(new lx\Cli())->run();
 				break;
+
 			default:
 				/*
 				//todo - надо ли вообще делать на таком уровне обработку запросов?
@@ -405,6 +434,28 @@ class lx {
 		}
 	}
 
+
+
+
+
+
+
+
+
+
+
+
+
+	public static function getJsCore() {
+		//todo - добавить кэширование
+		return self::compileJsCore();
+	}
+
+
+
+
+
+
 	//=========================================================================================================================
  	/* * *  5. Сборка ответа  * * */
 
@@ -412,27 +463,42 @@ class lx {
  	 * Роутинг на уровне приложения
  	 * */
  	private static function runProcess() {
- 		$router = self::getRouter();
-		if ($router === null) {
-			return false;
-		}
-
-		$responseSource = $router->route();
+		$responseSource = self::getResponseSource();
 		if (!$responseSource) {
-			return false;
+			return 404;
 		}
 
 		$responseSource = self::checkAccess($responseSource);
 		if (!$responseSource) {
-			return false;
+			return 403;
 		}
 
 		$response = new lx\Response($responseSource);
-		$response->send();
-		return true;
+		return $response->send();
  	}
 
- 	/**
+	/**
+ 	 *
+ 	 * */
+ 	private static function getResponseSource() {
+ 		if (self::$dialog->isAjax()) {
+ 			$ajaxRouter = new lx\AjaxRouter();
+
+ 			$responseSource = $ajaxRouter->route();
+ 			if ($responseSource !== null) {
+ 				return $responseSource;
+ 			}
+ 		}
+
+		$router = self::getRouter();
+		if ($router === null) {
+			return null;
+		}
+
+		return $router->route();
+ 	}
+
+	/**
  	 *
  	 * */
  	private static function checkAccess($responseSource) {
@@ -441,45 +507,34 @@ class lx {
 			return $responseSource;
 		}
 
-		/*
-		1. Пытаемся аутентифицировать юзера
-			- если удалось - модель пользователя будет в компоненте "user"
-			- если не удалось - компонент "user" определяется как гость
-		2. Пытаемся авторизовать права юзера на ресурс:
-			- пользователь гость
-				- ресурс доступен
-					=> отдаем ресурс
-				- ресурс недоступен
-					- если запрос из браузера
-						=> инициация аутентификации
-					- если запрос не из браузера
-						=> ошибка 403 "вам недостаточно прав"
-			- пользователь аутентифицирован
-				- ресурс доступен
-					=> отдаем ресурс
-				- ресурс недоступен
-					=> ошибка 403 "вам недостаточно прав"
-		*/
-
 		// Если есть компонент аутентификации, получим пользователя
 		if (self::$components->authenticationGate) {
 			self::$components->authenticationGate->authenticateUser();
 		}
 
-
-		// var_dump( self::$components->user );
-
- 		//todo ПОКА ПРОСТО ВЕРНЕМ
- 		return $responseSource;
-
-
 		// Если есть компонент авторизации, проверим права пользователя
 		if (self::$components->authorizationGate) {
-			return self::$components->authorizationGate->checkAccess(
+			$responseSource = self::$components->authorizationGate->checkAccess(
 				self::$components->user,
 				$responseSource
 			);
 		}
+
+		// Если при авторизации было наложено ограничение
+		if ($responseSource->hasRestriction()) {
+			if ($responseSource->getRestriction() == lx\ResponseSource::RESTRICTION_INSUFFICIENT_RIGHTS
+				&& self::$components->user->isGuest()
+				&& self::$dialog->isPageLoad()
+			) {
+				$responseSource = self::$components
+					->authenticationGate
+					->responseToAuthenticate($responseSource);
+			} else {
+				return false;
+			}
+		}
+
+		return $responseSource;
  	}
 
  	/**
@@ -560,102 +615,6 @@ class lx {
 	}
 
 	/**
-	 * Формирование ajax-ответа
-	 * */
-	private static function ajaxRunProcess() {
-		switch (self::$dialog->header('lx-type')) {
-			// Ajax-запрос, произошедший в контексте какого-то модуля
-			case 'module': self::moduleAjaxResponse(); break;
-			
-			// Ajax-запрос, произошедший в контексте какого-то виджета
-			case 'widget': self::widgetAjaxResponse(); break;
-
-			// Служебный (системный) ajax-запрос
-			case 'service': self::serviceAjaxResponse(); break;
-
-			default:
-				// //todo - логика переделывается, пока смесь API с AJAX заморожена
-				// // Для общего случая попробуем найти модуль из урла и ответить в стиле API
-				// $module = self::getModule( self::$dialog->route() );
-				// if ($module) {
-				// 	$apiTry = (new lx\ModuleBuilder($module))->callPrivateModuleMethod('sendApiResponse', ['data' => self::$dialog->data()]);
-				// 	if ($apiTry) return;
-				// }
-				// self::$dialog->send(false);
-				return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Служебные lx-запросы
-	 * */
-	private static function serviceAjaxResponse() {
-		// Ajax-запрос на дозагрузку виджетов
-		if (self::$dialog->route() == 'get-widgets') {
-			$data = self::$dialog->params();
-			$code = lx\WidgetHelper::getWidgetsCode($data);
-			self::$dialog->send(
-				$code
-			);
-		}
-	}
-
-	/**
-	 * Формирование ajax-ответа для модуля
-	 * */
-	private static function moduleAjaxResponse() {
-		$moduleName = self::$dialog->header('lx-module');
-		if ($moduleName === null) {
-			throw new Exception('Module-ajax-request without module!', 400);
-		}
-
-		$module = self::getModule($moduleName);
-		if ($module === null) {
-			self::$dialog->send("Module '$moduleName' not found");
-			return;
-		}
-
-		$result = lx\ClassHelper::call($module, 'sendAjaxResponse', [self::$dialog->params()]);
-		self::$dialog->send($result);
-	}
-
-	/**
-	 * Формирование ajax-ответа для виджета
-	 * */
-	private static function widgetAjaxResponse() {
-		$widgetName = self::$dialog->header('lx-widget');
-		$widgetName = str_replace('.', '\\', $widgetName);
-
-		if (!lx\ClassHelper::exists($widgetName) ) {
-			self::$dialog->send("Widget response error");
-			return;
-		}
-
-		$ref = new ReflectionClass($widgetName);
-		if (!$ref->isSubclassOf( lx\Rect::class )) {
-			self::$dialog->send("Widget response error");
-			return;
-		}
-
-		$params = self::$dialog->params();
-		$url = self::$dialog->url();
-		$url = preg_replace('/^\//', '', $url);
-
-		$method = $ref->getMethod('ajax');
-		try {
-			$result = $method->invokeArgs(null, [
-				'url' => $url,
-				'params' => $params
-			]);
-			self::$dialog->send($result);
-		} catch (\Exception $e) {
-			self::$dialog->send("Widget response error");
-		}
-	}
-
-	/**
 	 * При генерации напрямую встраиваемого js-кода для передачи объектов из php в js
 	 * */
 	private static function toJS($str) {
@@ -680,7 +639,7 @@ class lx {
 	/**
 	 * Запуск приложения (и с AJAX и без), базовая инициализация
 	 * */
-	public static function baseInitialisation() {
+	public static function baseInitialization() {
 		self::retrieveSitePath();
 
 		require_once(__DIR__ . '/classes/system/autoload/Autoloader.php');
@@ -710,7 +669,7 @@ class lx {
 	/**
 	 * Запуск консольного приложения
 	 * */
-	public static function consoleInitialisation() {
+	public static function consoleInitialization() {
 		self::$_site = dirname(__DIR__, 5);
 
 		require_once(__DIR__ . '/classes/system/autoload/Autoloader.php');
@@ -733,7 +692,7 @@ class lx {
 	/**
 	 *
 	 * */
-	public static function installInitialisation() {
+	public static function installInitialization() {
 		self::$type = self::APP_TYPE_COMPOSER_PACKAGE;
 		self::$_site = dirname(__DIR__, 5);
 

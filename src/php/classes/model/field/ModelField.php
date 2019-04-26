@@ -6,21 +6,25 @@ abstract class ModelField {
 	const TYPE_INTEGER_SLUG = 'integer';
 	const TYPE_BOOLEAN_SLUG = 'boolean';
 	const TYPE_STRING_SLUG = 'string';
+	const TYPE_TIMESTAMP_SLUG = 'timestamp';
 
 	const TYPE_INTEGER = 1;
 	const TYPE_BOOLEAN = 2;
 	const TYPE_STRING = 3;
+	const TYPE_TIMESTAMP = 4;
 
 	const TYPES = [
 		self::TYPE_INTEGER_SLUG => self::TYPE_INTEGER,
 		self::TYPE_BOOLEAN_SLUG => self::TYPE_BOOLEAN,
 		self::TYPE_STRING_SLUG => self::TYPE_STRING,
+		self::TYPE_TIMESTAMP_SLUG => self::TYPE_TIMESTAMP,
 	];
 
 	const TYPE_SLUGS = [
 		self::TYPE_INTEGER => self::TYPE_INTEGER_SLUG,
 		self::TYPE_BOOLEAN => self::TYPE_BOOLEAN_SLUG,
 		self::TYPE_STRING => self::TYPE_STRING_SLUG,
+		self::TYPE_TIMESTAMP => self::TYPE_TIMESTAMP_SLUG,
 	];
 
 	protected $name;
@@ -44,6 +48,7 @@ abstract class ModelField {
 			case self::TYPE_INTEGER: return new ModelFieldInteger($name, $data);
 			case self::TYPE_BOOLEAN: return new ModelFieldBoolean($name, $data);
 			case self::TYPE_STRING: return new ModelFieldString($name, $data);
+			case self::TYPE_TIMESTAMP: return new ModelFieldTimestamp($name, $data);
 		}
 
 		return null;

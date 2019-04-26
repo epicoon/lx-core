@@ -3,6 +3,8 @@
 namespace lx;
 
 abstract class Model {
+	private static $nullCache;
+
 	protected static $_service = null;
 	protected static $_manager = null;
 	protected static $_name = null;
@@ -23,11 +25,19 @@ abstract class Model {
 	}
 
 	public function &__get($prop) {
+		if ($this->data === null) {
+			return $this->null();
+		}
+
 		if ($this->data->hasField($prop)) return $this->data->$prop;
 		//todo свои поля?
 	}
 
 	public function __set($prop, $val) {
+		if ($this->data === null) {
+			return;
+		}
+
 		if ($this->data->hasField($prop)) $this->data->$prop = $val;
 		//todo свои поля?
 	}
@@ -119,6 +129,14 @@ abstract class Model {
 		}
 
 		return static::$_manager;
+	}
+
+	/**
+	 *
+	 * */
+	protected function & null() {
+		self::$nullCache = null;
+		return self::$nullCache;
 	}
 
 	private static function getForModelsData($models) {

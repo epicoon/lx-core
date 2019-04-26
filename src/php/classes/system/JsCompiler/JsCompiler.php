@@ -258,17 +258,14 @@ class JsCompiler {
 		$code = preg_replace('/(?<!\/\/ )(?<!\/\/)#lx:widget ([\w\W]*?);/', '', $code);
 		foreach ($widgets[1] as $widget) {
 			if ($widget == '') continue;
+
 			$widgetArray = preg_split('/[.\\'.'\]/', $widget);
-
-			$count = count($widgetArray);
-			if ($count > 2) continue;
-
-			if ($count == 1) {
+			if (count($widgetArray) == 1) {
 				$namespace = 'lx';
 				$widgetName = $widgetArray[0];
 			} else {
-				$namespace = $widgetArray[0];
-				$widgetName = $widgetArray[1];
+				$widgetName = array_pop($widgetArray);
+				$namespace = implode('\\', $widgetArray);
 			}
 
 			if ($widgetName{0} == '{') {

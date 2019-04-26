@@ -40,11 +40,13 @@ class ModuleEditor {
 			$namespace = $name . '\\';
 		} else {
 			foreach ($psr as $prefix => $path) {
-				$rPath = $path == '' ? $servicePath : $servicePath . '/' . $path;
-				if (strpos($fullPath, $rPath) == 0) {
-					$subPath = explode($rPath . '/', $fullPath)[1];
-					$namespace = $prefix . str_replace('/', '\\', $subPath);
-					break;
+				foreach ((array)$path as $pathI) {
+					$rPath = $pathI == '' ? $servicePath : $servicePath . '/' . $pathI;
+					if (strpos($fullPath, $rPath) == 0) {
+						$subPath = explode($rPath . '/', $fullPath)[1];
+						$namespace = $prefix . str_replace('/', '\\', $subPath);
+						break 2;
+					}
 				}
 			}
 		}

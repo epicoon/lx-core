@@ -1526,7 +1526,9 @@ class Rect #lx:namespace lx {
 	}
 
 	getModule() {
-		return this.rootBlock().module;
+		var root = this.rootBlock();
+		if (!root) return null;
+		return root.module;
 	}
 	/* 6. Environment navigation */
 	//=========================================================================================================================
@@ -1801,12 +1803,13 @@ class Rect #lx:namespace lx {
 	}
 
 	/**
-	 *
+	 * @param key - ключ вызываемого метода
+	 * @param params - параметры, с которыми нужно вызвать метод
+	 * @param handlers - обработчики ответа
 	 * */
-	static ajax(method, params = [], handlers = null) {
+	static ajax(key, params = [], handlers = null) {
 		var config = lx.Dialog.handlersToConfig(handlers);
-		config.data = params;
-		config.url = method;
+		config.data = {key, params};
 
 		var headers = [];
 		headers['lx-type'] = 'widget';

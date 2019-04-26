@@ -6,6 +6,7 @@ return [
 	'Conductor' => 'classes/system',
 	'Dialog' => 'classes/system',
 	'Router' => 'classes/system',
+	'AjaxRouter' => 'classes/system',
 	'ResponseSource' => 'classes/system',
 	'Response' => 'classes/system',
 	'ComponentList' => 'classes/system',
@@ -46,6 +47,7 @@ return [
 	'ModelFieldString' => 'classes/model/field',
 	'ModelFieldInteger' => 'classes/model/field',
 	'ModelFieldBoolean' => 'classes/model/field',
+	'ModelFieldTimestamp' => 'classes/model/field',
 	'CrudAdapter' => 'classes/model/CRUD',
 	'DbCrudAdapter' => 'classes/model/CRUD',
 
@@ -60,6 +62,7 @@ return [
 	'DbTableSchemaProvider' => 'classes/db',
 	'DbTable' => 'classes/db',
 	'DbRecord' => 'classes/db',
+	'DbConnectionList' => 'classes/db',
 	'DB' => 'classes/db',
 	'DBpostgres' => 'classes/db',
 	'DBmysql' => 'classes/db',
@@ -97,6 +100,9 @@ return [
 	'GridPositioningStrategy' => '../widgets/Box/positioningStrategiesPhp',
 	'SlotPositioningStrategy' => '../widgets/Box/positioningStrategiesPhp',
 
+	'ClassOfServiceInterface' => 'interfaces',
 	'AuthenticationInterface' => 'interfaces',
 	'AuthorizationInterface' => 'interfaces',
+
+	'ClassOfServiceTrait' => 'traits',
 ];

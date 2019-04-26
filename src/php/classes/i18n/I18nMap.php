@@ -28,6 +28,17 @@ class I18nMap extends DataObject {
 	/**
 	 *
 	 * */
+	public static function getAppMap() {
+		if (self::$appMap === null) {
+			self::loadAppMap();
+		}
+
+		return self::$appMap;
+	}
+
+	/**
+	 *
+	 * */
 	public function getSelfMap() {
 		if ($this->map === null) {
 			$this->loadMap();

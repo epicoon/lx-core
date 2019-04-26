@@ -31,8 +31,9 @@ class DbTable {
 	 * 
 	 * */
 	public function schema($columns = DB::SHORT_SCHEMA) {
-		if ($columns == DB::SHORT_SCHEMA)
+		if ($columns == DB::SHORT_SCHEMA) {
 			return DbTableSchemaProvider::get($this);
+		}
 	
 		return $this->db->tableSchema($this->name, $columns);
 	}
@@ -72,7 +73,12 @@ class DbTable {
 	/**
 	 *
 	 * */
-	public function insert($fields, $values, $returnId=true) {
+	public function insert($fields, $values=null, $returnId=true) {
+		if ($values === null) {
+			$values = array_values($fields);
+			$fields = array_keys($fields);
+		}
+
 		$query = 'INSERT INTO ' . $this->name . ' (' . implode(', ', $fields) . ')' . ' VALUES ';
 		$valstr = [];
 		if (!is_array($values[0])) $values = [$values];
@@ -126,7 +132,7 @@ class DbTable {
 		$data->where = [];
 
 		// Проверка что это число
-		if (filter_var($condition, FILTER_VALIDATE_INT) !== false) {		
+		if (filter_var($condition, FILTER_VALIDATE_INT) !== false) {
 			$data->where += [$this->pkName() => $condition];
 		} elseif (is_string($condition)) {
 			$data->where[] = $condition;
@@ -161,14 +167,19 @@ class DbTable {
 			}
 		}
 
+		$schema = $this->schema();
 		$whereText = '';
 		foreach ($data->where as $key => $value) {
 			if (is_string($key)) {
 				if (is_array($value)) {
-					foreach ($value as &$val) $val = DB::valueForQuery($val);
+					foreach ($value as &$val) {
+						if (!is_string($val) && $schema['types'][$key] == 'string') $val = (string)$val;
+						$val = DB::valueForQuery($val);
+					}
 					unset($val);
 					$part = $key . ' IN (' . implode(', ', $value) . ')';
 				} else {
+					if (!is_string($value) && $schema['types'][$key] == 'string') $value = (string)$value;
 					$part = $key . '=' . DB::valueForQuery($value);
 				}
 			} else {

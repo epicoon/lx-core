@@ -84,6 +84,7 @@ class ServiceRouter {
 						if (!$arr) {
 							return false;
 						}
+						$source['action'] = true;
 						$source['class'] = $arr[0];
 						$source['method'] = $arr[1];
 					} elseif (isset($data['action'])) {
@@ -91,6 +92,7 @@ class ServiceRouter {
 						if (!$arr) {
 							return false;
 						}
+						$source['action'] = true;
 						$source['class'] = $arr[0];
 						$source['method'] = $arr[1];
 					} elseif (isset($data['module'])) {
