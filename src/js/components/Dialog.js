@@ -5,7 +5,6 @@ lx.Dialog = {
 	 * Отправка запроса на сервер указанным методом
 	 * */
 	request: function(config) {
-		if (lx.auth) config = lx.auth(config);
 		return sendRequest(
 			config.method,
 			config.url,
@@ -221,6 +220,7 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 	if (isAjax(url)) {
 		// Заголовок для сервера, что это AJAX-запрос
 		request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		if (lx.auth) lx.auth(request);
 	}
 	for (var name in headers) {
 		request.setRequestHeader(name, headers[name]);
