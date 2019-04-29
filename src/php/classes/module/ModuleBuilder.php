@@ -101,6 +101,10 @@ class ModuleBuilder {
 		$bootstrapJs = $this->bootstrapJs();
 		$mainJs = $this->mainJs();
 		$moduleInfo = $this->moduleInfo();
+		$widgets = $module->getWidgets();
+		foreach ($widgets as $name) {
+			JsCompiler::noteUsedWidget($name);
+		}
 
 		$uniqKey = $this->uniqKey();
 		$data = "<mi $uniqKey>$moduleInfo</mi $uniqKey>"
@@ -180,7 +184,6 @@ class ModuleBuilder {
 	 * Автозагрузик при подключении виджета (в карте классов lx) помечает его как используемый
 	 * */
 	public static function noteUsedWidget($namespace, $name) {
-		// Если нет возможности зарегистрировать
 		$active = self::active();
 
 		if ($active) {

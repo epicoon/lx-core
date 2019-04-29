@@ -66,6 +66,7 @@ class WidgetHelper {
 	 * Путь к js-файлу конкретного виджета
 	 * */
 	public static function getJsFilePath($namespace, $name) {
+		$namespace = str_replace('.', '\\', $namespace);
 		$path = Autoloader::getInstance()->getClassPath($namespace . '\\' . $name);
 
 		//todo закостылено, _main захардкожен!

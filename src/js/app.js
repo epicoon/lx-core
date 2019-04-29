@@ -54,7 +54,7 @@ lx.getModule = function(name) {
 };
 
 lx.createNamespace = function(namespace) {
-	var arr = namespace.split('.'),
+	var arr = namespace.split(/[.\\]/),
 		temp = window;
 	for (var i=0, l=arr.length; i<l; i++) {
 		if (temp[arr[i]] === undefined) temp[arr[i]] = {};
@@ -63,13 +63,32 @@ lx.createNamespace = function(namespace) {
 };
 
 lx.getNamespace = function(namespace) {
-	var arr = namespace.split('.'),
+	var arr = namespace.split(/[.\\]/),
 		temp = window;
 	for (var i=0, l=arr.length; i<l; i++) {
 		if (temp[arr[i]] === undefined) return null;
 		temp = temp[arr[i]];
 	}
 	return temp;
+};
+
+lx.createObject = function(fullClassName, args = null) {
+	var arr = fullClassName.split(/[.\\]/),
+		temp = window;
+	for (var i=0, l=arr.length; i<l; i++) {
+		if (temp[arr[i]] === undefined) return null;
+
+		if (i == l - 1) {
+			if (args) {
+				return new (Function.prototype.bind.apply(
+					temp[arr[i]],
+					[null].lxMerge(args)
+				));
+			} else return new temp[arr[i]]();
+		} else temp = temp[arr[i]];
+	}
+
+	return null;
 };
 
 

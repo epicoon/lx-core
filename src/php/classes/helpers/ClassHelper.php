@@ -40,7 +40,7 @@ class ClassHelper {
 	 * */
 	public static function splitClassName($className) {
 		// Справится даже если класс не загружен
-		preg_match_all('/(.*)\\\([^\\'.'\]+)$/', $className, $matches);
+		preg_match_all('/(.*)[.\\\]([^\\'.'\.]+)$/', $className, $matches);
 		return [$matches[1][0], $matches[2][0]];
 	}
 

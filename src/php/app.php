@@ -522,6 +522,9 @@ class lx {
 
 		// Если при авторизации было наложено ограничение
 		if ($responseSource->hasRestriction()) {
+			//TODO костыльненько, не нравится, подумать как переделать прокидывание сообщения
+			self::$dialog->useMessages();
+
 			if ($responseSource->getRestriction() == lx\ResponseSource::RESTRICTION_INSUFFICIENT_RIGHTS
 				&& self::$components->user->isGuest()
 				&& self::$dialog->isPageLoad()

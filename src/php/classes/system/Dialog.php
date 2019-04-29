@@ -24,6 +24,7 @@ class Dialog {
 	private $_clientIp;
 
 	private $messages;
+	private $_useMessages;
 
 	public function __construct() {
 		$this->_clientIp = $_SERVER['REMOTE_ADDR'];
@@ -54,6 +55,14 @@ class Dialog {
 		*/
 
 		$this->messages = [];
+		$this->_useMessages = false;
+	}
+
+	/**
+	 *
+	 * */
+	public function useMessages($bool = true) {
+		$this->_useMessages = $bool;
 	}
 
 	/**
@@ -310,7 +319,7 @@ class Dialog {
 				\lx::alert($content);
 			}
 
-			if (is_array($data) && !array_key_exists('message', $data) && !empty($this->messages)) {
+			if ($this->_useMessages && is_array($data) && !array_key_exists('message', $data) && !empty($this->messages)) {
 				$data['message'] = implode(PHP_EOL, $this->messages);
 			}
 

@@ -126,7 +126,21 @@ class ResponseSource {
 	 * */
 	public function getModule() {
 		if ($this->isModule()) {
-			return $this->getService()->getModule($this->data['module']);
+			$module = $this->getService()->getModule($this->data['module']);
+
+			if (isset($this->data['params'])) {
+				$module->addParams($this->data['params']);
+			}
+
+			if (isset($this->data['clientParams'])) {
+				$module->clientParams->setProperties($this->data['clientParams']);
+			}
+
+			if (isset($this->data['widgets'])) {
+				$module->useWidgets($this->data['widgets']);
+			}
+
+			return $module;
 		}
 
 		return null;

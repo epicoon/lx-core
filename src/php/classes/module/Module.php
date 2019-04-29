@@ -15,6 +15,8 @@ namespace lx;
 	public function postJs($code)
 	public function setHandler($name, $handler)
 	public function script($name, $onSuccess=0, $onError=0, $loc='head')
+	public function useWidget($name)
+	public function useWidgets($names)
 
 * * *  3. Геттеры  * * *
 	public function __get($field)
@@ -47,12 +49,16 @@ namespace lx;
 	public function getPostJs()
 	public function getScripts()
 	public function getCss()
+	public function getWidgets()
 */
 class Module {
 	public
+		$params = null,  // Параметры, используемые модулем на стороне сервера
 		$title = null,   // Заголовок страницы модуля (для использования модуля во фрэйме не актуально)
-		$clientParams = null,    // Данные, которые будут реплицированы на стороне клиента
-		$params = null;  // Параметры, используемые модулем на стороне сервера
+		$clientParams = null;    // Данные, которые будут реплицированы на стороне клиента
+
+	protected
+		$widgets = [];  // Можно явно перечислить используемые при рендеринге виджеты
 
 	protected
 		$service = null,
@@ -194,6 +200,21 @@ class Module {
 				: [$scriptPath, $onSuccess, $onError];
 	}
 
+	/**
+	 *
+	 * */
+	public function useWidget($name) {
+		$this->widgets[] = $name;
+	}
+
+	/**
+	 *
+	 * */
+	public function useWidgets($names) {
+		foreach ($names as $name) {
+			$this->widgets[] = $name;
+		}
+	}
 
 	//=========================================================================================================================
 	/* * *  3. Геттеры  * * */
@@ -502,5 +523,12 @@ class Module {
 	 * */
 	public function getCss() {
 		return $this->conductor->getCssAssets();
+	}
+
+	/**
+	 *
+	 * */
+	public function getWidgets() {
+		return $this->widgets;
 	}
 }

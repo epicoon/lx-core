@@ -82,11 +82,13 @@ class AjaxRouter {
 		$methodKey = $data['key'];
 		$params = $data['params'];
 
+		$methodName = $widgetName::ajaxRoute($methodKey);
+
 		return new ResponseSource([
 			'isStatic' => true,
 			'class' => $widgetName,
-			'method' => 'ajax',
-			'params' => [$methodKey, $params],
+			'method' => $methodName,
+			'params' => $params,
 		]);
 	}
 }
