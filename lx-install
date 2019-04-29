@@ -14,7 +14,7 @@ defined('STDOUT') or define('STDOUT', fopen('php://stdout', 'w'));
 
 require_once(__DIR__ . '/src/php/app.php');
 
-lx::installInitialisation();
+lx::installInitialization();
 
 $site = new lx\Directory(lx::$conductor->site);
 
