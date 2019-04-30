@@ -190,6 +190,9 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 			lx.Alert(alerts);
 		}
 
+		// Гостевой флаг
+		lx.isGuest = request.getResponseHeader('lx-user-status') !== null;
+
 		// Передаем управление обработчику пользователя
 		var contentType = request.getResponseHeader('Content-Type') || '';
 		result = contentType.match(/text\/json/)

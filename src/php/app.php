@@ -96,10 +96,11 @@ class lx {
 	private static
 		$type = '',
 		$defaultServiceConfig = null,
-		$defaultModuleConfig = null;
+		$defaultModuleConfig = null,
+		$rendered = '';
 
 	/**
-	 * Данные, которые будут отправлены клиентскому lx
+	 * Данные, которые будут отправлены как клиентские настройки lx
 	 * */
 	private static
 		$settings = [
@@ -137,6 +138,10 @@ class lx {
 				require_once(__DIR__ . '/stdResponses/404.php');
 				break;
 		}
+	}
+
+	public static function stdRendered() {
+		return self::$rendered;
 	}
 
 

@@ -305,13 +305,20 @@ class Dialog {
 	 * */
 	public function send($data = null) {
 		$content = ob_get_contents();
+		if ($content != '') {
+			ob_end_clean();
+		}
+
+		if (\lx::$components->user && \lx::$components->user->isGuest()) {
+			header('lx-user-status: guest');
+		}
+
 		if ($data === null) {
 			header('Content-Type: text/html; charset=utf-8');
-		} else {
 			if ($content != '') {
-				ob_end_clean();
+				echo $content;
 			}
-
+		} else {
 			$isStr = is_string($data);
 			header('Content-Type: text/' . ($isStr ? 'plane' : 'json') . '; charset=utf-8');
 
