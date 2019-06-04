@@ -6,12 +6,16 @@ namespace lx;
  * Используется в качестве исполняющего инструмента by MigrationManager
  * */
 class ModelMigrateExecutor {
+	const ACTION_ADD_FIELD = 'addField';
+	const ACTION_REMOVE_FIELD = 'removeField';
+	const ACTION_RENAME_FIELD = 'renameField';
+	const ACTION_CHANGE_FIELD_PROPERTY = 'changeFieldProperty';
+
 	private $service;
 	private $path;
 	private $code;
 	private $modelName;
 	private $modelData;
-	private $tableName;
 
 	// Действия со схемой
 	private $innerActions;
@@ -58,53 +62,60 @@ class ModelMigrateExecutor {
 	 * Парсинг текста yaml-схемы модели для поиска директив изменения (изменение структуры, изменение контента)
 	 * */
 	public function runParseCode() {
-		$modelProvider = $this->service->modelProvider;
+		$crudAdapter = $this->service->modelProvider->getCrudAdapter();
+		// Если нет CRUD адаптера, то не нужно миграций
+		if ( ! $crudAdapter) {
+			return true;
+		}
+
 		$migrationMaker = new MigrationMaker($this->service);
 
 		$this->parseInnerActions();
-		if ($modelProvider->checkModelNeedTable($this->modelName)) {
+		$needTable = $crudAdapter->checkNeedTable($this->modelName);
+		if ($needTable) {
 			$this->correctInnerYaml();
-			$migrationMaker->createTableMigration($this->modelName, $this->tableName);
-			if (!$modelProvider->createTable($this->modelName)) {
+			if (!$crudAdapter->createTable($this->modelName)) {
 				return false;
+			} else {
+				$migrationMaker->createTableMigration($this->modelName);
 			}
-		} else {
+		}
+
+		// if ($relationTableNames = $modelProvider->createRelationTables($this->modelName)) {
+		// 	var_dump($relationTableNames);
+		// // 	$migrationMaker->createRelationTablesMigration($this->modelName, $relationTableNames);
+		// }
+
+		if (!$needTable) {
 			if (!empty($this->innerActions)) {
-				$migrationMaker->createInnerMigration(
+				if ( ! $crudAdapter->correctModel(
 					$this->modelName,
-					$this->tableName,
 					$this->innerActions
-				);
-				$correctResult = $modelProvider->correctModel(
-					$this->modelName,
-					$this->tableName,
-					$this->innerActions
-				);
-				if (!$correctResult) {
+				)) {
 					return false;
 				}
+
 				$this->correctInnerYaml();
-				$this->tableName = $correctResult;
+				$migrationMaker->createInnerMigration(
+					$this->modelName,
+					$this->innerActions
+				);
 			}
 		}
 
 		$actions = $this->parseOuterActions();
 		if (!empty($actions)) {
-			$migrationMaker->createOuterMigration(
+			if ( ! $crudAdapter->correctModelEssences(
 				$this->modelName,
-				$this->tableName,
 				$actions
-			);
-
-			$correctResult = $modelProvider->correctModelEssences(
-				$this->modelName,
-				$this->tableName,
-				$actions
-			);
-			if (!$correctResult) {
+			)) {
 				return false;
 			}
 
+			$migrationMaker->createOuterMigration(
+				$this->modelName,
+				$actions
+			);
 			$this->correctOuterYaml();
 		}
 
@@ -115,45 +126,38 @@ class ModelMigrateExecutor {
 	 *
 	 * */
 	public function runChangeEssences($actions) {
-		$modelProvider = $this->service->modelProvider;
-		$migrationMaker = new MigrationMaker($this->service);
+		$crudAdapter = $this->service->modelProvider->getCrudAdapter();
+		// Если нет CRUD адаптера, то не нужно миграций
+		if ( ! $crudAdapter) {
+			return true;
+		}
 
-		$migrationMaker->createOuterMigration(
-			$this->modelName,
-			$this->tableName,
-			$actions
-		);
+		if ($crudAdapter->correctModelEssences($this->modelName, $actions)) {
+			$migrationMaker = new MigrationMaker($this->service);
+			$migrationMaker->createOuterMigration($this->modelName, $actions);
+			return true;
+		}
 
-		return $modelProvider->correctModelEssences(
-			$this->modelName,
-			$this->tableName,
-			$actions
-		);
+		return false;
 	}
 
 	/**
 	 * Корректировки моделей готовым набором директив (только изменение структуры)
 	 * */
 	public function runCorrectActions($actions) {
-		$this->tableName = $this->modelData['table'];
+		$crudAdapter = $this->service->modelProvider->getCrudAdapter();
+		// Если нет CRUD адаптера, то не нужно миграций
+		if ( ! $crudAdapter) {
+			return true;
+		}
+
 		$this->innerActions = $actions;
-
-		$migrationMaker = new MigrationMaker($this->service);
-		$migrationMaker->createInnerMigration(
-			$this->modelName,
-			$this->tableName,
-			$this->innerActions
-		);
-
-		$modelProvider = $this->service->modelProvider;
-		$correctResult = $modelProvider->correctModel(
-			$this->modelName,
-			$this->tableName,
-			$this->innerActions
-		);
-		if (!$correctResult) {
+		if ( ! $crudAdapter->correctModel($this->modelName, $this->innerActions)) {
 			return false;
 		}
+
+		$migrationMaker = new MigrationMaker($this->service);
+		$migrationMaker->createInnerMigration($this->modelName, $this->innerActions);
 
 		// Правка yaml-кода
 		//todo - перенести отсюда
@@ -161,24 +165,32 @@ class ModelMigrateExecutor {
 		foreach ($actions as $action) {
 			$type = $action['action'];
 			switch ($type) {
-				case 'renameTable':
-					$code = preg_replace('/  (table: *)'.$action['old'].'/', '$1'.$action['new'], $code);
-					break;
-				case 'addField':
-					$arr = [];
-					foreach ($action['params'] as $property => $value) {
-						$arr[] = "$property: $value";
+				case self::ACTION_ADD_FIELD:
+					if ($action['category'] == 'fields') {
+						$arr = [];
+						foreach ($action['params'] as $property => $value) {
+							$arr[] = "$property: $value";
+						}
+						$fieldStr = '    ' . $action['name'] . ': { ' . implode(', ', $arr) . ' }';
+						$code = preg_replace('/(fields:[\w\W]*?)([\r\n]+?  \w|$)/', '$1'.PHP_EOL.$fieldStr.'$2', $code);
+					} else {
+						//TODO!!!!!!!!!!!!!!!!!!!!!!!!!!
+						// тут relations
 					}
-					$fieldStr = '    ' . $action['name'] . ': { ' . implode(', ', $arr) . ' }';
-					$code = preg_replace('/(fields:[\w\W]*?)([\r\n]+?  \w|$)/', '$1'.PHP_EOL.$fieldStr.'$2', $code);
 					break;
-				case 'removeField':
-					$code = preg_replace('/(fields:[\w\W]*?)    '.$action['name'].'.*?[\r\n]+?( |$)/', '$1$2', $code);
+
+				//todo - неверно, поле может быть описано несколькими строками, надо отталкиваться от количества пробелов
+				case self::ACTION_REMOVE_FIELD:
+					$category = $action['category'];
+					$code = preg_replace('/(' . $category . ':[\w\W]*?)    '.$action['name'].'.*?[\r\n]+?( |$)/', '$1$2', $code);
 					break;
-				case 'renameField':
-					$code = preg_replace('/(fields:[\w\W]*?    )'.$action['old'].'/', '$1'.$action['new'], $code);
+
+				case self::ACTION_RENAME_FIELD:
+					$category = $action['category'];
+					$code = preg_replace('/(' . $category . ':[\w\W]*?    )'.$action['old'].'/', '$1'.$action['new'], $code);
 					break;
-				case 'changeFieldProperty':
+
+				case self::ACTION_CHANGE_FIELD_PROPERTY:
 					$code = preg_replace('/(fields:[\w\W]*?    '.$action['fieldName'].'[\w\W]*?'.$action['property'].': *)'.$action['old'].'/',
 						'$1'.$action['new'], $code);
 					break;
@@ -199,60 +211,25 @@ class ModelMigrateExecutor {
 	 * Парсинг непосредственно текста yaml-схемы, если директивы изменения написали прямо в файле
 	 * */
 	private function parseInnerActions() {
-		// Проверка на переименование таблицы
-		$tableName = $this->modelData['table'];
-		if ((preg_match('/!!change/', $tableName))) {
-			$arr = preg_split('/\s+!!change\s+/', $tableName);
-			$this->innerActions[] = [
-				'action' => 'renameTable',
-				'currentTableName' => $tableName,
-				'old' => $arr[0],
-				'new' => $arr[1]
-			];
-			$tableName = $arr[0];
-		}
-		$this->tableName = $tableName;
-
 		// Проверки всех изменений полей
 		foreach ($this->modelData['fields'] as $name => $field) {
+			// Проверка на удаление поля
+			if (preg_match('/!!remove/', $name)) {
+				$this->parseInnerRemove('fields', $name);
+				// Если поле удаляется - параметры уже не важны
+				continue;
+			}
+
 			$realName = $name;
 
 			// Проверка на переименование поля
 			if (preg_match('/!!change/', $name)) {
-				$arr = preg_split('/\s+!!change\s+/', $name);
-				$this->innerActions[] = [
-					'action' => 'renameField',
-					'currentFieldName' => $name,
-					'old' => $arr[0],
-					'new' => $arr[1]
-				];
-				$realName = $arr[1];
+				$realName = $this->parseInnerChange('fields', $name);
 			}
 
 			// Проверка на добавление поля
 			if (preg_match('/!!add/', $name)) {
-				$arr = preg_split('/\s*!!add\s*/', $name);
-				$realName = $arr[0] ? $arr[0] : $arr[1];
-				$this->innerActions[] = [
-					'action' => 'addField',
-					'currentFieldName' => $name,
-					'name' => $realName,
-					'params' => $field
-				];
-			}
-
-			// Проверка на удаление поля
-			if (preg_match('/!!remove/', $name)) {
-				$arr = preg_split('/\s*!!remove\s*/', $name);
-				$realName = $arr[0] ? $arr[0] : $arr[1];
-				$this->innerActions[] = [
-					'action' => 'removeField',
-					'currentFieldName' => $name,
-					'name' => $realName
-				];
-
-				// Если поле удаляется - параметры уже не важны
-				continue;
+				$realName = $this->parseInnerAdd('fields', $name, $field);
 			}
 
 			// Проверки изменений параметров полей
@@ -262,8 +239,8 @@ class ModelMigrateExecutor {
 				if (preg_match('/!!change/', $propValue)) {
 					$arr = preg_split('/\s+!!change\s+/', $propValue);
 					$this->innerActions[] = [
-						'action' => 'changeFieldProperty',
-						'currentFieldName' => $name,
+						'action' => self::ACTION_CHANGE_FIELD_PROPERTY,
+						'currentName' => $name,
 						'fieldName' => $realName,
 						'property' => $propName,
 						'old' => $arr[0],
@@ -272,6 +249,54 @@ class ModelMigrateExecutor {
 				}
 			}
 		}
+
+		if (isset($this->modelData['relations']) && is_array($this->modelData['relations'])) {
+			foreach ($this->modelData['relations'] as $name => $relation) {
+				// Проверка на удаление связи
+				if (preg_match('/!!remove/', $name)) {
+					$this->parseInnerRemove('relations', $name);
+					continue;
+				}
+
+			}
+		}
+	}
+
+	private function parseInnerRemove($category, $name) {
+		$arr = preg_split('/\s*!!remove\s*/', $name);
+		$realName = $arr[0] ? $arr[0] : $arr[1];
+		$this->innerActions[] = [
+			'category' => $category,
+			'action' => self::ACTION_REMOVE_FIELD,
+			'currentName' => $name,
+			'name' => $realName,
+			'params' => $this->modelData[$category][$name],
+		];
+	}
+
+	private function parseInnerChange($category, $name) {
+		$arr = preg_split('/\s+!!change\s+/', $name);
+		$this->innerActions[] = [
+			'category' => $category,
+			'action' => self::ACTION_RENAME_FIELD,
+			'currentName' => $name,
+			'old' => $arr[0],
+			'new' => $arr[1],
+		];
+		return $arr[1];
+	}
+
+	private function parseInnerAdd($category, $name, $field) {		
+		$arr = preg_split('/\s*!!add\s*/', $name);
+		$realName = $arr[0] ? $arr[0] : $arr[1];
+		$this->innerActions[] = [
+			'category' => $category,
+			'action' => self::ACTION_ADD_FIELD,
+			'currentName' => $name,
+			'name' => $realName,
+			'params' => $field,
+		];
+		return $realName;
 	}
 
 	/**
@@ -284,12 +309,13 @@ class ModelMigrateExecutor {
 
 		$code = $this->code;
 		
-		foreach ($this->innerActions as $actionData) {
+		foreach ($this->innerActions as &$actionData) {
 			$action = 'yaml_' . $actionData['action'];
 			if (method_exists($this, $action)) {
 				$this->{$action}($actionData, $code);
 			}
 		}
+		unset($actionData);
 
 		$this->code = $code;
 
@@ -300,46 +326,41 @@ class ModelMigrateExecutor {
 	/**
 	 *
 	 * */
-	private function yaml_renameTable($data, &$code) {
-		$reg = '/(table:\s*)' . $data['currentTableName'] . '/';
-		$code = preg_replace($reg, '$1' . $data['new'], $code);
-	}
-
-	/**
-	 *
-	 * */
-	private function yaml_renameField($data, &$code) {
-		$reg = '/(\s)' . $data['currentFieldName'] . '(\s*:)/';
+	private function yaml_renameField(&$data, &$code) {
+		$reg = '/(\s)' . $data['currentName'] . '(\s*:)/';
 		$code = preg_replace($reg, '$1' . $data['new'] . '$2', $code);
+		unset($data['currentName']);
 	}
 
 	/**
 	 *
 	 * */
-	private function yaml_addField($data, &$code) {
-		$reg = '/(\s)' . $data['currentFieldName'] . '(\s*:)/';
+	private function yaml_addField(&$data, &$code) {
+		$reg = '/(\s)' . $data['currentName'] . '(\s*:)/';
 		$code = preg_replace($reg, '$1' . $data['name'] . '$2', $code);
+		unset($data['currentName']);
 	}
 
 	/**
 	 *
 	 * */
-	private function yaml_removeField($data, &$code) {
-		$fieldNames = array_keys($this->modelData['fields']);
+	private function yaml_removeField(&$data, &$code) {
+		$itemNames = array_keys($this->modelData[$data['category']]);
 
 		$i = 0;
-		while ($fieldNames[$i] != $data['currentFieldName']) $i++;
+		while ($itemNames[$i] != $data['currentName']) $i++;
 
-		if ($i == count($fieldNames) - 1) {
+		if ($i == count($itemNames) - 1) {
 			$regFace = '\n\s+';
-			$regTail = '(\n$|\n\n|\n[^\n])';
+			$regTail = '(\n$|$|\n\n|\n[^\n])';
 		} else {
 			$regFace = '';
-			$regTail = '(' . $fieldNames[$i + 1] . ':)';
+			$regTail = '(' . $itemNames[$i + 1] . ':)';
 		}
 
-		$reg = '/' . $regFace . $data['currentFieldName'] . '[\w\W]+?' . $regTail . '/';
+		$reg = '/' . $regFace . $data['currentName'] . '[\w\W]+?' . $regTail . '/';
 		$code = preg_replace($reg, '$1', $code);
+		unset($data['currentName']);
 	}
 
 	/**
@@ -407,19 +428,19 @@ class ModelMigrateExecutor {
 					$list[] = ['query', $actionData];
 					break;
 				case '!!add':
-					$list[] = ['add', $this->modelName, $this->outerAddModels($actionData)];
+					$list[] = ['add', $this->outerAddModels($actionData)];
 					break;
 				case '!!addTable':
-					$list[] = ['add', $this->modelName, $this->outerAddModelsFromArray($actionData)];
+					$list[] = ['add', $this->outerAddModelsFromArray($actionData)];
 					break;
 				case '!!edit':
 					$arr = $this->outerEditModels($actionData);
 					if ($arr) {
-						$list[] = ['edit', $this->modelName, $arr];
+						$list[] = ['edit', $arr];
 					}
 					break;
 				case '!!remove':
-					$list[] = ['del', $this->modelName, $this->outerRemoveModels($actionData)];
+					$list[] = ['del', $this->outerRemoveModels($actionData)];
 					break;
 			}
 		}
@@ -526,8 +547,10 @@ class ModelMigrateExecutor {
 				$pare[0] = $__value;
 			} elseif ($__key == 'fields') {
 				$pare[1] = $__value;
-				$result[] = $pare;
 			}
+
+			//????????????????????????? было внутри последнего условия. Бред же? Проверить
+			$result[] = $pare;
 		}
 
 		if (empty($result)) return false;

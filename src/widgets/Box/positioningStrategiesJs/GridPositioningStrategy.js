@@ -105,7 +105,7 @@ class GridCalculator {
 		var obj;
 		switch (grid.sizeBehavior) {
 			case lx.GridPositioningStrategy.SIZE_BEHAVIOR_PROPORTIONAL_CONST: obj = new ConstGridCalculator(); break;
-			case lx.GridPositioningStrategy.SIZE_BEHAVIOR_PROPORTIONAL: obj = new RowsGridCalculator(); break;
+			case lx.GridPositioningStrategy.SIZE_BEHAVIOR_PROPORTIONAL: obj = new ProportionalGridCalculator(); break;
 			case lx.GridPositioningStrategy.SIZE_BEHAVIOR_BY_CONTENT: obj = new BoxGridCalculator(); break;
 		}
 		obj.grid = grid;
@@ -301,7 +301,7 @@ class ConstGridCalculator extends GridCalculator {
 //=============================================================================================================================
 
 //=============================================================================================================================
-class RowsGridCalculator extends ConstGridCalculator {
+class ProportionalGridCalculator extends ConstGridCalculator {
 	constructor() {
 		super();
 		this.relocateAll = false;
@@ -348,7 +348,7 @@ class RowsGridCalculator extends ConstGridCalculator {
 //=============================================================================================================================
 
 //=============================================================================================================================
-class BoxGridCalculator extends RowsGridCalculator {
+class BoxGridCalculator extends ProportionalGridCalculator {
 	relocateElem(elem) {
 		this.relocateElemProcess(elem);
 		this.checkHeight();

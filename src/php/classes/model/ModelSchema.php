@@ -4,15 +4,17 @@ namespace lx;
 
 class ModelSchema {
 	protected
+		$provider,
 		$name,
 		$pkName = null,
-		$tableName,
 		$fieldNames = [],
-		$fields = [];
+		$fields = [],
+		$relationNames = [],
+		$relations = [];
 
-	public function __construct($name, $schema) {
+	public function __construct($provider, $name, $schema) {
+		$this->provider = $provider;
 		$this->name = $name;
-		if (isset($schema['table'])) $this->tableName = $schema['table'];
 
 		$forbidden = isset($schema['forbidden']) ? $schema['forbidden'] : [];
 
@@ -43,6 +45,34 @@ class ModelSchema {
 			$this->fieldNames[] = $this->pkName;
 			$this->fields[$this->pkName] = ModelField::create($this->pkName, ['pk' => true, 'type' => ModelField::TYPE_INTEGER_SLUG]);
 		}
+
+		if (isset($schema['relations']) && is_array($schema['relations'])) {
+			foreach ($schema['relations'] as $relationName => $relationData) {
+				$this->relationNames[] = $relationName;
+				$this->relations[$relationName] = new ModelFieldRelation($this, $relationName, $relationData);
+			}
+		}
+	}
+
+	/**
+	 *
+	 * */
+	public function getProvider() {
+		return $this->provider;
+	}
+
+	/**
+	 *
+	 * */
+	public function getCrudAdapter() {
+		return $this->getProvider()->getCrudAdapter($this->name);
+	}
+
+	/**
+	 *
+	 * */
+	public function getManager() {
+		return $this->provider->getManager($this->name);
 	}
 
 	public function getDefinitions($params = null) {
@@ -55,10 +85,6 @@ class ModelSchema {
 
 	public function getName() {
 		return $this->name;
-	}
-
-	public function getTableName() {
-		return $this->tableName;
 	}
 
 	public function pkName() {
@@ -75,6 +101,64 @@ class ModelSchema {
 
 	public function pkField() {
 		return $this->fields[$this->pkName()];
+	}
+
+	public function relationNames() {
+		return $this->relationNames;
+	}
+
+	public function hasRelation($name) {
+		return array_key_exists($name, $this->relations);
+	}
+
+	public function getRelations() {
+		return $this->relations;
+	}
+
+	public function relation($name) {
+		return $this->relations[$name];
+	}
+
+	public function confirmRelationName($modelName, $relationName) {
+		if ($relationName) {
+			if (array_key_exists($relationName, $this->relations)
+				&& $this->relations[$relationName]->getRelativeModelName() == $modelName
+			) {
+				return $relationName;
+			}
+
+			return false;
+		}
+
+		$count = 0;
+		$matchName = null;
+		foreach ($this->relations as $name => $relation) {
+			if ($relation->getRelativeModelName() == $modelName) {
+				++$count;
+				$matchName = $name;
+			}
+		}
+
+		if ($count == 1 && $matchName) {
+			return $matchName;
+		}
+
+		return false;
+	}
+
+	public function getRelationsForModel($model, $filter = []) {
+		$modelName = is_string($model) ? $model : $model->getName();
+
+		$result = [];
+		foreach ($this->relations as $name => $relation) {
+			if ($relation->getRelativeModelName() == $modelName) {
+				if (empty($filter) || (array_search($name, $filter) !== false)) {
+					$result[$name] = $relation;
+				}
+			}
+		}
+
+		return $result;
 	}
 
 	private function complementFieldData($data) {

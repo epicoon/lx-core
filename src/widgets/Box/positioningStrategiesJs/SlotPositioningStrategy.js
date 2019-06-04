@@ -97,14 +97,22 @@ class SlotPositioningStrategy extends PositioningStrategy #lx:namespace lx {
 			case null:
 				step[axe2] = (sz[axe2] - cellSz[axe2] * amt[axe2]) / (amt[axe2] + 1);
 				marg[axe2][0] = step[axe2];
-			break;
+				break;
 			case lx.CENTER:
 			case lx.MIDDLE:
 				marg[axe2][0] = (sz[axe2] - cellSz[axe2] * amt[axe2] - step[axe2] * (amt[axe2] - 1)) * 0.5;
-			break;
+				break;
 			case lx.JUSTIFY:
 				step[axe2] = (sz[axe2] - cellSz[axe2] * amt[axe2] - marg[axe2][0] - marg[axe2][1]) / (amt[axe2] - 1);
-			break;
+				break;
+			case lx.LEFT:
+			case lx.TOP:
+				marg[axe2][0] = marg[+!axe2][0];
+				break;
+			case lx.RIGHT:
+			case lx.BOTTOM:
+				marg[axe2][0] = sz[axe2] - (cellSz[axe2] + step[axe2]) * amt[axe2];
+				break;
 		}
 
 		this.relocate(marg[0][0], marg[1][0], cellSz, step);

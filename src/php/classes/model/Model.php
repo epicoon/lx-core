@@ -91,6 +91,10 @@ abstract class Model {
 	public function reset()            { $this->data->reset();                }
 	public function drop()             { $this->data->drop();                 }
 
+	//TODO ??????????????
+	// public function addRelation($model) { $this->data->addRelation($model->getData()); }
+	// public function addRelations($arr) { $this->data->addRelations($arr); }
+
 	public static function service() {
 		if (static::$_service === null) {
 			$serviceName = ClassHelper::defineService(static::class);

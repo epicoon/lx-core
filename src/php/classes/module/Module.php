@@ -27,6 +27,7 @@ namespace lx;
 	public function findFile($name)
 	public function getConfig($key = null)
 	public function getImageRoute($name)
+	public function getRespondent($name)
 	public function extractScripts()
 	public function prototypeModule()
 	public function prototypeService()
@@ -283,6 +284,19 @@ class Module {
 	 * */
 	public function getImageRoute($name) {
 		return $this->conductor->getImageRoute($name);
+	}
+
+	/**
+	 *
+	 * */
+	public function getRespondent($name) {
+		$respondent = $this->conductor->findRespondent($name);
+
+		if (!$respondent) {
+			return null;
+		}
+
+		return $respondent;
 	}
 
 	/**

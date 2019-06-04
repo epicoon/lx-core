@@ -134,6 +134,10 @@ class Autoloader {
 		if (file_exists($path)) {
 			return $path;
 		}
+		$path = \lx::$conductor->getSystemPath('lxWidgets') . '/' . $name . '/' . (explode('\\', $className)[1]) . '.php' ;
+		if (file_exists($path)) {
+			return $path;
+		}
 
 		return false;
 	}

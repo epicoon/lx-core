@@ -71,10 +71,24 @@ class DbTable {
 	}
 
 	/**
+	 * 
+	 * */
+	public function selectColumn($columnName, $condition = null) {
+		$data = $this->select($columnName, $condition);
+		$result = [];
+		foreach ($data as $row) {
+			$result[] = $row[$columnName];
+		}
+
+		return $result;
+	}
+
+	/**
 	 *
 	 * */
 	public function insert($fields, $values=null, $returnId=true) {
-		if ($values === null) {
+		if ($values === null || is_bool($values)) {
+			$returnId = $values === null ? true : $values;
 			$values = array_values($fields);
 			$fields = array_keys($fields);
 		}

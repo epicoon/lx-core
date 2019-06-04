@@ -15,27 +15,15 @@ class ServiceMigrationMap {
 	/**
 	 *
 	 * */
-	public function getMapFile() {
-		$path = $this->service->conductor->getMigrationDirectory()->getPath() . '/map.json';
-		if (!file_exists($path)) {
-			return false;
-		}
-
-		return new File($path);
-	}
-
-	/**
-	 *
-	 * */
-	public function getMap() {
-		$f = $this->getMapFile();
-		if (!$f) return [];
-
-		$data = json_decode($f->get(), true);
-		$list = $data['list'];
+	public function getList() {
+		$dir = $this->service->conductor->getMigrationDirectory();
+		$names = $dir->getContent(['findType' => Directory::FIND_NAME, 'ext' => false]);
+		$list = $names->getData();
 		usort($list, function($a, $b) {
-			if ($a['time']===$b['time']) return 0;
-			return ($a['time'] < $b['time']) ? -1 : 1;
+			$aTime = explode('__', $a)[1];
+			$bTime = explode('__', $b)[1];
+			if ($aTime == $bTime) return 0;
+			return ($aTime < $bTime) ? -1 : 1;
 		});
 
 		return $list;
@@ -45,17 +33,50 @@ class ServiceMigrationMap {
 	 *
 	 * */
 	public function getUnappliedList() {
-		$result = [];
-		$list = $this->getMap();
+		$list = $this->getList();
 		if (empty($list)) return [];
 
 		MigrationMap::getInstance()->open();
-		foreach ($list as $migrationRow) {
-			if (!MigrationMap::getInstance()->check($this->service->name, $migrationRow['name'])) {
-				$result[] = $migrationRow['name'];
+
+		$result = [];
+		foreach ($list as $migrationName) {
+			if ( ! MigrationMap::getInstance()->check($this->service->name, $migrationName)) {
+				$result[] = $migrationName;
 			}
 		}
+
 		MigrationMap::getInstance()->close();
+
+		return $result;
+	}
+
+	/**
+	 *
+	 * */
+	public function getDetailedList() {
+		$list = $this->getList();
+		if (empty($list)) return [];
+
+		MigrationMap::getInstance()->open();
+
+		$result = [];
+		foreach ($list as $migrationName) {
+			$arr = explode('__', $migrationName);
+
+			//TODO сработает некорректно, если имя модели имеет нижнее подчеркивание. Надо открывать файл и читать имя модели оттуда
+			$migrationData = explode('_', $arr[2], 2);
+
+			$result[] = [
+				'name' => $migrationName,
+				'createdAt' => date('Y-m-d H:i:s', explode('_', $arr[1])[0]),
+				'model' => $migrationData[0],
+				'type' => $migrationData[1],
+				'applied' => MigrationMap::getInstance()->check($this->service->name, $migrationName),
+			];
+		}
+
+		MigrationMap::getInstance()->close();
+
 		return $result;
 	}
 }

@@ -5,49 +5,29 @@ namespace lx;
 class ModelManager {
 	private $crudTool = null;
 	private $schema;
-	private $models = [];
 
 	public function __construct($crudTool, $schema) {
 		$this->crudTool = $crudTool;
 		$this->schema = $schema;
 	}
 
+
 	/**************************************************************************************************************************
-		CRUD действия с одной моделью
-	**************************************************************************************************************************/
+	 * CRUD действия с одной моделью
+	 *************************************************************************************************************************/
 
 	public function newModel() {
 		return ModelData::getNew($this, 1);
 	}
 
 	public function loadModel($condition) {
-		$field = $this->schema->pkField();
-		if ($field->suitableType($condition) && array_key_exists($condition, $this->models)) {
-			return $this->models[$condition];
-		}
-
 		$this->checkCrud();
-		$modelData = ModelData::loadOne($this, $condition);
-		// var_dump($modelData);
-		if (!$modelData) return null;
-
-		$this->cacheModel($modelData);
-		return $modelData;
-
-
-		// $this->checkCrud();
-		// return ModelData::loadOne($this, $condition);
+		return $this->crudTool->loadModel($this->schema->getName(), $condition);
 	}
 
 	public function saveModel($model) {
 		$this->checkCrud();
 		$this->crudTool->saveModel($model);
-
-		$this->cacheModel($model);
-
-
-		// $this->checkCrud();
-		// $this->crudTool->saveModel($model);
 	}
 
 	public function deleteModel($model) {
@@ -57,15 +37,27 @@ class ModelManager {
 		$this->crudTool->deleteModel($model);
 
 		$model->setPk(null);
-
-
-		// $this->checkCrud();
-		// $this->crudTool->deleteModel($model);
 	}
 
+	public function addRelations($model, $relation, $modelsList) {
+		$this->checkCrud();
+		$this->crudTool->addRelations($model, $relation, $modelsList);
+	}
+
+	public function loadRelations($model, $relation) {
+		$this->checkCrud();
+		return $this->crudTool->loadRelations($model, $relation);
+	}
+
+	public function delRelations($model, $relation, $modelsList) {
+		$this->checkCrud();
+		$this->crudTool->delRelations($model, $relation, $modelsList);
+	}
+
+
 	/**************************************************************************************************************************
-		CRUD действия с множествами моделей
-	**************************************************************************************************************************/
+	 * CRUD действия с множествами моделей
+	 *************************************************************************************************************************/
 
 	/**
 	 * Создание нескольких новых моделей
@@ -80,45 +72,42 @@ class ModelManager {
 	 * */
 	public function loadModels($condition = null) {
 		$this->checkCrud();
-		return ModelData::load($this, $condition);
+		return $this->crudTool->loadModels($this->schema->getName(), $condition);
 	}
 
 	public function saveModels($arr) {
 		$this->checkCrud();
-		$this->crudTool->saveModels($this->schema, $arr);
+		$this->crudTool->saveModels($arr);
 	}
 
 	public function deleteModels($arr) {
 		$this->checkCrud();
-		$this->crudTool->deleteModels($this->schema, $arr);
+		$this->crudTool->deleteModels($arr);
 	}
 
+
 	/**************************************************************************************************************************
-		Всякое прочее
-	**************************************************************************************************************************/
+	 * Всякое прочее
+	 *************************************************************************************************************************/
+
+	public function getModelName() {
+		return $this->schema->getName();
+	}
 
 	public function getSchema() {
 		return $this->schema;
 	}
 
-	public function cacheModel($model) {
-		$this->models[$model->pk()] = $model;
+	public function getCrudAdapter() {
+		return $this->crudTool;
 	}
 
-	public function uncacheModel($model) {
-		unset($this->models[$model->pk()]);
+	public function getService() {
+		return $this->crudTool->getService();
 	}
 
 	public function resetModels() {
 		$this->models = [];
-	}
-
-	/**
-	 *
-	 * */
-	public function loadModelsData($condition = null) {
-		$this->checkCrud();
-		return $this->crudTool->loadModelsData($this->schema, $condition);
 	}
 
 	private function checkCrud() {

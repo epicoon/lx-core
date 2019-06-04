@@ -167,7 +167,7 @@ class Model extends lx.Object #lx:namespace lx {
 
 		schema.eachField((field, name)=>{
 			if (field.ref) return;
-			if (data[name]) this[name] = data[name];
+			if (data[name] !== undefined) this[name] = data[name];
 			else this.resetField(name);
 		});
 	}

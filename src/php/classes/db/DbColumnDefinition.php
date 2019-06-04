@@ -18,6 +18,10 @@ class DbColumnDefinition {
 				$value = DB::valueForQuery($value);
 			}
 
+			if ($prop == 'type' && $value == 'string') {
+				$value = 'varchar';
+			}
+
 			$this->$prop = $value;
 		}
 	}

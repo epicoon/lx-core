@@ -69,7 +69,9 @@
  * height(val)
  * coords(l, t)
  * size(w, h)
- * copyGeom(el)
+ * setGeom(geom)
+ * getGeomMask()
+ * copyGeom(geomMask)
  * geomPriority(param)
  * geomPriorityH(val, val2)
  * geomPriorityV(val, val2)
@@ -973,18 +975,50 @@ class Rect #lx:namespace lx {
 		return this;
 	}
 
+	setGeom(geom) {
+		if (geom[0] !== null && geom[0] !== undefined) this.left(geom[0]);
+		if (geom[1] !== null && geom[1] !== undefined) this.top(geom[1]);
+		if (geom[2] !== null && geom[2] !== undefined) this.width(geom[2]);
+		if (geom[3] !== null && geom[3] !== undefined) this.height(geom[3]);
+		if (geom[4] !== null && geom[4] !== undefined) this.right(geom[4]);
+		if (geom[5] !== null && geom[5] !== undefined) this.bottom(geom[5]);
+
+		//TODO - пора уже разобраться почему по-нормальному срабатывает только со второго раза
+		this.trigger('resize');
+		this.trigger('resize');
+	}
+
+	getGeomMask() {
+		var result = {};
+		result.pH = this.geomPriorityH().lxCopy();
+		result.pV = this.geomPriorityV().lxCopy();
+		result[result.pH[0]] = this[lx.Geom.geomName(result.pH[0])]();
+		result[result.pH[1]] = this[lx.Geom.geomName(result.pH[1])]();
+		result[result.pV[0]] = this[lx.Geom.geomName(result.pV[0])]();
+		result[result.pV[1]] = this[lx.Geom.geomName(result.pV[1])]();
+		if (this.geom) result.geom = this.geom.lxCopy();
+		return result;
+	}
+
 	/**
 	 * Копия "как есть" - с приоритетами, без адаптаций под старые соответствующие значения
 	 * Стратегия позиционирования может не позволить некоторые изменения
 	 * */
-	copyGeom(el) {
-		var pH = el.geomPriorityH(),
-			pV = el.geomPriorityV();
-		this.setGeomParam(pH[1], el[lx.Geom.geomName(pH[1])]());
-		this.setGeomParam(pH[0], el[lx.Geom.geomName(pH[0])]());
-		this.setGeomParam(pV[1], el[lx.Geom.geomName(pV[1])]());
-		this.setGeomParam(pV[0], el[lx.Geom.geomName(pV[0])]());
-		if (el.geom) this.geom = el.geom.lxCopy();
+	copyGeom(geomMask) {
+		if (geomMask instanceof lx.Rect) geomMask = geomMask.getGeomMask();
+
+		var pH = geomMask.pH,
+			pV = geomMask.pV;
+		this.setGeomParam(pH[1], geomMask[pH[1]]);
+		this.setGeomParam(pH[0], geomMask[pH[0]]);
+		this.setGeomParam(pV[1], geomMask[pV[1]]);
+		this.setGeomParam(pV[0], geomMask[pV[0]]);
+		if (geomMask.geom) this.geom = geomMask.geom.lxCopy();
+
+		//TODO - пора уже разобраться почему по-нормальному срабатывает только со второго раза
+		this.trigger('resize');
+		this.trigger('resize');
+
 		return this;
 	}
 

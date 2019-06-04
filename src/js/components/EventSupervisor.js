@@ -5,7 +5,11 @@ const listeners = {};
 lx.EventSupervisor = {
 	subscribe: function(eventName, callback) {
 		if (!(eventName in listeners)) listeners[eventName] = [];
-		listeners[eventName].push(callback);
+		if (callback.isFunction) listeners[eventName].push(callback);
+		else if (callback.isArray)
+			callback.each((item)=>{
+				if (item.isFunction) listeners[eventName].push(item);
+			});
 	},
 
 	trigger: function(eventName) {

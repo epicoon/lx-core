@@ -14,7 +14,7 @@ class ModelFieldInteger extends ModelField {
 	}
 
 	public function normalizeValue($value) {
-		if (!$this->suitableType($value)) {
+		if ( ! $this->suitableType($value)) {
 			throw new \Exception("ModelFieldInteger typecast error by value '$value'", 400);
 		}
 		return (int)$value;

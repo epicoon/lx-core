@@ -223,9 +223,10 @@ class JsCompiler {
 			$realText = $matches[1][$i];
 			$alias = $matches[2][$i];
 
-			$code = preg_replace('/(?<!#lx:require )\b' . $alias . '\b([.,;)(])/', $realText . '$1', $code);
-			$code = preg_replace('/\bnew \b' . $alias . '\b/', 'new ' . $realText, $code);
-			$code = preg_replace('/\bextends ' . $alias . '\b/', 'extends ' . $realText, $code);
+			$code = preg_replace('/\b' . $alias . '\b/', $realText, $code);
+			// $code = preg_replace('/(?<!#lx:require )\b' . $alias . '\b([.,;)(])/', $realText . '$1', $code);
+			// $code = preg_replace('/\bnew \b' . $alias . '\b/', 'new ' . $realText, $code);
+			// $code = preg_replace('/\bextends ' . $alias . '\b/', 'extends ' . $realText, $code);
 
 			$realTextArray = explode('.', $realText);
 			if (count($realTextArray) == 2) {
@@ -461,7 +462,7 @@ class JsCompiler {
 			$required = array_merge($required, $requiredFiles[1]);
 
 			// Находим классы, которые в файле объявлены
-			preg_match_all('/class (.+?)\b\s*(extends\s+[\w\d_]+?\b)?\s*({|#lx:)/', $code, $classes);
+			preg_match_all('/class (.+?)\b\s*(extends\s+[\w\d_.]+?\b)?\s*({|#lx:)/', $code, $classes);
 			$classes = $classes[1];
 			$index = count($list);
 			// Формируем карту по именам классов

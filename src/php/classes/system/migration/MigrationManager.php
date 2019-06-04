@@ -97,17 +97,47 @@ class MigrationManager {
 		MigrationMap::getInstance()->close();
 	}
 
+	/**
+	 * Накатывание конкретной миграции
+	 * */
+	public function upMigration($service, $migrationName) {
+		$dir = $service->conductor->getMigrationDirectory();
+		$migrationFile = $dir->get($migrationName . '.json');
+		if ( ! $migrationFile) {
+			return false;
+		}
+
+		$migration = json_decode($migrationFile->get(), true);
+		return $this->runMigrationProcess($service, $migrationName, $migration);
+	}
+
+	/**
+	 * Откатывание конкретной миграции
+	 * */
+	public function downMigration($service, $migrationName) {
+		$dir = $service->conductor->getMigrationDirectory();
+		$migrationFile = $dir->get($migrationName . '.json');
+		if ( ! $migrationFile) {
+			return false;
+		}
+
+		$migration = json_decode($migrationFile->get(), true);
+		return $this->downMigrationProcess($service, $migrationName, $migration);
+	}
+
+
 	/**************************************************************************************************************************
 	 * PRIVATE
 	 *************************************************************************************************************************/
 
 	/**
-	 * Поиск ненакаченных миграций для сервиса и выполнение
+	 * Поиск ненакаченных миграций для сервиса и их выполнение
 	 * */
 	private function checkMigrations($service) {
 		if (array_search($service->name, $this->migrationsChecked) !== false) {
 			return;
 		}
+
 		$this->migrationsChecked[] = $service->name;
 
 		$migrationMap = new ServiceMigrationMap($service);
@@ -118,53 +148,134 @@ class MigrationManager {
 
 		$dir = $service->conductor->getMigrationDirectory();
 		foreach ($list as $migrationName) {
-			$migration = json_decode($dir->get($migrationName)->get(), true);
+			$migration = json_decode($dir->get($migrationName . '.json')->get(), true);
 			$this->runMigrationProcess($service, $migrationName, $migration);
 		}
 	}
 
 	/**
-	 * Накатывание конкретной миграции
+	 * Алгоритм накатывания конкретной миграции
 	 * */
 	private function runMigrationProcess($service, $migrationName, $migration) {
-		$modelProvider = $service->modelProvider;
+		$crudAdapter = $service->modelProvider->getCrudAdapter();
 		switch ($migration['type']) {
 			case 'table_create':
 				$name = $migration['model'];
-				$schema = new ModelSchema($name, $migration['schema']);
-				if (!$modelProvider->createTable($name, $schema)) {
+				$schema = new ModelSchema($service->modelProvider, $name, $migration['schema']);
+				if ( ! $crudAdapter->createTable($name, $schema)) {
 					return false;
 				}
 				break;
+
 			case 'table_delete':
 				$name = $migration['model'];
-				if (!$modelProvider->deleteTable($name)) {
+				if ( ! $crudAdapter->deleteTable($name)) {
 					return false;
 				}
 				break;
+
 			case 'table_alter':
-				$correctResult = $modelProvider->correctModel(
-					$migration['model'],
-					$migration['table_name'],
-					$migration['actions']
-				);
-				if (!$correctResult) {
+				if ( ! $crudAdapter->correctModel($migration['model'], $migration['actions'])) {
 					return false;
 				}
 				break;
+
 			case 'table_content':
-				$correctResult = $modelProvider->correctModelEssences(
-					$migration['model'],
-					$migration['table_name'],
-					$migration['actions']
-				);
-				if (!$correctResult) {
+				$name = $migration['model'];
+				$schema = new ModelSchema($service->modelProvider, $name, $migration['schema']);
+				if ( ! $crudAdapter->correctModelEssences($migration['model'], $migration['actions'], $schema)) {
 					return false;
 				}
 				break;
 		}
 
 		MigrationMap::getInstance()->up($service->name, $migrationName);
+		return true;
+	}
+
+	/**
+	 * Алгоритм откатывания конкретной миграции
+	 * */
+	private function downMigrationProcess($service, $migrationName, $migration) {
+		$crudAdapter = $service->modelProvider->getCrudAdapter();
+		switch ($migration['type']) {
+			case 'table_create':
+				$name = $migration['model'];
+				if ( ! $crudAdapter->deleteTable($name)) {
+					return false;
+				}
+				break;
+
+			case 'table_delete':
+				$name = $migration['model'];
+				$schema = new ModelSchema($service->modelProvider, $name, $migration['schema']);
+				if ( ! $crudAdapter->createTable($name, $schema)) {
+					return false;
+				}
+				break;
+
+			case 'table_alter':
+				foreach ($migration['actions'] as &$action) {
+					switch ($action['action']) {
+						case ModelMigrateExecutor::ACTION_ADD_FIELD:
+							$action['action'] = ModelMigrateExecutor::ACTION_REMOVE_FIELD;
+							break;
+
+						case ModelMigrateExecutor::ACTION_REMOVE_FIELD:
+							$action['action'] = ModelMigrateExecutor::ACTION_ADD_FIELD;
+							break;
+
+						case ModelMigrateExecutor::ACTION_RENAME_FIELD:
+							$old = $action['old'];
+							$action['old'] = $action['new'];
+							$action['new'] = $old;
+							break;
+
+						// ModelMigrateExecutor::ACTION_CHANGE_FIELD_PROPERTY
+					}
+				}
+				unset($action);
+				if ( ! $crudAdapter->correctModel($migration['model'], $migration['actions'])) {
+					return false;
+				}
+				break;
+
+			case 'table_content':
+				foreach ($migration['actions'] as &$action) {
+					switch ($action[0]) {
+						case 'add':
+							$action[0] = 'del';
+							break;
+						
+						case 'del':
+							$action[0] = 'add';
+							break;
+
+						case 'edit':
+							foreach ($action[1] as &$pare) {
+								$old = $pare[1];
+								$pare[1] = $pare[0];
+								$pare[0] = $old;
+							}
+							unset($pare);
+							break;
+
+						case 'query':
+							//TODO пока не решено. Есть идея делать два поля up: и down: при написании запроса в yaml-файле. Если нет down - миграция неоткатываемая
+							return false;
+							break;
+					}
+				}
+				unset($action);
+				$name = $migration['model'];
+				$schema = new ModelSchema($service->modelProvider, $name, $migration['schema']);
+				if ( ! $crudAdapter->correctModelEssences($migration['model'], $migration['actions'], $schema)) {
+					return false;
+				}
+				break;
+		}
+
+		MigrationMap::getInstance()->down($service->name, $migrationName);
 		return true;
 	}
 }

@@ -25,7 +25,7 @@ class Form extends Box #lx:namespace lx {
 	 * fieldName - имя, которое станет значением ключа нового элемента и значением поля field
 	 * config - конфиг для создания виджета
 	 * */
-	field(fieldName, className, config) {
+	field(fieldName, className, config = {}) {
 		if (config.after && config.after.parent !== this) delete config.after;
 		if (config.before && config.before.parent !== this) delete config.before;
 		config.parent = this;

@@ -95,7 +95,7 @@ class GridCalculator {
 		$obj;
 		switch ($grid->sizeBehavior) {
 			case GridPositioningStrategy::SIZE_BEHAVIOR_BY_CONTENT: $obj = new BoxGridCalculator(); break;
-			case GridPositioningStrategy::SIZE_BEHAVIOR_PROPORTIONAL: $obj = new RowsGridCalculator(); break;
+			case GridPositioningStrategy::SIZE_BEHAVIOR_PROPORTIONAL: $obj = new ProportionalGridCalculator(); break;
 			case GridPositioningStrategy::SIZE_BEHAVIOR_PROPORTIONAL_CONST: $obj = new ConstGridCalculator(); break;
 		}
 		$obj->grid = $grid;
@@ -194,7 +194,7 @@ class ConstGridCalculator extends GridCalculator {
 /**
  * @hidden
  * */
-class RowsGridCalculator extends ConstGridCalculator {
+class ProportionalGridCalculator extends ConstGridCalculator {
 	protected function normalizeGeomV($geom) {
 		$grid = $this->grid;
 
@@ -262,6 +262,6 @@ class RowsGridCalculator extends ConstGridCalculator {
 /**
  * @hidden
  * */
-class BoxGridCalculator extends RowsGridCalculator {
+class BoxGridCalculator extends ProportionalGridCalculator {
 }
 //=============================================================================================================================

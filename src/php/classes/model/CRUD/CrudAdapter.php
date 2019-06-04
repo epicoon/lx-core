@@ -13,17 +13,24 @@ abstract class CrudAdapter {
 		$this->modelProvider = $modelProvider;
 	}
 
-	abstract public function loadModelsData($schema, $condition);
+	abstract public function loadModel($modelName, $condition);
 	abstract public function saveModel($model);
 	abstract public function deleteModel($model);
-	abstract public function saveModels($schema, $arr);
-	abstract public function deleteModels($schema, $arr);
 
-	abstract public function checkNeedTable($schema);
+	abstract public function loadModels($modelName, $condition = null);
+	abstract public function saveModels($arr);
+	abstract public function deleteModels($arr);
 
-	abstract public function createTable($schema);
-	abstract public function deleteTable($tableName);
+	abstract public function checkNeedTable($modelName);
+	abstract public function createTable($modelName, $schema = null);
+	abstract public function deleteTable($modelName);
 
-	abstract public function correctModel($modelName, $tableName, $actions);
-	abstract public function correctModelEssences($modelName, $tableName, $actions);
+	abstract public function checkNeedRelationTable($modelName, $relativeModelName);
+	abstract public function createRelationTable($modelName, $relativeModelName);
+	abstract public function addRelations($model, $relation, $modelsList);
+	abstract public function delRelations($model, $relation, $modelsList);
+	abstract public function loadRelations($model, $relation);
+
+	abstract public function correctModel($modelName, $actions);
+	abstract public function correctModelEssences($modelName, &$actions, $schema = null);
 }

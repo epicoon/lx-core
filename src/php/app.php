@@ -387,6 +387,7 @@ class lx {
 	 * */
 	public static function run() {
 		self::baseInitialization();
+		ob_start();
 
 		$result = self::runProcess();
 		if ($result != 200) {

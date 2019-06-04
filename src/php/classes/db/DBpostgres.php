@@ -23,6 +23,10 @@ class DBpostgres extends DB {
 		$query .= "CREATE TABLE IF NOT EXISTS $name (";
 		$cols = [];
 		foreach ($columns as $colName => $definition) {
+			if (is_array($definition)) {
+				$definition = new DbColumnDefinition($definition);
+			}
+
 			$str = $this->definitionToString($definition);
 			$str = str_replace('#key#', $colName, $str);
 			$cols[] = "$colName $str";

@@ -6,6 +6,11 @@ namespace lx;
  * Класс для создания файлов миграций
  * */
 class MigrationMaker {
+	const TYPE_NEW_TABLE = 'new_table';
+	const TYPE_DROP_TABLE = 'del_table';
+	const TYPE_ALTER_TABLE = 'alter_table';
+	const TYPE_CONTENT_TABLE = 'content_table';
+
 	private $service;
 
 	/**
@@ -19,85 +24,69 @@ class MigrationMaker {
 	 * Сгенерировать миграции, отметить их выполненными
 	 * Для ситуации создания таблицы модели
 	 * */
-	public function createTableMigration($modelName, $tableName) {
+	public function createTableMigration($modelName) {
 		$migrationData = [
 			'type' => 'table_create',
 			'model' => $modelName,
 			'schema' => $this->service->modelProvider->getSchemaArray($modelName),
 		];
-		$namePrefix = 'm_new_table';
-		$this->saveMigration($tableName, $namePrefix, $migrationData);
+		$this->saveMigration($modelName, self::TYPE_NEW_TABLE, $migrationData);
 	}
 
 	/**
 	 * Сгенерировать миграции, отметить их выполненными
 	 * Для ситуации удаления таблицы модели
 	 * */
-	public function deleteTableMigration($modelName, $tableName) {
+	public function deleteTableMigration($modelName) {
 		$migrationData = [
 			'type' => 'table_delete',
 			'model' => $modelName,
-			'table_name' => $tableName,
+			'schema' => $this->service->modelProvider->getSchemaArray($modelName),
 		];
-		$namePrefix = 'm_del_table';
-		$this->saveMigration($tableName, $namePrefix, $migrationData);
+		$this->saveMigration($modelName, self::TYPE_DROP_TABLE, $migrationData);
 	}
 
 	/**
 	 * Сгенерировать миграции, отметить их выполненными
 	 * Для ситуаций корректировки схемы модели
 	 * */
-	public function createInnerMigration($modelName, $tableName, $innerActions) {
+	public function createInnerMigration($modelName, $innerActions) {
 		$migrationData = [
 			'type' => 'table_alter',
 			'model' => $modelName,
-			'table_name' => $tableName,
 			'actions' => $innerActions,
 		];
-		$namePrefix = 'm_alter_table';
-		$this->saveMigration($tableName, $namePrefix, $migrationData);
+		$this->saveMigration($modelName, self::TYPE_ALTER_TABLE, $migrationData);
 	}
 
 	/**
 	 * Сгенерировать миграции, отметить их выполненными
 	 * Для ситуаций добавления новых экземпляров моделей
 	 * */
-	public function createOuterMigration($modelName, $tableName, $outerActions) {
+	public function createOuterMigration($modelName, $outerActions) {
 		$migrationData = [
 			'type' => 'table_content',
 			'model' => $modelName,
-			'table_name' => $tableName,
+			'schema' => $this->service->modelProvider->getSchemaArray($modelName),
 			'actions' => $outerActions,
 		];
-		$namePrefix = 'm_content_table';
-		$this->saveMigration($tableName, $namePrefix, $migrationData);
+		$this->saveMigration($modelName, self::TYPE_CONTENT_TABLE, $migrationData);
 	}
 
 	/**
 	 * Создание файла миграции
 	 * */
-	private function saveMigration($tableName, $namePrefix, $migrationData) {
+	private function saveMigration($modelName, $type, $migrationData) {
 		$time = explode(' ', microtime());
 		$time = $time[1] . '_' . $time[0];
-		$migrationFileName = $namePrefix .'__'. $tableName .'_' . $time . '.json';
+		$migrationName = 'm__' . $time . '__' . $modelName . '_' . $type;
+		$migrationFileName = $migrationName . '.json';
 
 		$dir = $this->service->conductor->getMigrationDirectory();
 		$file = $dir->makeFile($migrationFileName);
 		$code = json_encode($migrationData);
 		$file->put($code);
 
-		$mapFile = $dir->contain('map.json')
-			? $dir->get('map.json')
-			: $dir->makeFile('map.json');
-		$map = $mapFile->exists()
-			? json_decode($mapFile->get(), true)
-			: ['list' => []];
-		$map['list'][] = [
-			'time' => $time,
-			'name' => $migrationFileName,
-		];
-		$mapFile->put(json_encode($map));
-
-		MigrationMap::getInstance()->up($this->service->name, $migrationFileName);
+		MigrationMap::getInstance()->up($this->service->name, $migrationName);
 	}
 }

@@ -49,6 +49,7 @@ return [
 	'ModelFieldInteger' => 'classes/model/field',
 	'ModelFieldBoolean' => 'classes/model/field',
 	'ModelFieldTimestamp' => 'classes/model/field',
+	'ModelFieldRelation' => 'classes/model/field',
 	'CrudAdapter' => 'classes/model/CRUD',
 	'DbCrudAdapter' => 'classes/model/CRUD',
 

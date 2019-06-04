@@ -167,7 +167,12 @@ class ModelBrowser {
 	 * Определяет нужно ли создать таблицу для модели
 	 * */
 	public function needTable() {
-		return $this->service->modelProvider->checkModelNeedTable($this->modelName);
+		$crudAdapter = $this->service->modelProvider->getCrudAdapter();
+		if ( ! $crudAdapter) {
+			return false;
+		}
+
+		return $crudAdapter->checkNeedTable($this->modelName);
 	}
 
 	/**

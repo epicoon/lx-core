@@ -19,6 +19,7 @@ class ModelProvider {
 		}
 	}
 
+
 	/*************************************************************************************************************************
 	 *	PUBLIC
 	 *************************************************************************************************************************/
@@ -42,6 +43,15 @@ class ModelProvider {
 	}
 
 	/**
+	 *
+	 * */
+	public function getCrudAdapter($modelName = null) {
+		return array_key_exists($modelName, $this->crudMap)
+			? $this->crudMap[$modelName]
+			: $this->defaultCrudAdapter;
+	}
+
+	/**
 	 * Получить модуль, к которому относится данный провайдер
 	 * */
 	public function getService() {
@@ -52,13 +62,16 @@ class ModelProvider {
 	 * Получить менеджер модели
 	 * */
 	public function getManager($modelName) {
-		if (!is_string($modelName)) return null;
+		if ( ! is_string($modelName)) {
+			return null;
+		}
 
 		if (!array_key_exists($modelName, $this->managers)) {
 			$schema = $this->getSchema($modelName);
 			if (!$schema) {
 				return null;
 			}
+
 			$this->managers[$modelName] = new ModelManager($this->getCrudAdapter($modelName), $schema);
 		}
 
@@ -69,8 +82,8 @@ class ModelProvider {
 	 * Получить схему модели
 	 * */
 	public function getSchema($modelName) {
-		if (!array_key_exists($modelName, $this->schemas)) {
-			if (!$this->loadSchema($modelName)) {
+		if ( ! array_key_exists($modelName, $this->schemas)) {
+			if ( ! $this->loadSchema($modelName)) {
 				return null;
 			}
 		}
@@ -84,7 +97,7 @@ class ModelProvider {
 	public function getSchemaArray($modelName) {
 		$path = $this->getSchemaPath($modelName);
 		$file = new YamlFile($path);
-		if (!$file->exists()) {
+		if ( ! $file->exists()) {
 			return false;
 		}
 
@@ -106,94 +119,117 @@ class ModelProvider {
 		return $this->service->conductor->getModelsPath();
 	}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	//TODO - работа с таблицами уходит глубоко к CRUD адаптеру, может они и тут не нужны
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// Эти методы нужны для управления миграциями - надо там напрямую с CRUD-адаптером работать
+
 	/**
-	 * Проверить - существует ли для модели таблица
+	 *
 	 * */
-	public function checkModelNeedTable($modelName) {
-		$adapter = $this->getCrudAdapter($modelName);
-		// Если адаптера нет - значит модели не поддерживают CRUD-интерфейс, таблицы им не нужны
-		if (!$adapter) {
+	public function createRelationTables($modelName, $schema = null) {
+		if ($this->checkModelNeedTable($modelName)) {
 			return false;
 		}
 
-		$schema = $this->getSchema($modelName);
-
-		return $adapter->checkNeedTable($schema);
-	}
-
-	/**
-	 *
-	 * */
-	public function createTable($modelName, $schema = null) {
 		$adapter = $this->getCrudAdapter($modelName);
 		if ($schema === null) {
 			$schema = $this->getSchema($modelName);
 		}
-		return $adapter->createTable($schema);
-	}
 
-	/**
-	 *
-	 * */
-	public function deleteTable($modelName, $schema = null) {
-		$adapter = $this->getCrudAdapter($modelName);
-		if ($schema === null) {
-			$schema = $this->getSchema($modelName);
+		$result = [];
+		foreach ($schema->getRelations() as $name => $relation) {
+			$relativeModelName = $relation->getRelativeModelName();
+			if ($this->checkModelNeedTable($relativeModelName)) {
+				continue;
+			}
+
+			$relativeSchema = $relation->getRelativeSchema();
+			if ($adapter->checkNeedRelationTable($schema, $relativeSchema)) {
+				if ($adapter->createRelationTable($schema, $relativeSchema)) {
+					$result[] = [$schema->getName(), $relativeSchema->getName()];
+				}
+			}
 		}
-		return $adapter->deleteTable($schema);
+
+		if (empty($result)) {
+			return false;
+		}
+
+		return $result;
 	}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	/**
-	 *
+	 * Создает файл модели с базовым кодом. НЕ создает таблиц через CRUD-адаптер
 	 * */
 	public function createModel($modelName) {
-		$tableName = preg_replace_callback('/[A-Z]/', function($match) {
-			return '_' . strtolower($match[0]);
-		}, $modelName);
-		$tableName = preg_replace('/^_/', '', $tableName);
-
 		$path = $this->service->conductor->getDefaultModelPath() . '/' . $modelName . '.yaml';
 		$code = $modelName . ':' . PHP_EOL
-				. '  table: ' . $tableName
-				. PHP_EOL . '  fields:'
-				. PHP_EOL . '    name: {type: string}' . PHP_EOL;
+				. '  fields:' . PHP_EOL
+				. '    name: {type: string}' . PHP_EOL;
 
 		$file = new File($path);
 		$file->put($code);
-
-		$this->createTable($modelName);
-		return $tableName;
-	}
-
-	/**
-	 *
-	 * */
-	public function deleteModel($modelName) {
-		$adapter = $this->getCrudAdapter($modelName);
-		$schema = $this->getSchema($modelName);
-		$adapter->deleteTable($schema);
-
-		$path = $this->getSchemaPath($modelName);
-		$file = new \lx\File($path);
-		$file->remove();
 
 		return true;
 	}
 
 	/**
-	 * Директивы для внесения изменений в структуре данных CRUD-адаптером для модели
+	 * Удаляет модель полностью - и файл с описанием модели, и таблицы через CRUD-адаптер
 	 * */
-	public function correctModel($modelName, $tableName, $actions) {
+	public function deleteModel($modelName) {
 		$adapter = $this->getCrudAdapter($modelName);
-		return $adapter->correctModel($modelName, $tableName, $actions);
-	}
+		$adapter->deleteTable($modelName);
 
-	/**
-	 *
-	 * */
-	public function correctModelEssences($modelName, $tableName, $actions) {
-		$adapter = $this->getCrudAdapter($modelName);
-		return $adapter->correctModelEssences($modelName, $tableName, $actions);
+		$path = $this->getSchemaPath($modelName);
+		$file = new \lx\File($path);
+		$file->remove();
+
+		unset($this->schemas[$modelName]);
+
+		return true;
 	}
 
 
@@ -204,21 +240,17 @@ class ModelProvider {
 	/**
 	 *
 	 * */
-	private function getCrudAdapter($modelName) {
-		return array_key_exists($modelName, $this->crudMap)
-			? $this->crudMap[$modelName]
-			: $this->defaultCrudAdapter;
-	}
-
-	/**
-	 *
-	 * */
 	private function loadSchema($modelName) {
 		if (array_key_exists($modelName, $this->schemas)) {
 			throw new \Exception("Model named $modelName is already used", 400);
 		}
 
-		$this->schemas[$modelName] = new ModelSchema($modelName, $this->getSchemaArray($modelName));
+		$schemaArray = $this->getSchemaArray($modelName);
+		if ( ! $schemaArray) {
+			return false;
+		}
+
+		$this->schemas[$modelName] = new ModelSchema($this, $modelName, $schemaArray);
 		return true;
 	}
 }

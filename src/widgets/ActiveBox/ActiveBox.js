@@ -37,6 +37,18 @@ class ActiveBox extends Box #lx:namespace lx {
 			this.click(()=>lx.WidgetHelper.bringToFront(this));
 			lx.WidgetHelper.bringToFront(this);
 		}
+
+		if (this.contain('header')) {
+			this->header.on('dblclick', function() {
+				if (!this.lxActiveBoxGeom) {
+					this.lxActiveBoxGeom = this.parent.getGeomMask();
+					this.parent.setGeom([0, 0, '100%', '100%']);
+				} else {
+					this.parent.copyGeom(this.lxActiveBoxGeom);
+					delete this.lxActiveBoxGeom;
+				}
+			});
+		}
 	}	
 
 	setHeader(config) {

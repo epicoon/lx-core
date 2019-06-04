@@ -4,6 +4,7 @@ namespace lx;
 
 class ModelData {
 	private static $nullCache = null;
+	private $newFlag = true;
 
 	protected $manager;
 	protected
@@ -14,7 +15,7 @@ class ModelData {
 	/**
 	 *
 	 * */
-	protected function __construct($manager, $props) {
+	public function __construct($manager, $props) {
 		$this->manager = $manager;
 		$this->_prop = $props;
 	}
@@ -32,7 +33,7 @@ class ModelData {
 			$props[$fieldName] = $field->getDefault();
 		}
 
-		if ($count == 1) return new self($manager, $props);;
+		if ($count == 1) return new self($manager, $props);
 
 		$result = [];
 		for ($i=0; $i<$count; $i++) {
@@ -46,32 +47,27 @@ class ModelData {
 	 *
 	 * */
 	public static function load($manager, $condition = null) {
-		$data = $manager->loadModelsData($condition);
-		if (empty($data)) return [];
-
-		$result = [];
-		foreach ($data as $props) {
-			$obj = new self($manager, $props);
-			$result[] = $obj;
-		}
-
-		return $result;
+		return $manager->loadModels($condition);
 	}
 
 	/**
 	 *
 	 * */
 	public static function loadOne($manager, $condition = null) {
-		$result = self::load($manager, $condition);
-		if (empty($result)) return null;
-		return $result[0];
+		return $manager->loadModel($condition);
 	}
 
 	/**
 	 *
 	 * */
 	public function __set($prop, $val) {
-		if (!array_key_exists($prop, $this->_prop)) {
+		//TODO костыль из-за геттера
+		if ($prop == 'nullCache') {
+			$this->nullCache = $val;
+			return;
+		}
+
+		if ( ! array_key_exists($prop, $this->_prop)) {
 			//todo возможно полезно выкинуть исключение, что не то пытаются инициализировать
 			return;
 		}
@@ -110,7 +106,7 @@ class ModelData {
 		}
 
 		// Для остальных полей следим за соответствием старым значениям
-		if (!$this->isNew()) {
+		if ( ! $this->isNew()) {
 			if (array_key_exists($prop, $this->_oldProp)) {
 				if ($this->_oldProp[$prop] === $val) unset($this->_oldProp[$prop]);
 			} else {
@@ -125,8 +121,14 @@ class ModelData {
 	 *
 	 * */
 	public function &__get($prop) {
-		if (array_key_exists($prop, $this->_prop))
+		if (array_key_exists($prop, $this->_prop)) {			
 			return $this->_prop[$prop];
+		}
+
+		if ($this->getSchema()->hasRelation($prop)) {
+			$this->nullCache = $this->manager->loadRelations($this, $this->getSchema()->relation($prop));
+			return $this->nullCache;
+		}
 
 		return $this->null();
 	}
@@ -153,7 +155,6 @@ class ModelData {
 		if (!$pkName) return;
 
 		if ($pk === null) {
-			$this->manager->uncacheModel($this);
 			$this->_prop[$pkName] = null;
 			$this->forgetOld();
 			return;
@@ -174,6 +175,13 @@ class ModelData {
 	 * */
 	public function getSchema() {
 		return $this->manager->getSchema();
+	}
+
+	/**
+	 *
+	 * */
+	public function getModelName() {
+		return $this->getSchema()->getName();
 	}
 
 	/**
@@ -220,7 +228,16 @@ class ModelData {
 	/**
 	 *
 	 * */
+	public function setNewFlag($flag) {
+		$this->newFlag = $flag;
+	}
+
+	/**
+	 *
+	 * */
 	public function isNew() {
+		if ($this->newFlag) return true;
+
 		$pkName = $this->pkName();
 		if ($pkName === null) return null;
 		return $this->$pkName === null;
@@ -265,6 +282,7 @@ class ModelData {
 	public function drop() {
 		$this->{$this->pkName()} = null;
 		$this->forgetOld();
+		$this->setNewFlag(true);
 	}
 
 	/**
@@ -273,6 +291,96 @@ class ModelData {
 	public function forgetOld() {
 		$this->_oldProp = [];
 	}
+
+	/**
+	 *
+	 * */
+	public function addRelations($arr, $relationName = null) {
+		$schema = $this->getSchema();
+		$map = [];
+		foreach ($arr as $model) {
+			$modelName = $model->getModelName();
+			if ( ! array_key_exists($modelName, $map)) {
+				$currentRelationName = $schema->confirmRelationName($modelName, $relationName);
+				if ( ! $currentRelationName) {
+					continue;
+				}
+
+				$map[$modelName] = [
+					'relation' => $currentRelationName,
+					'list' => [],
+				];
+			}
+
+			$map[$modelName]['list'][] = $model;
+		}
+
+		if (empty($map)) {
+			return false;
+		}
+
+		foreach ($map as $modelName => $data) {
+			$relation = $schema->relation($data['relation']);
+			$this->manager->addRelations($this, $relation, $data['list']);
+		}
+
+		return true;
+	}
+
+	/**
+	 *
+	 * */
+	public function addRelation($model, $relationName = null) {
+		return $this->addRelations([$model], $relationName);
+	}
+
+	/**
+	 *
+	 * */
+	public function delRelations($arr, $relationName = null) {
+		$schema = $this->getSchema();
+		$map = [];
+		$filter = $relationName === null ? null : (array)$relationName;
+		foreach ($arr as $model) {
+			$modelName = $model->getModelName();
+
+			$relations = $schema->getRelationsForModel($modelName, $filter);
+			if (empty($relations) || ($relationName && !array_key_exists($relationName, $relations))) {
+				continue;
+			}
+
+			foreach ($relations as $currentRelationName => $relation) {
+				if ( ! array_key_exists($currentRelationName, $map)) {
+					$map[$currentRelationName] = [];
+				}
+			}
+
+			$map[$currentRelationName][] = $model;
+		}
+
+		if (empty($map)) {
+			return false;
+		}
+
+		foreach ($map as $currentRelationName => $modelsList) {
+			$relation = $schema->relation($currentRelationName);
+			$this->manager->delRelations($this, $relation, $modelsList);
+		}
+
+		return true;
+	}
+
+	/**
+	 *
+	 * */
+	public function delRelation($model, $relationName = null) {
+		return $this->delRelations([$model], $relationName);
+	}
+
+
+	/**************************************************************************************************************************
+	 * PROTECTED
+	 *************************************************************************************************************************/
 
 	/**
 	 *
@@ -288,6 +396,11 @@ class ModelData {
 		self::$nullCache = null;
 		return self::$nullCache;
 	}
+
+
+	/**************************************************************************************************************************
+	 * PRIVATE
+	 *************************************************************************************************************************/
 
 	/**
 	 *

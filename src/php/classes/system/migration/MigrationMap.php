@@ -73,13 +73,13 @@ class MigrationMap {
 			return;
 		}
 
-		$index = array_search($migrationName, $this->map);
+		$index = array_search($migrationName, $this->map[$service]);
 		if ($index === false) {
 			$this->close();
 			return;
 		}
 
-		array_splice($this->map, $index, 1);
+		array_splice($this->map[$service], $index, 1);
 		$this->close();
 	}
 

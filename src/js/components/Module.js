@@ -4,6 +4,7 @@ lx.Module = function(info, block) {
 	var module = {
 		name: info.name,
 		params: {},
+		instances: {},
 		namespaces: [],
 		handlersList: [],
 		root: block,

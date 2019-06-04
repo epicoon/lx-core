@@ -112,22 +112,32 @@ class Box extends Rect #lx:namespace lx {
 		this.on('resize', self::onresize);
 		this.on('scrollBarChange', self::onresize);
 
-		//todo - единственное пока взаимодействие стратегий элемента и родителя. Выносить в отдельный метод, еще какие-то может нужны
-		//todo - еще момент - работает такая связь только если 'grid' передали в конфиге, если методом навесили - связи нет. Может это не баг, а фича?
-		// Если стратегия позиционирования grid и у элемента и у родителя - осуществляется некоторое взаимодействие - выставляется высота и заимстуются шаги
-		if (this.positioning().lxClassName == 'GridPositioningStrategy'
-			&& this.parent
-			&& this.parent.positioning().lxClassName == 'GridPositioningStrategy'
-		) {
-			this.height( this.positioning().map.len );
+		//TODO - это очень очень плохо. Неочевидно, если что-то и должно такое быть - оно должно инициироваться явно, сам код должен быть на уровне стратегии
+		// //todo - единственное пока взаимодействие стратегий элемента и родителя. Выносить в отдельный метод, еще какие-то может нужны
+		// //todo - еще момент - работает такая связь только если 'grid' передали в конфиге, если методом навесили - связи нет. Может это не баг, а фича?
+		// // Если стратегия позиционирования grid и у элемента и у родителя - осуществляется некоторое взаимодействие - выставляется высота и заимстуются шаги
+		// if (this.positioning().lxClassName == 'GridPositioningStrategy'
+		// 	&& this.parent
+		// 	&& this.parent.positioning().lxClassName == 'GridPositioningStrategy'
+		// ) {
+		// 	console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+		// 	console.log(this.inGrid);
 
-			var indents = this.parent.positioning().indents.get();
-			this.positioning().autoActualize = true;
-			this.positioning().setIndents({
-				stepX: indents.stepX,
-				stepY: indents.stepY
-			}).actualize();
-		}
+		// 	this.height( this.positioning().map.len );
+
+		// 	console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+		// 	console.log(this.inGrid);
+
+		// 	var indents = this.parent.positioning().indents.get();
+		// 	this.positioning().autoActualize = true;
+		// 	this.positioning().setIndents({
+		// 		stepX: indents.stepX,
+		// 		stepY: indents.stepY
+		// 	}).actualize();
+
+		// 	console.log('2!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+		// 	console.log(this.inGrid);
+		// }
 	}
 
 	postUnpack(config) {

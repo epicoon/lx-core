@@ -57,6 +57,10 @@ abstract class DB {
 		return $this->settings['dbName'];
 	}
 
+	public function getConnection() {
+		return $this->connection;
+	}
+
 	/**
 	 * Проверить есть ли ошибки
 	 * */
@@ -153,6 +157,17 @@ abstract class DB {
 	public function primaryKeyDefinition($conf=[]) {
 		$conf['type'] = '';
 		$conf['isPK'] = true;
+		return new DbColumnDefinition($conf);
+	}
+
+	/**
+	 * Сформировать новый DbColumnDefinition для внешнего ключа
+	 * */
+	public function foreignKeyDefinition($conf=[]) {
+		//TODO - надо создавать внешний ключ
+
+		$conf['type'] = 'integer';
+		// $conf['isFK'] = true; ????????
 		return new DbColumnDefinition($conf);
 	}
 
