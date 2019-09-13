@@ -1,156 +1,227 @@
-#lx:use lx.Box as Box;
+#lx:module lx.Paginator;
+#lx:module-data {
+    i18n: i18n.yaml
+};
 
-class Paginator extends Box #lx:namespace lx {
+#lx:use lx.Box;
+
+#lx:private;
+
+class Paginator extends lx.Box #lx:namespace lx {
 	#lx:const
-		DEFAULT_SLOTS_AMOUNT = 7,
-		DEFAULT_ELEMENTS_PER_PAGE = 10,
-		DISPLAY_TYPE_NUMBERS = 1,
-		DISPLAY_TYPE_RANGES = 2;
+		DEFAULT_SLOTS_COUNT = 7,
+		DEFAULT_ELEMENTS_PER_PAGE = 10;
 
-	postBuild(config) {
-		super.postBuild(config);
+    /* config = {
+     *	// стандартные для Box,
+     *
+     * slotsCount
+     * elementsPerPage
+     * elementsCount
+     * activePage  // Активная страница считается из последовательности страниц, начиная с 1 (не с 0!)
+     * }
+     * */
+	build(config) {
+		super.build(config);
 
 		this.firstSlotIndex = 0;
 
-		this.slotsAmount = [config.slotsAmount, self::DEFAULT_SLOTS_AMOUNT].lxGetFirstDefined();
-		this.displayType = [config.displayType, self::DISPLAY_TYPE_NUMBERS].lxGetFirstDefined();
-		this.elementsPerPage = config.elementsPerPage || self::DEFAULT_ELEMENTS_PER_PAGE;
+        this.elementsCount = [config.elementsCount, 0].lxGetFirstDefined();
+        this.elementsPerPage = config.elementsPerPage || self::DEFAULT_ELEMENTS_PER_PAGE;
+        this.pagesCount = Math.ceil(this.elementsCount / this.elementsPerPage);
 
-		this.elementsAmount = [config.elementsAmount, 0].lxGetFirstDefined();
-		this.pagesAmount = Math.ceil(this.elementsAmount / this.elementsPerPage);
+		this.slotsCount = [config.slotsCount, self::DEFAULT_SLOTS_COUNT].lxGetFirstDefined();
+		if (this.slotsCount <= 4) this.slotsCount = 1;
 
-		this.__builder = config.builder || null;
-		this.runBuilder();
-		this.selectPage([config.activePageNumber, 0].lxGetFirstDefined());
+        this.runBuild();
+        this.selectPage([config.activePage, 1].lxGetFirstDefined());
 	}
 
-	selectPage(number, event) {
-		if (number == this.activePageNumber) {
-			return;
-		}
+    getBasicCss() {
+        return {
+            main: 'lx-Paginator',
+            toStart: 'lx-Paginator-to-start',
+            toFinish: 'lx-Paginator-to-finish',
+            toLeft: 'lx-Paginator-to-left',
+            toRight: 'lx-Paginator-to-right',
+            middle: 'lx-Paginator-middle',
+            page: 'lx-Paginator-page',
+            active: 'lx-Paginator-active'
+        };
+    }
 
-		if (number >= this.pagesAmount) {
-			number = this.pagesAmount - 1;
-		}
+	#lx:client {
+	    postBuild(config) {
+            this->toStart.click(self::toFirstPage);
+            this->toLeft.click(self::toPrevPage);
+            this->toRight.click(self::toNextPage);
+            this->toFinish.click(self::toLastPage);
 
-		this.activeSlotNumber = null;
-		this.activePageNumber = number;
-		this.slotMap = new Array(this.slotsAmount);
-		if (this.slotsAmount == 1) {
-			// Только многоточие
-			this.slotMap[0] = null;
-		} else if (number > this.pagesAmount - this.slotsAmount) {
-			// Многоточие спереди, потом хвост
-			this.slotMap[0] = null;
-			for (var i=1; i<this.slotsAmount; i++) {
-				this.slotMap[i] = this.pagesAmount - this.slotsAmount + i;
-			}
-		} else {
-			// Зависит от количества слотов
-			var forLeft;
-			if (this.slotsAmount == 2) {
-				forLeft = 1;
-				this.slotMap[this.slotMap.len - 1] = null;
-			} else {
-				forLeft = this.slotsAmount - 2;
-				this.slotMap[this.slotsAmount - 2] = null;
-				this.slotMap[this.slotsAmount - 1] = this.pagesAmount - 1;
-			}
+            #lx:client {
+                var middle = this->middle;
+                if (middle.childrenCount() > 1) {
+                    middle.getChildren().each((a, i)=>{
+                        if (a->text.value() !== '...') a.click(self::onSlotClick);
+                    });
+                }
+            }
+        }
 
-			var counter = 1,
-				forward = true,
-				lims = [number, number];
-			while (counter < forLeft) {
-				if (forward) {
-					lims[1]++;
-					counter++;
-				} else if (!forward && lims[0]) {
-					lims[0]--;
-					counter++;
-				}
-				forward = !forward;
-			}
+        static onSlotClick(event) {
+            this.ancestor({is:lx.Paginator}).selectPage(+(this->text.value()));
+        }
 
-			for (var i=0, l=forLeft; i<l; i++) {
-				this.slotMap[i] = i + lims[0];
-			}
-		}
+        static toPrevPage() {
+            var p = this.parent;
+            p.selectPage(p.activePage - 1);
+        }
 
-		this.slotMap.each((val, i)=> {
-			var slot = this.child(i + this.firstSlotIndex);
-			slot.off('click', self::onSlotClick);
-			slot.fill('lightgray');
-			if (val === null) {
-				slot.text('...');
-			} else {
-				slot.text(val + 1);
-				if (val == number) {
-					this.child(i + this.firstSlotIndex).fill('lightgreen');
-					this.activeSlotNumber = i;
-				}
-				slot.click(self::onSlotClick);
-			}
-			slot.align(lx.CENTER, lx.MIDDLE);
-		});
+        static toNextPage() {
+            var p = this.parent;
+            p.selectPage(p.activePage + 1);
+        }
 
-		this.trigger('change', event, number, this.elementsPerPage);
+        static toFirstPage() {
+            var p = this.parent;
+            p.selectPage(1);
+        }
+
+        static toLastPage() {
+            var p = this.parent;
+            p.selectPage(p.pagesCount);
+        }
+    }
+
+    setElementsCount(count) {
+        this.elementsCount = count;
+        this.pagesCount = Math.ceil(this.elementsCount / this.elementsPerPage);
+        var number = this.activePage;
+        this.activePage = -1;
+        this.selectPage(number);
+    }
+
+    runBuild() {
+	    this.stream({direction: lx.HORIZONTAL, columnDefaultWidth: null});
+	    this.begin();
+            new lx.Box({key: 'toStart', css: this.basicCss.toStart});
+            new lx.Box({key: 'toLeft', css: this.basicCss.toLeft});
+            new lx.Box({key: 'middle'});
+            new lx.Box({key: 'toRight', css: this.basicCss.toRight});
+            new lx.Box({key: 'toFinish', css: this.basicCss.toFinish});
+        this.end();
+
+        var middle = this->middle;
+        middle.stream({
+            direction: lx.HORIZONTAL,
+            indent: '5px',
+            columnDefaultWidth: null,
+            minWidth: 0
+        });
 	}
 
-	static setBuilder(builder) {
-		this.__builder = builder;
-	}
+	selectPage(number) {
+        this.activePage = __validatePageNumber(this, number);
 
-	delaultBuilder() {
-		this.firstSlotIndex = 1;
-		var slots = Math.min(this.pagesAmount, this.slotsAmount);
-		this.slot({
-			cols: slots + 2,
-			rows: 1,
-			indent: '5px',
-			align: lx.RIGHT
-		});
-		this.getChildren().each((a)=>{
-			a.style('cursor', 'pointer');
-			a.on('mousedown', lx.Event.preventDefault);
-		});
+	    if (this.slotsCount == 1) __fillMiddleSimple(this);
+        else if (this.slotsCount == 5 || this.slotsCount == 6) __fillMiddleMin(this);
+        else __fillMiddleMax(this);
+    }
+}
 
-		var prev = this.child(0);
-		prev.fill('lightgray');
-		prev.text('<');
-		prev.align(lx.CENTER, lx.MIDDLE);
-		prev.click(self::toPrevPage);
+function __validatePageNumber(self, number) {
+    if (number < 1) number = 1;
+    if (number > this.pagesCount) number = self.pagesCount;
 
-		var next = this.child(slots + 1);
-		next.fill('lightgray');
-		next.text('>');
-		next.align(lx.CENTER, lx.MIDDLE);
-		next.click(self::toNextPage);
-	}
+    self->toStart.disabled(false);
+    self->toLeft.disabled(false);
+    self->toRight.disabled(false);
+    self->toFinish.disabled(false);
 
-	runBuilder() {
-		var builder = this.__builder || self::__builder || this.delaultBuilder;
-		builder.call(this);
-	}
+    if (number == 1) {
+        self->toStart.disabled(true);
+        self->toLeft.disabled(true);
+    } else if (number == self.pagesCount) {
+        self->toRight.disabled(true);
+        self->toFinish.disabled(true);
+    }
 
-	setElementsAmount(amount) {
-		this.elementsAmount = amount;
-		this.pagesAmount = Math.ceil(this.elementsAmount / this.elementsPerPage);
-		var number = this.activePageNumber;
-		this.activePageNumber = -1;
-		this.selectPage(number);
-	}
+    return number;
+}
 
-	static onSlotClick(event) {
-		this.parent.selectPage(this.parent.slotMap[this.index - this.parent.firstSlotIndex], event);
-	}
+function __fillMiddleSimple(self) {
+    var middle = self->middle;
+    if (middle.childrenCount() > 1) middle.clear();
+    if (middle.childrenCount() == 0) middle.align(lx.CENTER, lx.MIDDLE);
+    middle.text(
+        #lx:i18n(lx.Paginator.Page) + ' '
+        + self.activePage + ' '
+        + #lx:i18n(lx.Paginator.of) + ' '
+        + self.pagesCount
+    );
+}
 
-	static toPrevPage() {
-		var p = this.parent;
-		if (p.activePageNumber) p.selectPage(p.activePageNumber - 1);
-	}
+function __fillMiddleMin(self) {
+    __rebuildMiddle(self);
+    __applyMiddleSequence(
+        self,
+        __calcSequence(self.activePage, self.pagesCount, self.slotsCount)
+    );
+}
 
-	static toNextPage() {
-		var p = this.parent;
-		if (p.activePageNumber < p.pagesAmount - 1) p.selectPage(p.activePageNumber + 1);
-	}
+function __fillMiddleMax(self) {
+    __rebuildMiddle(self);
+    var seq = __calcSequence(self.activePage - 1, self.pagesCount - 2, self.slotsCount - 2);
+    seq.each((a, i)=>{
+        if (a !== null) seq[i] = a + 1;
+    });
+    seq = [1].lxMerge(seq);
+    seq.push(self.pagesCount);
+    __applyMiddleSequence(self, seq);
+}
+
+function __rebuildMiddle(self) {
+    var middle = self->middle;
+    if (middle.childrenCount() != self.slotsCount) middle.clear();
+    if (middle.childrenCount() == 0) {
+        var c = middle.add(lx.Box, self.slotsCount, {width:'auto'});
+        c.each((a)=>{
+            a.align(lx.CENTER, lx.MIDDLE);
+            a.addClass(self.basicCss.page);
+        });
+    }    
+}
+
+function __applyMiddleSequence(self, seq) {
+    var middle = self->middle;
+    middle.getChildren().each((a, i)=>{
+        a.text(seq[i] === null ? '...' : seq[i]);
+        a.toggleClassOnCondition(seq[i] == self.activePage, self.basicCss.active);
+        #lx:client {
+            if (seq[i] === null) a.off('click');
+            else a.click(lx.Paginator.onSlotClick);
+        }
+    });
+}
+
+function __calcSequence(activePage, pagesCount, slotsCount) {
+    var result = new Array(slotsCount);
+
+    if (activePage <= Math.ceil(slotsCount * 0.5)) {
+        for (var i=0; i<slotsCount-1; i++) result[i] = i+1;
+        result[slotsCount - 1] = null;
+        return result;
+    }
+
+    if ((pagesCount - activePage) < (slotsCount - 2)) {
+        result[0] = null;
+        for (var i=1; i<slotsCount; i++) result[i] = pagesCount - slotsCount + i + 1;
+        return result;
+    }
+
+    result[0] = null;
+    result[slotsCount - 1] = null;
+    var activeIndex = Math.ceil((slotsCount - 2) * 0.5),
+        firstPage = activePage - activeIndex;
+    for (var i=1; i<slotsCount-1; i++) result[i] = firstPage + i;
+    return result;
 }

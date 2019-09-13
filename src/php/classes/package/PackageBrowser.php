@@ -33,7 +33,7 @@ class PackageBrowser {
 	 *
 	 * */
 	public static function checkDirectoryIsPackage($packagePath) {
-		$fullPath = \lx::$conductor->getFullPath($packagePath);
+		$fullPath = \lx::$app->conductor->getFullPath($packagePath);
 
 		$directory = new PackageDirectory($fullPath);
 		if (!$directory->exists()) {
@@ -48,7 +48,7 @@ class PackageBrowser {
 	 *
 	 * */
 	public static function checkDirectoryIsService($packagePath) {
-		$fullPath = \lx::$conductor->getFullPath($packagePath);
+		$fullPath = \lx::$app->conductor->getFullPath($packagePath);
 
 		$directory = new PackageDirectory($fullPath);
 		if (!$directory->exists()) {

@@ -179,16 +179,27 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 
 	// Обертка при успешном ответе - он может нести отладочную информацию
 	function successWrap(request) {
-		var response = request.response;
-
-		var alerts = response.match(/^<lx-alert>[\w\W]*<\/lx-alert>/);
-		if (alerts) {
-			alerts = alerts[0];
-			response = response.replace(alerts, '');
-			alerts = alerts.replace(/<lx-alert>/g, '');
-			alerts = alerts.replace(/<\/lx-alert>/g, '');
-			lx.Alert(alerts);
+		function findDump(res) {
+			if (res.isString) {
+				var dump = response.match(/<lx-dump>[\w\W]*<\/lx-dump>/);
+				if (dump) {
+					dump = dump[0];
+					res = res.replace(dump, '');
+					dump = dump.replace(/<lx-dump>/, '');
+					dump = dump.replace(/<\/lx-dump>/, '');
+				}
+				return [res, dump];
+			} else if (res.isObject) {
+				var dump = null;
+				if (res.lxdump) {
+					dump = res.lxdump;
+					delete res.lxdump;
+				}
+				return [res, dump];
+			} else return [res, null];
 		}
+
+		var response = request.response;
 
 		// Гостевой флаг
 		lx.isGuest = request.getResponseHeader('lx-user-status') !== null;
@@ -198,7 +209,14 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 		result = contentType.match(/text\/json/)
 			? JSON.parse(response)
 			: response;
+
+		var resultAndDump = findDump(result);
+		result = resultAndDump[0];
+
 		callHandler(handlerMap.success, [result, request]);
+		if (resultAndDump[1]) {
+			lx.Alert(resultAndDump[1]);
+		}
 	}
 
 	// Назначаем пользовательский обработчик

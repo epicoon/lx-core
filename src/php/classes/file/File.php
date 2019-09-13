@@ -23,18 +23,21 @@ class File extends BaseFile {
 		$this->name = $matches[1][0];
 	}
 
-	/**
-	 *
-	 * */
 	public function getExtension() {
 		$arr = explode('.', $this->name);
 		if (count($arr) < 2) return '';
 		return array_pop($arr);
 	}
 
-	/**
-	 *
-	 * */
+	public function getCleanName() {
+		$ext = $this->getExtension();
+		if ($ext == '') {
+			return $this->getName();
+		}
+
+		return preg_replace('/\.'.$ext.'$/', '', $this->getName());
+	}
+
 	public function remove() {
 		unlink($this->getPath());
 	}
@@ -98,6 +101,16 @@ class File extends BaseFile {
 	 * */
 	public function get() {
 		return file_get_contents($this->path);
+	}
+
+	public function getTail($rowsCount) {
+		$file = file($this->getPath());
+		$result = '';
+		for ($i = max(0, count($file)-$rowsCount); $i < count($file); $i++) {
+			$result .= $file[$i];
+		}
+		
+		return $result;
 	}
 
 	public function match($pattern) {

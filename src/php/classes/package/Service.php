@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class Service {
+class Service extends ApplicationTool {
 	/** @var $_name string - уникальное имя сервиса */
 	protected $_name;
 	/** @var $_path string - путь к каталогу сервиса относительно корня приложения */
@@ -23,17 +23,25 @@ class Service {
 	private $dbConnections = [];
 
 	/**
-	 * Сервис - картированный вариант синглтона
+	 * Не использовать для создания экземпляров сервисов
 	 * */
-	protected function __construct($params = []) {}
-	protected function __clone() {}
+	public function __construct($app, $name, $config, $params = []) {
+		parent::__construct($app);
+		$this->setName($name);
+		$this->setConfig($config);
+		$this->construct($params);
+	}
+
+	protected function construct($params) {
+
+	}
 
 	/**
 	 * 
 	 * */
 	private function setName($name) {
 		$this->_name = $name;
-		$this->_path = \lx\Autoloader::getInstance()->map->packages[$this->_name];
+		$this->_path = Autoloader::getInstance()->map->packages[$this->_name];
 	}
 
 	/**
@@ -41,11 +49,11 @@ class Service {
 	 * */
 	private function setConfig($config) {
 		// Общие настройки
-		$commonConfig = \lx::getDefaultServiceConfig();
+		$commonConfig = $this->app->getDefaultServiceConfig();
 		ConfigHelper::prepareServiceConfig($commonConfig, $config);
 
 		// Инъекция настроек
-		$injections = \lx::getConfig('configInjection');
+		$injections = $this->app->getConfig('configInjection');
 		ConfigHelper::serviceInject($this->_name, $injections, $config);
 
 		$config['service']['dbList'] = $this->getDbConfig($config);
@@ -54,15 +62,11 @@ class Service {
 	}
 
 	/**
-	 * Проверяет существует ли сервис
-	 * */
+	 * @param $name
+	 * @return bool
+	 */
 	public static function exists($name) {
-		try {
-			self::create($name);
-			return true;
-		} catch (\Exception $e) {
-			return false;
-		}
+		return array_key_exists($name, Autoloader::getInstance()->map->packages);
 	}
 
 	/**
@@ -70,23 +74,20 @@ class Service {
 	 * Создание нового сервиса приведет к записи в карту сервисов
 	 * Сервис создается с учетом класса, установленного основным для данного сервиса
 	 * */
-	public static function create($name = null) {
-		if ($name === null) {
-			$name = ClassHelper::defineService(static::class);
-			if ($name === null) {
-				throw new \Exception("Service '{static::class}' not found", 400);
-			}
+	public static function create($app, $name) {
+		if (!$name) {
+			throw new \Exception("Service name is missed", 400);
 		}
 
-		if (ServicesMap::has($name)) {
-			return ServicesMap::get($name);
+		if ($app->services->has($name)) {
+			return $app->services->get($name);
 		}
 
 		if (!array_key_exists($name, Autoloader::getInstance()->map->packages)) {
 			throw new \Exception("Package '$name' not found. Try to reset autoload map", 400);
 		}
 
-		$path = \lx::sitePath() . '/' . Autoloader::getInstance()->map->packages[$name];
+		$path = $app->sitePath . '/' . Autoloader::getInstance()->map->packages[$name];
 		$dir = new PackageDirectory($path);
 
 		$configFile = $dir->getConfigFile();
@@ -97,7 +98,7 @@ class Service {
 		$config = $configFile->get();
 
 		if (!isset($config['service'])) {
-			throw new \Exception("Package '$name' is not service", 400);
+			throw new \Exception("Package '$name' is not a service", 400);
 		}
 
 		if (isset($config['service']['class'])) {
@@ -113,10 +114,8 @@ class Service {
 			throw new \Exception("Class '$className' for service '$name' does not exist", 400);			
 		}
 
-		$service = new $className($params);
-		$service->setName($name);
-		$service->setConfig($config);
-		ServicesMap::newService($name, $service);
+		$service = new $className($app, $name, $config, $params);
+		$app->services->register($name, $service);
 		return $service;
 	}
 
@@ -131,7 +130,7 @@ class Service {
 
 			case 'directory':
 				if ($this->_dir === null) {
-					$this->_dir = new PackageDirectory(\lx::sitePath() . '/' . $this->_path);
+					$this->_dir = new PackageDirectory($this->app->sitePath . '/' . $this->_path);
 				}
 
 				return $this->_dir;
@@ -150,7 +149,7 @@ class Service {
 						$crudAdapter = null;
 					} else {
 						$config = ClassHelper::prepareConfig($crudAdapterClass);
-						$crudAdapter = new $config['class']($config['params']);
+						$crudAdapter = new $config['class']($this->app, $config['params']);
 					}
 
 					$this->_modelProvider = new ModelProvider($this, $crudAdapter);
@@ -162,16 +161,16 @@ class Service {
 				if ($this->_i18nMap === null) {
 					$config = ClassHelper::prepareConfig(
 						$this->getConfig('service.i18nMap'),
-						I18nMap::class
+						I18nServiceMap::class
 					);
 					$config['params']['service'] = $this;
-					$this->_i18nMap = new $config['class']($config['params']);
+					$this->_i18nMap = new $config['class']($this->app, $config['params']);
 				}
 
 				return $this->_i18nMap;
 		}
 
-		return null;
+		return parent::__get($name);
 	}
 
 	/**
@@ -280,10 +279,10 @@ class Service {
 	/**
 	 *
 	 * */
-	public function moduleExists($moduleName) {
-		$dynamicModules = $this->getConfig('service.dynamicModules');
-		if ($dynamicModules && array_key_exists($moduleName, $dynamicModules)) {
-			$info = $dynamicModules[$moduleName];
+	public function pluginExists($pluginName) {
+		$dynamicPlugins = $this->getConfig('service.dynamicPlugins');
+		if ($dynamicPlugins && array_key_exists($pluginName, $dynamicPlugins)) {
+			$info = $dynamicPlugins[$pluginName];
 			if (is_array($info)) {
 				if (isset($info['method'])) {
 					return method_exists($this, $info['method']);
@@ -297,80 +296,80 @@ class Service {
 		}
 
 		// Поиск статических модулей
-		$modulePath = $this->conductor->getModulePath($moduleName);
-		return $modulePath !== null;
+		$pluginPath = $this->conductor->getPluginPath($pluginName);
+		return $pluginPath !== null;
 	}
 
 	/**
 	 *
 	 * */
-	public function getModule($moduleName, $params = []) {
+	public function getPlugin($pluginName, $params = []) {
 		// Карта динамических модулей
 		/*
-		dynamicModules:
-		  moduleName1:
+		dynamicPlugins:
+		  pluginName1:
 		    method: someMethod  #Метод сервиса, возвращающий этот модуль
-		  moduleName2:
-		    module: outer/service:moduleName
-		    params:
+		  pluginName2:
+		    plugin: outer/service:pluginName
+		    renderParams:
 		      method: someMethodForParams  #Метод сервиса, возвращающий массив параметров для модуля
 		      paramA: value
 		      paramB: ()=>$this->someField1 . ';' . $this->someField2;
 		*/
-		$dynamicModules = $this->getConfig('service.dynamicModules');
-		if ($dynamicModules && array_key_exists($moduleName, $dynamicModules)) {
-			$info = $dynamicModules[$moduleName];
+		$dynamicPlugins = $this->getConfig('service.dynamicPlugins');
+		if ($dynamicPlugins && array_key_exists($pluginName, $dynamicPlugins)) {
+			$info = $dynamicPlugins[$pluginName];
 			if (is_array($info)) {
 				if (isset($info['method'])) {
 					if (!method_exists($this, $info['method'])) {
-						throw new \Exception("Module '$moduleName' not found", 400);
+						throw new \Exception("Plugin '$pluginName' not found", 400);
 					}
 					return $this->{$info['method']}();
 				}
 
 				if (!isset($info['prototype'])) {
-					throw new \Exception("Module '$moduleName' not found", 400);
+					throw new \Exception("Plugin '$pluginName' not found", 400);
 				}
-				$path = \lx::getModulePath($info['prototype']);
-				$module = Module::create($this, $moduleName, $path, $info['prototype']);
-				if (isset($info['params'])) {
-					$configParams = $info['params'];
-					if (isset($configParams['method'])) {
-						if (method_exists($this, $configParams['method'])) {
-							$configParams = $this->{$configParams['method']}();
+				$path = $this->app->getPluginPath($info['prototype']);
+				$plugin = Plugin::create($this, $pluginName, $path, $info['prototype']);
+				if (isset($info['renderParams'])) {
+					$renderParams = $info['renderParams'];
+					if (isset($renderParams['method'])) {
+						if (method_exists($this, $renderParams['method'])) {
+							$renderParams = $this->{$renderParams['method']}();
 						}
 					}
-					foreach ($configParams as $key => $value) {
+					foreach ($renderParams as $key => $value) {
 						if (preg_match('/^\(\)=>/', $value)) {
-							$configParams[$key] = eval(preg_replace('/^\(\)=>/', 'return ', $value));
+							$renderParams[$key] = eval(preg_replace('/^\(\)=>/', 'return ', $value));
 						}
 					}
-					$module->addParams($configParams);
+					$plugin->addRenderParams($renderParams);
 				}
-				$module->addParams($params);
-				return $module;
+				$plugin->addRenderParams($params);
+				return $plugin;
 			} else {
 				//todo - если не массив?
-				throw new \Exception("Module '$moduleName' not found", 400);
+				throw new \Exception("Plugin '$pluginName' not found", 400);
 			}
 		}
 
 		// Поиск статических модулей
-		$modulePath = $this->conductor->getModulePath($moduleName);
-		if ($modulePath === null) {
-			throw new \Exception("Module '$moduleName' not found", 400);
+		$pluginPath = $this->conductor->getPluginPath($pluginName);
+		if ($pluginPath === null) {
+			throw new \Exception("Plugin '$pluginName' not found", 400);
 		}
-		$module = Module::create($this, $moduleName, $modulePath);
-		$module->addParams($params);
-		return $module;
+		$plugin = Plugin::create($this, $pluginName, $pluginPath);
+		$plugin->addRenderParams($params);
+		return $plugin;
 	}
 
 	/**
 	 *
 	 * */
-	public function includeModule($outerModuleName, $selfModuleName) {
-		$path = \lx::getModulePath($outerModuleName);
-		return Module::create($this, $selfModuleName, $path);
+	public function includePlugin($outerPluginName, $selfPluginName) {
+		$path = $this->app->getPluginPath($outerPluginName);
+		return Plugin::create($this, $selfPluginName, $path);
 	}
 
 	/**
@@ -415,7 +414,7 @@ class Service {
 			$dbList += $config['service']['dbList'];
 		}
 
-		$commonConfig = \lx::getDefaultServiceConfig();
+		$commonConfig = $this->app->getDefaultServiceConfig();
 		$commonDbList = [];
 		if (isset($commonConfig['db'])) {
 			$commonDbList['db'] = $commonConfig['db'];

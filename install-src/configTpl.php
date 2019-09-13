@@ -21,10 +21,16 @@ return [
 	// Routing to services
 	'router' => require __DIR__ . '/routes.php',
 
-	// Global js-code executed before rendered module load
-	//'jsBootstrap' => '',
-	// Global js-code executed after rendered module load
-	//'jsMain' => '',
+	// Application components
+	// 'components' => [],
+
+	// Injection of configurations for services and plugins
+	// 'configInjection' => [],
+
+	// Global js-code executed before page rendered
+	// 'jsBootstrap' => '',
+	// Global js-code executed after page rendered
+	// 'jsMain' => '',
 ];
 
 EOT;
@@ -35,13 +41,13 @@ $configRoutesCode = <<<EOT
 /*
 Router settings
 Type variants:
-	- map (require parameter 'routes' - routes map, or 'path' - path to routes map)
+	- map (require parameter 'routes' - routes map - array with pares key - route, value - source information)
 	- class (require parameter 'name' - Router class name)
 */
 return [
 	'type' => 'map',
 	'routes' => [
-		'/' => ['service-module' => 'lx/lx-hello:world', 'on-mode' => 'dev'],
+		'/' => ['service-plugin' => 'lx/lx-hello:world', 'on-mode' => 'dev'],
 	],
 ];
 
@@ -51,13 +57,13 @@ EOT;
 $configServiceCode = <<<EOT
 <?php
 return [
-	// Common module aliases
+	// Common plugin aliases
 	'aliases' => [],
-	// Flag for use common module aliases
+	// Flag for use common plugin aliases
 	'useCommonAliases' => true,
 
-	// Directory(ies) for modules
-	'modules' => 'module',
+	// Directory(ies) for plugins
+	'plugins' => 'plugin',
 
 	// Directory(ies) for models
 	'models' => 'model',
@@ -79,26 +85,29 @@ return [
 EOT;
 
 
-$configModuleCode = <<<EOT
+$configPluginCode = <<<EOT
 <?php
 return [
-	// Common module aliases
+	// Common plugin aliases
 	'aliases' => [],
-	// Flag for use common module aliases
+	// Flag for use common plugin aliases
 	'useCommonAliases' => true,
 
-	// File name for js-code executed before module blocks load
+	// File name for js-code executed before plugin snippets load
 	'jsBootstrap' => 'frontend/_bootstrap.js',
-	// File name for js-code executed after module blocks load
+	// File name for js-code executed after plugin snippets load
 	'jsMain' => 'frontend/_main.js',
 
 	// Respondents map
 	'respondents' => [
 		'Respondent' => 'backend\Respondent',
 	],
-
-	// View root block
-	'view' => 'view/_root.php',
+	
+	// Root snippet
+	'rootSnippet' => 'snippets/_root.js',
+	
+	// Snippets directory (or directories if value is array)
+	'snippets' => 'snippets',
 
 	// Asset directories
 	'images' => 'assets/images',

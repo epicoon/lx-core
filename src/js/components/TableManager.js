@@ -1,4 +1,10 @@
+/* Таблица начинает генерировать события:
+ * selectionChange (event, oldCell, newCell)
+ * rowAdded (event)
+ * cellChange (event, cell)
+ * */
 lx.TableManager = {
+	isActive: false,
 	tables: [],
 	activeTable: null,
 	activeCell: null,
@@ -11,30 +17,40 @@ lx.TableManager = {
 	autoRowAdding: false,   // разрешается автодобавление строк при движении курсора вниз с последней строки
 	cellEnterEnable: true,  // разрешается ввод текста в ячейки
 
-	register: function(...args) {
-		if (!args.length) return;
-		args.each((a)=> this.registerTable(a));
-	},
-
-	registerTable: function(tab) {
-		if (tab.lxClassName != 'Table' || this.tables.contain(tab)) return;
-
+	register: function(table, config = {}) {
+		if (!(table instanceof lx.Table) || this.tables.contain(table)) return;
 		if (this.tables.lxEmpty) this.start();
+		this.tables.push(table);
 
-		this.tables.push(tab);
-		if (!tab.interactiveInfo) tab.interactiveInfo = {
-			cellsForSelect: this.cellsForSelect,
-			autoRowAdding: this.autoRowAdding,
-			cellEnterEnable: this.cellEnterEnable
+		table.__interactiveInfo = {
+			cellsForSelect: config.cellsForSelect || lx.TableManager.cellsForSelect,
+			autoRowAdding: config.autoRowAdding || lx.TableManager.autoRowAdding,
+			cellEnterEnable: config.cellEnterEnable || lx.TableManager.cellEnterEnable
 		};
 
-		tab.on('click', [this, this.click]);
+		table.activeRow = function() {
+			if (!this.interactiveInfo || !this.interactiveInfo.cellsForSelect) return null;
+			if (this.interactiveInfo.row === undefined) return null;
+			return this.interactiveInfo.row;
+		}
+
+		table.activeCell = function() {
+			if (!this.interactiveInfo || !this.interactiveInfo.cellsForSelect) return null;
+			if (this.interactiveInfo.cell === undefined) return null;
+			return this.interactiveInfo.cell;
+		}
+
+		table.on('click', [this, this.click]);
 	},
 
-	unregisterTable: function(tab) {
+	unregister: function(tab) {
 		if (this.tables.lxEmpty) return;
 		var index = this.tables.indexOf(tab);
 		if (index != -1) {
+			var table = this.tables[index];
+			delete table.__interactiveInfo;
+			delete table.activeCell;
+			delete table.activeRow;
 			this.activeTable.off('click', this.click);
 			this.tables.splice(index, 1);
 		}
@@ -42,23 +58,26 @@ lx.TableManager = {
 	},
 
 	start: function() {
+		if (this.isActive) return;
 		lx.on('keydown', [this, this.keyDown]);
 		lx.on('keyup', [this, this.keyUp]);
 		lx.on('mouseup', [this, this.outclick]);
+		this.isActive = true;
 	},
 	
 	stop: function() {
+		if (!this.isActive) return;
 		this.unselect();
-		this.tables = [];
 		lx.off('keydown', this.keyDown);
 		lx.off('keyup', this.keyUp);
 		lx.off('mouseup', this.outclick);
+		this.isActive = false;
 	},
 
 	unselect: function() {
 		if (!this.activeTable) return;
 
-		this.activeTable.trigger('selectionChange', event, this.activeCell);
+		this.activeTable.trigger('selectionChange', event, this.activeCell, null);
 
 		this.removeClasses(this.activeTable, this.activeCell);
 		this.activeCell = null;
@@ -72,7 +91,7 @@ lx.TableManager = {
 
 	removeClasses: function(tab, cell) {
 		tab.removeClass(this.tableCss);
-		if (cell && !tab.interactiveInfo.cellsForSelect)
+		if (cell && !tab.__interactiveInfo.cellsForSelect)
 			cell.removeClass(this.cellCss);
 	},
 
@@ -95,15 +114,15 @@ lx.TableManager = {
 		var newRow = tab.row(rowNum - 1),
 			newCell = tab.cell(rowNum - 1, colNum);
 
-		if (tab.interactiveInfo.cellsForSelect)
-			tab.interactiveInfo.row = rowNum - 1;
+		if (tab.__interactiveInfo.cellsForSelect)
+			tab.__interactiveInfo.row = rowNum - 1;
 		this.activeCell = newCell;
 
 		this.actualizeCellClass(cell, newCell);
 
-		var scr = tab.DOMelem.scrollTop,
-			rT = newRow.DOMelem.offsetTop;
-		if ( rT < scr ) tab.DOMelem.scrollTop = rT;
+		var scr = tab.getDomElem().scrollTop,
+			rT = newRow.getDomElem().offsetTop;
+		if ( rT < scr ) tab.getDomElem().scrollTop = rT;
 
 		tab.trigger('selectionChange', event, cell, newCell);
 	},
@@ -118,7 +137,7 @@ lx.TableManager = {
 			colNum = coords[1];
 
 		if ( tab.rowsCount() == rowNum + 1 ) {
-			if (tab.interactiveInfo.autoRowAdding) {
+			if (tab.__interactiveInfo.autoRowAdding) {
 				tab.addRow();
 				tab.trigger('rowAdded', event);
 			} else return;
@@ -127,17 +146,17 @@ lx.TableManager = {
 		var newRow = tab.row( rowNum + 1 ),
 			newCell = tab.cell(rowNum + 1, colNum);
 
-		if (tab.interactiveInfo.cellsForSelect)
-			tab.interactiveInfo.row = rowNum + 1;
+		if (tab.__interactiveInfo.cellsForSelect)
+			tab.__interactiveInfo.row = rowNum + 1;
 		this.activeCell = newCell;
 
 		this.actualizeCellClass(cell, newCell);
 
-		var scr = tab.DOMelem.scrollTop,
-			h = tab.DOMelem.offsetHeight,
-			rT = newRow.DOMelem.offsetTop,
-			rH = newRow.DOMelem.offsetHeight;
-		if ( rT + rH > scr + h ) tab.DOMelem.scrollTop = rT + rH - h;
+		var scr = tab.getDomElem().scrollTop,
+			h = tab.getDomElem().offsetHeight,
+			rT = newRow.getDomElem().offsetTop,
+			rH = newRow.getDomElem().offsetHeight;
+		if ( rT + rH > scr + h ) tab.getDomElem().scrollTop = rT + rH - h;
 
 		tab.trigger('selectionChange', event, cell, newCell);
 	},
@@ -155,15 +174,15 @@ lx.TableManager = {
 
 		var newCell = tab.cell(rowNum, colNum - 1);
 
-		if (tab.interactiveInfo.cellsForSelect)
-			tab.interactiveInfo.col = colNum - 1;
+		if (tab.__interactiveInfo.cellsForSelect)
+			tab.__interactiveInfo.col = colNum - 1;
 		this.activeCell = newCell;
 
 		this.actualizeCellClass(cell, newCell);
 
-		var scr = tab.DOMelem.scrollLeft,
-			rL = newCell.DOMelem.offsetLeft;
-		if ( rL < scr ) tab.DOMelem.scrollLeft = rL;
+		var scr = tab.getDomElem().scrollLeft,
+			rL = newCell.getDomElem().offsetLeft;
+		if ( rL < scr ) tab.getDomElem().scrollLeft = rL;
 
 		tab.trigger('selectionChange', event, cell, newCell);
 	},
@@ -181,17 +200,17 @@ lx.TableManager = {
 
 		var newCell = tab.cell(rowNum, colNum + 1);
 
-		if (tab.interactiveInfo.cellsForSelect)
-			tab.interactiveInfo.col = colNum + 1;
+		if (tab.__interactiveInfo.cellsForSelect)
+			tab.__interactiveInfo.col = colNum + 1;
 		this.activeCell = newCell;
 
 		this.actualizeCellClass(cell, newCell);
 
-		var scr = tab.DOMelem.scrollLeft,
-			w = tab.DOMelem.offsetWidth,
-			rL = newCell.DOMelem.offsetLeft,
-			rW = newCell.DOMelem.offsetWidth;
-		if ( rL + rW > scr + w ) tab.DOMelem.scrollLeft = rL + rW - w;
+		var scr = tab.getDomElem().scrollLeft,
+			w = tab.getDomElem().offsetWidth,
+			rL = newCell.getDomElem().offsetLeft,
+			rW = newCell.getDomElem().offsetWidth;
+		if ( rL + rW > scr + w ) tab.getDomElem().scrollLeft = rL + rW - w;
 
 		tab.trigger('selectionChange', event, cell, newCell);
 	},
@@ -203,12 +222,12 @@ lx.TableManager = {
 		if (cell.contain('input')) {
 			var inp = cell.get('input');
 			inp.off('blur');
-			var boof = inp.DOMelem.value;
+			var boof = inp.getDomElem().value;
 
 			//todo - что тут вообще происходит? Эта функция может нужна еще где-то? Запрятал ее, потому что она была в lx., но там ей точно не место,
 			// а используется пока что только тут.
 			function getCaretPosition( element ) {
-				if ( this.browserInfo.browser == 'ie' ) {
+				if ( lx.environment.browser == 'ie' ) {
 					var sel = document.selection.createRange();
 					var clone = sel.duplicate();
 					
@@ -223,19 +242,18 @@ lx.TableManager = {
 				}
 				return element.value.length - 1;
 			};
-			pos = getCaretPosition(inp.DOMelem)-1;
+			pos = getCaretPosition(inp.getDomElem())-1;
 			boof = boof.substring(0, pos) + boof.substring(pos+1);
 
 			cell.del('input');
 			cell.text(boof);
 
-			lx.entryBlockId = '';
 			cell.show();
 			cell.trigger('blur');
 
 			tab.trigger('cellChange', event, cell);
 		} else {
-			if ( tab.interactiveInfo.cellEnterEnable ) cell.entry();
+			if ( tab.__interactiveInfo.cellEnterEnable ) cell.entry();
 		}
 	},
 
@@ -267,11 +285,12 @@ lx.TableManager = {
 		event = event || window.event;
 		//todo можно еще в родителях поискать
 
-		if (!event.target.lx) return;
+		var target = lx.WidgetHelper.getByElem(event.target);
+		if (!target) return;
 
-		var newCell = event.target.lx.lxClassName == 'TableCell'
-			? event.target.lx
-			: event.target.lx.ancestor({hasProperties: {lxClassName: 'TableCell'}});
+		var newCell = target.lxClassName == 'TableCell'
+			? target
+			: target.ancestor({hasProperties: {lxClassName: 'TableCell'}});
 		if (!newCell) return;
 
 		if (this.activeCell == newCell) {
@@ -291,19 +310,19 @@ lx.TableManager = {
 		}
 
 		this.activeCell = newCell;
-		if (newTab.interactiveInfo.cellsForSelect) {
+		if (newTab.__interactiveInfo.cellsForSelect) {
 			var ac = newTab.activeCell();
 			if (ac) ac.removeClass(this.cellCss);
 			var coords = newCell.indexes();
-			newTab.interactiveInfo.row = coords[0];
-			newTab.interactiveInfo.col = coords[1];
+			newTab.__interactiveInfo.row = coords[0];
+			newTab.__interactiveInfo.col = coords[1];
 		}
 
 		newTab.trigger('selectionChange', event, lastCell, newCell);
 	},
 
 	outclick: function(event) {
-		if (this.activeTable == null) return;
+		if (!this.activeTable) return;
 		event = event || window.event;
 		if ( this.activeTable.containPoint(event.clientX, event.clientY) ) return;
 		this.unselect();

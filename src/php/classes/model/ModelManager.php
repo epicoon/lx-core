@@ -2,11 +2,12 @@
 
 namespace lx;
 
-class ModelManager {
+class ModelManager extends ApplicationTool {
 	private $crudTool = null;
 	private $schema;
 
-	public function __construct($crudTool, $schema) {
+	public function __construct($app, $crudTool, $schema) {
+		parent::__construct($app);
 		$this->crudTool = $crudTool;
 		$this->schema = $schema;
 	}

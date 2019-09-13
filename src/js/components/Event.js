@@ -36,9 +36,9 @@ lx.Event = (function() {
 	}
 
 	function cht(e) {
-		var el = this.lx;
+		var el = lx.WidgetHelper.getByElem(this);
 
-		if ( el && el.disabled && el.disabled() ) {
+		if ( el && el.lxHasMethod('disabled') && el.disabled() ) {
 			e.preventDefault();
 			e.cancelBubble = true;
 			e.stopPropagation();
@@ -81,21 +81,23 @@ lx.Event = (function() {
 				handler.guid = ++guid;
 			}
 		
-			if (!el.events) {
+			if (el.events === undefined) {
 				el.events = {};
 				appointEvent(el, commonHandle);
 			}
 		  
-			if (!el.events[type]) {
+			if (el.events[type] === undefined) {
 				el.events[type] = {};
+			}
 
+			if (el.events[type][handler.guid] === undefined) {
 				if (el.addEventListener)
 					el.addEventListener(type, el.handle, false);
 				else if (el.attachEvent)
 			    	el.attachEvent('on' + type, el.handle);
+	
+				el.events[type][handler.guid] = handler;
 			}
-		
-			el.events[type][handler.guid] = handler;
 		},
 
 		remove: function(el, type, handler) {

@@ -2,44 +2,30 @@
 
 namespace lx;
 
-class ServicesMap {
+class ServicesMap extends ApplicationTool {
 	private $map = [];
 
-	/* Синглтон */
-	private static $instance = null;
-	private function __construct() {}
-	private function __clone() {}
-	public static function getInstance() {
-		if (self::$instance === null) {
-			self::$instance = new self();
+	public function exists($serviceName) {
+		try {
+			Service::create($this->app, $serviceName);
+			return true;
+		} catch (\Exception $e) {
+			return false;
 		}
-		return self::$instance;
 	}
 
-	/**
-	 *
-	 * */
-	public static function has($serviceName) {
-		$self = self::getInstance();
-		return array_key_exists($serviceName, $self->map);
+	public function has($serviceName) {
+		return array_key_exists($serviceName, $this->map);
 	}
 
-	/**
-	 *
-	 * */
-	public static function get($serviceName) {
-		$self = self::getInstance();
-		if (!array_key_exists($serviceName, $self->map)) {
-			Service::create($serviceName);
+	public function get($serviceName) {
+		if (!$this->has($serviceName)) {
+			Service::create($this->app, $serviceName);
 		}
-		return $self->map[$serviceName];
+		return $this->map[$serviceName];
 	}
 
-	/**
-	 *
-	 * */
-	public static function newService($serviceName, $service) {
-		$self = self::getInstance();
-		$self->map[$serviceName] = $service;
+	public function register($serviceName, $service) {
+		$this->map[$serviceName] = $service;
 	}
 }

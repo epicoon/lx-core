@@ -31,7 +31,7 @@ class ModelFieldRelation {
 
 	public function getRelativeSchema() {
 		if (preg_match('/\./', $this->relativeModelName)) {
-			return \lx::getModelManager($this->relativeModelName)->getSchema();
+			return $this->schema->app->getModelManager($this->relativeModelName)->getSchema();
 		}
 
 		return $this->getProvider()->getSchema($this->relativeModelName);

@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class ModelProvider {
+class ModelProvider extends ApplicationTool {
 	private $service;
 	private $defaultCrudAdapter = null;
 	// Карта соответствий моделей и CRUD-адаптеров
@@ -12,6 +12,7 @@ class ModelProvider {
 	private $schemas = [];
 
 	public function __construct($service, $crudAdapter = null) {
+		parent::__construct($service->app);
 		$this->service = $service;
 
 		if ($crudAdapter) {
@@ -72,7 +73,7 @@ class ModelProvider {
 				return null;
 			}
 
-			$this->managers[$modelName] = new ModelManager($this->getCrudAdapter($modelName), $schema);
+			$this->managers[$modelName] = new ModelManager($this->app, $this->getCrudAdapter($modelName), $schema);
 		}
 
 		return $this->managers[$modelName];

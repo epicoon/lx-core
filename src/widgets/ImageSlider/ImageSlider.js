@@ -1,6 +1,9 @@
-#lx:use lx.BoxSlider as BoxSlider;
+#lx:module lx.ImageSlider;
 
-class ImageSlider extends BoxSlider #lx:namespace lx {
+#lx:use lx.BoxSlider;
+#lx:use lx.Image;
+
+class ImageSlider extends lx.BoxSlider #lx:namespace lx {
 	build(config) {
 		super.build(config);
 
@@ -11,7 +14,7 @@ class ImageSlider extends BoxSlider #lx:namespace lx {
 		if (this.slides().len != images.len)
 			this.setSlides(images.len);
 
-		this.slides().each((a, i)=> a.picture(images[i]));
+		this.slides().each((a, i)=> a.add(lx.Image, {size:['100%', '100%'], filename:images[i]}));
 		return this;
 	}
 }

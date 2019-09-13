@@ -1,404 +1,183 @@
+/*
+display: grid;
+
+// Отступы между элементами грида:
+grid-row-gap: 10px;
+grid-column-gap: 10px;
+// Одновременно строки и столбцы
+grid-gap: 10px;
+
+// Карта грида для вложенных элементов
+grid-template-areas:
+“nav header  header”
+“nav article ads”
+“nav footer  ads”;
+// Для внутреннего элемента надо накинуть, н-р для nav:
+grid-area: nav;
+// В карте грида можно задавать пустые ячейки точкой или многоточием (. или ...)
+
+// Следующий код выдает размеры явным (определенным в area, или просто определяемым по числу заданных размеров) строкам и колонкам:
+grid-template-rows: 60px 1fr 60px;
+grid-template-columns: 20% 1fr 15%;
+
+// Адаптивный грид (еще есть auto-fit, но не понравился)
+grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+// Еще адаптивность - после основного определения, переопределить шаблон для экранов определенного размера
+@media all and (max-width: 575px) {
+
+// Определить в каком направлении будет расширяться неявный грид:
+grid-auto-flow: column;
+// По умолчанию row
+// Есть значение dense - перетасовывает содержимое, чтобы оно занимало минимум места
+
+// Размеры для неявных строк и колонок:
+grid-auto-rows: 60px;
+grid-auto-columns: 20%;
+
+// Локализация внутреннего элемента в сетке
+grid-row-start: 3;
+grid-column-start: 2;
+grid-row-end: 4;
+grid-column-end: 4;
+
+
+
+// Далее стоит покурить
+https://medium.com/@stasonmars/%D0%B2%D0%B5%CC%88%D1%80%D1%81%D1%82%D0%BA%D0%B0-%D0%BD%D0%B0-grid-%D0%B2-css-%D0%BF%D0%BE%D0%BB%D0%BD%D0%BE%D0%B5-%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D1%81%D1%82%D0%B2%D0%BE-%D0%B8-%D1%81%D0%BF%D1%80%D0%B0%D0%B2%D0%BE%D1%87%D0%BD%D0%B8%D0%BA-220508316f8b
+// Для именованных групп
+* Формы с авто-размещением
+// Для выравниваний
+* CSS Grid выравнивание
+
+// Больше подробностей и примеров, меньше воды
+https://css-tricks.com/snippets/css/complete-guide-grid/
+*/
+
 #lx:private;
 
-#lx:use lx.PositioningStrategy as PositioningStrategy;
+class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
+	#lx:const
+		TYPE_SIMPLE = 1,
+		TYPE_PROPORTIONAL = 2,
+		DEAULT_COLUMNS_AMOUNT = 12,
 
-/*
-формирует сетку с заданным количеством колонок, высота строки может быть задана, или будет определена автоматически исходя из размера коробки				
-количество строк может быть не задано, тогда строки формируются по мере наполнения контейнера. Либо фиксированное количество строк, тогда вместимость ограничена				
-параметры располагаемым элементам задаются в условных единицах (кол-во колонок, кол-во строк)				
-старается размещать новые элементы слева от уже расположенных, и ниже последней занятой строки				
-	фиксированное число строк	SIZE_BEHAVIOR_PROPORTIONAL_CONST
-	адаптируемая высота строк	SIZE_BEHAVIOR_PROPORTIONAL
-	управляющая высота строк	SIZE_BEHAVIOR_BY_CONTENT
-*/
-class GridPositioningStrategy extends PositioningStrategy #lx:namespace lx {
-	constructor(owner, config) {
-		super(owner);
-		this.innerFormat = PositioningStrategy.FORMAT_PX;
-		this.defaultFormat = PositioningStrategy.FORMAT_PX;
-
-		if (config) this.init(config);
-	}
+		COLUMN_MIN_WIDTH = '25px',
+		ROW_MIN_HEIGHT = '25px';
 
 	init(config={}) {
-		this.rowHeight = config.rowHeight || self::ROW_HEIGHT;
-		this.cols = config.cols || self::COLS;
-		this.sizeBehavior = (config.sizeBehavior !== undefined) ? config.sizeBehavior : self::HEIGHT_BEHAVIOR;
+		//TODO direction?
+		this.type = config.type || self::TYPE_SIMPLE;
+		this.cols = config.cols || self::DEAULT_COLUMNS_AMOUNT;
+		this.map = new lx.BitMap(this.cols);
 
-		if (this.sizeBehavior == self::SIZE_BEHAVIOR_PROPORTIONAL_CONST) {
-			this.rows = config.rows || 1;
-			this.map = new Array(this.rows);
-			this.map.each((a, i)=> this.map[i]=0);
-		} else this.map = [0];
+		if (config.minHeight !== undefined) this.minHeight = config.minHeight;
 
-		if (config.indent === undefined) {
-			if (config.padding === undefined) config.padding = self::PADDING;
-			if (config.step === undefined) config.step = self::STEP;			
+		this.owner.addClass('lxps-grid-v');
+		this.owner.style('grid-template-columns', 'repeat(' + this.cols + ',1fr)');
+		if (this.type == self::TYPE_SIMPLE) {
+			this.owner.height('auto');
 		}
-
 		this.setIndents(config);
 	}
+	
+	#lx:server pack() {
+		var str = super.pack();
+		str += ';c:' + this.cols + ';t:' + this.type;
+		if (this.minHeight)
+			str += ';mh:' + this.minHeight;
+		str += ';m:' + this.map.toString();
+		return str;
+	}
 
-	unpackProcess(config) {
+	#lx:client unpackProcess(config) {
 		this.cols = +config.c;
-		this.sizeBehavior = +config.hb;
-		this.map = config.m.split(',');
-
-		this.rowHeight = config.rh || self::ROW_HEIGHT;
-		if (config.r) this.rows = +config.r;
+		this.type = +config.t;
+		if (config.mh) this.minHeight = config.mh;
+		this.map = lx.BitMap.createFromString(config.m);
 	}
 
 	/**
 	 * Для позиционирования нового элемента, добавленного в контейнер
 	 * */
 	allocate(elem, config) {
-		var gc = GridCalculator.create(this);
-		gc.toGrid(elem, config);
-		gc.relocateElem(elem);
+		elem.style('position', 'relative');
+		elem.style(
+			'min-height',
+			config.minHeight !== undefined
+				? config.minHeight
+				: (this.minHeight === undefined ? self::ROW_MIN_HEIGHT : this.minHeight)
+		);
+		elem.style(
+			'min-width',
+			config.minWidth !== undefined
+				? config.minWidth
+				: self::COLUMN_MIN_WIDTH
+		);
+
+		__allocate(this, elem, config);
 	}
 
-	/**
-	 * Актуализация позиций элементов в контейнере
-	 * info = {
-	 *	from: Rect  // если указан - с него начать актуализацию
-	 *	changed: Rect  // если указан - актуализация была вызвана в связи с изменением этих элементов
-	 *	deleted: Array  // если указан - актуализация была вызвана в связи с удалением этих элементов
-	 * }
-	 * */
-	actualizeProcess(info) {
-		var gc = GridCalculator.create(this);
-		gc.relocateElems();
-	}
+	setIndents(config) {
+		super.setIndents(config);
+		//TODO false - рефакторинговый костыль. Использование этого флага в перспективе должно быть упразднено
+		var indents = this.getIndents(false);
 
-	/**
-	 * Сброс данных стратегии при очистке контейнера
-	 * */
-	reset() {
-		this.owner.getChildren().each((a)=> { delete a.inGrid; });
-		this.map = [0];
-	}
+		//TODO - абзац повторяется в разных стратегиях
+		if (indents.paddingTop) this.owner.style('padding-top', indents.paddingTop);
+		if (indents.paddingBottom) this.owner.style('padding-bottom', indents.paddingBottom);
+		if (indents.paddingLeft) this.owner.style('padding-left', indents.paddingLeft);
+		if (indents.paddingRight) this.owner.style('padding-right', indents.paddingRight);
 
-	/**
-	 * Запрос на изменение позиционного параметра для конкретного элемента
-	 * Должен вернуть булево значения - true и поменять параметр, либо false и не менять параметр
-	 * */
-	tryReposition(elem, param, val) {
-		//todo RIGHT BOTTOM не поддерживается!!!
-		// if (param == lx.RIGHT)
-
-		elem.inGrid[param] = val;
-		GridCalculator.create(this).relocateElem(elem);
+		if (indents.stepY) this.owner.style('grid-row-gap', indents.stepY);
+		if (indents.stepX) this.owner.style('grid-column-gap', indents.stepX);
 	}
 }
 
-//=============================================================================================================================
-
-//=============================================================================================================================
-class GridCalculator {
-	constructor() {
-		this.grid = null;
-		this.indents = [];
-		this.mapX = [];
-	}
-
-	static create(grid) {
-		var obj;
-		switch (grid.sizeBehavior) {
-			case lx.GridPositioningStrategy.SIZE_BEHAVIOR_PROPORTIONAL_CONST: obj = new ConstGridCalculator(); break;
-			case lx.GridPositioningStrategy.SIZE_BEHAVIOR_PROPORTIONAL: obj = new ProportionalGridCalculator(); break;
-			case lx.GridPositioningStrategy.SIZE_BEHAVIOR_BY_CONTENT: obj = new BoxGridCalculator(); break;
-		}
-		obj.grid = grid;
-		obj.indents = grid.getIndents();
-		obj.mapX = obj.gridMap();
-		return obj;
-	}
-
-	relocateElem(elem) {}
-	relocateElems() {}
-
-	toGrid(elem, config) {
-		var geom = this.grid.geomFromConfig(config);
-		geom = this.normalizeGeomH(geom);
-		geom = this.normalizeGeomV(geom, elem);
-		elem.inGrid = [];
-		elem.inGrid[lx.LEFT] = geom.l;
-		elem.inGrid[lx.TOP] = geom.t;
-		elem.inGrid[lx.WIDTH] = geom.w;
-		elem.inGrid[lx.HEIGHT] = geom.h;
-	}
-
-	normalizeGeomV(geom, elem) {
-		return geom;
-	}
-
-	normalizeGeomH(geom) {
-		var grid = this.grid;
-
-		// для ситуации, когда задан right
-		var definedCount = +(geom.w!==undefined) + +(geom.l!==undefined) + +(geom.r!==undefined);
-		if (definedCount == 3) geom.r = undefined;
-		if (geom.r !== undefined) {
-			if (definedCount == 1) {
-				geom.l = 0;
-				geom.w = grid.cols - geom.r;
-			} else {
-				if (geom.l !== undefined) geom.w = grid.cols - geom.l - geom.r;
-				else geom.l = grid.cols - geom.w - geom.r;
-			}
-			geom.r = undefined;
-		}
-
-		// по ширине не вылазим
-		if (geom.w === undefined || geom.w > grid.cols) geom.w = grid.cols;
-		return geom;
-	}
-
-	gridMap(axis=lx.HORIZONTAL) {
-		var grid = this.grid,
-			count, size, ind;
-		if (axis == lx.HORIZONTAL) {
-			count = grid.cols;
-			size = grid.owner.width('px');
-			ind = 1;
-		} else {
-			count = grid.rows || grid.map.len;
-			size = grid.owner.height('px');
-			ind = 0;
-		}
-
-		var indents = this.indents,
-			padding = indents.padding[ind],
-			step = indents.step[ind],
-			wi = size - padding[0] - padding[1] - (count - 1) * step,
-			col = Math.floor(wi / count),
-			residue0 = wi % count,
-			residue1 = (residue0 > count*0.5) ? residue0 - Math.floor(count*0.5) : 0,
-			res = [padding[0]];
-
-		for (var i=0; i<count; i++) {
-			var val = col;
-			if (i%2) {
-				if (residue1 > 0) { residue1--; val++; }
-			} else {
-				if (residue0 > 0) { residue0--; val++; }
-			}
-			res.push(val);
-			if (i == count-1) res.push(padding[1]);
-			else res.push(step);
-		}
-		return res;
-	}
-
-	setParams(elem, l, t, w, h) {
-		var grid = this.grid;
-		grid.setParam(elem, lx.LEFT, l, true);
-		grid.setParam(elem, lx.TOP, t, true);
-		grid.setParam(elem, lx.WIDTH, w, true);
-		grid.setParam(elem, lx.HEIGHT, h, true);
-		elem.trigger('resize');
-	}
-
-	getParamsH(elem) {
-		var grid = this.grid,
-			geom = elem.inGrid,
-			mapX = this.mapX,
-			lim = +geom[lx.LEFT] * 2 + 1,
-			lim2 = (+geom[lx.WIDTH] - 1) * 2 + 1,
-			left = 0,
-			width = 0;
-		for (var i=0; i<lim; i++) left += +mapX[i];
-		for (var i=lim; i<lim+lim2; i++) width += +mapX[i];
-
-		for (var i=geom[lx.TOP], l=+geom[lx.TOP] + +geom[lx.HEIGHT]; i<l; i++)
-			grid.map[i] = Math.max(+geom[lx.LEFT] + +geom[lx.WIDTH], grid.map[i]);
-
-		return [left, width];
-	}
+/******************************************************************************************************************************
+ * PRIVATE
+ *****************************************************************************************************************************/
+function __allocate(self, elem, config) {
+	var geom = self.geomFromConfig(config);
+	if (!geom.w) geom.w = 1;
+	if (!geom.h) geom.h = 1;
+	var params = __getInGridParams(self, geom);
+	if (params.needSetBit)
+		self.map.setSpace(params.needSetBit);
+	self.owner.style('grid-template-rows', 'repeat(' + self.map.y + ',1fr)');
+	elem.style('grid-area', params.params.join('/'));
 }
-//=============================================================================================================================
 
-//=============================================================================================================================
-class ConstGridCalculator extends GridCalculator {
-	relocateElem(elem) {
-		this.relocateElemProcess(elem);
+function __getInGridParams(self, geom) {
+	if (geom.l !== undefined && geom.t === undefined) geom.t = 0;
+	if (geom.t !== undefined && geom.l === undefined) geom.l = 0;
+	var needSetBit = geom.l === undefined;
+	if (!needSetBit) {
+		if (geom.t+geom.h > self.map.y) self.map.setY(geom.t+geom.h);
+		return {
+			needSetBit,
+			params: [
+				geom.t+1,
+				geom.l+1,
+				geom.t+geom.h+1,
+				geom.l+geom.w+1
+			]
+		};
 	}
 
-	relocateElems() {
-		this.grid.owner.getChildren().each((a)=> this.relocateElemProcess(a));
+	var crds = self.map.findSpace(geom.w, geom.h);;
+	while (crds === false) {
+		self.map.addY();
+		crds = self.map.findSpace(geom.w, geom.h);
 	}
 
-	relocateElemProcess(elem) {
-		var hor = this.getParamsH(elem),
-			vert = this.getParamsV(elem);
-		this.setParams(elem, hor[0], vert[0], hor[1], vert[1]);
-	}
-
-	getParamsV(elem) {
-		var grid = this.grid,
-			geom = elem.inGrid,
-			mapY = this.mapY(),
-			lim = +geom[lx.TOP] * 2 + 1,
-			lim2 = (+geom[lx.HEIGHT] - 1) * 2 + 1,
-			top = 0,
-			height = 0;
-		for (var i=0; i<lim; i++) top += +mapY[i];
-		for (var i=lim; i<lim+lim2; i++) height += +mapY[i];
-		return [top, height];
-	}
-
-	mapY() {
-		if (!this._mapY) this._mapY = this.gridMap(lx.VERTICAL);
-		return this._mapY;
-	}
-
-	/**
-	 * Ищем последнюю строку, которую займет предполагаемая геометрия
-	 * */
-	getLastLine(geom) {
-		var row;
-		if (geom.t) row = geom.t + geom.h - 1;
-		else {
-			row = this.findLine(geom);
-			if (row === false) {
-				// todo ??? тут бы надо исключение - типа не влезло
-				row = 1;
-				geom.t = 0;
-			} else geom.t = row + 1 - geom.h;
-		}
-
-		return row;
-	}
-
-	normalizeGeomV(geom, elem) {
-		var grid = this.grid;
-
-		// по высоте корректируем
-		if (geom.h === undefined) geom.h = 1;
-		if (geom.h > grid.rows) geom.h = grid.rows;
-
-		// ищем последнюю строку, которую займет элемент
-		var row = this.getLastLine(geom);
-
-		// левая позиция может быть указана, иначе - справа от уже существующих элементов
-		geom.l = geom.l !== undefined
-			? geom.l
-			: this.grid.map.maxOnRange(geom.t, row);
-		return geom;
-	}
-
-	findLine(geom) {
-		var grid = this.grid,
-			okRows = 0;
-		for (var i=0, l=grid.map.len; i<l; i++)
-			if (grid.cols - grid.map[i] >= geom.w) {
-				okRows++;
-				if (okRows == geom.h) return i;
-			}
-		return false;
-	}
+	var l = crds[0], t = crds[1];
+	return {
+		needSetBit: [l, t, geom.w, geom.h],
+		params: [
+			t+1,
+			l+1,
+			t+geom.h+1,
+			l+geom.w+1
+		]
+	};
 }
-//=============================================================================================================================
-
-//=============================================================================================================================
-class ProportionalGridCalculator extends ConstGridCalculator {
-	constructor() {
-		super();
-		this.relocateAll = false;
-	}
-
-	relocateElem(elem) {
-		if (this.relocateAll) this.relocateElems();
-		else this.relocateElemProcess(elem);
-	}
-
-	/**
-	 * Ищем последнюю строку, которую займет предполагаемая геометрия
-	 * */
-	getLastLine(geom) {
-		var grid = this.grid,
-			row;
-		if (geom.t) row = geom.t + geom.h - 1;
-		else {
-			row = this.findLine(geom);
-			geom.t = row + 1 - geom.h;
-		}
-		// актуализируем сетку в высоту
-		if (row+1 > grid.map.len)
-			for (var i=0, l=row+1-grid.map.len; i<l; i++)
-				this.addLine();
-
-		return row;
-	}
-
-	findLine(geom) {
-		var result = super.findLine(geom);
-		// если не было найдено место в существующей карте - надо расширить карту
-		if (result === false)
-			for (var i=0, l=geom.h; i<l; i++) this.addLine();
-		// после расширения место найдется точно
-		return super.findLine(geom);
-	}
-
-	addLine() {
-		this.grid.map.push(0);
-		this.relocateAll = true;
-	}
-}
-//=============================================================================================================================
-
-//=============================================================================================================================
-class BoxGridCalculator extends ProportionalGridCalculator {
-	relocateElem(elem) {
-		this.relocateElemProcess(elem);
-		this.checkHeight();
-	}
-
-	relocateElems() {
-		super.relocateElems();
-		this.checkHeight();
-	}
-
-	getParamsV(elem) {
-		var grid = this.grid,
-			geom = elem.inGrid,
-			indents = this.indents,
-			rowHeight = grid.owner.geomPart(grid.rowHeight, 'px', lx.VERTICAL),
-			top = geom[lx.TOP] * (rowHeight + indents.step[1]) + indents.padding[1][0],
-			height = rowHeight * geom[lx.HEIGHT] + (geom[lx.HEIGHT]-1) * indents.step[1];
-		return [top, height];
-	}
-
-	checkHeight() {
-		var padding = this.indents.padding[1][1],
-			grid = this.grid,
-			b = 0;
-		grid.owner.getChildren().each((a)=>{
-			var bottom = a.top('px') + a.height('px');
-			if (b < bottom) b = bottom;
-		});
-		if (grid.owner.height('px') == b + padding) return;
-
-		grid.setParam(grid.owner, lx.HEIGHT, b + padding + 'px', true);
-		grid.owner.reportSizeChange(lx.HEIGHT);
-	}
-
-	addLine() {
-		this.grid.map.push(0);
-	}
-}
-//=============================================================================================================================
-
-lx.GridPositioningStrategy.PADDING = '0px';
-lx.GridPositioningStrategy.STEP = '0px';
-lx.GridPositioningStrategy.ROW_HEIGHT = '25px';
-lx.GridPositioningStrategy.COLS = 12;
-
-//todo - сделать вариант и поставить его по умолчанию: самый простой - размер самого грида не меняется, у строк есть фиксированная высота,
-// при необходимости появляется полоса прокрутки
-// lx.GridPositioningStrategy.SIZE_BEHAVIOR_SCROLLING = 1;
-lx.GridPositioningStrategy.SIZE_BEHAVIOR_BY_CONTENT = 2;
-lx.GridPositioningStrategy.SIZE_BEHAVIOR_PROPORTIONAL = 3;
-lx.GridPositioningStrategy.SIZE_BEHAVIOR_PROPORTIONAL_CONST = 4;
-
-lx.GridPositioningStrategy.HEIGHT_BEHAVIOR = lx.GridPositioningStrategy.SIZE_BEHAVIOR_BY_CONTENT;

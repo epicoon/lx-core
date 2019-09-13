@@ -3,142 +3,112 @@
 namespace lx;
 
 require_once(__DIR__ . '/SintaxExtender.php');
-require_once(__DIR__ . '/SourcePluger.php');
 require_once(__DIR__ . '/Minimizer.php');
+//require_once(__DIR__ . '/FileAnalyzer.php');
 
 // круто про регулярки
 // https://msdn.microsoft.com/ru-ru/library/bs2twtah(v=vs.110).aspx
-class JsCompiler {
-	private static $filesCompiled = [];
-	private static $recursiveCompiling = false;
-	private static $aliases = [];
+/*
+Положительное lookahead-условие '(?=re)'
+Соответствует, только если за ним следует регулярное выражение re.
+Отрицательное lookahead-условие '(?!re)'
+Соответствует, только если за ним не следует регулярное выражение re.
+Положительное lookbehind-условие '(?<=re)'
+Соответствует, только если перед ним следует регулярное выражение re.
+Отрицательное lookbehind-условие '(?<!re)'
+Соответствует, только если перед ним не следует регулярное выражение re.
+*/
+class JsCompiler extends ApplicationTool {
+	const CONTEXT_CLIENT = 'client';
+	const CONTEXT_SERVER = 'server';
+
+	private $context;
+	private $buildModules;
+	private $filesCompiled;
+	private $moduleDependencies;
+
+	private $pluginBuildContext;
+	private $sintaxExtender;
+	
+	public function __construct($app, $pluginBuildContext = null) {
+		parent::__construct($app);
+		$this->pluginBuildContext = $pluginBuildContext;
+		$this->sintaxExtender = new SintaxExtender($this);
+		
+		$this->context = self::CONTEXT_CLIENT;
+		$this->buildModules = false;
+		$this->filesCompiled = [];
+		$this->moduleDependencies = [];
+	}
+	
+	public function setContext($context) {
+		if ($context != self::CONTEXT_CLIENT && $context != self::CONTEXT_SERVER) {
+			return;
+		}
+
+		$this->context = $context;
+	}
+	
+	public function getContext() {
+		return $this->context;
+	}
+	
+	public function setBuildModules($value) {
+		$this->buildModules = $value;
+	}
+
+	public function contextIsClient() {
+		return $this->context == self::CONTEXT_CLIENT;
+	}
+
+	public function contextIsServer() {
+		return $this->context == self::CONTEXT_SERVER;
+	}
+
+	public function getPlugin() {
+		if (!$this->pluginBuildContext) {
+			return null;
+		}
+
+		return $this->pluginBuildContext->getPlugin();
+	}
+	
+	public function getModuleDependencies() {
+		return $this->moduleDependencies;
+	}
 
 	/**
 	 * Компилировать файл по его пути
 	 * */
-	public static function compileFile($path) {
-		$code = self::compileFileRe($path);
-		return self::finishPrepare($code);
+	public function compileFile($path) {
+		$code = $this->compileFileRe($path);
+		return $this->finishPrepare($code);
 	}
 
 	/**
 	 * Компилировать код, учитывая путь файла, откуда его взяли
 	 * */
-	public static function compileCode($code, $path) {
-		$code = self::compileCodeProcess($code, $path);
-		return self::finishPrepare($code);
+	public function compileCode($code, $path = null) {
+		$code = $this->compileCodeProcess($code, $path);
+		return $this->finishPrepare($code);
 	}
 
-	/**
-	 * Обрабатывает код в строке, который не будет фигурировать в общем исполняемом коде. Н-р код, вешаемый на обработчики событий
-	 * */
-	public static function compileCodeInString($str) {
-		if (!self::stringIsJsCode($str)) return $str;
-		$str = SintaxExtender::applyExtendedSintax($str);
-		$str = self::extendCodeString($str);
 
-		//todo!!!!!!!!!!!!!!!!
-		$str = Minimizer::clearSpacesKOSTYL($str);
-		$str = preg_replace('/"/', '\"', $str);
-
-		return $str;
-	}
-
-	/**
-	 * Оповещает строителя модуля и следит чтобы виджеты в случае использования других виджетов в своем коде сразу их подключили
-	 * */
-	public static function noteUsedWidget($widgetClass) {
-		list($namespace, $name) = ClassHelper::splitClassName($widgetClass);
-
-		$note = ModuleBuilder::noteUsedWidget(str_replace('\\', '.', $namespace), $name);
-		if (!$note) return false;
-
-		$filePath = WidgetHelper::getJsFilePath($namespace, $name);
-
-		$file = new File($filePath);
-		if ($file->exists()) {
-			$code = $file->get();
-			self::plugWidgets($code);
-		}
-
-		return true;
-	}
-
-	/**
-	 * Преобразование php-массива в строку, которую можно вставить в js-код
-	 * */
-	public static function arrayToJsCode($array) {
-		$rec = function($val) use (&$rec) {
-			// на рекурсию
-			if (is_array($val)) {
-				$arr = [];
-				$keys = [];
-				$assoc = false;
-				foreach ($val as $key => $item) {
-					$keys[] = $key;
-					$arr[] = $rec($item);
-					if (is_string($key)) $assoc = true;
-				}
-				if (!$assoc) return '[' . implode(',', $arr) . ']';
-
-				$temp = [];
-				foreach ($keys as $i => $key) {
-					$temp[] = "'$key':{$arr[$i]}";
-				}
-				return '{' . implode(',', $temp) . '}';
-			}
-
-			if (is_string($val)) {
-				if ($val == '') return '\'\'';
-				if ($val{0} != '\'') return "'$val'";
-			}
-			if ($val === true) return 'true';
-			if ($val === false) return 'false';
-			if ($val === null) return 'null';
-			return $val;
-		};
-
-		$result = $rec($array);
-		return $result;
-	}
-
-	/**
-	 * С оглядкой на тип запроса будет экранирование или нет
-	 * //todo - эти костыли с экранированием
-	 * */
-	public static function compileCodeSeeingAjax($code, $path) {
-		$code = self::compileCode($code, $path);
-		if (!\lx::$dialog->isAjax()) {
-			$code = self::withoutAjaxModification($code);
-		}
-		return $code;
-	}
-
-	/**
-	 * Надо экранировать экранирующие слэши
-	 * //todo - для ajax экранируется где-то в другом месте, видимо - разобраться уже с этим
-	 * */
-	public static function withoutAjaxModification($code) {
-		$code = preg_replace('/\\\\/', '\\\\\\\\\\', $code);
-		return $code;		
-	}
-
-	// public
-	//=========================================================================================================================
-	// private
+	/*******************************************************************************************************************
+	 * PRIVATE
+	 ******************************************************************************************************************/
 
 	/**
 	 * Заход на рекурсивную сборку - отталкиваемся от конкретного файла
 	 * */
-	private static function compileFileRe($path) {
+	private function compileFileRe($path, $force = false) {
 		if ( !file_exists($path) ) return '';
 
-		if (isset(self::$filesCompiled[$path])) return '';
-		self::$filesCompiled[$path] = 1;
+		if (!$force && isset($this->filesCompiled[$path])) return '';
 
+		$this->filesCompiled[$path] = 1;
 		$code = file_get_contents($path);
-
-		$code = self::compileCodeProcess($code, $path);
+		$code = $this->compileCodeProcess($code, $path);
 		return $code;
 	}
 
@@ -147,41 +117,46 @@ class JsCompiler {
 	 * $path нужен для того, чтобы было от чего отталкиваться при поиске всяких #lx:require, 
 	 * при этом, если путь в #lx:require начинается с '/' - $path игнорируется и файл ищется относительно корня сайта
 	 * */
-	private static function compileCodeProcess($code, $path) {
-		$parentDir = dirname($path) . '/';
+	private function compileCodeProcess($code, $path = null) {
+		$parentDir = $path === null ? null : dirname($path) . '/';
 
 		// Первым делом избавиться от комментариев
 		$code = Minimizer::cutComments($code);
 
+		// Удаляем директивы координации
+		$code = $this->cutCoordinationDirectives($code);
+
+		// Привести код к текущему контексту (клиент или сервер)
+		$code = $this->applyContext($code);
+
 		// Применить расширенный синтаксис
-		$code = SintaxExtender::applyExtendedSintax($code);
+		$code = $this->sintaxExtender->applyExtendedSintax($code);
 
 		// Парсит конфиг-файлы
-		$code = SourcePluger::loadConfig($code, $parentDir);
+		if ($parentDir) {
+			$code = $this->loadConfig($code, $parentDir);
+		}
 
 		// Ищет указания о подключении скриптов
-		$code = SourcePluger::plugScripts($code);
+		$code = $this->plugScripts($code);
 
 		// Приведение кода к выбранному моду
-		$code = self::checkMode($code);
-
-		// Замена используемых превдонимов
-		list ($code, $aliases) = self::checkAliases($code);
-		self::$aliases = $aliases;
-
-		// Ищет указания о подключении виджетов
-		$code = self::plugWidgets($code);
+		$code = $this->checkMode($code);
 
 		// Проверка на объявление кода приватным
-		list($code, $private) = self::checkPrivate($code);
+		list($code, $private) = $this->checkPrivate($code);
 
 		// Компилит вызовы кода конкатенационно
-		$code = self::plugAllRequires($code, $parentDir);
+		if ($parentDir) {
+			$code = $this->plugAllRequires($code, $parentDir);
+		}
 
 		// Приватный код означает, что мы оборачиваем его в анонимную функцию
 		if ($private) {
 			$code = '(function(){' . $code . '})();';
 		}
+
+		$code = $this->plugAllModules($code);
 
 		return $code;
 	}
@@ -194,8 +169,8 @@ class JsCompiler {
 	 * 	... some code
 	 * #lx:mode-end;
 	 * */
-	private static function checkMode($code) {
-		$mode = \lx::getConfig('mode');
+	private function checkMode($code) {
+		$mode = $this->app->getConfig('mode');
 		$reg = '/#lx:mode-case[\w\W]*?#lx:mode-end;?/';
 		$code = preg_replace_callback($reg, function($matches) use ($mode) {
 			if (!$mode) return '';
@@ -211,121 +186,9 @@ class JsCompiler {
 	}
 
 	/**
-	 * Проверка использования замен кода вроде #lx:use test.Test as Test;
-	 * Для оптимизации так можно подключать виджеты
-	 * */
-	private static function checkAliases($code) {
-		preg_match_all('/#lx:use ([^;]*?) as ([^;]*?);/', $code, $matches);
-		if (empty($matches[0])) return [$code, []];
-
-		$aliases = [];
-		foreach ($matches[0] as $i => $value) {
-			$realText = $matches[1][$i];
-			$alias = $matches[2][$i];
-
-			$code = preg_replace('/\b' . $alias . '\b/', $realText, $code);
-			// $code = preg_replace('/(?<!#lx:require )\b' . $alias . '\b([.,;)(])/', $realText . '$1', $code);
-			// $code = preg_replace('/\bnew \b' . $alias . '\b/', 'new ' . $realText, $code);
-			// $code = preg_replace('/\bextends ' . $alias . '\b/', 'extends ' . $realText, $code);
-
-			$realTextArray = explode('.', $realText);
-			if (count($realTextArray) == 2) {
-				if (!isset($aliases[$realTextArray[0]])) {
-					$aliases[$realTextArray[0]] = [];
-				}
-				if (array_search($realTextArray[1], $aliases[$realTextArray[0]]) === false) {
-					$aliases[$realTextArray[0]][] = $realTextArray[1];
-				}
-			} else $aliases[] = $realText;
-		}
-
-		$code = preg_replace('/#lx:use [^;]*?as[^;]*?;/', '', $code);
-		return [$code, $aliases];
-	}
-
-	/*
-	Положительное lookahead-условие '(?=re)'
-	Соответствует, только если за ним следует регулярное выражение re.
-	Отрицательное lookahead-условие '(?!re)'
-	Соответствует, только если за ним не следует регулярное выражение re.
-	Положительное lookbehind-условие '(?<=re)'
-	Соответствует, только если перед ним следует регулярное выражение re.
-	Отрицательное lookbehind-условие '(?<!re)'
-	Соответствует, только если перед ним не следует регулярное выражение re.
-	*/
-	private static function plugWidgets($code) {
-		// Находит явно указанное использование виджетов
-		preg_match_all('/(?<!\/\/ )(?<!\/\/)#lx:widget ([\w\W]*?);/', $code, $widgets);
-		$code = preg_replace('/(?<!\/\/ )(?<!\/\/)#lx:widget ([\w\W]*?);/', '', $code);
-		foreach ($widgets[1] as $widget) {
-			if ($widget == '') continue;
-
-			$widgetArray = preg_split('/[.\\'.'\]/', $widget);
-			if (count($widgetArray) == 1) {
-				$namespace = 'lx';
-				$widgetName = $widgetArray[0];
-			} else {
-				$widgetName = array_pop($widgetArray);
-				$namespace = implode('\\', $widgetArray);
-			}
-
-			if ($widgetName{0} == '{') {
-				$widgetsName = preg_split('/\s*,\s*/', trim(substr($widgetName, 1, -1)));
-			} else {
-				$widgetsName = [$widgetName];
-			}
-
-			foreach ($widgetsName as $name) {
-				self::noteUsedWidget($namespace . '\\' . $name);
-			}
-		}
-
-		// Определение используемых в коде виджетов, встроенных в платформу
-		$widgetNames = WidgetHelper::getLxWidgetNames();
-		foreach ($widgetNames as $name) {
-			if (!empty(self::$aliases)) {
-				if (isset(self::$aliases['lx']) && array_search($name, self::$aliases['lx']) !== false) {
-					self::noteUsedWidget('lx\\' . $name);
-					continue;
-				}
-			}
-
-			$match = preg_match('/\blx\.' . $name . '\b/', $code);
-			if ($match) {
-				$res = self::noteUsedWidget('lx\\' . $name);
-			}
-		}
-
-		// Определение используемых в коде виджетов клиентского кода
-		$widgetNames = WidgetHelper::getClientWidgetNames();
-		foreach ($widgetNames as $namespace => $names) {
-			foreach ($names as $name) {
-				if (!empty(self::$aliases)) {
-					if (isset(self::$aliases[$namespace]) && array_search($name, self::$aliases[$namespace]) !== false) {
-						self::noteUsedWidget($namespace . '\\' . $name);
-						continue;
-					}
-				}
-
-				if (
-					preg_match('/new ' . $namespace . '\.' . $name . '\b/', $code)
-					||
-					preg_match('/\b' . $namespace . '\.' . $name . '[.,;)(]/', $code)
-					||
-					preg_match('/ extends ' . $namespace . '\.' . $name . '\b/', $code)
-				) {
-					self::noteUsedWidget($namespace . '\\' . $name);
-				}
-			}
-		}
-
-		return $code;
-	}
-
-	/**
 	 * Определяет объявлен ли код приватным (надо ли его обернуть в анонимную функцию)
 	 * */
-	private static function checkPrivate($code) {
+	private function checkPrivate($code) {
 		$private = preg_match('/#lx:private/', $code);
 		$code = preg_replace('/#lx:private;?/', '', $code);
 		return [$code, $private];
@@ -337,15 +200,19 @@ class JsCompiler {
 	 *	#lx:require ClassName;
 	 *	#lx:require { ClassName1, ClassName2 };
 	 * */
-	private static function plugAllRequires($code, $parentDir) {
-		$pattern = '/(?<!\/ )(?<!\/)#lx:require( -.+)? [\'"]?([\w\W]*?)[\'"]?;/';
+	private function plugAllRequires($code, $parentDir) {
+		$pattern = '/(?<!\/ )(?<!\/)#lx:require(\s+-[\S]+)?\s+[\'"]?([^;]+?)[\'"]?;/';
 		$code = preg_replace_callback($pattern, function($matches) use ($parentDir) {
 			$flags = $matches[1];
 			$requireName = $matches[2];
 
 			// R - флаг рекурсивного обхода подключаемого каталога
-			self::$recursiveCompiling = (strripos($flags, 'R') !== false);
-			return self::plugRequire($requireName, $parentDir);
+			$flagsArr = [
+				'recursive' => (strripos($flags, 'R') !== false),
+				'force' => (strripos($flags, 'F') !== false),
+				'test' => (strripos($flags, 'T') !== false),
+			];
+			return $this->plugRequire($requireName, $parentDir, DataObject::create($flagsArr));
 		}, $code);
 
 		return $code;
@@ -354,86 +221,99 @@ class JsCompiler {
 	/**
 	 * Собирает код из перечней, указанных в директиве #lx:require
 	 * */
-	private static function plugRequire($requireName, $parentDir) {
-		// Полезно убрать пробелы
-		$requireName = Minimizer::clearSpaces($requireName);
-
+	private function plugRequire($requireName, $parentDir, $flags) {
 		// Формируем массив с путями ко всем подключаемым файлам
-		$filePathes = ($requireName[0] == '{')
+		$dirPathes = ($requireName[0] == '{')
 			? preg_split('/\s*,\s*/', trim(substr($requireName, 1, -1)))
 			: [$requireName];
-		$extractedFilePathes = [];
-		foreach ($filePathes as $i => $filePath) {
-			if ( $filePath{strlen($filePath) - 1} != '/' ) continue;
+		$conductor = $this->getPlugin() ? $this->getPlugin()->conductor : $this->app->conductor;
+		$filePathes = [];
+		foreach ($dirPathes as $dirPath) {
+			if ( $dirPath{strlen($dirPath) - 1} != '/' ) {
+				if (!preg_match('/.js$/', $dirPath)) $dirPath .= '.js';
+				$filePathes[] = $conductor->getFullPath($dirPath, $parentDir);
+				continue;
+			}
 
-			// получить полный путь чтобы распарсить каталог
-			$path = ($filePath{0} == '/' || $filePath{0} == '@')
-				? \lx::$conductor->getFullPath($filePath)
-				: $parentDir . $filePath;
-
-			$dir = new Directory($path);
-
-			$files = self::$recursiveCompiling
-				? $dir->getAllFiles('*.js', \lx\Directory::FIND_NAME)
-				: $dir->getFiles('*.js', \lx\Directory::FIND_NAME);
-			$files->each(function($a) use (&$extractedFilePathes, $filePath) {
-				$extractedFilePathes[] = $filePath . $a;
-			});
-
-			unset($filePathes[$i]);
-		}
-		$filePathes = array_merge($filePathes, $extractedFilePathes);
-
-		//todo - если не группировать, то на следующем шаге зависимости в коде установятся между всеми файлами, не только покаталогово
-		// Группируем имена файлов по каталогам
-		$filesByPathes = [];
-		foreach ($filePathes as $filePath) {
-			//todo описать
-			if ($filePath{0} == '@' || $filePath{0} == '/') {
-				//todo описать
-				if ($filePath{1} == '{') {
-					//todo описать
-					preg_match_all('/{\s*(.+?)\s*}(.+$)/', $filePath, $matches);
-					$condition = $matches[1][0];
-					$innerPath = $matches[2][0];
-					$condition = preg_split('/\s*:\s*/', $condition);
-					if ($condition[0] == 'module') {
-						$module = \lx::getModule($condition[1]);
-						if (!$module) continue;
-						$filePath = $module->getFilePath($innerPath);
-					} else {
-						// Других вариантов условий пока не предусмотерно
-						continue;
-					}
-				} else $filePath = ModuleBuilder::active()->getModule()->getFilePath($filePath);
-			} else
-				$filePath = $parentDir . '/' . $filePath;
-
-			$boof = explode('/', $filePath);
-			$fileName = array_pop($boof);
-			if ( !preg_match('/.js$/', $fileName) ) $fileName .= '.js';
-			$path = implode('/', $boof);
-
-			if ( !preg_match('/\/$/', $path) ) $path .= '/';
-			if (!array_key_exists($path, $filesByPathes)) $filesByPathes[$path] = [];
-			if (!array_search($fileName, $filesByPathes[$path]))
-				$filesByPathes[$path][] = $fileName;
+			$dir = new Directory($conductor->getFullPath($dirPath, $parentDir));
+			$files = $dir->getContent([
+				'mask' => '*.js',
+				'findType' => Directory::FIND_NAME,
+				'fullname' => true,
+				'all' => $flags->recursive,
+			]);
+			$filePathes = array_merge($filePathes, $files->getData());
 		}
 
-		$codes = [];
-		foreach ($filesByPathes as $path => $names) {
-			$codes = array_merge($codes, self::compileRequiredFromPath($names, $path));
+		$code = $this->compileFileGroup($filePathes, $flags);
+		return $code;
+	}
+
+	/**
+	 * @param $code
+	 * @return string
+	 * @throws \Exception
+	 */
+	private function plugAllModules($code) {
+		$pattern = '/(?<!\/ )(?<!\/)#lx:use\s+[\'"]?([^;]+?)[\'"]?;/';
+		preg_match_all($pattern, $code, $matches);
+		if (empty($matches[0])) {
+			return $code;
 		}
 
-		return implode('', $codes);
+		$code = preg_replace($pattern, '', $code);
+
+		$moduleNames = $matches[1];
+		$this->moduleDependencies = array_unique(array_merge($this->moduleDependencies, $moduleNames));
+		if ($this->pluginBuildContext) {
+			$this->pluginBuildContext->noteModuleDependencies($moduleNames);
+		}
+		
+		if (!$this->buildModules) {
+			return $code;
+		}
+
+		$modelMap = (new JsModuleMap($this->app))->getMap();
+		$filePathes = [];
+		foreach ($moduleNames as $moduleName) {
+			if (!array_key_exists($moduleName, $modelMap)) {
+				continue;
+			}
+
+			$filePath = $modelMap[$moduleName]['path'];
+			$filePathes[] = $filePath;
+
+			if (isset($modelMap[$moduleName]['data'])) {
+				$this->applyModuleData($modelMap[$moduleName]['data'], $filePath);
+			}
+		}
+
+		$modulesCode = $this->compileFileGroup($filePathes, DataObject::create());
+		$code = $modulesCode . $code;
+		return $code;
+	}
+
+	/**
+	 * @param $moduleData
+	 */
+	private function applyModuleData($moduleData, $modulePath) {
+		$parentDir = dirname($modulePath);
+		if (isset($moduleData['i18n'])) {
+			$path = $moduleData['i18n'];
+			$plugin = $this->getPlugin();
+			$conductor = $plugin ? $plugin->conductor : $this->app->conductor;
+			$fullPath = $conductor->getFullPath($path, $parentDir);
+			$this->app->useI18n($fullPath);
+		}
 	}
 
 	/**
 	 * Компиляция группы взаимозависимых файлов
-	 * $arr - массив названий файлов (с расширением), которые надо скомпилировать
-	 * $path - путь к директории, в которой лежат файлы, перечисленные в массиве $arr
-	 * */
-	private static function compileRequiredFromPath($arr, $path) {
+	 * @param $fileNames - массив названий файлов (с расширением), которые надо скомпилировать
+	 * @return string
+	 * @throws \Exception
+	 */
+	private function compileFileGroup($fileNames, $flags) {
 		// Список данных по файлам - какие классы содержатся, какие наследуются извне
 		$list = [];
 		// По имени класса получаем индекс инфы по файлу с этим классом в $list
@@ -441,37 +321,41 @@ class JsCompiler {
 		// Имена файлов, которые явно вызываются, соответственно должны быть убраны из $arr
 		$required = [];
 
-		foreach ($arr as $name) {
-			/*
-			Хитрая возможность объединять в группы файлы, не находящиеся непосредственно в одном каталоге, н-р:
-			directory
-				- Class1
-					- code.js
-				- Class2
-					- code.js
-			Если есть зависимости между этими файлами, можно компилить так:
-			#lx:require {Class1:code.js, Class2:code.js};  // из файла, который лежит непосредственно в directory
-			*/
-			$name = str_replace(':', '/', $name);
-
-			$fileName = $path . $name;
+		foreach ($fileNames as $fileName) {
 			if (!file_exists($fileName)) continue;
+
+
+			//TODO !!!!!!!!!!!!!!!!! Рефактоирнг компиляции - через анализатор
+			/*
+			проблема - выделение строк, коментов отдельно друг от друга
+			последовательно разбирать текст кода - не получается, очень медленно работает
+			только регулярки
+			*/
+			// $fa = new FileAnalyzer($fileName);
+
+
 			$code = file_get_contents($fileName);
 
 			preg_match_all('/#lx:require [\'"]?(.+)\b/', $code, $requiredFiles);
 			$required = array_merge($required, $requiredFiles[1]);
 
 			// Находим классы, которые в файле объявлены
-			preg_match_all('/class (.+?)\b\s*(extends\s+[\w\d_.]+?\b)?\s*({|#lx:)/', $code, $classes);
+			preg_match_all('/class (.+?)\b\s*(?:extends\s+([\w\d_.]+?)\b)?\s*(?:{|#lx:namespace\s+([\w\d_]+?)\s*{)/', $code, $classes);
 			$classes = $classes[1];
 			$index = count($list);
 			// Формируем карту по именам классов
 			foreach ($classes as $class) {
 				if (array_key_exists($class, $classesMap)) {
-					if (array_key_exists($classesMap[$class], $list))
-						throw new \Exception("Js-class $class is already defined from '".$list[$classesMap[$class]]['path']."'. It`s impossible to redeclare it from '$fileName'", 1);
-					else
+					if (array_key_exists($classesMap[$class], $list)) {
+						throw new \Exception(
+							"Js-class $class is already defined from '"
+							. $list[$classesMap[$class]]['path']
+							. "'. It`s impossible to redeclare it from '$fileName'",
+							1
+						);
+					} else {
 						throw new \Exception("Wrong class, name: '$class'");
+					}
 				}
 				$classesMap[$class] = $index;
 			}
@@ -481,22 +365,12 @@ class JsCompiler {
 
 			// Формируем список инфы по файлам
 			$list[] = [
-				'name' => $name,
 				'path' => $fileName,
 				'extends' => array_diff(array_unique($extends[1]), $classes),
 				'depends' => [],
 				'index' => $index,
 				'counter' => 0
 			];
-		}
-
-		// Убрать из списка явно вызываемые файлы
-		foreach ($list as $key => $value) {
-			foreach ($required as $name) {
-				$name = str_replace('/', '\/', $name);
-				if (preg_match('/^'.$name.'\b/', $value['name']))
-					unset($list[$key]);
-			}
 		}
 
 		// Расстановка зависимостей
@@ -528,34 +402,95 @@ class JsCompiler {
 
 		// Компилим итоговый код
 		$result = [];
-		foreach ($list as $item) $result[] = self::compileFileRe($item['path']);
-		return $result;
+		foreach ($list as $item) $result[] = $this->compileFileRe($item['path'], $flags->force);
+		return implode('', $result);
 	}
 
 	/**
 	 * Окончательные преобразования кода уже по итогу сборки
 	 * */
-	private static function finishPrepare($code) {
-		// Убираю ключевое слово protected перед class
-		$code = str_replace('protected class', 'class', $code);
+	private function finishPrepare($code) {
+		$code = $this->sintaxExtender->applyExtendedSintaxForClasses($code);
+		return $code;
+	}
 
-		$code = SintaxExtender::applyExtendedSintaxForClasses($code);
+	private function applyContext($code) {
+		$regexpTail = '\s*(?P<re>{((?>[^{}]+)|(?P>re))*});?/';
+		if ($this->contextIsClient()) {
+			$regexp = '/#lx:client' . $regexpTail;
+			$code = preg_replace_callback($regexp, function($match) {
+				$match = $match[1];
+				$match = preg_replace('/^{/', '', $match);
+				$match = preg_replace('/}$/', '', $match);
+				return $match;
+			}, $code);
+
+			$regexp = '/#lx:server' . $regexpTail;
+			$code = preg_replace($regexp, '', $code);
+		} elseif ($this->contextIsServer()) {
+			$regexp = '/#lx:server' . $regexpTail;
+			$code = preg_replace_callback($regexp, function($match) {
+				$match = $match[1];
+				$match = preg_replace('/^{/', '', $match);
+				$match = preg_replace('/}$/', '', $match);
+				return $match;
+			}, $code);
+
+			$regexp = '/#lx:client' . $regexpTail;
+			$code = preg_replace($regexp, '', $code);
+		}
+		return $code;
+	}
+
+	private function cutCoordinationDirectives($code) {
+		$regexps = [
+			'/#lx:module\s+[^;]+?;/',
+			'/#lx:module-data\s+{[^}]*?}/'
+		];
+
+		foreach ($regexps as $regexp) {
+			$code = preg_replace($regexp, '', $code);
+		}
+
 		return $code;
 	}
 
 	/**
-	 * Если строка начинается на '(args?)=>' то считаем ее кодом js-функции
+	 * Подключает скрипты, указанные в js-файлах
 	 * */
-	private static function stringIsJsCode($str) {
-		return preg_match('/^\([\w\d_, ]*?\)=>/', $str);
+	private function plugScripts($code) {
+		$plugin = $this->getPlugin();
+		$regExp = '/(?<!\/\/ )(?<!\/\/)#lx:script [\'"]?(.*?)[\'"]?;/';
+		return preg_replace_callback($regExp, function($matches) use ($plugin) {
+			if ($plugin) {
+				$path = $matches[1];
+				if (!preg_match('/\.js$/', $path)) $path .= '.js';
+				$plugin->script($path);
+			}
+			return '';
+		}, $code);
 	}
 
 	/**
-	 * Если $func использует модуль, расширит текст функции инициализацией модуля
+	 * Загрузка js-данных из конфиг-файла
 	 * */
-	private static function extendCodeString($func) {
-		if (preg_match('/\bModule\b/', $func))
-			$func = preg_replace('/(^\([\w\d_, ]*?\)=>)/', '$1const Module=this.getModule();', $func);
-		return $func;
+	private function loadConfig($code, $parentDir) {
+		$pattern = '/(?<!\/ )(?<!\/)#lx:load\s*\(?\s*[\'"]?(.*?)[\'"]?([;,)])/';
+		$plugin = $this->getPlugin();
+		$conductor = $plugin ? $plugin->conductor : $this->app->conductor;
+		$code = preg_replace_callback($pattern, function($matches) use ($parentDir, $conductor) {
+			$path = $matches[1];
+			$fullPath = $conductor->getFullPath($path, $parentDir);
+			$file = new ConfigFile($fullPath);
+			if (!$file->exists()) {
+				return 'undefined';
+			}
+
+			$data = $file->get();
+			$result = ArrayHelper::arrayToJsCode($data);
+			return "$result{$matches[2]}";
+		}, $code);
+
+		return $code;
 	}
 }

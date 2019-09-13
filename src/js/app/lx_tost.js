@@ -2,7 +2,7 @@
 
 let tosts = null;
 function initTosts() {
-	tosts = lx.Box.rise(document.getElementById('lx-tosts'));
+	tosts = lx.Box.rise(lx.WidgetHelper.getTostsElement());
 	tosts.key = 'tosts';
 	tosts.align({
 		indent: '10px',

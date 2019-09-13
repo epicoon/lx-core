@@ -1,80 +1,121 @@
-#lx:use lx.Box as Box;
-#lx:use lx.LabeledBox as LabeledBox;
+#lx:module lx.LabeledGroup;
 
-class LabeledGroup extends Box #lx:namespace lx {
+#lx:use lx.Box;
+
+class LabeledGroup extends lx.Box #lx:namespace lx {
 	/**
 	 * config = {
 	 *	// стандартные для Box,
 	 *	
 	 *	cols: integer
-	 *	grid: {} | slot: {}
-	 *	unit: {}  // конфиг для единицы группы
+	 *	widget: class
+	 *	widgetSize: string
+	 *	labelSide: lx.LEFT | lx.RIGHT
 	 *	labels: []
+	 *	map: {}
 	 * }
 	 * */
 	build(config) {
 		super.build(config);
 
-		var labels = config.labels,
-			units = config.units,
-			unitConfig = config.unit || {};
-
-		if (config.slot) {
-			config.slot.slotsCount = 0;
-			this.slot(config.slot);
+		var labelSide = config.labelSide || lx.LEFT;
+		var template = '';
+		var cols = config.cols || 1;
+		var widgetSize = config.widgetSize || '1fr';
+		if (labelSide == lx.LEFT) {
+			for (var i=0; i<cols; i++)
+				template += '[labels'+i+']auto[controls'+i+']'+widgetSize;
 		} else {
-			var grid = config.grid || {};
-			if (!grid.cols) grid.cols = config.cols || 1;
-			this.grid(grid);
+			for (var i=0; i<cols; i++)
+				template += '[controls'+i+']'+widgetSize+'[labels'+i+']auto';
 		}
-		this.positioningStrategy.autoActualize = false;
+		this.style('grid-template-columns', template);
 
-		unitConfig.parent = this;
-		unitConfig.key = 'unit';
-		unitConfig.width = 1;
-		if (labels) labels.each((text)=> {
-			unitConfig.label = text;
-			new LabeledBox(unitConfig);
-		});
-		if (units) units.each((unit)=> new LabeledBox(unitConfig.lxMerge(unit)));
-		if (config.slot) {
-			this.positioningStrategy.autoActualize = true;
-			this.positioningStrategy.actualize();
+		var widget = config.widget || lx.Box;
+		var map = {};
+		for (var i in config) {
+			if (i == 'labels') {
+				for (var j=0, l=config[i].len; j<l; j++) map[config[i][j]] = widget;
+			} else if (i == 'map') {
+				for (var label in config[i]) map[label] = config[i][label];
+			}
+		}
+
+		var counter = 0;
+		for (var label in map) {
+			var l, w;
+			if (labelSide == lx.LEFT) {
+				l = new lx.Box({
+					parent: this,
+					key: 'label',
+					html: label,
+					css: [this.basicCss.item, this.basicCss.label],
+					style: {'grid-column': 'labels' + counter}
+				});
+				w = new map[label]({
+					parent: this,
+					key: 'widget',
+					css: [this.basicCss.item],
+					style: {'grid-column': 'controls' + counter}
+				});
+			} else {
+				w = new map[label]({
+					parent: this,
+					key: 'widget',
+					css: [this.basicCss.item],
+					style: {'grid-column': 'controls' + counter}
+				});
+				l = new lx.Box({
+					parent: this,
+					key: 'label',
+					html: label,
+					css: [this.basicCss.item, this.basicCss.label],
+					style: {'grid-column': 'labels' + counter}
+				});
+			}
+			counter++;
+			if (counter >= cols) counter = 0;
 		}
 	}
 
-	units() {
-		if (!this.children.unit) return new lx.Collection();
-		return new lx.Collection(this.children.unit);
+	getBasicCss() {
+		return {
+			main: 'lx-LabeledGroup',
+			item: 'lx-LabeledGroup-item',
+			label: 'lx-LabeledGroup-label'
+		};
+	}
+
+	#lx:client postBuild(config) {
+		super.postBuild(config);
+		if (!this.children.label) return;
+		this.children.label.each((l)=>{
+			l.on('click', function() {
+				this.parent.widget(this.index).trigger('click');
+			});
+			l.on('mouseup', function() {
+				this.parent.widget(this.index).trigger('mouseup');
+			});
+		});
 	}
 
 	widgets() {
-		var c = new lx.Collection();
-		this.units().each((a)=> c.add(a.widget()));
-		return c;
+		if (!this.children.widget) return new lx.Collection();
+		return new lx.Collection(this.children.widget);
 	}
 
 	labels() {
-		var c = new lx.Collection();
-		this.units().each((a)=> c.add(a.label()));
-		return c;
-	}
-
-	labelTexts() {
-		var c = new lx.Collection();
-		this.units().each((a)=> c.add(a.labelText()));
-		return c;		
-	}
-
-	unit(num) {
-		return this.children.unit[num];
+		if (!this.children.label) return new lx.Collection();
+		return new lx.Collection(this.children.label);
 	}
 
 	widget(num) {
-		return this.children.unit[num].widget();
+		if (!this.children.widget) return null;
+		return this.children.widget[num];
 	}
 
 	label(num) {
-		return this.children.unit[num].label();
+		if (!this.children.label) return null;
+		return this.children.label[num];
 	}
 }

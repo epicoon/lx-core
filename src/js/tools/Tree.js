@@ -1,6 +1,6 @@
-//todo lx.treeSeparator это пздц какой-то
-
 class Tree #lx:namespace lx {
+	#lx:const SEPARATOR = '/';
+	
 	constructor(...args) {
 		this.key = '';
 		this.root = null;
@@ -116,7 +116,7 @@ class Tree #lx:namespace lx {
 		if (!arr.length) return '';
 		var path = arr[ arr.length - 1 ];
 		for (var i=arr.length-2; i>=0; i--) {
-			path += lx.treeSeparator + arr[i];
+			path += self::SEPARATOR + arr[i];
 		}
 		return path;
 	}
@@ -124,7 +124,7 @@ class Tree #lx:namespace lx {
 	fullKey() {
 		var path = this.path();
 		if (path == '') return this.key;
-		return path + lx.treeSeparator + this.key;
+		return path + self::SEPARATOR + this.key;
 	}
 
 	deep() {
@@ -149,9 +149,9 @@ class Tree #lx:namespace lx {
 		if (!arr.length) return '';
 		var path = arr[ arr.length - 1 ];
 		for (var i=arr.length-2; i>=0; i--) {
-			path += lx.treeSeparator + arr[i];
+			path += self::SEPARATOR + arr[i];
 		}
-		var fullKey = (path == '') ? this.key : path + lx.treeSeparator + this.key;
+		var fullKey = (path == '') ? this.key : path + self::SEPARATOR + this.key;
 		return {
 			deep: deep,
 			path: path,
@@ -159,7 +159,38 @@ class Tree #lx:namespace lx {
 		};
 	}
 
-	parseJSON(str) {
+	collectJSON(key, root, arr) {
+		var index = arr.length;
+		var temp = {
+			root,
+			data: this.data,
+			path: this.path
+		};
+		if (this.comment) temp.comment = this.comment;
+		if (this.fill) temp.fill = +this.fill;
+		if (key !== '') temp.key = key;
+
+		arr.push(temp);
+		for (var i=0, l=this.keys.len; i<l; i++) {
+			var key = this.keys[i];
+			this.nodes[key].collectJSON(key, index, arr);
+		}
+	}
+
+	toJSON() {
+		var arr = [];
+		for (var i=0, l=this.keys.len; i<l; i++) {
+			var key = this.keys[i];
+			this.nodes[key].collectJSON(key, -1, arr);
+		}
+
+		if (arr.lxEmpty) return '';
+		return JSON.stringify(arr);
+	}
+
+	fromJSON(str) {
+		if (str == '') return this;
+
 		var arr = JSON.parse( str ),
 			temp = [ this ];
 		for (var i=0, l=arr.length; i<l; i++) {
@@ -184,7 +215,7 @@ class Tree #lx:namespace lx {
 
 		for (var i=0; i<args.length; i++) {
 			var key = ''+args[i],
-				arr = key.split(lx.treeSeparator),
+				arr = key.split(self::SEPARATOR),
 				newId = arr.pop(),
 				b = this.get( arr );
 			if (b == undefined) return null;
@@ -209,7 +240,7 @@ class Tree #lx:namespace lx {
 			return null;
 		}
 
-		var arr = (''+key).split(lx.treeSeparator),
+		var arr = (''+key).split(self::SEPARATOR),
 			delId = arr.pop(),
 			b = this.get( arr );
 		if (b == undefined) return this;
@@ -226,7 +257,7 @@ class Tree #lx:namespace lx {
 
 		// if ( lx.isNumber(key) ) return this.nodes[ this.keys[key] ];
 
-		var arr = (key.isArray) ? key : (''+key).split(lx.treeSeparator);
+		var arr = (key.isArray) ? key : (''+key).split(self::SEPARATOR);
 		if (!arr.length) return this;
 		if ( !(arr[0] in this.nodes) ) return false;
 		var b = this.nodes[ arr[0] ];
@@ -242,7 +273,7 @@ class Tree #lx:namespace lx {
 
 		// if ( lx.isNumber(key) ) return this.nodes[ this.keys[key] ];
 
-		var arr = (key.isArray) ? key : (''+key).split(lx.treeSeparator);
+		var arr = (key.isArray) ? key : (''+key).split(self::SEPARATOR);
 		if (!arr.length) return this;
 		if ( !(arr[0] in this.nodes) ) return null;
 		var b = this.nodes[ arr[0] ];

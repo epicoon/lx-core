@@ -41,6 +41,14 @@ class Directory extends BaseFile {
 	public function contain($name) {
 		return file_exists($this->path . '/' . $name);
 	}
+	
+	public function make($mode=0777) {
+		if ($this->exists()) {
+			return;
+		}
+
+		mkdir($this->getPath(), $mode, true);
+	}
 
 	/**
 	 *
@@ -93,82 +101,43 @@ class Directory extends BaseFile {
 
 	/**
 	 * Все файлы и(или) директории, непосредственно лежащие в директории
-	 * $rule = [
+	 * $rules = [
 	 *	'findType' : Directory::FIND_NAME | Directory::FIND_OBJECT - вернуть объекты или имена, по умолчанию - объекты
 	 *	'sort'     : SCANDIR_SORT_DESCENDING | SCANDIR_SORT_NONE, если не установлен - сортировка в алфавитном порядке
 	 *	'mask'     : string - различные маски для файлов, н-р '*.(php|js)'
+	 * 	'all'      : boolean - пройти рекурсивно по подкаталогам
 	 *	'files'    : boolean - вернуть только файлы, исключает 'dirs'
 	 *	'dirs'     : boolean - вернуть только каталоги - не должно быть указано 'files'
 	 *	'ext'      : boolean - только для возвращаемых имен - с расширениями / без расширений
 	 *	'fullname' : boolean - только для возвращаемых имен - полные пути / неполные пути
 	 * ]
 	 * */
-	public function getContent($rule = []) {
-		// Тип возвращаемых данных - объекты или текстовые имена
-		$findType = isset($rule['findType'])
-			? $rule['findType']
-			: self::FIND_OBJECT;
-
-		// Правило сортировки
-		$sort = isset($rule['sort']) ? $rule['sort'] : null;
-		$arr = $sort
-			? scandir($this->path, $sort)
-			: scandir($this->path);
-
-		// Фильтр имен файлов по маске
-		if (isset($rule['mask'])) {
-			$temp = $arr;
-			$arr = [];
-			$masks = $this->parseMask($rule['mask']);
-			foreach ($temp as $fileName) {
-				foreach ($masks as $mask) {
-					if (fnmatch($mask, $fileName)) $arr[] = $fileName;
-				}
-			}
-		}
-
+	public function getContent($rules = []) {
+		$rules = DataObject::create($rules);
 		$files = new Vector();
-		if (isset($rule['files']) && $rule['files']) {
-			foreach ($arr as $value) {
-				$path = $this->path . '/' . $value;
-				if (is_dir($path)) continue;
-				if ($findType == self::FIND_OBJECT) $value = new File($path);
-				$files->push($value);
-			}
-		} else if (isset($rule['dirs']) && $rule['dirs']) {
-			foreach ($arr as $value) {
-				$path = $this->path . '/' . $value;
-				if (!is_dir($path) || $value == '.' || $value == '..') continue;
-				if ($findType == self::FIND_OBJECT) $value = new Directory($path);
-				$files->push($value);
-			}
-		} else {
-			if ($findType == self::FIND_OBJECT) {
-				foreach ($arr as $value) {
-					if ($value == '.' || $value == '..') continue;
-					$path = $this->path . '/' . $value;
-					$files->push( (new BaseFile($path))->toFileOrDir() );
-				}
-			} else $files->init(array_diff($arr, ['.', '..']));
-		}
+		$this->getContentRe($this->path, $rules, $files);
 
 		// Правила только для FIND_NAME!
-		if ($findType == self::FIND_NAME) {
+		if ($rules->findType != self::FIND_OBJECT) {
 			// Правило - вернуть имена файлов без расширений
-			if (isset($rule['ext']) && !$rule['ext']) {
+			if ($rules->ext === false) {
 				$files->each(function($a, $i, $t) {
 					$a = preg_replace('/\.[^.]*$/', '', $a);
 					$t->set($i, $a);
 				});
 			}
+
 			// Правило - вернуть полный путь к файлам
-			if (isset($rule['fullname']) && $rule['fullname']) {
-				$files->each(function($a, $i, $t) {
-					$a = $this->path . $a;
-					$t->set($i, $a);
+			$dirPath = $this->path;
+			if ($dirPath[-1] != '/') $dirPath .= '/';
+			if ($rules->fullname) {
+				$files->each(function($file, $i, $t) use ($dirPath) {
+					$file = $dirPath . $file;
+					$t->set($i, $file);
 				});
 			}
 		}
+
 		return $files;
 	}
 
@@ -192,25 +161,30 @@ class Directory extends BaseFile {
 	/**
 	 * Все файлы, непосредственно лежащие в директории, по регулярке + маска имени файла типа *.(php|js)
 	 * */
-	public function getFiles($pattern=null, $cond=self::FIND_OBJECT) {
-		$rules = is_array($cond)
-			? $cond
-			: ['findType' => $cond];
+	public function getFiles($pattern = null, $condition = self::FIND_OBJECT) {
+		$rules = is_array($condition) ? $condition : ['findType' => $condition];
+		$rules['mask'] = $pattern;
 		$rules['files'] = true;
-		if ($pattern !== null) $rules['mask'] = $pattern;
+		return $this->getContent($rules);
+	}
 
+	/**
+	 * Все файлы, лежащие во всех вложенных директориях, по регулярке + маска имени файла типа *.(php|js)
+	 * */
+	public function getAllFiles($pattern = null, $condition = Directory::FIND_OBJECT) {
+		$rules = is_array($condition) ? $condition : ['findType' => $condition];
+		$rules['mask'] = $pattern;
+		$rules['files'] = true;
+		$rules['all'] = true;
 		return $this->getContent($rules);
 	}
 
 	/**
 	 * Все директории, непосредственно лежащие в директории
 	 * */
-	public function getDirs($cond=self::FIND_OBJECT) {
-		$rules = [
-			'findType' => $cond,
-			'dirs' => true
-		];
-
+	public function getDirs($condition = self::FIND_OBJECT) {
+		$rules = is_array($condition) ? $condition : ['findType' => $condition];
+		$rules['dirs'] = true;
 		return $this->getContent($rules);
 	}
 
@@ -227,51 +201,6 @@ class Directory extends BaseFile {
 		if (!$f) return false;
 		if ($flag == self::FIND_NAME) return $f;
 		return (new BaseFile($f))->toFileOrDir();
-	}
-
-	/**
-	 * Все файлы, лежащие во всех вложенных директориях, по регулярке
-	 * */
-	public function getAllFilesByPattern($pattern, $flag = Directory::FIND_OBJECT) {
-		$rules = is_array($flag)
-			? $flag
-			: ['findType' => $flag];
-
-		$findAllRec = function($pattern, $basePath, $path, &$arr) use (&$findAllRec) {
-			$dirs = [];
-			$handle = opendir($basePath . $path);
-			if (!$handle) return;
-			while ($fn = readdir($handle)) {
-				if ($fn == '.' || $fn == '..') continue;
-				if ($path != '' && !preg_match('/\/$/', $path)) $path .= '/';
-				$fullname = $basePath . $path . $fn;
-				if (is_dir($fullname)) $dirs[] = $path . $fn;
-				else if (fnmatch($pattern, $fn)) $arr[] = $path . $fn;
-			}
-			closedir($handle);
-
-			foreach ($dirs as $name) $findAllRec($pattern, $basePath, $name, $arr);
-		};
-
-		$arr = [];
-		$basePath = $this->path;
-		if (!preg_match('/\/$/', $basePath)) $basePath .= '/';
-		$findAllRec($pattern, $basePath, '', $arr);
-		if ($flag == self::FIND_NAME) return new Vector($arr);
-		foreach ($arr as &$fn) $fn = new File($basePath . $fn);
-		unset($fn);
-		return new Vector($arr);
-	}
-
-	/**
-	 * Все файлы, лежащие во всех вложенных директориях, по регулярке + маска имени файла типа *.(php|js)
-	 * */
-	public function getAllFiles($pattern, $flag = Directory::FIND_OBJECT) {
-		$masks = $this->parseMask($pattern);
-		$v = new Vector();
-		foreach ($masks as $mask)
-			$v->merge( $this->getAllFilesByPattern($mask, $flag) );
-		return $v;
 	}
 
 	/**
@@ -360,5 +289,76 @@ class Directory extends BaseFile {
 			// }
 		}
 		return false;
+	}
+
+	/**
+	 * @param $dirPath
+	 * @param $rules
+	 * @param $list
+	 */
+	private function getContentRe($dirPath, $rules, &$list) {
+		// Тип возвращаемых данных - объекты или текстовые имена
+		$findType = $rules->findType ?? self::FIND_OBJECT;
+
+		// Правило сортировки
+		$sort = $rules->sort ?? null;
+		$arr = $sort
+			? scandir($dirPath, $sort)
+			: scandir($dirPath);
+
+		if ($dirPath[-1] != '/') $dirPath .= '/';
+		$masks = $rules->mask ? $this->parseMask($rules->mask) : null;
+		$files = new Vector();
+		foreach ($arr as $value) {
+			if ($value == '.' || $value == '..') continue;
+
+			$path = $dirPath . $value;
+			if (is_dir($path)) {
+				if (!$rules->files && $this->checkMasks($value, $masks)) {
+					$files->push($this->getItem($value, $path, $findType));
+				}
+				if ($rules->all) {
+					$this->getContentRe($path, $rules, $files);
+				}
+			} else {
+				if (!$rules->dirs && $this->checkMasks($value, $masks)) {
+					$files->push($this->getItem($value, $path, $findType));
+				}
+			}
+		}
+
+		$list->merge($files);
+	}
+
+	/**
+	 * @param $name
+	 * @param $fullPath
+	 * @param $type
+	 * @return Directory|File|mixed|null
+	 */
+	private function getItem($name, $fullPath, $type) {
+		if ($type == self::FIND_OBJECT) {
+			return BaseFile::getFileOrDir($fullPath);
+		}
+
+		$thisPath = $this->path;
+		if ($thisPath[-1] != '/') $thisPath .= '/';
+		$path = str_replace($thisPath, '', $fullPath);
+		return $path;
+	}
+
+	/**
+	 * @param $fileName
+	 * @param $masks
+	 * @return bool
+	 */
+	private function checkMasks($fileName, $masks) {
+		if (!$masks) {
+			return true;
+		}
+
+		foreach ($masks as $mask) {
+			if (fnmatch($mask, $fileName)) return true;
+		}
 	}
 }

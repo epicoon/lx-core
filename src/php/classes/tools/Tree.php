@@ -2,9 +2,9 @@
 
 namespace lx;
 
-//todo \lx::getSetting('treeSeparator') это не дело
-
 class Tree {
+	const SEPARATOR = '/';
+	
 	public $absoluteRoot = -1,
 		$root = -1,
 		$branches = [],
@@ -29,7 +29,7 @@ class Tree {
 	public function add() {
 		$arr = func_get_args();
 		$result = [];
-		$sep = \lx::getSetting('treeSeparator');
+		$sep = self::SEPARATOR;
 
 		foreach ($arr as $id) {
 			$temp = explode($sep, $id);
@@ -62,7 +62,7 @@ class Tree {
 			return null;
 		}
 
-		$arr = explode(\lx::getSetting('treeSeparator'), $id);
+		$arr = explode(self::SEPARATOR, $id);
 		$delId = array_pop($arr);
 		$b = $this->get($arr);
 
@@ -81,7 +81,7 @@ class Tree {
 
 		// if (is_numeric($id)) return $this->branches[ $this->keys[$id] ];
 
-		$arr = (is_array($id)) ? $id : explode(\lx::getSetting('treeSeparator'), $id);
+		$arr = (is_array($id)) ? $id : explode(self::SEPARATOR, $id);
 		if (!count($arr)) return $this;
 		if ( !isset($this->branches[ $arr[0] ]) ) return null;
 		$b = $this->branches[ $arr[0] ];
@@ -112,8 +112,7 @@ class Tree {
 
 		$arr[] = $temp;
 		foreach ($this->keys as $key) {
-		// for ($i=0, $l=count($this->keys); $i<$l; $i++)
-			$this->branches[$key]->collectJSON($arr, $keys, $index);
+			$this->branches[$key]->collectJSON($arr, $key, $index);
 		}
 	}
 

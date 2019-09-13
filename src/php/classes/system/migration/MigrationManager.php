@@ -29,7 +29,7 @@ class MigrationManager {
 			$list = PackageBrowser::getServicesList();
 			$services = [];
 			foreach ($list as $name => $path) {
-				$services[] = Service::create($name);
+				$services[] = \lx::$app->getService($name);
 			}
 		}
 

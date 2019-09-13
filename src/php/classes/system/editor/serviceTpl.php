@@ -15,7 +15,7 @@ service:
     routes:
       <route>: '' #TODO: must be defined
 
-  modules: <module>
+  plugins: <plugin>
   models: <model>
   modelCrudAdapter: \lx\DbCrudAdapter
 

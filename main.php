@@ -1,3 +1,4 @@
 <?php
 
-require_once(__DIR__ . '/src/php/app.php');
+require_once(__DIR__ . '/src/php/lx.php');
+lx::init();

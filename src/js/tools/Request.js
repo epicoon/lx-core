@@ -8,7 +8,7 @@ class Request #lx:namespace lx {
 
 		this.handler = null;
 		//todo Спорное решение. В рамках платформы может и логично.
-		this.module = null;
+		this.plugin = null;
 	}
 
 	get successMethodName() { return 'success' }
@@ -31,9 +31,9 @@ class Request #lx:namespace lx {
 		var url = this.url,
 			headers = this.headers;
 
-		if (this.module) {
-			headers['lx-type'] = 'module';
-			headers['lx-module'] = this.module.name;
+		if (this.plugin) {
+			headers['lx-type'] = 'plugin';
+			headers['lx-plugin'] = this.plugin.name;
 		}
 
 		this.handler = lx.Dialog.request({
@@ -83,7 +83,7 @@ class Request #lx:namespace lx {
 		if (handlers.error) this.error = handlers.error;
 	}
 
-	setModule(module) {
-		this.module = module;
+	setPlugin(plugin) {
+		this.plugin = plugin;
 	}
 }

@@ -1,387 +1,196 @@
 #lx:private;
 
-#lx:use lx.PositioningStrategy as PositioningStrategy;
+class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
+	#lx:const
+		TYPE_SIMPLE = 1,
+		TYPE_PROPORTIONAL = 2,
 
-/**
- * Располагает элементы потоком, игнорирует все параметры кроме размера, соответствующего направлению потока
- * */
-class StreamPositioningStrategy extends PositioningStrategy #lx:namespace lx {
-	/**
-	 * config = direction | {
-	 *	direction,
-	 *	sizeBehavior,
-	 *	defaultSize,
-	 *	margin | marginX | marginLeft
-	 *					   marginRight
-	 *			 marginY | marginTop
-	 *			 		   marginBottom
-	 *	step | stepX
-	 *		   stepY
-	 * }
-	 * */
-	constructor(owner, config) {
-		super(owner);
-		this.innerFormat = PositioningStrategy.FORMAT_PX;
-		this.defaultFormat = PositioningStrategy.FORMAT_PX;
-
-		//todo костыль из-за рекурсивной актуализации сложенных стратегий позиционирования
-		this.resizeTriggerOn = true;
-
-		if (config) this.init(config);
-	}
+		ROW_DEFAULT_HEIGHT = '25px',
+		COLUMN_DEFAULT_WIDTH = '25px',
+		ROW_MIN_HEIGHT = '25px',
+		COLUMN_MIN_WIDTH = '25px';
 
 	init(config={}) {
-		if (config.isNumber) config = { direction: config };
-
-		this.sizeBehavior = config.sizeBehavior || self::SIZE_BEHAVIOR_SCROLLING;
-
-		// если будут добавляться элементы без размера, или с числом - используется это значение (не для пропорционально вычисляемых элементов)
-		this.defaultSize = config.defaultSize || self::DEFAULT_SIZE;
+		this.type = config.type || self::TYPE_SIMPLE;
+		this.sequense = Sequense.create(this);
 
 		if (config.direction === undefined)
-			config.direction = (this.owner.parent && this.owner.parent.streamDirection() === lx.VERTICAL) ? lx.HORIZONTAL : lx.VERTICAL;
-		
+			config.direction = (this.owner && this.owner.parent && this.owner.parent.streamDirection() === lx.VERTICAL)
+				? lx.HORIZONTAL
+				: lx.VERTICAL;
 		this.direction = config.direction;
-		if (this.sizeBehavior == self::SIZE_BEHAVIOR_SCROLLING) {
-			if (this.direction == lx.VERTICAL) this.owner.style('overflow-y', 'auto');
-			else this.owner.style('overflow-x', 'auto');
 
-			if (config.lock) this.setLock(config.lock);
-		} else this.owner.style('overflow', 'hidden');
+		if (config.rowDefaultHeight !== undefined) this.rowDefaultHeight = config.rowDefaultHeight;
+		if (config.columnDefaultWidth !== undefined) this.columnDefaultWidth = config.columnDefaultWidth;
+
+		this.owner.addClass(this.direction == lx.VERTICAL ? 'lxps-grid-v' : 'lxps-grid-h');
+		if (this.type == self::TYPE_SIMPLE) {
+			if (this.direction == lx.VERTICAL) {
+				if (this.owner.top() !== null && this.owner.bottom() !== null) this.owner.bottom(null);
+				this.owner.height('auto');
+			} else {
+				if (this.owner.left() !== null && this.owner.right() !== null) this.owner.right(null);
+				this.owner.width('auto');
+			}
+		}
+
+		if (config.minWidth !== undefined) this.minWidth  = config.minWidth;
+		if (config.minHeight !== undefined) this.minHeight = config.minHeight;
 
 		this.setIndents(config);
-		this.actualizeProcess();
-
-		return this;
 	}
 
-	unpackProcess(config) {
-		this.sizeBehavior = +config.sb || self::SIZE_BEHAVIOR_SCROLLING;
-		this.defaultSize = config.ds || self::DEFAULT_SIZE;
+	#lx:server pack() {
+		var str = super.pack();
+		str += ';t:' + this.type + ';d:' + this.direction;
+		if (this.rowDefaultHeight)
+			str += ';rdh:' + this.rowDefaultHeight;
+		if (this.columnDefaultWidth)
+			str += ';rdc:' + this.columnDefaultWidth;
+		if (this.minWidth)
+			str += ';mw:' + this.minWidth;
+		if (this.minHeight)
+			str += ';mh:' + this.minHeight;
+		return str;
+	}
+
+	#lx:client unpackProcess(config) {
+		this.type = +config.t || self::TYPE_SIMPLE;
 		this.direction = +config.d;
-		if (config.l) this.setLock(+config.l);
+		if (config.rdh) this.rowDefaultHeight = config.rdh;
+		if (config.rdc) this.columnDefaultWidth = config.rdc;
+		if (config.mw !== undefined) this.minWidth = config.mw;
+		if (config.mh !== undefined) this.minHeight = config.mh;
+		this.sequense = Sequense.create(this);
 	}
 
-	reactForAutoresize(elem) {
-		this.resizeTriggerOn = false;
-		this.actualizeProcess({from:elem});
-		this.resizeTriggerOn = true;
-	}
+	/**
+	 * Для позиционирования нового элемента, добавленного в контейнер
+	 * */
+	allocate(elem, config) {
+		elem.style('position', 'relative');
 
-	getCalc() {
-		switch (this.sizeBehavior) {
-			case self::SIZE_BEHAVIOR_SCROLLING: return new ScrollingCalc(this);
-			case self::SIZE_BEHAVIOR_BY_CONTENT: return new ByContentCalc(this);
-			case self::SIZE_BEHAVIOR_PROPORTIONAL: return new ProportionalCalc(this);
+		if (this.direction == lx.VERTICAL) {
+			var minHeight = config.minHeight !== undefined
+				? config.minHeight
+				: (this.minHeight !== undefined ? this.minHeight : self::ROW_MIN_HEIGHT);
+			elem.style('min-height', minHeight);
+		} else {
+			var minWidth = config.minWidth !== undefined
+				? config.minWidth
+				: (this.minWidth !== undefined ? this.minWidth : self::COLUMN_MIN_WIDTH);
+			elem.style('min-width', minWidth);
 		}
+
+		var geom = this.geomFromConfig(config, elem);
+		if (geom.h) this.tryReposition(elem, lx.HEIGHT, geom.h);
+		else if (geom.w) this.tryReposition(elem, lx.WIDTH, geom.w);
 	}
 
-	setLock(lock) {
-		this.lock = lock;
-
-		this.owner.on('scroll', function() {
-			var p = this.positioning(),
-				calc = p.getCalc(),
-				pre=null,
-				current = this.child(0);
-
-			for (var i=0, l=p.lock; i<l; i++) {
-				var pos = calc.getPrevLim(pre);
-				if (!pre) pos += p.direction == lx.VERTICAL
-					? this.scrollPos().y
-					: this.scrollPos().x;
-				p.setParam(current, calc.geomKeys.posConst, pos);
-				current.style('z-index', 1);
-				pre = current;
-				current = current.nextSibling();
-			};
-		});
-	}
-
-	allocate(el, config={}) {
-		var calc = this.getCalc();
-		calc.allocate(el, config);
-	}
-
-	actualizeProcess(info) {
-		var calc = this.getCalc();
-		calc.actualize(info);
+	onDel() {
+		var styleParam = this.direction == lx.VERTICAL
+			? 'grid-template-rows'
+			: 'grid-template-columns',
+			arr = [];
+		this.owner.getChildren().each((c)=>arr.push(c.streamSize));
+		this.owner.style(styleParam, arr.join(' '));
 	}
 
 	tryReposition(elem, param, val) {
 		if (this.direction == lx.VERTICAL && param != lx.HEIGHT) return false;
 		if (this.direction == lx.HORIZONTAL && param != lx.WIDTH) return false;
-		this.getCalc().reposition(elem, param, val);
+		this.sequense.setParam(elem, lx.Geom.geomName(param), val);
 		return true;
 	}
 
-	sizeChanged() {
-		var oldSize = this.oldSize,
-			currentSize = (this.direction == lx.VERTICAL)
-				? this.owner.height('px')
-				: this.owner.width('px');
+	setIndents(config) {
+		super.setIndents(config);
+		//TODO false - рефакторинговый костыль. Использование этого флага в перспективе должно быть упразднено
+		var indents = this.getIndents(false);
 
-		if (oldSize == currentSize) return false;
-		this.oldSize = currentSize;
-		return true;
+		//TODO - будет актуально и для грида
+		if (indents.paddingTop) this.owner.style('padding-top', indents.paddingTop);
+		if (indents.paddingBottom) this.owner.style('padding-bottom', indents.paddingBottom);
+		if (indents.paddingLeft) this.owner.style('padding-left', indents.paddingLeft);
+		if (indents.paddingRight) this.owner.style('padding-right', indents.paddingRight);
+
+		if (this.direction == lx.VERTICAL && indents.stepY) this.owner.style('grid-row-gap', indents.stepY);
+		else if (this.direction == lx.HORIZONTAL && indents.stepX) this.owner.style('grid-column-gap', indents.stepX);
 	}
 
-	getGeomKeys() {
-		if (this.direction == lx.VERTICAL) return {
-			posConst: lx.TOP,
-			sizeConst: lx.HEIGHT,
-			crossCrdConst: [lx.LEFT, lx.RIGHT],
-			sizeName: 'height',
-			sizeGeom: 'h'
-		};
-		return {
-			posConst: lx.LEFT,
-			sizeConst: lx.WIDTH,
-			crossCrdConst: [lx.TOP, lx.BOTTOM],
-			sizeName: 'width',
-			sizeGeom: 'w'
-		};
-	}
-
-	getLineIndents(indents) {
-		indents = indents || this.getIndents();
-		if (this.direction == lx.VERTICAL) return {
-			step: indents.stepY,
-			padding0: indents.paddingTop,
-			padding1: indents.paddingBottom,
-			crossPadding0: indents.paddingLeft,
-			crossPadding1: indents.paddingRight
-		};
-		return {
-			step: indents.stepX,
-			padding0: indents.paddingLeft,
-			padding1: indents.paddingRight,
-			crossPadding0: indents.paddingTop,
-			crossPadding1: indents.paddingBottom,
-		};
-	}
-
-	getLimit(elem) {
-		if (this.direction == lx.VERTICAL) return elem.top('px') + elem.height('px');
-		return elem.left('px') + elem.width('px');
+	geomFromConfig(config, elem) {
+		return this.sequense.getGeom(super.geomFromConfig(config), elem);
 	}
 }
-//=============================================================================================================================
 
-//=============================================================================================================================
-class AbstractCalc {
-	constructor(stream) {
-		this.owner = stream;
-		this.indents = stream.getLineIndents();
-		this.geomKeys = stream.getGeomKeys();
 
-		var temp = lx.Geom.splitGeomValue(stream.defaultSize);
-		this.defaultSize = temp[0];
-		this.defaultSizeFormat = temp[1];
+/******************************************************************************************************************************
+ * PRIVATE
+ *****************************************************************************************************************************/
+
+class Sequense {
+	constructor(owner) {
+		this.owner = owner;
 	}
 
-	setCrossSizes(elem) {
-		var stream = this.owner;
-		stream.setParam(elem, this.geomKeys.crossCrdConst[0], this.indents.crossPadding0);
-		stream.setParam(elem, this.geomKeys.crossCrdConst[1], this.indents.crossPadding1);
-	}
-
-	setAlongSize(elem, val=null) {
-		if (val === null) {
-			val = [
-				this.owner.getSavedParam(elem, this.geomKeys.sizeConst),
-				elem[this.geomKeys.sizeName]()
-			].lxGetFirstDefined();
-			//todo - пиксели могут привести к нежелательным результатам. И вообще допусловие после .lxGetFirstDefined() некрасиво
-			if (val === null) val = elem[this.geomKeys.sizeName]('px') + 'px';
-
-			if (val.isNumber) {
-				val = val * this.defaultSize + this.defaultSizeFormat;
-				//todo - закостылил обход метода `this.owner.setParam` - он перезатирает число значением размера
-				// (для потока в основном этот гемор и был сделан, надо рефакторить - числовое знаение, как условное уже вводится тут в потоке, надо см. по остальным стратегиям)
-				elem.DOMelem.style[this.geomKeys.sizeName] = val;
-				return;
-			}
+	static create(owner) {
+		switch (owner.type) {
+			case lx.StreamPositioningStrategy.TYPE_SIMPLE: return new SequenseSimple(owner);
+			case lx.StreamPositioningStrategy.TYPE_PROPORTIONAL: return new SequenseProportional(owner);
 		}
-
-		this.owner.setParam(elem, this.geomKeys.sizeConst, val);
 	}
 
-	getPrevLim(pre) {
-		if (!pre) return this.indents.padding0;
-		return this.owner.getLimit(pre) + this.indents.step;
+	getGeom(config) {}
+	setParam(elem, param, val) {}
+}
+
+class SequenseSimple extends Sequense {
+	getGeom(geom, elem) {
+		if (this.owner.direction == lx.VERTICAL && geom.h === undefined) {
+			if (this.owner.rowDefaultHeight !== null)
+				geom.h = this.owner.rowDefaultHeight === undefined
+					? lx.StreamPositioningStrategy.ROW_DEFAULT_HEIGHT
+					: this.owner.rowDefaultHeight;
+		} else if (this.owner.direction == lx.HORIZONTAL && geom.w === undefined) {
+			if (this.owner.columnDefaultWidth !== null)
+				geom.w = this.owner.columnDefaultWidth === undefined
+					? lx.StreamPositioningStrategy.COLUMN_DEFAULT_WIDTH
+					: this.owner.columnDefaultWidth;
+		}
+		return geom;
+	}
+
+	setParam(elem, param, val) {
+		elem.style(param, val);
 	}
 }
-//=============================================================================================================================
 
-//=============================================================================================================================
-class ScrollingCalc extends AbstractCalc {
-	allocate(el, config) {
-		this.setCrossSizes(el);
-
-		var stream = this.owner,
-			geom = stream.geomFromConfig(config),
-			size = geom[this.geomKeys.sizeGeom] || 1; //stream.defaultSize; //'0px';
-		if (size.isNumber) {
-			size = size * this.defaultSize + this.defaultSizeFormat;
-		}
-
-		this.reposition(el, this.geomKeys.sizeConst, size);
+class SequenseProportional extends Sequense {
+	getGeom(geom, elem) {
+		if (this.owner.direction == lx.VERTICAL && geom.h === undefined)
+			geom.h = 1;
+		else if (this.owner.direction == lx.HORIZONTAL && geom.w === undefined)
+			geom.w = 1;
+		return geom;
 	}
 
-	reposition(el, param, val) {
-		this.owner.setSavedParam(el, param, val);
-		this.setAlongSize(el);
-		this.allocateStream({from: el});
-	}
-
-	actualize(info) {
-		this.allocateStream(info);
-	}
-
-	allocateStream(info={}) {
-		var stream = this.owner;
-		if (!stream.autoActualize) return false;
-
-		var current = info && info.from
-				? info.from
-				: stream.owner.child(0);
-		if (!current) return false;
-		var pre = current.prevSibling(),
-			sizeChanged = this.owner.sizeChanged() || info.full,
-			counter = 0,
-			scrollPos;
-		if (stream.lock) {
-			scrollPos = stream.direction == lx.VERTICAL
-				? stream.owner.scrollPos().y
-				: stream.owner.scrollPos().x;
-		}
-
-		while (current) {
-			var pos = this.getPrevLim(pre);
-
-			if (stream.lock) {
-				if (!counter) pos += scrollPos;
-				else if (counter == stream.lock) pos -= scrollPos;
-				counter++;
-			}
-
-			stream.setParam(current, this.geomKeys.posConst, pos);
-			if (sizeChanged) this.setAlongSize(current);
-
-			//todo вся моя оптимизация накрылась
-			if (stream.resizeTriggerOn) current.trigger('resize');
-
-			pre = current;
-			current = current.nextSibling();
-		}
-
-		return true;
-	}
-}
-//=============================================================================================================================
-
-//=============================================================================================================================
-class ByContentCalc extends ScrollingCalc {
-	allocateStream (info) {
-		if (!super.allocateStream(info)) return;
-
-		var stream = this.owner;
-
-		// console.log(
-		// 	stream.getLimit(stream.owner.lastChild()) + this.indents.padding1 + 'px'
-		// );
-
-		stream.setParam(
-			stream.owner,
-			this.geomKeys.sizeConst,
-			stream.getLimit(stream.owner.lastChild()) + this.indents.padding1 + 'px',
-			true
-		);
-
-		// stream.owner[this.geomKeys.sizeName](stream.getLimit(stream.owner.lastChild()) + this.indents.padding1 + 'px');
-	}
-}
-//=============================================================================================================================
-
-//=============================================================================================================================
-class ProportionalCalc extends AbstractCalc {
-	allocate(el, config) {
-		this.setCrossSizes(el);
-
-		var stream = this.owner,
-			geom = stream.geomFromConfig(config),
-			size = geom[this.geomKeys.sizeGeom] || 1;
-
-		if (size.isNumber) el.streamProportion = size;
-		else this.owner.setSavedParam(el, this.geomKeys.sizeConst, size);
-
-		this.actualize();
-	}
-
-	reposition(el, param, val) {
-		if (val.isNumber) el.streamProportion = val;
-		else {
-			delete el.streamProportion;
-			this.owner.setSavedParam(el, param, val);
-		}
-		this.actualize();
-	}
-
-	actualize() {
-		if (!this.owner.owner.childrenCount()) return;
-
-		var stream = this.owner;
-		if (!stream.autoActualize) return;
-
-		var division = stream.owner.divideChildren({hasProperties: 'streamProportion'});
-
-		division.notMatch.each((a)=> this.setAlongSize(a));
-
-		var fixSize = division.notMatch.sum(this.geomKeys.sizeName, 'px')
-				+ this.indents.padding0
-				+ this.indents.padding1
-				+ this.indents.step * (stream.owner.childrenCount() - 1),
-			allSize = stream.owner.getInnerSize(this.geomKeys.sizeConst),
-			forProp = Math.max(0, allSize - fixSize);
-		if (!forProp) return;
-
-		var propPartsCount = division.match.sum('streamProportion'),
-			onePart = Math.floor(forProp / propPartsCount),
-			filled = 0,
-			map = [];
-		division.match.each((elem)=> {
-			let size = Math.floor(onePart * elem.streamProportion);
-			filled += size;
-			map.push({elem, size});
-		});
-		var extraPx = forProp - filled,
-			extraPxOne = Math.ceil(extraPx / map.length);
-
-		for (var i=0; i<map.length; i++) {
-			var extra = Math.min(extraPxOne, extraPx);
-			extraPx -= extra;
-			this.setAlongSize(
-				map[i].elem,
-				map[i].size + extra
-			);
-		}
-
-		var pre = null,
-			current = stream.owner.child(0);
-		while (current) {
-			stream.setParam(current, this.geomKeys.posConst, this.getPrevLim(pre));
-			current.trigger('resize');
-			pre = current;
-			current = current.nextSibling();
+	setParam(elem, param, val) {
+		if (val.isNumber) val = val + 'fr';
+		elem.streamSize = val;
+		var styleParam = this.owner.direction == lx.VERTICAL
+			? 'grid-template-rows'
+			: 'grid-template-columns',
+			tpl = this.owner.owner.style(styleParam),
+			needBuild = elem.nextSibling() || !tpl || !tpl.match(/ /);
+		if (needBuild) {
+			var arr = [];
+			this.owner.owner.getChildren().each((c)=>arr.push(c.streamSize));
+			this.owner.owner.style(styleParam, arr.join(' '));
+		} else {
+			this.owner.owner.style(
+				styleParam,
+				this.owner.owner.style(styleParam) + ' ' + elem.streamSize
+			); 
 		}
 	}
 }
-//=============================================================================================================================
-
-//=============================================================================================================================
-lx.StreamPositioningStrategy.SIZE_BEHAVIOR_SCROLLING = 1;
-lx.StreamPositioningStrategy.SIZE_BEHAVIOR_BY_CONTENT = 2;
-lx.StreamPositioningStrategy.SIZE_BEHAVIOR_PROPORTIONAL = 3;
-
-lx.StreamPositioningStrategy.DEFAULT_SIZE = '25px';

@@ -63,7 +63,7 @@ class Yaml {
 	 * */
 	public function parseToJs($text = null, $referencesRootPath = null) {
 		$arr = $this->parse($text, $referencesRootPath);
-		return JsCompiler::arrayToJsCode($arr);
+		return ArrayHelper::arrayToJsCode($arr);
 	}
 
 	/**
@@ -86,7 +86,7 @@ class Yaml {
 			$value = 'ref_error';
 
 			$rootPath = ($path{0} == '/')
-				? \lx::sitePath()
+				? \lx::$app->sitePath
 				: $this->referencesRootPath;
 			if (!$rootPath) return $matches[0];
 

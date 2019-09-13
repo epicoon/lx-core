@@ -28,18 +28,18 @@ class ServiceConductor {
 			$fileName = $this->decodeAlias($fileName);
 		}
 
-		return \lx::$conductor->getFullPath($fileName, $this->getPath());
+		return $this->service->app->conductor->getFullPath($fileName, $this->getPath());
 	}
 
 	/**
-	 * @param $moduleName string - имя модуля, путь к которому нужно найти
-	 * @return string - полный путь к модулю
+	 * @param $pluginName string - имя плагина, путь к которому нужно найти
+	 * @return string - полный путь к плагину
 	 * */
-	public function getModulePath($moduleName) {
-		$moduleDirs = (array)$this->service->getConfig('service.modules');
-		foreach ($moduleDirs as $dir) {
+	public function getPluginPath($pluginName) {
+		$pluginDirs = (array)$this->service->getConfig('service.plugins');
+		foreach ($pluginDirs as $dir) {
 			if ($dir != '') $dir .= '/';
-			$fullPath = $this->getPath() . '/' . $dir . $moduleName;
+			$fullPath = $this->getPath() . '/' . $dir . $pluginName;
 
 			if (file_exists($fullPath)) {
 				return $fullPath;
@@ -130,9 +130,19 @@ class ServiceConductor {
 	 *
 	 * */
 	public function getMigrationDirectory() {
-		$system = $this->service->directory->getOrMakeDirectory('.system');
-		$migrationsDirectory = $system->getOrMakeDirectory('migrations');
-		return $migrationsDirectory;
+		$dir = new Directory($this->getPath() . '/.system/migrations');
+		$dir->make();
+		return $dir;
+
+//		$system = $this->service->directory->getOrMakeDirectory('.system');
+//		$migrationsDirectory = $system->getOrMakeDirectory('migrations');
+//		return $migrationsDirectory;
+	}
+
+	public function getModuleMapDirectory() {
+		$dir = new Directory($this->getPath() . '/.system/modules');
+		$dir->make();
+		return $dir;
 	}
 
 	/**

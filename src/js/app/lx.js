@@ -81,29 +81,19 @@ function getEnvInfo() {
 let settings = {},
 	env = getEnvInfo();
 
-const lx = {
-	data: {},
-
-	setSettings: function(data) {
-		settings = data;
-		delete this.setSettings;
-	},
-
-	getSetting: function(name) {
-		return settings[name];
-	}
+lx.data = {};
+lx.setSettings = function(data) {
+	settings = data;
+	delete this.setSettings;
+};
+lx.getSetting = function(name) {
+	return settings[name];
 };
 
 Object.defineProperty(lx, "environment", {
 	get: function() { return env; }
 });
 
-Object.defineProperty(lx, "treeSeparator", {
-	get: function() { return settings.treeSeparator || '/'; }
-});
-
 Object.defineProperty(lx, "language", {
 	get: function() { return settings.lang || {}; }
 });
-
-window.lx = lx;

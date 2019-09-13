@@ -180,16 +180,6 @@ function __bindMatrix(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 	else __matrixBinds[c._lxMatrixBindId].widgets.push(widget);
 	widget._lxMatrixBindId = c._lxMatrixBindId;
 
-	// let rowClass = widget.lxcwb_widget || lx.Box,
-	// 	rowConfig = widget.lxcwb_config ? widget.lxcwb_config.lxCopy() : {}
-		// ,
-		// itemRender = widget.lxcwb_itemRender,
-		// afterBind = widget.lxcwb_afterBind
-		// ;
-
-	// rowConfig.parent = widget;
-	// rowConfig.key = 'r';
-
 	function getMatrixCollection(widget) {
 		return __matrixBinds[widget._lxMatrixBindId].collection;
 	}
@@ -218,17 +208,6 @@ function __bindMatrix(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 		widgets.each((w)=>{
 			newBox(w, obj)
 		});
-
-		// rowConfig.parent = widget;
-		// let r = new rowClass(rowConfig);
-		// r.begin();
-		// itemRender(r, obj);
-		// r.end();
-		// __bind(obj, r, type);
-		// if (afterBind) afterBind(r, obj);
-		// r.matrixItems = function() {return getMatrixCollection(this.parent);};
-		// r.matrixIndex = function() {return this.index || 0;};
-		// r.matrixModel = function() {return getMatrixCollection(this.parent).at(this.index || 0);};
 	};
 
 	function onRemove(i) {
@@ -238,18 +217,10 @@ function __bindMatrix(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 			__unbind(this.at(i), w.getAll('r').at(i));
 			w.del('r', i);
 		});
-
-		// __unbind(this.at(i), widget.getAll('r').at(i));
-		// widget.del('r', i);
 	};
 
 	function onClear() {
 		if (this._lxMatrixBindId === undefined) return;
-		// var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
-		// widgets.eachRevert((w)=>{
-		// 	__unbindMatrix(w);
-		// 	w.del('r');
-		// });
 
 		var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
 		widgets.each((w)=>{

@@ -174,11 +174,12 @@ class Test #lx:namespace lx {
 		}
 	}
 
-	static __afterDefinition() {
-		let test = new this();
-		test._init();
-		test._run();
-	}
+	//TODO
+	// static __afterDefinition() {
+	// 	let test = new this();
+	// 	test._init();
+	// 	test._run();
+	// }
 }
 
 lx.Test._currentTest = null;

@@ -16,7 +16,7 @@ class ConfigHelper {
 		}
 	}
 
-	public static function prepareModuleConfig($commonConfig, &$config) {
+	public static function preparePluginConfig($commonConfig, &$config) {
 		self::prepareConfig($commonConfig, $config);
 
 		// Использование дефолтных настройки
@@ -40,7 +40,7 @@ class ConfigHelper {
 		}
 	}
 
-	public static function moduleInject($name, $prototype, $injections, &$config) {
+	public static function pluginInject($name, $prototype, $injections, &$config) {
 		if ($injections) {
 			if (array_key_exists($prototype, $injections)) {
 				$configInjection = $injections[$prototype];

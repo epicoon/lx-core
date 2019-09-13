@@ -1,7 +1,9 @@
-#lx:use lx.Box as Box;
-#lx:use lx.Button as Button;
+#lx:module lx.Form;
 
-class Form extends Box #lx:namespace lx {
+#lx:use lx.Box;
+#lx:use lx.Button;
+
+class Form extends lx.Box #lx:namespace lx {
 	/**
 	 * list - хэш-таблица, записи - {name, info} - преобразуются в аргументы для метода .field(className, fieldName, config)
 	 *	name - имя, которое станет значением ключа нового элемента и значением поля field
@@ -36,36 +38,6 @@ class Form extends Box #lx:namespace lx {
 	}
 
 	/**
-	 * list - хэш-таблица, записи - {name: info} - аргументы для метода .labeledField(name, info)
-	 * */
-	labeledFields(list) {
-		for (var key in list) this.labeledField(key, list[key]);
-	}
-
-	/**
-	 * name - имя, которое станет значением ключа нового элемента и значением поля field
-	 * info - массив в форматах:
-	 * 	1. [label, className, config] - подпись виджета будет слева
-	 *	2. [className, label, config] - подпись виджета будет справа
-	 *		- congif не обязателен
-	 * */
-	labeledField(name, info) {
-		var fieldConfig;
-		if (info.isArray) {
-			fieldConfig = info[2] || {};
-			if (info[0].isString) {
-				fieldConfig.label = info[0];
-				fieldConfig.widget = info[1];
-			} else {
-				if (fieldConfig.labelOrientation === undefined) fieldConfig.labelOrientation = lx.RIGHT;
-				fieldConfig.widget = info[0];
-				fieldConfig.label = info[1];
-			}
-		}
-		this.field(name, lx.LabeledBox, fieldConfig);
-	}
-
-	/**
 	 * Содержимым считаются значения элементов, у которых есть поле field
 	 * */
 	content(map=null) {
@@ -81,9 +53,9 @@ class Form extends Box #lx:namespace lx {
 	}
 
 	/**
-	 * Добавление кнопки полезная и частая операция в форме - для более короткого кода создания кнопки есть метод
+	 * Добавление кнопки полезная и частая операция в форме - этот метод для более короткого кода создания кнопки
 	 * */
-	button(text='', config={}, onClick=null) {
+	addButton(text='', config={}, onClick=null) {
 		if (config.isFunction) {
 			config = {
 				click: config
@@ -92,6 +64,44 @@ class Form extends Box #lx:namespace lx {
 			config.click = onClick;
 		}
 		config.text = text;
-		return this.add(Button, config);
+		return this.add(lx.Button, config);
 	}
+
+
+
+
+
+
+
+
+	//TODO - в реальноости не использовал такое. Выглядит интересно, если до ума довести, может есть смысл
+	// в текущем виде точно не годится, даже виджета lx.LabeledBox уже не существует
+	// /**
+	//  * list - хэш-таблица, записи - {name: info} - аргументы для метода .labeledField(name, info)
+	//  * */
+	// labeledFields(list) {
+	// 	for (var key in list) this.labeledField(key, list[key]);
+	// }
+	// /**
+	//  * name - имя, которое станет значением ключа нового элемента и значением поля field
+	//  * info - массив в форматах:
+	//  * 	1. [label, className, config] - подпись виджета будет слева
+	//  *	2. [className, label, config] - подпись виджета будет справа
+	//  *		- congif не обязателен
+	//  * */
+	// labeledField(name, info) {
+	// 	var fieldConfig;
+	// 	if (info.isArray) {
+	// 		fieldConfig = info[2] || {};
+	// 		if (info[0].isString) {
+	// 			fieldConfig.label = info[0];
+	// 			fieldConfig.widget = info[1];
+	// 		} else {
+	// 			if (fieldConfig.labelOrientation === undefined) fieldConfig.labelOrientation = lx.RIGHT;
+	// 			fieldConfig.widget = info[0];
+	// 			fieldConfig.label = info[1];
+	// 		}
+	// 	}
+	// 	this.field(name, lx.LabeledBox, fieldConfig);
+	// }
 }

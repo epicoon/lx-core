@@ -2,10 +2,15 @@
 
 namespace lx;
 
-abstract class CrudAdapter {
+abstract class CrudAdapter extends ApplicationTool {
 	protected $modelProvider;
 
-	public function __construct($params = []) {
+	public function __construct($app, $params = []) {
+		parent::__construct($app);
+		$this->init($params);
+	}
+
+	public function init($params) {
 
 	}
 

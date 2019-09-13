@@ -1,5 +1,6 @@
-class IndentData #lx:namespace lx {
-	constructor(config={}) {
+class IndentData #lx:namespace lx
+{
+	constructor(config = {}) {
 		this.set(config);
 	}
 
@@ -8,18 +9,29 @@ class IndentData #lx:namespace lx {
 		if (result.lxEmpty) return null;
 		return result;
 	}
+	
+	#lx:server {
+		pack() {
+			var indents = this.get();
+			return indents.step.join(',')
+				+ ',' + indents.padding[0].join(',')
+				+ ',' + indents.padding[1].join(',');
+		}
+	}
 
 	//todo отптимизировать упаковку-распаковку
-	static unpackOrNull(info) {
-		var config = info.split(',');
-		var result = new this(config);
-		result.stepX = config[0];
-		result.stepY = config[1];
-		result.paddingLeft = config[2];
-		result.paddingRight = config[3];
-		result.paddingTop = config[4];
-		result.paddingBottom = config[5];
-		return result;
+	#lx:client {
+		static unpackOrNull(info) {
+			var config = info.split(',');
+			var result = new this(config);
+			result.stepX = config[0];
+			result.stepY = config[1];
+			result.paddingLeft = config[2];
+			result.paddingRight = config[3];
+			result.paddingTop = config[4];
+			result.paddingBottom = config[5];
+			return result;
+		}
 	}
 
 	set(config) {

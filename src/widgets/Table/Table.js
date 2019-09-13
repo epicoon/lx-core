@@ -1,11 +1,13 @@
-#lx:use lx.Box as Box;
+#lx:module lx.Table;
 
-/* Special events:  // опосредованы работой TableManager
- * selectionChange
- * rowAdded
- * cellChange
- * */
-class Table extends Box #lx:namespace lx {
+#lx:use lx.Box;
+
+#lx:private;
+
+class Table extends lx.Box #lx:namespace lx {
+	#lx:const
+		DEFAULT_ROW_HEIGHT = '25px';
+
 	/**
 	 * config = {
 	 * 	rows: integer
@@ -21,46 +23,41 @@ class Table extends Box #lx:namespace lx {
 		var rows = config.rows || 0;
 		this.cols = config.cols || 0;
 
-		var beh;
-		if (!this.getInnerSize(lx.HEIGHT)) beh = lx.StreamPositioningStrategy.SIZE_BEHAVIOR_BY_CONTENT;
-		else if (config.rowHeight) beh = lx.StreamPositioningStrategy.SIZE_BEHAVIOR_SIMPLE;
-		else if (rows) beh = lx.StreamPositioningStrategy.SIZE_BEHAVIOR_PROPORTIONAL;
-		else {
-			config.rowHeight = self::DEFAULT_ROW_HEIGHT;
-			beh = lx.StreamPositioningStrategy.SIZE_BEHAVIOR_SIMPLE;
-		}
-
 		this.indents = new lx.IndentData(config.indents || {});
+		var indentData = this.indents.get();
 
-		var indentData = this.indents.get(),
-			rowStreamConfig = {sizeBehavior:beh};
+		var rowStreamConfig = {};
+		if (!!this.getInnerSize(lx.HEIGHT) && config.rowHeight === undefined)
+			rowStreamConfig.type = lx.StreamPositioningStrategy.TYPE_PROPORTIONAL;
 		if (indentData.stepY) rowStreamConfig.stepY = indentData.stepY;
 		if (indentData.paddingTop)    rowStreamConfig.paddingTop    = indentData.paddingTop;
 		if (indentData.paddingBottom) rowStreamConfig.paddingBottom = indentData.paddingBottom;
-		if (config.rowHeight) rowStreamConfig.defaultSize = config.rowHeight;
+		if (config.rowHeight) rowStreamConfig.rowDefaultHeight = config.rowHeight;
 		this.stream(rowStreamConfig);
 
 		if (!rows || !this.cols) return;
-
 		this.insertRows(-1, rows);
 	}
 
-	postBuild(config) {
-		super.postBuild();
+	#lx:server beforePack() {
+		this.indents = this.indents.pack();
+	}
 
-		if (config.interactive && lx.TableManager) {
-			this.interactiveInfo = {
-				cellsForSelect: config.interactive.cellsForSelect || lx.TableManager.cellsForSelect,
-				autoRowAdding: config.interactive.autoRowAdding || lx.TableManager.autoRowAdding,
-				cellEnterEnable: config.interactive.cellEnterEnable || lx.TableManager.cellEnterEnable
-			};
-			lx.TableManager.register(this);
+	#lx:client postUnpack() {
+		this.indents = lx.IndentData.unpackOrNull(this.indents);
+	}
+
+	getBasicCss() {
+		return {
+			main: 'lx-Table',
+			row: 'lx-Table-row',
+			cell: 'lx-Table-cell'
 		}
 	}
 
 	row(row) {
 		if (!this.children.r) return null;
-		if (this.children.r instanceof lx.TableRow) return this.children.r;
+		if (this.children.r instanceof TableRow) return this.children.r;
 		if (!this.children.r[row]) return null;
 		return this.children.r[row];
 	}
@@ -80,12 +77,9 @@ class Table extends Box #lx:namespace lx {
 
 	colsCount(row) {
 		if (row === undefined) return this.cols;
-		if (!this.children.r
-			|| !this.children.r[row]
-			|| !this.children.r[row].children.c) return 0;
-		if (this.children.r[row].children.c.isArray)
-			return this.children.r[row].children.c.len;
-		return 1;
+		var r = this.row(row);
+		if (r) return r.cellsCount();
+		return 0;
 	}
 
 	rows(r0=0, r1) {
@@ -122,6 +116,10 @@ class Table extends Box #lx:namespace lx {
 		return c;
 	}
 
+	eachRow(func) {
+		this.rows().each(func);
+	}
+
 	/*
 	 * Метод для перебора ячеек "в линию"
 	 * для transpon==false (по умолчанию) по строкам, по колонкам
@@ -131,8 +129,8 @@ class Table extends Box #lx:namespace lx {
 		var rows = this.rowsCount(),
 			cols = this.colsCount(),
 			counter = 0;
-		if (r1 == undefined || r1 >= rows) r1 = rows - 1;
-		if (c1 == undefined || c1 >= cols) c1 = cols - 1;
+		if (r1 === undefined || r1 >= rows) r1 = rows - 1;
+		if (c1 === undefined || c1 >= cols) c1 = cols - 1;
 
 		if (transpon) {
 			for (var j=c0; j<=c1; j++)
@@ -169,10 +167,10 @@ class Table extends Box #lx:namespace lx {
 		}
 
 		// Чтобы данные вошли в таблицу, возможно, нужно увеличить число строк
-		if (r1 > this.rowsCount()) this.setRowCount(r1);
+		if (r1 > this.rowsCount()) this.setRowsCount(r1);
 
 		this.eachCell((cell, r, c)=> {
-			cell.text( transpon ? content[c][r] : content[r][c] );
+			cell.text( transpon ? content[c - c0][r - r0] : content[r - r0][c - c0] );
 		}, transpon, r0, c0, r1, c1);
 	}
 
@@ -189,13 +187,17 @@ class Table extends Box #lx:namespace lx {
 		if (row) config.before = row;
 		else config.parent = this;
 
-		config.parentIndents = this.indents.get();
+		config.css = this.basicCss.row;
 		config.cols = cols;
-		var c = lx.TableRow.construct(amt, config);
+		var c = TableRow.construct(amt, config);
 		return c;
 	}
 
-	setRowCount(rows) {
+	insertRow(nextIndex) {
+		this.insertRows(nextIndex, 1);
+	}
+
+	setRowsCount(rows) {
 		if (rows == this.rowsCount()) return this;
 
 		if (rows < this.rowsCount()) {
@@ -206,8 +208,16 @@ class Table extends Box #lx:namespace lx {
 		return this.insertRows(-1, rows - this.rowsCount());
 	}
 
-	addRows(amt=1) {
-		return this.setRowCount( this.rowsCount() + amt );
+	addRow() {
+		this.addRows(1);
+	}
+
+	addRows(amt) {
+		return this.setRowsCount( this.rowsCount() + amt );
+	}
+
+	delRow(num) {
+		this.delRows(num, 1);
 	}
 
 	delRows(num, amt) {
@@ -218,85 +228,78 @@ class Table extends Box #lx:namespace lx {
 	/*
 	 * object.setRowsHeight('30px') - изменит высоту всех строк и запомнит как стандарт для таблицы
 	 * */
-	setRowHeight(height) {
-		this.positioningStrategy.defaultSize = height;
-		if (this.positioningStrategy.sizeBehavior == lx.StreamPositioningStrategy.SIZE_BEHAVIOR_PROPORTIONAL)
-			this.positioningStrategy.sizeBehavior = lx.StreamPositioningStrategy.SIZE_BEHAVIOR_SCROLLING;
-
-		this.positioningStrategy.autoActualize = false;
-
+	setRowsHeight(height) {
+		if (this.positioningStrategy.type == lx.StreamPositioningStrategy.TYPE_PROPORTIONAL) return this;
+		this.positioningStrategy.rowDefaultHeight = height;
 		this.rows().each((a)=> a.height(height));
-
-		this.positioningStrategy.autoActualize = true;
-		this.positioningStrategy.actualize();
-
 		return this;
+	}
+
+	setColsCount(count) {
+		if (count == this.colsCount()) return;
+
+		if (count < this.colsCount()) {
+			this.eachRow((r)=>r.del('c', count, r.cellsCount() - count));
+			this.colsWidths = this.row(0).style('grid-template-columns')
+			this.cols = count;
+			return;
+		}
+
+		var c = new lx.Collection();
+		this.eachRow((r)=>c.add(r.insertCells(-1, count - r.cellsCount())));
+		this.colsWidths = this.row(0).style('grid-template-columns')
+		this.cols = count;
+		return c;
+	}
+
+	setColWidth(col, width) {
+		if (!this.rowsCount()) {
+			//TODO - все равно запоминать!
+			return;
+		}
+
+		this.eachRow((r)=>r.cell(col).width(width));
+		this.colsWidths = this.row(0).style('grid-template-columns')
 	}
 
 	// todo
-	// setColCount(amt)
-	// setColWidth(col, width)
 	// merge(r0, c0, r1, c1)
-
-	activeRow() {
-		if (!this.interactiveInfo || !this.interactiveInfo.cellsForSelect) return null;
-		if (this.interactiveInfo.row === undefined) return null;
-		return this.interactiveInfo.row;
-	}
-
-	activeCell() {
-		if (!this.interactiveInfo || !this.interactiveInfo.cellsForSelect) return null;
-		if (this.interactiveInfo.cell === undefined) return null;
-		return this.interactiveInfo.cell;
-	}
-
-	interactive(params={}) {
-		if (!lx.TableManager) return;
-
-		if (params === false) {
-			lx.TableManager.unregisterTable(this);
-			return this;
-		}
-
-		this.interactiveInfo = {
-			cellsForSelect: params.cellsForSelect || lx.TableManager.cellsForSelect,
-			autoRowAdding: params.autoRowAdding || lx.TableManager.autoRowAdding,
-			cellEnterEnable: params.cellEnterEnable || lx.TableManager.cellEnterEnable
-		};
-		lx.TableManager.register(this);
-
-		return this;
-	}
 }
-
-lx.Table.DEFAULT_ROW_HEIGHT = '25px';
 //=============================================================================================================================
 
 //=============================================================================================================================
-class TableRow extends Box #lx:namespace lx {
-	postBuildClient(config) {
-		var colConfig = {
-				direction: lx.HORIZONTAL,
-				sizeBehavior:lx.StreamPositioningStrategy.SIZE_BEHAVIOR_PROPORTIONAL
-			};
-		if (config.parentIndents) {
-			var indentData = config.parentIndents;
+class TableRow extends lx.Box {
+	build(config) {
+		var colConfig = {direction: lx.HORIZONTAL},
+			table = this.parent,
+			indentData = table.indents.get();
+		if (indentData) {
 			if (indentData.stepX) colConfig.stepX = indentData.stepX;
 			if (indentData.paddingLeft)   colConfig.paddingLeft  = indentData.paddingLeft;
 			if (indentData.paddingRight)  colConfig.paddingRight = indentData.paddingRight;
 		}
 
-		this.stream(colConfig);
-		lx.TableCell.construct(config.cols, {parent: this, key: 'c'});
+		if (colConfig.minWidth === undefined) colConfig.minWidth = '5px';
+
+		this.streamProportional(colConfig);
+		TableCell.construct(config.cols, {parent: this, key: 'c', css: table.basicCss.cell});
+		if (table.colsWidths) this.style('grid-template-columns', table.colsWidths)
 	}
 
 	table() {
 		return this.parent;
 	}
 
+	cellsCount() {
+		if (!this.children.c) return 0;
+		if (this.children.c.isArray)
+			return this.children.c.len;
+		return 1;
+	}
+
 	cell(num) {
 		if (!this.children.c) return null;
-		if (this.children.c instanceof lx.TableCell) return this.children.c;
+		if (this.children.c instanceof TableCell) return this.children.c;
 		if (!this.children.c[num]) return null;
 		return this.children.c[num];
 	}
@@ -304,11 +307,22 @@ class TableRow extends Box #lx:namespace lx {
 	cells() {
 		return new lx.Collection(this.children.c);
 	}
+
+	insertCells(nextIndex, count) {
+		var cell = this.cell(nextIndex),
+			config = {key: 'c'};
+		if (cell) config.before = cell;
+		else config.parent = this;
+
+		config.css = this.parent.basicCss.cell;
+		var c = TableCell.construct(count, config);
+		return c;
+	}
 }
 //=============================================================================================================================
 
 //=============================================================================================================================
-class TableCell extends Box #lx:namespace lx {
+class TableCell extends lx.Box {
 	table() {
 		return this.parent.parent;
 	}

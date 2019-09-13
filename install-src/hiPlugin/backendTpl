@@ -1,0 +1,37 @@
+<?php
+
+namespace lx\hello\plugin\world\backend;
+
+use lx\PluginBuildContext;
+
+class Respondent extends \lx\Respondent {
+	public function loadPlugin($key) {
+		$name = null;
+		switch ($key) {
+			case 'cli': $name = 'lx/lx-dev-wizard:webcli'; break;
+			case 'doc': $name = 'lx/lx-doc:docParser'; break;
+			case 'demo': $name = 'lx/lx-demo:_main'; break;
+		}
+		if (!$name) {
+			return false;
+		}
+
+		return $this->preparePlugin($name);
+	}
+
+	private function preparePlugin($name) {
+		try {
+			$plugin = $this->app->getPlugin($name);
+			if (!$plugin) {
+				return false;
+			}
+		} catch (\Exception $e) {
+			return false;
+		}
+
+		$builder = new PluginBuildContext($plugin);
+		$result = $builder->build();
+
+		return $result;		
+	}
+}

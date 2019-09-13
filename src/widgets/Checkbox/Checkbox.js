@@ -1,6 +1,8 @@
-#lx:use lx.Rect as Rect;
+#lx:module lx.Checkbox;
 
-class Checkbox extends Rect #lx:namespace lx {
+#lx:use lx.Rect;
+
+class Checkbox extends lx.Rect #lx:namespace lx {
 	/**
 	 * config = {
 	 *	// стандартные для Rect,
@@ -13,24 +15,34 @@ class Checkbox extends Rect #lx:namespace lx {
 		this.value(config.value || false);
 	}
 
-	postBuild(config) {
-		super.postBuild(config);
-		this.on('mousedown', lx.Event.preventDefault);
-		this.on('mouseup', self::click);
+	#lx:client {
+		postBuild(config) {
+			super.postBuild(config);
+			this.on('mousedown', lx.Event.preventDefault);
+			this.on('mouseup', self::click);
+		}
+
+		static click(event) {
+			this.value( !this.value() );
+			this.trigger('change', event);
+		}
 	}
 
-	getBaseCss() {
-		return (this.disabled())
-			? this.getDisabledClass() + '-' + +this.value()
-			: this.getEnabledClass() + '-' + +this.value();
+	getBasicCss() {
+		return {
+			checked: 'lx-Checkbox-0',
+			unchecked: 'lx-Checkbox-1'
+		};
 	}
 
 	value(val) {
 		if (val === undefined) return this.state;
 
-		this.removeClass( this.getBaseCss() );
 		this.state = !!val;
-		this.addClass( this.getBaseCss() );
+		this.removeClass(this.basicCss.checked);
+		this.removeClass(this.basicCss.unchecked);
+		if (this.state) this.addClass(this.basicCss.checked);
+		else this.addClass(this.basicCss.unchecked);
 
 		return this;
 	}
@@ -38,10 +50,5 @@ class Checkbox extends Rect #lx:namespace lx {
 	todgle() {
 		this.value(!this.value());
 		return this;
-	}
-
-	static click(event) {
-		this.value( !this.value() );
-		this.trigger('change', event);
 	}
 }

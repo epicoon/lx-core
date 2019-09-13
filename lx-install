@@ -12,11 +12,10 @@
 defined('STDIN') or define('STDIN', fopen('php://stdin', 'r'));
 defined('STDOUT') or define('STDOUT', fopen('php://stdout', 'w'));
 
-require_once(__DIR__ . '/src/php/app.php');
+require_once(__DIR__ . '/main.php');
+$app = new lx\ConsoleApplication();
 
-lx::installInitialization();
-
-$site = new lx\Directory(lx::$conductor->site);
+$site = $app->directory;
 
 // Создаем в корне папку services
 $lx = $site->getOrMakeDirectory('services');
@@ -24,6 +23,7 @@ $lx = $site->getOrMakeDirectory('services');
 // Создаем в корне папку lx
 $lx = $site->getOrMakeDirectory('lx');
 $system = $lx->getOrMakeDirectory('.system');
+$system->getOrMakeDirectory('temp');
 
 // Создаем файл для работы в консольном режиме
 require(__DIR__ . '/install-src/lxConsole.php');
@@ -31,7 +31,7 @@ require(__DIR__ . '/install-src/lxConsole.php');
  * @var $lxConsoleCode
  * */
 $lxConsole = $lx->makeFile('lx');
-$lxConsole->put($lxConsoleCode . 'lx::runConsole($argv);');
+$lxConsole->put($lxConsoleCode);
 
 // Если конфигов еще нет - создадим
 if (!$lx->contain('config')) {
@@ -41,7 +41,7 @@ if (!$lx->contain('config')) {
 	/**
 	 * @var $configMainCode
 	 * @var $configRoutesCode
-	 * @var $configModuleCode
+	 * @var $configPluginCode
 	 * @var $configServiceCode
 	 * */
 
@@ -51,8 +51,8 @@ if (!$lx->contain('config')) {
 	$configRoutes = $config->makeFile('routes.php');
 	$configRoutes->put($configRoutesCode);
 
-	$configModule = $config->makeFile('module.php');
-	$configModule->put($configModuleCode);
+	$configPlugin = $config->makeFile('plugin.php');
+	$configPlugin->put($configPluginCode);
 
 	$configService = $config->makeFile('service.php');
 	$configService->put($configServiceCode);
@@ -65,26 +65,27 @@ if (!$data->contain('languages.php')) {
 }
 
 // Если нет HelloWorld-ного сервиса - создадим
-if (!lx\Service::exists('lx/lx-hello')) {
+if (!$app->services->exists('lx/lx-hello')) {
 	$site->getOrMakeDirectory('vendor');
 
 	$service = (new lx\ServiceEditor())->createService('lx/lx-hello', '@site/vendor');
-	$moduleEditor = new lx\ModuleEditor($service);
-	$module = $moduleEditor->createModule('world', 'module');
+	$pluginEditor = new lx\PluginEditor($service);
+	$plugin = $pluginEditor->createPlugin('world', 'plugin');
 
-	$dir = $module->directory;
+	$dir = $plugin->directory;
 	$i18n = $dir->makeFile('i18n.yaml');
-	$i18n->put(file_get_contents(__DIR__ . '/install-src/hiModule/i18nTpl'));
-	$view = $dir->get('view/_root.php');
-	$view->put(file_get_contents(__DIR__ . '/install-src/hiModule/viewTpl'));
-	$view = $dir->get('frontend/_main.js');
-	$view->put(file_get_contents(__DIR__ . '/install-src/hiModule/frontendTpl'));
-	$view = $dir->get('backend/Respondent.php');
-	$view->put(file_get_contents(__DIR__ . '/install-src/hiModule/backendTpl'));
+	$i18n->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/i18nTpl'));
+	$view = $dir->get('snippets/_root.js');
+	$view->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/viewTpl'));
+	$frontend = $dir->get('frontend/_main.js');
+	$frontend->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/frontendTpl'));
+	$backend = $dir->get('backend/Respondent.php');
+	$backend->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/backendTpl'));
 }
 
 // Строим карту автозагрузки
 (new lx\AutoloadMapBuilder())->createCommonAutoloadMap();
+(new lx\JsModuleMapBuilder($app))->fullRenew();
 
 // Закончили упражнение
 lx\Console::outln('Done');

@@ -20,10 +20,10 @@ class AutoloadMapBuilder {
 	 * Пакетом считается каталог, в котором удалось найти конфигурационный файл
 	 * */
 	public function createCommonAutoloadMap() {
-		$map = \lx::getConfig('packagesMap');
+		$map = \lx::$app->getConfig('packagesMap');
 
 		foreach ($map as $dirPath) {
-			$fullDirPath = \lx::$conductor->getFullPath($dirPath);
+			$fullDirPath = \lx::$app->conductor->getFullPath($dirPath);
 			if (!file_exists($fullDirPath) || !is_dir($fullDirPath)) {
 				continue;
 			}
@@ -46,7 +46,7 @@ class AutoloadMapBuilder {
 			'directories' => $this->directories,
 		];
 		$data = json_encode($data);
-		$file = new File(\lx::$conductor->autoloadMap);
+		$file = new File(\lx::$conductor->getSystemPath('systemPath') . '/autoload.json');
 		$file->put($data);
 	}
 
@@ -79,7 +79,7 @@ class AutoloadMapBuilder {
 	private function analizePackage($packagePath, $config) {
 		// Карта пакетов
 		$packageName = $config['name'];
-		$relativePackagePath = explode(\lx::sitePath() . '/', $packagePath)[1];
+		$relativePackagePath = explode(\lx::$app->sitePath . '/', $packagePath)[1];
 
 		$this->packagesMap[$packageName] = $relativePackagePath;
 

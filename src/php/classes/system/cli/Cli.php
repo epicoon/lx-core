@@ -2,28 +2,29 @@
 
 namespace lx;
 
-class Cli {
+class Cli extends ApplicationTool {
 	const COMMANDS = [
 		'exit' => '\q',
 		'help' => ['\h', 'help'],
 		'move' => ['\g', 'goto'],
 		'full_path' => ['\p', 'fullpath'],
 		'reset_autoload_map' => ['\amr', 'autoload-map-reset'],
+		'reset_js_autoload_map' => ['\amrjs', 'autoload-map-reset-js'],
 
 		'show_services' => ['\sl', 'services-list'],
-		'show_modules' => ['\ml', 'modules-list'],
+		'show_plugins' => ['\pl', 'plugins-list'],
 		'show_models' => 'models-list',
 
 		'migrate_check' => 'migrate-check',
 		'migrate_run' => 'migrate-run',
 
 		'create_service' => ['\cs', 'create-service'],
-		'create_module' => ['\cm', 'create-module'],
+		'create_plugin' => ['\cp', 'create-plugin'],
 	];
 	/*
 	//todo
-	выбор создаваемых компонентов для нового модуля - какие каталоги, надо ли файл пееропределяющий сам модуль...
-	удаление модуля
+	выбор создаваемых компонентов для нового плагина - какие каталоги, надо ли файл пееропределяющий сам плагин...
+	удаление плагина
 
 	запрос на какую-нибудь модель
 
@@ -33,7 +34,7 @@ class Cli {
 	*/
 
 	private $service = null;
-	private $module = null;
+	private $plugin = null;
 
 	private $processor = null;
 	private $processParams = [];
@@ -43,8 +44,9 @@ class Cli {
 	private $commandsHistory = [];
 	private $commandsHistoryIndex = 0;
 
-	public function __construct() {
-		$this->processor = new CliProcessor(self::COMMANDS);
+	public function __construct($app) {
+		parent::__construct($app);
+		$this->processor = new CliProcessor($app, self::COMMANDS);
 	}
 
 	/**
@@ -60,8 +62,8 @@ class Cli {
 			}
 
 			$text = 'lx-cli<';
-			if ($this->module !== null) {
-				$text .= 'module:' . $this->module->name . '>: ';
+			if ($this->plugin !== null) {
+				$text .= 'plugin:' . $this->plugin->name . '>: ';
 			} elseif ($this->service !== null) {
 				$text .= 'service:' . $this->service->name . '>: ';
 			} else {
@@ -138,7 +140,7 @@ class Cli {
 	 * */
 	private function handleCommand($commandType) {
 		$this->processor->setParams($this->processParams);
-		$result = $this->processor->handleCommand($commandType, $this->args, $this->service, $this->module);
+		$result = $this->processor->handleCommand($commandType, $this->args, $this->service, $this->plugin);
 		foreach ($result['params'] as $key => $value) {
 			$this->processParams[$key] = $value;
 		}
@@ -160,7 +162,7 @@ class Cli {
 			$this->inProcess = false;
 			$this->processParams = [];
 			$this->service = $this->processor->getService();
-			$this->module = $this->processor->getModule();
+			$this->plugin = $this->processor->getPlugin();
 		}
 	}
 

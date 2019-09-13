@@ -72,7 +72,7 @@ class DataObject {
 	 * Имеются ли динамические свойства у объекта
 	 * */
 	public function hasProperties() {
-		return count($this->_prop) > 0;
+		return !empty($this->_prop);
 	}
 
 	/**

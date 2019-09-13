@@ -2,12 +2,12 @@
 
 namespace lx;
 
-class CliProcessor {
+class CliProcessor extends ApplicationTool {
 	private $commandsList = [];
 
 	private $servicesList = null;
 	private $service = null;
-	private $module = null;
+	private $plugin = null;
 
 	private $args = [];
 
@@ -17,16 +17,17 @@ class CliProcessor {
 	private $invalidParams = [];
 	private $keepProcess = false;
 
-	public function __construct($commandsList = []) {
+	public function __construct($app, $commandsList = []) {
+		parent::__construct($app);
 		$this->commandsList = $commandsList;
 	}
 
 	/**
 	 *
 	 * */
-	public function handleCommand($commandType, $args, $service, $module) {
+	public function handleCommand($commandType, $args, $service, $plugin) {
 		$this->service = $service;
-		$this->module = $module;
+		$this->plugin = $plugin;
 		$this->args = $args;
 
 		$methodMap = [
@@ -34,16 +35,17 @@ class CliProcessor {
 			'move' => 'move',
 			'full_path' => 'fullPath',
 			'reset_autoload_map' => 'resetAutoloadMap',
+			'reset_js_autoload_map' => 'resetJsAutoloadMap',
 
 			'show_services' => 'showServices',
-			'show_modules' => 'showModules',
+			'show_plugins' => 'showPlugins',
 			'show_models' => 'showModels',
 
 			'migrate_check' => 'migrateCheck',
 			'migrate_run' => 'migrateRun',
 
 			'create_service' => 'createService',
-			'create_module' => 'createModule',
+			'create_plugin' => 'createPlugin',
 		];
 
 		$this->consoleMap = [];
@@ -69,8 +71,8 @@ class CliProcessor {
 	/**
 	 *
 	 * */
-	public function getModule() {
-		return $this->module;
+	public function getPlugin() {
+		return $this->plugin;
 	}
 
 
@@ -105,7 +107,7 @@ class CliProcessor {
 	private function move() {
 		// Возвращение в приложение
 		if (empty($this->args)) {
-			$this->module = null;
+			$this->plugin = null;
 			$this->service = null;
 			return;
 		}
@@ -125,7 +127,7 @@ class CliProcessor {
 			$temp = array_slice($services, $index - 1, 1);
 			$service = end($temp);
 			$name = $service['name'];
-			$this->module = null;
+			$this->plugin = null;
 		}
 
 		// Если сервис не был найден в именованных параметрах - проверим первый параметр
@@ -136,7 +138,7 @@ class CliProcessor {
 		// Если и такого параметра нет - введены ошибочные данные
 		if ($name === null) {
 			$msg = $this->service
-				? 'Entered parameters are wrong. Enter service (or module) name or use keys -i or --index to point service'
+				? 'Entered parameters are wrong. Enter service (or plugin) name or use keys -i or --index to point service'
 				: 'Entered parameters are wrong. Enter service name or use keys -i or --index to point service';
 			$this->outln($msg);
 			return;
@@ -146,26 +148,26 @@ class CliProcessor {
 		if ($this->service !== null) {
 			// Если введенное имя - имя сервиса - скидываем модуль, если был
 			if (array_key_exists($name, $this->getServicesList())) {
-				$this->module = null;
+				$this->plugin = null;
 			// Иначе попробуем войти в модуль
 			} else {
-				$list = ModuleBrowser::getModulesMap($this->service);
+				$list = PluginBrowser::getPluginsMap($this->service);
 				if (array_search($name, $list['dynamic']) !== false) {
-					$this->outln('Only static modules are available for edit from console');
+					$this->outln('Only static plugins are available for edit from console');
 					return;
 				}
 				if (!array_key_exists($name, $list['static'])) {
-					$this->outln("Module '$name' is not exist");
+					$this->outln("Plugin '$name' is not exist");
 					return;
 				}
 
-				$this->module = $this->service->getModule($name);
+				$this->plugin = $this->service->getPlugin($name);
 				return;
 			}
 		}
 
 		try {
-			$this->service = Service::create($name);
+			$this->service = $this->app->getService($name);
 		} catch (\Exception $e) {
 			$this->outln("Service '$name' not found");
 			return;
@@ -178,8 +180,8 @@ class CliProcessor {
 	 * */
 	private function fullPath() {
 		if (empty($this->args)) {
-			if ($this->module) {
-				$this->outln('Path: ' . $this->module->getPath());
+			if ($this->plugin) {
+				$this->outln('Path: ' . $this->plugin->getPath());
 			} elseif ($this->service) {
 				$this->outln('Path: ' . $this->service->getPath());
 			} else {
@@ -192,19 +194,19 @@ class CliProcessor {
 		if ($name) {
 			if (preg_match('/:/', $name)) {
 				try {
-					$path = \lx::getModulePath($name);
+					$path = $this->app->getPluginPath($name);
 					if ($path === null) {
 						throw new \Exception('', 400);
 					}
-					$this->outln("Module '$name' path: " . $path);
+					$this->outln("Plugin '$name' path: " . $path);
 					return;
 				} catch (\Exception $e) {
-					$this->outln("Module '$name' not found");
+					$this->outln("Plugin '$name' not found");
 					return;
 				}
 			} else {
 				try {
-					$service = Service::create($name);
+					$service = $this->app->getService($name);
 					$this->outln("Service '$name' path: " . $service->getPath());
 					return;
 				} catch (\Exception $e) {
@@ -222,6 +224,48 @@ class CliProcessor {
 	 * */
 	private function resetAutoloadMap() {
 		(new AutoloadMapBuilder())->createCommonAutoloadMap();
+		$this->outln('Done');
+	}
+
+	/**
+	 * Построение карты автозагрузки js-модулей
+	 * В качестве аргумента можно передать имя сервиса для обновления карты автозагрузки только в нем
+	 * Без аргументов - обновятся все сервисы
+	 */
+	private function resetJsAutoloadMap() {
+		if ($this->getArg(0) == 'core') {
+			$this->outln('Creating core map...');
+			(new JsModuleMapBuilder($this->app))->coreRenew();
+			$this->outln('Done');
+			return;
+		}
+		
+		$service = null;
+		$serviceName = $this->getArg(0);
+		if (!$serviceName) {
+			$serviceName = $this->getArg('s');
+		}
+		if ($serviceName) {
+			try {
+				$service = $this->app->getService($serviceName);
+			} catch (\Exception $e) {
+				$this->outln("Service '$name' not found");
+				return;
+			}
+		}
+		if ($service === null) {
+			$service = $this->service;
+		}
+
+		if ($service === null) {
+			$this->outln('Creating full map...');
+			(new JsModuleMapBuilder($this->app))->fullRenew();
+			$this->outln('Done');
+			return;
+		}
+
+		$this->outln('Creating map for service "'. $service->name .'"...');
+		(new JsModuleMapBuilder($this->app))->serviceRenew($service);
 		$this->outln('Done');
 	}
 
@@ -258,12 +302,12 @@ class CliProcessor {
 	/**
 	 * Отобразить модули сервиса, имя которого передано параметром, либо в котором находимся
 	 * */
-	private function showModules() {
+	private function showPlugins() {
 		$service = null;
 		$serviceName = $this->getArg(0);
 		if ($serviceName) {
 			try {
-				$service = Service::create($serviceName);
+				$service = $this->app->getService($serviceName);
 			} catch (\Exception $e) {
 				$this->outln("Service '$name' not found");
 				return;
@@ -274,21 +318,21 @@ class CliProcessor {
 		}
 
 		if ($service === null) {
-			$this->outln("Modules belong to services. Input the service name or enter one of them");
+			$this->outln("Plugins belong to services. Input the service name or enter one of them");
 			return;
 		}
 
-		$modules = ModuleBrowser::getModulesMap($service);
+		$plugins = PluginBrowser::getPluginsMap($service);
 		/*[
 			'dynamic' => [...names]
 			'static' => [...{name=>pathInService}]
 		]*/
-		$dynamic = $modules['dynamic'];
-		$static = $modules['static'];
+		$dynamic = $plugins['dynamic'];
+		$static = $plugins['static'];
 
-		$this->outln('* * * Modules for service "'. $service->name .'" * * *', ['decor' => 'b']);
+		$this->outln('* * * Plugins for service "'. $service->name .'" * * *', ['decor' => 'b']);
 
-		$this->out('Dynamic modules:', ['decor' => 'b']);
+		$this->out('Dynamic plugins:', ['decor' => 'b']);
 		if (empty($dynamic)) {
 			$this->outln(' NONE');
 		} else {
@@ -299,7 +343,7 @@ class CliProcessor {
 			}
 		}
 
-		$this->out('Static modules:', ['decor' => 'b']);
+		$this->out('Static plugins:', ['decor' => 'b']);
 		if (empty($static)) {
 			$this->outln(' NONE');
 		} else {
@@ -337,7 +381,7 @@ class CliProcessor {
 		}
 		if ($serviceName) {
 			try {
-				$service = Service::create($serviceName);
+				$service = $this->app->getService($serviceName);
 			} catch (\Exception $e) {
 				$this->outln("Service '$name' not found");
 				return;
@@ -399,7 +443,7 @@ class CliProcessor {
 		$model = $this->getArg(1);
 		if ($service) {
 			try {
-				$service = Service::create($service);
+				$service = $this->app->getService($service);
 			} catch (\Exception $e) {
 				$this->outln("Service '$service' not found");
 				return;
@@ -444,7 +488,7 @@ class CliProcessor {
 		$service = $this->getArg(0);
 		if ($service) {
 			try {
-				$service = Service::create($service);
+				$service = $this->app->getService($service);
 			} catch (\Exception $e) {
 				$this->outln("Service '$service' not found");
 				return;
@@ -473,7 +517,7 @@ class CliProcessor {
 	 * //todo - флаг кастомного создания
 	 * */
 	private function createService() {
-		$dirs = \lx::getConfig('packagesMap');
+		$dirs = $this->app->getConfig('packagesMap');
 		if ($dirs) {
 			$dirs = (array)$dirs;
 		}
@@ -533,10 +577,10 @@ class CliProcessor {
 	 * Создание нового модуля
 	 * //todo - флаг кастомного создания
 	 * */
-	private function createModule() {
+	private function createPlugin() {
 		// Для создания модуля нужно находиться в сервисе
 		if ($this->service === null) {
-			$this->outln("Modules belong to services. Enter the service");
+			$this->outln("Plugins belong to services. Enter the service");
 			$this->done();
 			return;
 		}
@@ -544,7 +588,7 @@ class CliProcessor {
 		if ($this->requireParam('name')) {
 			$name = $this->getArg(0);
 			if (!$name) {
-				$this->in('name', 'You need to enter new module name: ', ['decor' => 'b']);
+				$this->in('name', 'You need to enter new plugin name: ', ['decor' => 'b']);
 				return;
 			}
 			$this->params['name'] = $name;
@@ -553,28 +597,28 @@ class CliProcessor {
 		$name = $this->params['name'];
 
 		// Смотрим по конфигу - какие каталоги содержат модули
-		$moduleDirs = $this->service->getConfig('service.modules');
-		if ($moduleDirs) {
-			$moduleDirs = (array)$moduleDirs;
+		$pluginDirs = $this->service->getConfig('service.plugins');
+		if ($pluginDirs) {
+			$pluginDirs = (array)$pluginDirs;
 		}
-		if (!is_array($moduleDirs) || empty($moduleDirs)) {
-			$this->outln("Service configuration 'modules' not found");
+		if (!is_array($pluginDirs) || empty($pluginDirs)) {
+			$this->outln("Service configuration 'plugins' not found");
 			$this->done();
 			return;
 		}
 
 		// Если у сервиса только один каталог для модулей - сразу создаем там новый модуль
-		if (count($moduleDirs) == 1) {
-			$path = $moduleDirs[0];
-			$this->createModuleProcess($this->service, $name, $path);
+		if (count($pluginDirs) == 1) {
+			$path = $pluginDirs[0];
+			$this->createPluginProcess($this->service, $name, $path);
 			$this->done();
 			return;
 		}
 
 		if ($this->requireParam('index')) {
-			$this->outln('Available directories for new module (relative to the service directory)::', ['decor' => 'b']);
+			$this->outln('Available directories for new plugin (relative to the service directory)::', ['decor' => 'b']);
 			$counter = 0;
-			foreach ($moduleDirs as $dirPath) {
+			foreach ($pluginDirs as $dirPath) {
 				$this->out((++$counter) . '. ', ['decor' => 'b']);
 				$this->outln($dirPath == '' ? '/' : $dirPath);
 			}
@@ -595,7 +639,7 @@ class CliProcessor {
 			return;
 		}
 
-		$this->createModuleProcess($this->service, $name, $moduleDirs[$i - 1]);
+		$this->createPluginProcess($this->service, $name, $pluginDirs[$i - 1]);
 		$this->done();
 	}
 
@@ -723,7 +767,7 @@ class CliProcessor {
 			$data[$name] = [
 				'name' => $name,
 				'path' => $path,
-				'object' => Service::create($name),
+				'object' => $this->app->getService($name),
 			];
 		}
 		uksort($data, 'strcasecmp');
@@ -778,7 +822,7 @@ class CliProcessor {
 			}
 
 			foreach ($serviceModels as $modelName => $path) {
-				$analizer = new ModelBrowser([
+				$analizer = new ModelBrowser($this->app, [
 					'service' => $service,
 					'modelName' => $modelName,
 					'path' => $path,
@@ -821,22 +865,22 @@ class CliProcessor {
 			$this->out('New service created in: ');
 			$this->outln($service->getPath(), ['decor' => 'u']);
 		} catch (\Exception $e) {
-			$this->outln('Module was not created. ' . $e->getMessage());
+			$this->outln('Service was not created. ' . $e->getMessage());
 		}
 	}
 
 	/**
 	 *
 	 * */
-	private function createModuleProcess($service, $name, $path) {
-		$editor = new ModuleEditor($service);
+	private function createPluginProcess($service, $name, $path) {
+		$editor = new PluginEditor($service);
 		try {
-			$module = $editor->createModule($name, $path);
-			$dir = $module->directory;
-			$this->out('New module created in: ');
+			$plugin = $editor->createPlugin($name, $path);
+			$dir = $plugin->directory;
+			$this->out('New plugin created in: ');
 			$this->outln($dir->getPath(), ['decor' => 'u']);
 		} catch (\Exception $e) {
-			$this->outln('Module was not created. ' . $e->getMessage());
+			$this->outln('Plugin was not created. ' . $e->getMessage());
 		}
 	}
 }

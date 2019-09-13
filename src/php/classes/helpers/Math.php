@@ -3,6 +3,11 @@
 namespace lx;
 
 class Math {
+	private static $counter = 0;
+
+	public static function randHash() {
+		return md5('' . (self::$counter++) . time() . rand(0, PHP_INT_MAX));
+	}
 
 	/**
 	 * Сгенерировать случайное число

@@ -99,7 +99,7 @@ abstract class Model {
 		if (static::$_service === null) {
 			$serviceName = ClassHelper::defineService(static::class);
 			if ($serviceName) {
-				static::$_service = Service::create($serviceName);
+				static::$_service = \lx::$app->getService($serviceName);
 			}
 		}
 		return static::$_service;

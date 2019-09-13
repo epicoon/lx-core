@@ -1,22 +1,19 @@
-#lx:use lx.LabeledGroup as LabeledGroup;
+#lx:module lx.RadioGroup;
 
-class RadioGroup extends LabeledGroup #lx:namespace lx {
-	preBuild(config) {
-		if (!config.unit) config.unit = {};
-		config.unit.widget = lx.Radio;
-		if (config.unit.labelPosition === undefined)
-			config.unit.labelPosition = lx.RIGHT;
+#lx:use lx.Radio;
+#lx:use lx.LabeledGroup;
 
-		return super.preBuild(config);
-	}
-
+class RadioGroup extends lx.LabeledGroup #lx:namespace lx {
 	build(config) {
-		super.build(config);
+		config.widget = lx.Radio;
+		config.widgetSize = '30px';
+		config.labelSide = lx.RIGHT;
 
+		super.build(config);
 		this.value(config.defaultValue || 0);
 	}
 
-	postBuild(config) {
+	#lx:client postBuild(config) {
 		super.postBuild(config);
 
 		this.widgets().each((a)=> { a.on('change', (e)=> {
@@ -26,11 +23,11 @@ class RadioGroup extends LabeledGroup #lx:namespace lx {
 				return;
 			}
 
-			var index = a.parent.parent.index,
+			var index = a.index,
 				old = null;
 			this.widgets().each((item)=> {
 				if (item == a) return;
-				if (item.value()) old = item.parent.parent.index;
+				if (item.value()) old = item.index;
 				item.value(false);
 			});
 			this.trigger('change', e, index, old);
@@ -42,7 +39,7 @@ class RadioGroup extends LabeledGroup #lx:namespace lx {
 			var result = null;
 			this.widgets().each(function(a) {
 				if (a.value()) {
-					result = a.parent.parent.index;
+					result = a.index;
 					this.stop();
 				}
 			});

@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class Language {
+class Language extends ApplicationComponent {
 	protected $_list = [];
 
 	private $_current;
@@ -11,7 +11,9 @@ class Language {
 	 *
 	 * */
 	public function __construct($config = []) {
-		$filePath = \lx::$conductor->getSystemPath('lxData') . '/languages';
+		parent::__construct($config);
+
+		$filePath = $this->app->conductor->getSystemPath('lxData') . '/languages';
 		$file = new ConfigFile($filePath);
 
 		$this->_list = $file->exists()
@@ -31,7 +33,7 @@ class Language {
 			case 'codes': return array_keys($this->_list);
 		}
 
-		return null;
+		return parent::__get($name);
 	}
 
 		/**

@@ -62,6 +62,22 @@ class BaseFile {
 		return file_exists($this->path);
 	}
 
+	public function createdAt() {
+		if (!$this->exists()) {
+			return INF;
+		}
+
+		return filemtime($this->getPath());
+	}
+
+	public function isNewer($file) {
+		return $this->createdAt() > $file->createdAt();
+	}
+
+	public function isOlder($file) {
+		return $this->createdAt() < $file->createdAt();
+	}
+
 	public function isDir() {
 		return is_dir($this->path);
 	}

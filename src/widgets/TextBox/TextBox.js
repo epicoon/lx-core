@@ -1,7 +1,9 @@
-#lx:use lx.Rect as Rect;
+#lx:module lx.TextBox;
 
-class TextBox extends Rect #lx:namespace lx {
-	preBuild(config='') {
+#lx:use lx.Rect;
+
+class TextBox extends lx.Rect #lx:namespace lx {
+	modifyConfigBeforeApply(config='') {
 		if (config.isString) config = {text: config};
 
 		if (!config.key) config.key = 'text';
@@ -16,20 +18,8 @@ class TextBox extends Rect #lx:namespace lx {
 		return config;
 	}
 
-	/**
-	 * lx.Collection c
-	 * Получает коллекцию TextBox-ов
-	 * */
-	static adaptTextByMin(c) {
-		c = lx.Collection.cast(c);
-		c.call("adapt");
-		var min = Infinity;
-		c.each(function(a) {
-			var s = parseFloat(a.DOMelem.style.fontSize);
-			if (min > s) min = s;
-		});
-		min = min + 'px';
-		c.each((a)=> a.setFontSize(min));
+	getBasicCss() {
+		return 'lx-TextBox';
 	}
 
 	text(val) {
@@ -55,56 +45,74 @@ class TextBox extends Rect #lx:namespace lx {
 			whiteSpace: 'nowrap',
 			textOverflow: 'ellipsis'
 		});
-		if (this.width() == 'auto') {
-			this.width('100%');
-			this.parent.childHasAutoresized(this);
-		}
 	}
 
 	wrap(mode) {
-		this.style('whiteSpace', mode);
+		this.style('white-space', mode);
 	}
 
-	adapt() {
-		if (!this.parent) return this;
+	#lx:server adapt() {
+		this.onpostunpack('.adapt');
+	}
 
-		var ctx = this.parent,
-			text = this;
+	#lx:client {
+		adapt() {
+			if (!this.parent) return this;
 
-		text.DOMelem.style.top = 0;
-		text.DOMelem.style.left = 0;
+			var ctx = this.parent,
+				text = this;
 
-		var lastSz = window.screen.height,
-			res = lx.Math.halfDivisionMethod(0, lastSz, function(res) {
-				text.DOMelem.style.fontSize = Math.floor(res) + 'px';
+			text.domElem.style('top', 0);
+			text.domElem.style('left', 0);
 
-				var tH = text.DOMelem.clientHeight,
-					cH = ctx.DOMelem.clientHeight;
-				if ( Math.floor(lastSz) == Math.floor(res) ) return 0;
-				lastSz = res;
+			var lastSz = window.screen.height,
+				res = lx.Math.halfDivisionMethod(0, lastSz, function(res) {
+					text.domElem.style('fontSize', Math.floor(res) + 'px');
 
-				if ( tH > cH ) return 1;
-				if ( ( Math.abs(tH - cH) <= 1 ) ) return 0;
-				return -1;
-			});
+					var tH = text.domElem.param('clientHeight'),
+						cH = ctx.domElem.param('clientHeight');
+					if ( Math.floor(lastSz) == Math.floor(res) ) return 0;
+					lastSz = res;
 
-		var tH = text.DOMelem.clientHeight,
-			cH = ctx.DOMelem.clientHeight;
+					if ( tH > cH ) return 1;
+					if ( ( Math.abs(tH - cH) <= 1 ) ) return 0;
+					return -1;
+				});
 
-		if (tH + lx.textPadding > cH) {
-			var fs = parseInt(text.DOMelem.style.fontSize);
-			text.DOMelem.style.fontSize = Math.floor(parseInt(text.DOMelem.style.fontSize) * cH / tH) + 'px';
+			var tH = text.domElem.param('clientHeight'),
+				cH = ctx.domElem.param('clientHeight');
+
+			if (tH + lx.textPadding > cH) {
+				var fs = parseInt(text.domElem.style('fontSize'));
+				text.domElem.style('fontSize', Math.floor(parseInt(text.domElem.style('fontSize')) * cH / tH) + 'px');
+			}
+
+			if ( text.domElem.param('offsettWidth') <= this.domElem.param('clientWidth') ) return this;
+
+			while ( text.domElem.param('offsetWidth') - 5 > this.domElem.param('clientWidth') )
+				text.domElem.style.param('fontSize', parseInt(text.domElem.style('fontSize')) - 1 + 'px');
+
+			text.domElem.style('top', null);
+			text.domElem.style('left', null);
+			ctx.childHasAutoresized(text);
+
+			return this;
 		}
 
-		if ( text.DOMelem.offsettWidth <= this.DOMelem.clientWidth ) return this;
-
-		while ( text.DOMelem.offsetWidth - 5 > this.DOMelem.clientWidth )
-			text.DOMelem.style.fontSize = parseInt(text.DOMelem.style.fontSize) - 1 + 'px';
-
-		text.DOMelem.style.top = null;
-		text.DOMelem.style.left = null;
-		ctx.childHasAutoresized(text);
-
-		return this;
+		/**
+		 * lx.Collection c
+		 * Получает коллекцию TextBox-ов
+		 * */
+		static adaptTextByMin(c) {
+			c = lx.Collection.cast(c);
+			c.call("adapt");
+			var min = Infinity;
+			c.each(function(a) {
+				var s = parseFloat(a.domElem.style('fontSize'));
+				if (min > s) min = s;
+			});
+			min = min + 'px';
+			c.each((a)=> a.setFontSize(min));
+		}
 	}
 }

@@ -1,25 +1,23 @@
-#lx:use lx.LabeledGroup as LabeledGroup;
+#lx:module lx.CheckboxGroup;
 
-class CheckboxGroup extends LabeledGroup #lx:namespace lx {
-	preBuild(config) {
-		if (!config.unit) config.unit = {};
-		config.unit.widget = lx.Checkbox;
-		if (config.unit.labelPosition === undefined)
-			config.unit.labelPosition = lx.RIGHT;
+#lx:use lx.Checkbox;
+#lx:use lx.LabeledGroup;
 
-		return super.preBuild(config);
-	}
-
+class CheckboxGroup extends lx.LabeledGroup #lx:namespace lx {
 	build(config) {
+		config.widget = lx.Checkbox;
+		config.widgetSize = '30px';
+		config.labelSide = lx.RIGHT;
+
 		super.build(config);
 		if (config.defaultValue !== undefined) this.value(config.defaultValue);
 	}
 
-	postBuild(config) {
+	#lx:client postBuild(config) {
 		super.postBuild(config);
 
 		this.widgets().each((a)=> { a.on('change', (e)=> {
-			this.trigger('change', e, a.parent.parent.index, a.value());
+			this.trigger('change', e, a.index, a.value());
 		})});
 	}
 
@@ -27,7 +25,7 @@ class CheckboxGroup extends LabeledGroup #lx:namespace lx {
 		if (nums === undefined) {
 			var result = [];
 			this.widgets().each(function(a) {
-				if (a.value()) result.push(a.parent.parent.index);
+				if (a.value()) result.push(a.index);
 			});
 
 			return result;

@@ -1,7 +1,13 @@
-#lx:use lx.Input as Input;
+#lx:module lx.Textarea;
 
-class Textarea extends Input #lx:namespace lx {
-	tagForDOM() {
+#lx:use lx.Input;
+
+class Textarea extends lx.Input #lx:namespace lx {
+	static getStaticTag() {
 		return 'textarea';
+	}
+
+	getBasicCss() {
+		return 'lx-Textarea';
 	}
 }

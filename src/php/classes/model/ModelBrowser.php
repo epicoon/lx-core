@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class ModelBrowser {
+class ModelBrowser extends ApplicationTool {
 	private $_modelName;
 	private $_service = null;
 	private $_path = null;
@@ -10,14 +10,14 @@ class ModelBrowser {
 	private $_schema = null;
 
 	/**
-	 * @param $service - сервис, для моделей которого строится список
+	 * @param $service Service - сервис, для моделей которого строится список
 	 * @return ModelBrowser[]
 	 * */
 	public static function getList($service) {
 		$pathes = $service->conductor->getModelsPath();
 		$result = [];
 		foreach ($pathes as $modelName => $path) {
-			$result[$modelName] = new self([
+			$result[$modelName] = new self($service->app, [
 				'service' => $service,
 				'modelName' => $modelName,
 				'path' => $path,
@@ -28,7 +28,7 @@ class ModelBrowser {
 
 	/**
 	 * Получить аналитическую информацию по всем моделям выбранного сервиса
-	 * @param $service - сервис, для моделей которого ищется информация
+	 * @param $service Service - сервис, для моделей которого ищется информация
 	 * @param $map array - карта необходимых параметров. Если не передана, возвращаются все параметры
 	 * Возможные параметры: [path, code, needTable, hasChanges]
 	 * @return array - возвращает ассоциативный массив: ключи - имена моделей, значения - запрошенные данные о моделях
@@ -43,7 +43,7 @@ class ModelBrowser {
 		foreach ($pathes as $modelName => $path) {
 			$file = new File($path);
 			$code = $file->get();
-			$browser = new self([
+			$browser = new self($service->app, [
 				'service' => $service,
 				'modelName' => $modelName,
 				'path' => $path,
@@ -73,7 +73,9 @@ class ModelBrowser {
 	/**
 	 *
 	 * */
-	public function __construct($config) {
+	public function __construct($app, $config) {
+		parent::__construct($app);
+		
 		//todo Нужно обязательно, чтобы найти - может в перспективе будет связка с классом, который сейчас необязателен
 		if (!isset($config['service'])) {
 			throw new \Exception("ModelBrowser need service", 1);
@@ -83,7 +85,7 @@ class ModelBrowser {
 		}
 
 		$this->_service = is_string($config['service'])
-			? \lx::getService($config['service'])
+			? $this->app->getService($config['service'])
 			: $config['service'];
 
 		if (isset($config['path'])) {

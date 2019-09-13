@@ -4,7 +4,7 @@ namespace lx;
 
 class ServiceEditor {
 	public function createService($name, $path) {
-		$serviceRootPath = \lx::$conductor->getFullPath($path, \lx::sitePath());
+		$serviceRootPath = \lx::$app->conductor->getFullPath($path, \lx::$app->sitePath);
 		$fullPath = $serviceRootPath . '/' . $name;
 
 		if (file_exists($fullPath)) {
@@ -18,8 +18,8 @@ class ServiceEditor {
 		 * @var string $serviceCode
 		 * */
 
-		$serviceConfig = \lx::getDefaultServiceConfig();
-		$modulesDirName = $serviceConfig['modules'];
+		$serviceConfig = \lx::$app->getDefaultServiceConfig();
+		$pluginsDirName = $serviceConfig['plugins'];
 		$modelsDirName = $serviceConfig['models'];
 
 		$namespace = $name;
@@ -41,7 +41,7 @@ class ServiceEditor {
 		$configCode = str_replace('<nmsp>', $namespace . '\\', $configCode);
 		$configCode = str_replace('<service>', $serviceName, $configCode);
 		$configCode = str_replace('<route>', $route, $configCode);
-		$configCode = str_replace('<module>', $modulesDirName, $configCode);
+		$configCode = str_replace('<plugin>', $pluginsDirName, $configCode);
 		$configCode = str_replace('<model>', $modelsDirName, $configCode);
 		$config = $serviceDir->makeFile('lx-config.yaml');
 		$config->put($configCode);
@@ -50,11 +50,11 @@ class ServiceEditor {
 		$serviceFile = $serviceDir->makeFile('Service.php');
 		$serviceFile->put($serviceCode);
 
-		$serviceDir->makeDirectory($modulesDirName);
+		$serviceDir->makeDirectory($pluginsDirName);
 		$serviceDir->makeDirectory($modelsDirName);
 
 		(new AutoloadMapBuilder())->createCommonAutoloadMap();
 		Autoloader::getInstance()->map->reset();
-		return Service::create($name);
+		return \lx::$app->getService($name);
 	}
 }

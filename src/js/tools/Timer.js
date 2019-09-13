@@ -1,3 +1,5 @@
+#lx:private;
+
 class Timer #lx:namespace lx {
 	constructor(p=0) {
 		if (p.isNumber || p.isArray) p = {period: p};
@@ -15,21 +17,24 @@ class Timer #lx:namespace lx {
 		// this.actions может быть массивом функций - они будут вызываться последовательно
 		this.actions = p.action || p.actions || null;
 		this.actionIndex = 0;
+
+		this._action = function(){};
+		this._iteration = function(){};
 	}
 
 	/**
 	 * Метод, вызываемый при каждом обновлении фрейма
 	 * */
-	action() {}
+	whileCycle(func) { this._action = func; }
 
 	/**
 	 * Метод, вызываемый при очередном завершении периода
 	 * */
-	iteration() {}
+	onCycleEnds(func) { this._iteration = func; }
 
 	/**
-	 * Реализованы параллельно друг другу метод .action() и поле .actions
-	 * - метод может быть перепределен у потомка
+	 * Реализованы параллельно друг другу метод ._action() и поле .actions
+	 * - метод может быть инициализирован с помощью метода [[whileCycle(func)]]
 	 * - поле может быть инициализировано массивом функций, которые будут работать последовательно
 	 * - метод и функции из поля-массива могут работать параллельно (метод в итерации сработает первым)
 	 * */
@@ -58,6 +63,13 @@ class Timer #lx:namespace lx {
 	}
 
 	/**
+	 * Сброс насчитанного времени внутри периода
+	 * */
+	resetTime() {
+		this.startTime = (new Date).getTime();
+	}
+
+	/**
 	 * Сброс счетчика периодов
 	 * */
 	resetCounter() {
@@ -70,7 +82,7 @@ class Timer #lx:namespace lx {
 	shift() {
 		var time = (new Date).getTime(),
 			delta = time - this.startTime,
-			k = delta / this.__periodDuration();
+			k = delta / __periodDuration(this);
 		if (k > 1) k = 1;
 		return k;
 	}
@@ -83,7 +95,7 @@ class Timer #lx:namespace lx {
 		if (!this.periodDuration) return true;
 
 		var time = (new Date).getTime();
-		if (time - this.startTime >= this.__periodDuration()) {
+		if (time - this.startTime >= __periodDuration(this)) {
 			this.startTime = time;
 			return true;
 		}
@@ -94,13 +106,13 @@ class Timer #lx:namespace lx {
 	 * Используется системой - вызывается при каждом обновлении фрейма
 	 * */
 	go() {
-		this.action();
-		var action = this.__action();
+		this._action();
+		var action = __action(this);
 		if (action && action.isFunction) action.call(this);
 
 		if (this.periodEnds()) {
 			if (this.counterOn) this.periodCounter++;
-			this.iteration();
+			this._iteration();
 
 			if (this.periodDuration && this.periodDuration.isArray) {
 				this.periodIndex++;
@@ -113,16 +125,16 @@ class Timer #lx:namespace lx {
 			}
 		}
 	}
+}
 
-	__periodDuration() {
-		if (this.periodDuration && this.periodDuration.isArray)
-			return this.periodDuration[this.periodIndex];
-		return this.periodDuration;
-	}
+function __periodDuration(self) {
+	if (self.periodDuration && self.periodDuration.isArray)
+		return self.periodDuration[self.periodIndex];
+	return self.periodDuration;
+}
 
-	__action() {
-		if (this.actions && this.actions.isArray)
-			return this.actions[this.actionIndex];
-		return this.actions;
-	}
+function __action(self) {
+	if (self.actions && self.actions.isArray)
+		return self.actions[self.actionIndex];
+	return self.actions;
 }

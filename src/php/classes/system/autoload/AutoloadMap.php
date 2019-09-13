@@ -6,22 +6,22 @@ namespace lx;
  * Карта для поиска модулей и классов
  * */
 class AutoloadMap {
+	private $sitePath;
+	private $autoloadMapPath;
+	private $autoloadMapCachePath;
+	
 	private $_packages = [];
 	private $_files = [];
 	private $_namespaces = [];
 	private $_classes = [];
 
-	/* Синглтон */
-	private static $instance = null;
-	private function __construct() {
+	public function __construct($sitePath) {
+		$this->sitePath = $sitePath;
+		$systemPath = \lx::$conductor->getSystemPath('systemPath');
+		$this->autoloadMapPath = $systemPath . '/autoload.json';
+		$this->autoloadMapCachePath = $systemPath . '/autoloadCache.json';
+		
 		$this->load();
-	}
-	private function __clone() {}
-	public static function getInstance() {
-		if (self::$instance === null) {
-			self::$instance = new self();
-		}
-		return self::$instance;
 	}
 
 	/**
@@ -50,7 +50,9 @@ class AutoloadMap {
 	 * Загрузка карт, при необходимости - актуализация кэша
 	 * */
 	private function load() {
-		if (!file_exists(\lx::$conductor->autoloadMapCache) || filemtime(\lx::$conductor->autoloadMap) > filemtime(\lx::$conductor->autoloadMapCache)) {
+		if (!file_exists($this->autoloadMapCachePath)
+			|| filemtime($this->autoloadMapPath) > filemtime($this->autoloadMapCachePath)
+		) {
 			$this->reset();
 		} else {
 			$this->loadCache();
@@ -68,7 +70,7 @@ class AutoloadMap {
 			'namespaces' => $this->_namespaces,
 			'classes' => $this->_classes,
 		]);
-		$file = new File(\lx::$conductor->autoloadMapCache);
+		$file = new File($this->autoloadMapCachePath);
 		$file->put($data);
 	}
 
@@ -76,7 +78,7 @@ class AutoloadMap {
 	 * Строит карты из 'autoloadCache.json'
 	 * */
 	private function loadCache() {
-		$file = new File(\lx::$conductor->autoloadMapCache);
+		$file = new File($this->autoloadMapCachePath);
 		$data = $file->get();
 		$data = json_decode($data, true);
 
@@ -90,7 +92,7 @@ class AutoloadMap {
 	 * Строит карты непосредственно из 'autoload.json'
 	 * */
 	private function loadForce() {
-		$file = new File(\lx::$conductor->autoloadMap);
+		$file = new File($this->autoloadMapPath);
 		if (!$file->exists()) {
 			return false;
 		}
@@ -116,7 +118,7 @@ class AutoloadMap {
 	 * Парсим 'classes' и 'directories'
 	 * */
 	private function parseClasses($data) {
-		$sitePath = \lx::sitePath() . '/';
+		$sitePath = $this->sitePath . '/';
 
 		$classes = [];
 		if (isset($data['classes'])) {

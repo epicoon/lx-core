@@ -1,0 +1,51 @@
+/**
+ * @const lx.Plugin Plugin
+ * */
+
+#lx:use lx.ActiveBox;
+
+const body = Plugin->>work;
+const list = new lx.Dict({
+	cli: {
+		box: null,
+		title: 'CLI',
+		service: 'lx/lx-dev-wizard'
+	},
+	doc: {
+		box: null,
+		title: 'Documentation',
+		service: 'lx/lx-doc'
+	},
+	demo: {
+		box: null,
+		title: 'Demo',
+		service: 'lx/lx-demo'
+	}
+});
+const buts = [ Plugin->>cli, Plugin->>doc, Plugin->>demo ];
+
+list.each((item, key)=>{
+	let but = Plugin.find(key);
+	but.click(()=>{
+		buts.each((a)=>a.fill('orange'));
+		but.fill('lightgreen');
+		if (item.box) {
+			lx.WidgetHelper.bringToFront(item.box);
+			return;
+		}
+		^Respondent.loadPlugin(key): (res)=>loadPlugin(item.service, item.title, key, res);
+	});
+});
+
+function loadPlugin(name, title, boxName, data) {
+	if (data === false) {
+		lx.Tost.warning('Application need service "'+ name +'"');
+		return;
+	}
+
+	list[boxName].box = new lx.ActiveBox({ parent: body, header: title, geom:true });
+	var elem = list[boxName].box;
+	elem->body.fill('white');
+	elem->body.injectPlugin(data);
+	elem->body.style('overflow', 'auto');
+}

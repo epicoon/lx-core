@@ -7,6 +7,6 @@
 		<link rel="shortcut icon" href="/lx/web/icon.png" type="image/png">
 	</head>
 	<body>
-		Module builder error: <?=$error?>
+		Plugin builder error: <?=$error?>
 	</body>
 </html>

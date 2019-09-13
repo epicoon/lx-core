@@ -84,7 +84,8 @@ This repository contains platform core. The core is enough for web application d
     * If it is in a directory (for example web), you need to correct the path
     */
    require_once __DIR__ . '/vendor/lx/lx-core/main.php';
-   lx::run();
+   $app = new lx\Application();
+   $app->run();
    ```
 5. If in the browser on the domain specified in the server configuration and the file `/etc/hosts` you see the page:
    ![lx start page](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/images/lx-start-page.png)
@@ -99,12 +100,12 @@ Elements of the application that make up the architecture:
 * [Service routers](#arch-service-router)
 * [Controllers](#arch-controller)
 * [Actions](#arch-action)
-* [Modules](#arch-module)
-* [Blocks](#arch-block)
+* [Plugins](#arch-plugin)
+* [Snippets](#arch-snippet)
 * [Widgets](#arch-widget)
 * [Respondents](#arch-respondent)
 
-Of all the elements of the architecture a service and a module are configurable with special files. And also the application is configurable.
+Of all the elements of the architecture a service and a plugin are configurable with special files. And also the application is configurable.
 
 * <a name="arch-package"><h3>Packages</h3></a>
   The application consists of packages.
@@ -122,7 +123,14 @@ Of all the elements of the architecture a service and a module are configurable 
   Packages can be located in multiple directories within the application, in which ones it is defined in the application configuration. [Application configuration details](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/doc/app-config.md)
 
 * <a name="arch-service"><h3>Services</h3></a>
-  Service is a package that can respond to requests. It has a special field with settings in the lx-configuration. Configuration example in `yaml`:
+  Service is a package that can respond to requests.<br>
+  If has a set of tools to do this:
+  * [Service routers](#arch-service-router)
+  * [Controllers](#arch-controller)
+  * [Actions](#arch-action)
+  * [Plugins](#arch-plugin)
+
+  It has a special field with settings in the lx-configuration. Configuration example in `yaml`:
   ```yaml
   # Service name
   name: lx/lx-dev-wizard
@@ -139,7 +147,7 @@ Of all the elements of the architecture a service and a module are configurable 
     class: lx\devWizard\Service
 
     # Other service settings
-    modules: module
+    plugins: plugin
     models: model
     ...
   ```
@@ -156,7 +164,7 @@ Of all the elements of the architecture a service and a module are configurable 
   #   require parameter 'routes' - map of the routes or 'path' - of file with map
   #   map of the routes - associative array:
   #     key - URL of the query (or regular expression if it starts with '~')
-  #     value - data for the object where the request is redirected
+  #     value - requested source data
   # - class 
   #   require parameter 'name' - name of the router class
   #   the router is extended from [[lx\Router]]
@@ -165,9 +173,10 @@ Of all the elements of the architecture a service and a module are configurable 
     routes:
       # Home page
       /: your/home-service
-      # URL oriented directly to the service module
+
+      # URL oriented directly to the service plugin
       # working only for a specific application mode
-      test-page: {service-module: 'your/some-service:some-module', on-mode: dev}
+      test-page: {service-plugin: 'your/some-service:some-plugin', on-mode: dev}
   ...
   ```
   ![Application routing schema](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/images/architecture-scheme.png)
@@ -175,7 +184,7 @@ Of all the elements of the architecture a service and a module are configurable 
 
 * <a name="arch-service-router"><h3>Service routers</h3></a>
   Request management within services is handled by service routers.<br>
-  By analogy with the application’s router, the service’s router can be configured by the service’s lx-configuration file or it can be extended by class `lx.ServiceRouter`.<br>
+  By analogy with the application’s router, the service’s router can be configured by the service’s lx-configuration file or it can be extended by class `lx\ServiceRouter`.<br>
   Example of configuration via the lx-configuration file:
   ```yaml
   name: lx/lx-dev-wizard
@@ -191,13 +200,16 @@ Of all the elements of the architecture a service and a module are configurable 
         # Request to controller
         # The result of the controller method [[run()]] will be returned
         some-route-1: ControllerClassName
+
         # Request to controller
         # The result of the controller method [[actionName()]] will be returned
         some-route-2: ControllerClassName::actionName
+
         # Request to action. The result of the method [[run()]] will be returned
         some-route-3: {action: ActionClassName}
-        # Request to module. Module rendering result will be returned
-        some-route-4: {module: moduleName}
+
+        # Request to plugin. Plugin rendering result will be returned
+        some-route-4: {plugin: pluginName}
     ...
   ```
   ![Service routing schema](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/images/service-routing.png)
@@ -212,47 +224,47 @@ Of all the elements of the architecture a service and a module are configurable 
   Action is such an element of the service, which responds to a single request.<br>
   The `run()` method will be called to process the request.
 
-* <a name="arch-module"><h3>Modules</h3></a>
-  The module is a service element representing a set of logic running on the client, the graphical interface and the server part represented by the respondents (AJAX-controllers operating in the context of specific modules). In its idea reminds SPA.
+* <a name="arch-plugin"><h3>Plugins</h3></a>
+  The plugin is a service element representing a set of logic running on the client, the graphical interface and the server part represented by the respondents (AJAX-controllers operating in the context of specific plugins). In its idea reminds SPA.
   
-  Module features:
+  Plugin features:
   * rendered and loaded by the browser once
   * runs without page reload
   * in the project structure has its own directory with a specific infrastructure
   * has its own lx-configuration file to configure some parameters and infrastructure
   * has its own resources (JS code, CSS code, images, etc.)
-  * the module is available as a context variable `$Module` in its blocks code (view PHP-files)
-  * the module is available as a context variable `Module` in its JS code
+  * the plugin is available as a context variable `Plugin` in its snippets code
+  * the plugin is available as a context variable `Plugin` in its client-side code
   * requests data from the server via AJAX
-  * to generate data sent by the server has its own tools (respondents)
-  * any module can load any other module and place it in an element on its page
-  * module rendering can be initiated with passing parameters if they are provided
+  * to generate data sent by the server has its own tools ([respondents](#arch-respondent))
+  * any plugin can load any other plugin and place it in an element on its page
+  * plugin rendering can be initiated with passing parameters if they are provided
   
-  List of module infrastructure elements:
-  * Module JS-code. There are two main executed files: the first one will be executed before the module is loaded on the client (the file path specified by the configuration key `jsMain`), the second one will be executed after the module is loaded on the client (the file path specified by the configuration key `jsBootstrap`).
-  * Respondents. PHP Classes. They are AJAX controllers that send data to the module client side (configuration key `respondents`).
-  * View. Module rendering starts from the root block, whose code is described in the root view file (the file path specified by the configuration key `view`).
-  * Images (configuration key `images`). You can set the directory in which the images of the module will lie.
-  * CSS files (configuratoin key `css`). You can set the directory in which the CSS files will lie. When the module is loaded, these files will be automatically added to the page.<br>
-  An example of setting up the elements of the module infrastructure in the lx-configuration:
+  List of plugin infrastructure elements:
+  * Plugin JS-code. There are two main executed files: the first one will be executed before the plugin is loaded on the client (the file path specified by the configuration key `jsBootstrap`), the second one will be executed after the plugin is loaded on the client (the file path specified by the configuration key `jsMain`).
+  * Respondents. PHP Classes. They are AJAX controllers that send data to the plugin client side (configuration key `respondents`).
+  * Snippets. Plugin rendering starts with the root snippet, the code of which is described in the file, the path to which determines the `rootSnippet` configuration key. In certain situations, it is convenient to call snippets by the name of their files (or directories) relative to the common root directory for snippets. A list of such directories can also be specified in the configuration (the `snippets` key).
+  * Images (configuration key `images`). You can set the directory in which the images of the plugin will lie.
+  * CSS files (configuratoin key `css`). You can set the directory in which the CSS files will lie. When the plugin is loaded, these files will be automatically added to the page.<br>
+  An example of setting up the elements of the plugin infrastructure in the lx-configuration:
   ```yaml
-  # JS-code that runs before the module is loaded, will be in the file
-  # 'frontend/_bootstrap.js' relative to the root directory of the module
+  # JS-code that runs before the plugin is loaded, will be in the file
+  # 'frontend/_bootstrap.js' relative to the root directory of the plugin
   jsBootstrap: frontend/_bootstrap.js
-  # JS-code that runs after the module is loaded, will be in the file
-  # 'frontend/_main.js' relative to the root directory of the module
+  # JS-code that runs after the plugin is loaded, will be in the file
+  # 'frontend/_main.js' relative to the root directory of the plugin
   jsMain: frontend/_main.js
 
   # Respondents map
   respondents:
     # Key - respondent alias for client side
     # Value - respondent class name
-    # (!)the namespace is specified relative to the module namespace
+    # (!)the namespace is specified relative to the plugin namespace
     Respondent: backend\Respondent
 
-  # GUI root file will be 'view/_root.php',
-  # it contains the module root block code
-  viewIndex: view/_root.php
+  # GUI root file will be 'snippet/_root.js',
+  # it contains the plugin root snippet code
+  rootSnippet: snippets/_root.js
 
   # Image directory path
   # You can use application aliases - then the path will be constructed according to the alias
@@ -262,163 +274,181 @@ Of all the elements of the architecture a service and a module are configurable 
   # CSS files directory path
   css: assets/css
   ```
-  [Module configuration details](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/doc/module-config.md)
+  [Plugin configuration details](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/doc/plugin-config.md)
 
   Underscore in file names is the author of the platform select to indicate the special status of files (root files, code enter points etc.), and also simplify their visual search in the project explorer when sorting directories and files in alphabetical order. If desired, all path agreements are changed by configuration.
 
-* <a name="arch-block"><h3>Blocks</h3></a>
-  The blocks are separate parts of the graphical interface. The code of the blocks is written in a procedural style (as opposed to widgets whose code is written in the OOP style, see below). They can be either a separate php file or a directory in which there should be a php file with a view (in this case, the name of the php file must match the name of the block directory and may begin with an underscore)<br>
-  Path to the block named `blockName` variants:
-  * path/to/block/blockName.php
-  * path/to/block/blockName/blockName.php
-  * path/to/block/blockName/_blockName.php
-  Thus, the philosophy of the blocks implies their use in situations where the use of OO techniques is not necessary for an interface fragment (encapsulation, inheritance, polymorphism). This part of the GUI is specific to this part of the application. However, this does not mean that there is no mechanism for reusing the code for blocks.
+* <a name="arch-snippet"><h3>Snippets</h3></a>
+  The snippets are separate parts of the graphical interface. The code of the snippets is written in a procedural style (as opposed to widgets whose code is written in the OOP style, see below). They can be either a separate file or a directory in which there should be a file with a view code (in this case, the name of the file must match the name of the snippet directory and may begin with an underscore)<br>
+  Path to the snippet named `snippetName` variants:
+  * path/to/snippet/snippetName.js
+  * path/to/snippet/snippetName/snippetName.js
+  * path/to/snippet/snippetName/\_snippetName.js
+  Thus, the philosophy of the snippets implies their use in situations where the use of OO techniques is not necessary for an interface fragment (encapsulation, inheritance, polymorphism). This part of the GUI is specific to this part of the application. However, this does not mean that there is no mechanism for reusing the code for snippets.
 
-  The block can have its own JS-code that controls the described fragment of the graphical interface (just for this a directory block version is exist). In this case, the file name requirements are the same as for the view file (but with the extension `.js`).
-  Examples:
-  * path/to/block/blockName/blockName.php
-  * path/to/block/blockName/blockName.js
-  or:
-  * path/to/block/blockName/_blockName.php
-  * path/to/block/blockName/_blockName.js
+  A snippet can have its own JS-code running on the client side. To do this, you need to define a function in the snippet code and pass it to the `Snipept.onload ()` method:
+  ```js
+  /**
+   * @const lx.Application App
+   * @const lx.Plugin Plugin
+   * @const lx.Snippet Snippet
+   * */
 
-  Two context variables are available while writing PHP block code:
-  * $Module - объект модуля, к которому относится блок
-  * $Block - объект самого блока, с которым можно работать как с обычным виджетом класса `lx\Box`
+   Snippet.onload(()=>{
+      console.log('This code has executed on the client side!');
+   });
+  ```
+  Three context variables are available while writing snippet code:
+  * App - the application object
+  * Plugin - the plugin object to which the snippet belongs
+  * Snippet - snippet object. It has property `widget` which is the instance of the `lx.Box` class. It also has the `clientParams` property, a JS-object that will be available on the client side.
 
-  При написании JS-кода блока доступны три контекстные переменные:
-  * Module - the module object to which the block belongs
-  * Block - the object of the block itself. You can work with it like this is instance of `lx\Box`
-  * clientParams - an object with fields that can be set in PHP when a block is loaded into an element
+  Two context variables are available while writing functoion for client-side snippet code:
+  * Plugin - the plugin object to which the snippet belongs
+  * Snippet - snippet object. It has property `widget` which is the instance of the `lx.Box` class. It also has the `clientParams` property, a JS-object that can contain fields defined on the server side.
 
-  Blocks are built from widgets. Blocks can include other blocks by invoking rendering. Example:
-  ```php
+  Snippets are built from widgets. Snippets can include other snippets. Example:
+  ```js
+  // We need include JS modules containing the code of the necessary widgets
+  #lx:use lx.Box;
+  #lx:use lx.Button;
+  #lx:use lx.ActiveBox;
+
   // Make a widget
-  $menu = new lx\Box($menuConfig);
+  let menu = new lx.Box(menuConfig);
 
   // The widget is added inside another widget
-  $button = $menu->add(lx\Button::class, $buttonConfig);
+  button = menu.add(lx.Button, buttonConfig);
 
-  // Add a couple of widgets to put blocks into them
-  $box1 = new lx\Box($config1);
-  $box2 = new lx\Box($config2);
+  // Add a couple of widgets to put snippets into them
+  let box1 = new lx.Box(config1);
+  let box2 = new lx.Box(config2);
 
-  // Insert the block - in this case the name is the path relative to the code file
+  // Insert the snippet - in this case the name is the path relative to the code file
   // You can use application aliases
   // If the path starts with '/', then it is considered relative to the root of the site.
-  $box1->setBlock('blockName1');
+  box1.setSnippet('snippetName1');
 
-  // Insert one more block and specify the configuration
+  // Insert one more snippet and specify the configuration
   // @param path - the same path as in the previous case
   // @param renderParams - array of parameters that will be available as variables
-  //                       in the file describing the embed block
-  // @param clientParams - array of parameters that will be available in the client-side
-  //                       block js-code in the context object 'clientParams'
-  $box2->setBlock([
-    'path' => 'blockName2',
-    'renderParams' => [],
-    'clientParams' => [],
+  //                       in the file describing the embed snippet
+  // @param clientParams - array of parameters that will be available in the 
+  //                       snippet code by property [[Snippet.clientParams]]
+  box2.setSnippet({
+    path: 'snippetName2',
+    renderParams: {},
+    clientParams: {},
+  });
+
+  // Snippet adding: $snippetName - the snippet name, $config - configuration for widget
+  // in which the snippet is being rendered
+  let innerSnippet = Snippet.addSnippet(snippetName, config);
+
+  // Several snippets adding
+  Snippet.addSnippets({
+    snippetName1: config1,
+    snippetName2: config2,
+  });
+
+  // Several snippets-popups adding 
+  // they will be rendered to the lx.ActiveBox widget
+  let newSnippetsArray = Snippet.addSnippets([
+    {
+      path: 'pathToSnippet1',
+      widget: lx.ActiveBox,
+      // ... конфигурирование виджета
+      renderParams: {/*...*/},
+      clientParams: {/*...*/}
+    },
+    {
+      path: 'pathToSnippet2',
+      widget: lx.ActiveBox,
+      // ... конфигурирование виджета
+      renderParams: {/*...*/},
+      clientParams: {/*...*/}
+    }
   ]);
 
-  // Block adding: $blockName - the block name, $config - configuration for widget
-  // in which the block is being rendered
-  $Block->addBlock($blockName, $config);
-
-  // Several blocks adding
-  $Block->addBlocks([
-    $blockName1 => $config,
-    $blockName2 => $config,
-  ]);
-
-  // Several blocks-popups adding 
-  // they will be rendered to the lx\ActiveBox widget and initially hidden
-  $Block->addPopups([
-    $popupName1 => $config,
-    $popupName2 => $config,
-  ]);
-
-  // It is very easy to write a method for a service that will render frequently used blocks:
-  // Get such a service
-  $tools = \lx::getService('lx/lx-tools');
-  // Render a couple of blocks into the current block
-  $tools->renderBlock('inputPopup');
-  $tools->renderBlock('confirmPopup');
+  // Add a snippet from another plugin
+  Snippet.addSnippet({
+    plugin:'lx/lx-tools:snippets',
+    snippet:'confirmPopup'
+  });
   ```
 
+  When the snippet js code is executed in the browser, the execution context of the parent snippet is available, but execution contexts of the nested snippets are not available. For example, the `B` snippet is nested in the` A` snippet, the `C` snippet is nested in the` B` snippet: `A -> B -> C`. In the snippets, the variables `a`,` b` and `c` are declared respectively. Then in the `A` snippet only the variable `a` will be available. The variables `a` and `b` will be available in the `B` snippet. The variables` a`, `b` and` c` will be available in the `C` snippet.
 
+  The path to the plugin root snippet is specified in the plugin lx-configuration by the key `rootSnippet`.
 
-  When the block js code is executed in the browser, the execution context of the parent block is available, but execution contexts of the nested blocks are not available. For example, the `B` block is nested in the` A` block, the `C` block is nested in the` B` block: `A -> B -> C`. In the blocks, the variables `a`,` b` and `c` are declared respectively. Then in the `A` block only the variable `a` will be available. The variables `a` and `b` will be available in the `B` block. The variables` a`, `b` and` c` will be available in the `C` block.
-
-  The path to the module root block is specified in the module lx-configuration by the key `view`.
+  Paths to directories containing snippets can be defined in the plugin's lx-configuration using the `snippets` key.
 
 * <a name="arch-widget"><h3>Widgets</h3></a>
-  Widgets are specialized parts of the graphical interface. The widget code is written in OOP style (as opposed to blocks).<br>
+  Widgets are specialized parts of the graphical interface. The widget code is written in OOP style (as opposed to snippets).<br>
   The mechanism of the widget has significant features:
   * The widget instance can be created both on the server side and on the client side
   * Creating a widget on the server side, initiates the creation of an instance on the client side
-  * The widget code is represented by two classes - one on the server side (PHP code), the second on the client side (JS code)
-  * Widget classes (PHP and JS) should be in separate files in a shared directory. Example:
-    * path/to/widget/MyWidget/MyWidget.php
+  * The widget code may contain fragments compiled only for the server, or only for the client
+  * The file with the widget code can be located in the directory. Example:
     * path/to/widget/MyWidget/MyWidget.js
     or:
-    * path/to/widget/MyWidget/_MyWidget.php
-    * path/to/widget/MyWidget/_MyWidget.js
+    * path/to/widget/MyWidget/\_MyWidget.js
     The class name of such widget must match the directory name `MyWidget`.
-    PHP code:
-    ```php
-    <?php
-
-    namespace nmsp\example;
-
-    use lx\Box;
-
-    class MyWidget extends Box
-    {
-      // ... code
-    }
-    ```
-    JS code:
+  * It is recommended to define the widget code as a JS-module so that it is convenient to include it in snippet code. [JS-module details](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/doc/js-modules.md)
+    Example:
     ```js
+    #lx:module nmsp.example.MyWidget
+
+    #lx:use lx.Box;
+
     class MyWidget extends lx.Box #lx:namespace nmsp.example
     {
-      // ... code
+        // ... common code
+
+        #lx:server {
+            // ... server code
+        }
+
+        #lx:client {
+            // ... client code
+        }
     }
     ```
   * A widget constructor takes a configuration as an associative array. Configuration parameter `key` is important for easy search on the client side.
-  * A server-side widget instance supports creation of JS-style dynamic properties. These properties will be available on the client side.
+  * A server-side widget instance supports creation of dynamic properties. These properties will be available on the client side.
   Example:
-  PHP code:
-  ```php
+  Code on the server side:
+  ```js
   // Make a widget with a key
-  $button = new lx\Button(['key' => 'myButton']);
+  let button = new lx.Button({key: 'myButton'});
 
   // Add a dynamic property
-  $button->testField = 'some text';
+  button.testField = 'hello from server!';
   ```
-  JS code:
+  Code on the client side:
   ```js
   // Get the widget instance by the key
   // Operator "->>" means widget finding by the key
-  const myButton = Module->>myButton;
+  const myButton = Plugin->>myButton;
 
-  // By checking the dynamic property we can see 'some text' in the console
+  // By checking the dynamic property we can see 'hello from server!' in the console
   console.log(myButton.testField);
   ```
-  Thus, the philosophy of widgets involves using them to describe the most frequently used and universal fragments of the graphical interface. You can draw an analogy - if the blocks are buildings, the widgets are bricks.
+  Thus, the philosophy of widgets involves using them to describe the most frequently used and universal fragments of the graphical interface.
 
 * <a name="arch-respondent"><h3>Respondents</h3></a>
-  Respondents are functional elements of a module. In fact, are php classes. They are AJAX-controllers that give data to the client part of a module.
+  Respondents are functional elements of a plugin. In fact, are php classes. They are AJAX-controllers that give data to the client part of a plugin.
   Example:
-  * Definition in the module configuration
+  * Definition in the plugin configuration
     ```yaml
     respondents:
       Respondent: backend\Respondent
     ```
-  * Respondent code (according to the given configuration, it should be in the file `backend/Respondent.php` relative to the module root)
+  * Respondent code (according to the given configuration, it should be in the file `backend/Respondent.php` relative to the plugin root)
     ```php
     <?php
 
-    namespace path\to\module\backend;
+    namespace path\to\plugin\backend;
 
     class Respondent extends \lx\Respondent
     {
@@ -448,9 +478,9 @@ Since the application configuration contains several directories for packages (a
 Done!<br>
 At the specified address you can check what exactly was created, verify with the service infrastructure described in this documentation.
 
-Now let's create your module in the service. At first we need enter the service. Enter the command `\g i-am-vendor/my-service` (use your name if you called the service in your own way). The console location `lx-cli<app>` should change to `lx-cli<service:i-am-vendor/my-service>`. Another way to enter a service is using its index. You can find out a service index by command `\sl`. You will see numbered list of services. Each number is a service index. So in case of index is 2 you can enter the service by command `\g -i=2`.<br>
-Finaly we can create a new module by command `\cm`. We will again be asked to enter a name. Enter something like `myModule`.<br>
+Now let's create your plugin in the service. At first we need enter the service. Enter the command `\g i-am-vendor/my-service` (use your name if you called the service in your own way). The console location `lx-cli<app>` should change to `lx-cli<service:i-am-vendor/my-service>`. Another way to enter a service is using its index. You can find out a service index by command `\sl`. You will see numbered list of services. Each number is a service index. So in case of index is 2 you can enter the service by command `\g -i=2`.<br>
+Finaly we can create a new plugin by command `\cp`. We will again be asked to enter a name. Enter something like `myPlugin`.<br>
 It's done!<br>
-The module has created. At the specified address you can check what exactly was created, verify with the module infrastructure described in this documentation.
+The plugin has created. At the specified address you can check what exactly was created, verify with the plugin infrastructure described in this documentation.
 
 Now you can study the way to develop your own application by [link](https://github.com/epicoon/lx-doc-articles/blob/master/en/app-dev/expl1/main.md).

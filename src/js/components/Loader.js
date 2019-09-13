@@ -8,32 +8,32 @@ let loaderContext = {
 
 let loadData = {
 	isAjax: null,
-	modules: {},
-	blocksInfo: {},
-	blockTrees: {},
+	plugins: {},
+	snippetsInfo: {},
+	snippetTrees: {},
 	rootKey: '',
-	widgetsCode: null,
+	modulesCode: null,
 
-	necessaryWidgets: null,
+	necessaryModules: null,
 	necessaryScripts: null,
 	necessaryCss: null,
 
 	reset: function() {
 		this.isAjax = null;
-		this.modules = {};
-		this.blocksInfo = {};
-		this.blockTrees = {};
+		this.plugins = {};
+		this.snippetsInfo = {};
+		this.snippetTrees = {};
 		this.rootKey = '';
-		this.widgetsCode = null;
-		this.necessaryWidgets = null;
+		this.modulesCode = null;
+		this.necessaryModules = null;
 		this.necessaryScripts = null;
 		this.necessaryCss = null;
-		BlockJsNode.list = {};
-		BlockJsNode.counter = 0;
+		SnippetJsNode.list = {};
+		SnippetJsNode.counter = 0;
 	},
 
 	hasAssets: function() {
-		return this.necessaryWidgets
+		return this.necessaryModules
 			|| this.necessaryScripts
 			|| this.necessaryCss;
 	}
@@ -42,51 +42,50 @@ let loadData = {
 
 
 function parseInfo(info) {
-	var modulesInfo;
+	var pluginsInfo;
 
 	// Статика приходит строкой, ajax массивом
 
 	// Это статика - ресурсы собраны на стороне сервера
 	if (info.isString) {
 		loadData.isAjax = false;
-		modulesInfo = info;
+		pluginsInfo = info;
 
 		// Достаем код пришедших виджетов
-		var matches = modulesInfo.match(/<widgets>([\w\W]*?)<\/widgets>/);
-		if (matches) loadData.widgetsCode = matches[1];
+		var matches = pluginsInfo.match(/<modules>([\w\W]*?)<\/modules>/);
+		if (matches) loadData.modulesCode = matches[1];
 
 	// Это ajax - если ресурсы пришли, их надо собирать здесь
 	} else {
 		loadData.isAjax = true;
-		modulesInfo = info.moduleInfo;
+		pluginsInfo = info.pluginInfo;
 
 		// Определяем какие ресурсы потребуют отдельной дозагрузки
 		if (info.scripts) loadData.necessaryScripts = info.scripts;
 		if (info.css) loadData.necessaryCss = info.css;
-		if (info.widgets) loadData.necessaryWidgets = lx.widgets.defineNecessary(info.widgets);
+		if (info.modules) loadData.necessaryModules = lx.modules.defineNecessary(info.modules);
 	}
 
 	// Парсим инфу по модулям
-	var reg = /<module (.+?)>/g,
+	var reg = /<plugin (.+?)>/g,
 		match;
 
-
-	while (match = reg.exec(modulesInfo)) {
+	var mainKey = null;
+	while (match = reg.exec(pluginsInfo)) {
 		var key = match[1],
-			moduleString = modulesInfo.match(new RegExp('<module '+key+'>([\\w\\W]*?)</module '+key+'>'))[1];
-		loadData.modules[key] = {
+			pluginString = pluginsInfo.match(new RegExp('<plugin '+key+'>([\\w\\W]*?)</plugin '+key+'>'))[1];
+		loadData.plugins[key] = {
 			key,
-			info: lx.Json.parse(moduleString.match(new RegExp('<mi '+key+'>([\\w\\W]*?)</mi '+key+'>'))[1]),
-			bootstrapJs: moduleString.match(new RegExp('<bs '+key+'>([\\w\\W]*?)</bs '+key+'>'))[1],
-			blocks: lx.Json.parse(moduleString.match(new RegExp('<bl '+key+'>([\\w\\W]*?)</bl '+key+'>'))[1]),
-			mainJs: moduleString.match(new RegExp('<mj '+key+'>([\\w\\W]*?)</mj '+key+'>'))[1]
+			info: lx.Json.parse(pluginString.match(new RegExp('<mi '+key+'>([\\w\\W]*?)</mi '+key+'>'))[1]),
+			bootstrapJs: pluginString.match(new RegExp('<bs '+key+'>([\\w\\W]*?)</bs '+key+'>'))[1],
+			snippets: lx.Json.parse(pluginString.match(new RegExp('<bl '+key+'>([\\w\\W]*?)</bl '+key+'>'))[1]),
+			mainJs: pluginString.match(new RegExp('<mj '+key+'>([\\w\\W]*?)</mj '+key+'>'))[1]
 		};
 
-		/* Корневой модуль обволакивает вложенные - начинает собираться первым, а заканчивает поледним,
-		 * т.о. его ключ идет последним
-		 */
-		loadData.rootKey = key;
+		// Корневой модуль - первый
+		if (mainKey === null) mainKey = key;
 	}
+	loadData.rootKey = mainKey;
 }
 
 
@@ -105,7 +104,7 @@ function createCssTag(href, key) {
 /**
  * //todo - Была возможность в контексте модуля запускать
  *   теперь модуль создается после загрузки ресурсов
- *   как было - закоменчен одноименный метод в lx.Module
+ *   как было - закоменчен одноименный метод в lx.Plugin
  *   может быть стоит переделать
  * */
 function createScriptTag(src, key) {
@@ -128,8 +127,8 @@ function createScriptTag(src, key) {
 function loadAssets(callback) {
 	// Если нет необходимости в загрузке ресурсов
 	if (!loadData.hasAssets()) {
-		if (loadData.widgetsCode)
-			lx.createAndCallFunction('', loadData.widgetsCode);
+		if (loadData.modulesCode)
+			lx.createAndCallFunction('', loadData.modulesCode);
 		callback();
 		return;
 	}
@@ -140,15 +139,15 @@ function loadAssets(callback) {
 		cssTags = [];
 
 	// Запрос на догрузку виджетов регистрируется в синхронайзере
-	var widgetsRequest = null;
-	if (loadData.necessaryWidgets && !loadData.necessaryWidgets.lxEmpty) {
-		widgetsRequest = new lx.Request('', loadData.necessaryWidgets);
-		widgetsRequest.setHeader('lx-type', 'service');
-		widgetsRequest.setHeader('lx-service', 'get-widgets');
-		widgetsRequest.success = function(result) {
+	var modulesRequest = null;
+	if (loadData.necessaryModules && !loadData.necessaryModules.lxEmpty) {
+		modulesRequest = new lx.Request('', loadData.necessaryModules);
+		modulesRequest.setHeader('lx-type', 'service');
+		modulesRequest.setHeader('lx-service', 'get-modules');
+		modulesRequest.success = function(result) {
 			if (result) lx.createAndCallFunction('', result);
 		};
-		synchronizer.register(widgetsRequest);
+		synchronizer.register(modulesRequest);
 	}
 
 	// script-ресурсы регистрируются в синхронайзере
@@ -183,7 +182,7 @@ function loadAssets(callback) {
 	synchronizer.start(callback);
 
 	// Подтягиваем виджеты
-	if (widgetsRequest) widgetsRequest.send();
+	if (modulesRequest) modulesRequest.send();
 
 	// Подключение скриптов
 	//todo
@@ -204,30 +203,30 @@ function loadAssets(callback) {
 }
 
 
-function createModule(moduleInfo, el, parent, clientCallback) {
+function createPlugin(pluginInfo, el, parent, clientCallback) {
 	// Создадим экземпляр модуля
 	if (!el) {
-		lx.body = lx.Box.rise(document.getElementById('lx'));
+		lx.body = lx.Box.rise(lx.WidgetHelper.getBodyElement());
 		lx.body.key = 'body';
 		lx.body.on('scroll', lx.checkDisplay);
 		el = lx.body;
 	}
-	var info = moduleInfo.info;
+	var info = pluginInfo.info;
 	if (parent) info.parent = parent;
-	info.key = moduleInfo.key;
-	var m = lx.Module(info, el);
+	info.key = pluginInfo.key;
+	var m = lx.Plugin(info, el);
 
-	var bootstrapJs = moduleInfo.bootstrapJs,
-		blocks = moduleInfo.blocks,
-		mainJs = moduleInfo.mainJs;
+	var bootstrapJs = pluginInfo.bootstrapJs,
+		snippets = pluginInfo.snippets,
+		mainJs = pluginInfo.mainJs;
 
 	// js-код загрузки модуля
 	if (bootstrapJs != '')
-		lx.createAndCallFunction('', 'const Module=lx.modules["'+m.key+'"];' + bootstrapJs);
+		lx.createAndCallFunction('', 'const Plugin=lx.plugins["'+m.key+'"];' + bootstrapJs);
 
 	// Сборка блоков
-	loadData.blocksInfo[m.key] = blocks;
-	(new BlockBuilder(m, null, el, 0)).unpack();
+	loadData.snippetsInfo[m.key] = snippets;
+	(new SnippetBuilder(m, null, el, 0)).unpack();
 	
 	//todo - с ним явно что-то не то
 	// Явно обнулим замыкание после использования
@@ -243,18 +242,20 @@ function createModule(moduleInfo, el, parent, clientCallback) {
 		}
 	}
 
-	// Собираем js-код, выполняемый после сборки модуля
+	// Собираем js-код, выполняемый после сборки плагина
 	var argsStr = [];
 	var args = [];
-	var code = 'const Module=lx.modules["'+m.key+'"];lx.WidgetHelper.autoParent=Module.root;'
-	// основной js-код модуля
+	var code = 'const Plugin=lx.plugins["'+m.key+'"];lx.WidgetHelper.autoParent=Plugin.root;'
+	// Основной js-код плагина
 	if (mainJs) code += mainJs;
-	// Добавляем код блоков
-	var node = loadData.blockTrees[m.key];
-	var blocksJs = node.compileCode();
-	code += blocksJs[0];
-	// Выполняем получившийся код
-	lx.createAndCallFunction(blocksJs[1], code, null, blocksJs[2]);
+
+	// Код сниппетов
+	var node = loadData.snippetTrees[m.key];
+	var snippetsJs = node.compileCode();
+
+	// Вызываем всё вместе, чтобы у сниппетов был доступ к переменным плагина
+	code += snippetsJs[1];
+	lx.createAndCallFunction(snippetsJs[0], code, null, snippetsJs[2]);
 }
 
 lx.Loader = {
@@ -262,7 +263,7 @@ lx.Loader = {
 		parseInfo(info);
 
 		loadAssets(function() {
-			createModule(loadData.modules[loadData.rootKey], el, parent, clientCallback);
+			createPlugin(loadData.plugins[loadData.rootKey], el, parent, clientCallback);
 
 			// Вернули контекст в исходное состояние
 			loadData.reset();
@@ -276,16 +277,16 @@ lx.Loader = {
 /**
  * Дерево блоков для сборки пространств имен согласно иерархии
  * */
-class BlockJsNode {
+class SnippetJsNode {
 	constructor(builder, parentNode = null) {
-		this.block = builder.block;
+		this.snippet = builder.snippet;
 		this.js = null;
 		this.params = null;
 		this.children = [];
 		this.key = 'k' + self::keyCounter++;
 		self::list[this.key] = this;
 		if (parentNode) parentNode.addChild(this);
-		else loadData.blockTrees[builder.module.key] = this;
+		else loadData.snippetTrees[builder.plugin.key] = this;
 	}
 
 	empty() {
@@ -305,23 +306,23 @@ class BlockJsNode {
 		var args = [];
 
 		var counter = 0,
-			pre = '(function(Block, clientParams){lx.WidgetHelper.autoParent=Block;',
+			pre = '(function(w,p){const Snippet = new lx.Snippet(w,p);lx.WidgetHelper.autoParent=w;w=p=undefined;',
 			post = 'lx.WidgetHelper.popAutoParent();',
 			begin = [],
 			end = [];
 
 		function rec(node) {
 			if (node.js) {
-				args.push(node.block);
+				args.push(node.snippet);
 				args.push(node.params);
-				let block = '__lxb_' + counter;
+				let snippet = '__lxb_' + counter;
 				let params = '__lxp_' + counter;
 				counter++;
-				argsStr.push(block);
+				argsStr.push(snippet);
 				argsStr.push(params);
 				var js = node.js.replace(/([^;])$/, '$1;');
 				let head = pre + js + post;
-				let tail = '})('+block+','+params+');';
+				let tail = '})('+snippet+','+params+');';
 				
 				if (node.empty()) begin.push(head + tail);
 				else {
@@ -336,35 +337,39 @@ class BlockJsNode {
 		var code = '';
 		for (var i=0, l=begin.len; i<l; i++) code += begin[i];
 		for (var i=end.len-1; i>=0; i--) code += end[i];
-		return [code, argsStr.join(','), args];
+		return [argsStr.join(','), code, args];
 	}
 }
-BlockJsNode.keyCounter = 0;
-BlockJsNode.list = {};
+SnippetJsNode.keyCounter = 0;
+SnippetJsNode.list = {};
 
 
 /**
  * Собирает дерево элементов, запускает события элементов
  * Создается рекурсивно для вложенных блоков
  * */
-class BlockBuilder {
-	constructor(module, parentBuilder, block, infoIndex) {
-		this.module = module;
-		this.block = block;
+class SnippetBuilder {
+	constructor(plugin, parentBuilder, snippet, infoIndex) {
+		this.plugin = plugin;
+		this.snippet = snippet;
 		this.parentBuilder = parentBuilder;
 		this.index = infoIndex;
 		this.elems = [];
 		this.onloadElems = [];
-		this.node = new BlockJsNode(this, parentBuilder ? parentBuilder.node : null);
+		this.node = new SnippetJsNode(this, parentBuilder ? parentBuilder.node : null);
 	}
 
 	/**
-	 * Применить полученный настройки для корневого блока
+	 * Применить полученные настройки для корневого блока
 	 * */
 	applySelf(info) {
 		if (info.attrs)
 			for (var i in info.attrs)
-				this.block.DOMelem.setAttribute(i, info.attrs[i]);
+				this.snippet.domElem.setAttribute(i, info.attrs[i]);
+
+		if (info.classes)
+			for (var i=0, l=info.classes.len; i<l; i++)
+				this.snippet.domElem.addClass(info.classes[i]);
 
 		if (info.style)
 			for (var st in info.style) {
@@ -372,37 +377,36 @@ class BlockBuilder {
 					stName = st.replace(/-(\w)/g, function(str, p0) {
 						return p0.toUpperCase();
 					});
-				this.block.DOMelem.style[stName] = val;
+				this.snippet.domElem.style(stName, val);
 			}
 
 		if (info.props)
 			for (var prop in info.props)
-				if (!(prop in this.block))
-					this.block[prop] = info.props[prop];
+				if (!(prop in this.snippet))
+					this.snippet[prop] = info.props[prop];
 
 		if (info.funcs)
 			for (var name in info.funcs)
-				if (!(name in this.block))
-					this.block[name] = this.block.unpackFunction(info.funcs[name]);
+				if (!(name in this.snippet))
+					this.snippet[name] = this.snippet.unpackFunction(info.funcs[name]);
 
-		this.block.inLoad = true;
-		this.block.unpackProperties(loaderContext);
-		delete this.block.inLoad;
-		this.block.postUnpack();
+		this.snippet.inLoad = true;
+		this.snippet.unpackProperties(loaderContext);
+		delete this.snippet.inLoad;
+		this.snippet.postUnpack();
 	}
 
 	/**
 	 * Генерация lx-сущностей и воссоздание между ними родительских связей
 	 * */
 	riseTree(elem, infoLx) {
-		for (var i=0,l=elem.DOMelem.children.length; i<l; i++) {
-			var node = elem.DOMelem.children[i];
+		for (var i=0,l=elem.getDomElem().children.length; i<l; i++) {
+			var node = elem.getDomElem().children[i];
 
-			var index = node.getAttribute('lx') - 1;
-			if (index == -1) continue;
-			node.removeAttribute('lx');
+			var lxid = node.getAttribute('lxid');
+			if (lxid === null) continue;
 
-			var info = infoLx[index],
+			var info = infoLx[lxid],
 				namespace = info._namespace ? info._namespace : 'lx';
 
 			var namespaceObj = lx.getNamespace(namespace);
@@ -428,13 +432,14 @@ class BlockBuilder {
 				el[prop] = info[prop];
 			}
 
-			el.key = info.key;
+			if (info.key) el.key = info.key;
 
 			el.inLoad = true;
 
 			this.elems.push(el);
 
 			el.parent = elem;
+			el.domElem.parent = elem;
 			elem.childrenPush(el);
 
 			this.riseTree(el, infoLx);
@@ -445,7 +450,7 @@ class BlockBuilder {
 	 * Вызов функций, навешанных на момент загрузки
 	 * */
 	callOnload(el) {
-		var js = el.lxExtract('js');
+		var js = el.lxExtract('forOnload');
 		if (!js) return;
 		for (var i=0; i<js.len; i++) {
 			var item = js[i],
@@ -480,13 +485,13 @@ class BlockBuilder {
 
 			// Сборка вложенных блоков
 			if (el.ib) {
-				(new BlockBuilder(this.module, this, el, el.ib)).unpack();
+				(new SnippetBuilder(this.plugin, this, el, el.ib)).unpack();
 				delete el.ib;
 			}
 
-			// Пришел модуль, собранный в этот элемент
-			if (el.moduleData)
-				createModule(loadData.modules[el.lxExtract('moduleData')], el, this.module);
+			// Пришел плагин, собранный в этот элемент
+			if (el.pluginData)
+				createPlugin(loadData.plugins[el.lxExtract('pluginData')], el, this.plugin);
 
 			delete el.inLoad;
 		}
@@ -508,7 +513,7 @@ class BlockBuilder {
 	}
 
 	unpackJs(info) {
-		let clientParams = this.block.lxExtract('ibp');
+		let clientParams = this.snippet.lxExtract('isp');
 
 		// Если есть js-код для запуска после загрузки блока
 		if (info.js) {
@@ -523,21 +528,21 @@ class BlockBuilder {
 	unpack() {
 		//todo подумать насколько эта идея была нормальной
 		// // убедимся, что блок чистый
-		// var temp = new lx[this.block.lxClassName]();
-		// for (var i in this.block)
+		// var temp = new lx[this.snippet.lxClassName]();
+		// for (var i in this.snippet)
 		// 	//todo проверки не нравятся
-		// 	if (i != 'module' && i != 'key' && !(i in temp)) delete this.block[i];
-		var info = loadData.blocksInfo[this.module.key][this.index];
+		// 	if (i != 'plugin' && i != 'key' && !(i in temp)) delete this.snippet[i];
+		var info = loadData.snippetsInfo[this.plugin.key][this.index];
 		if (!info) return;
 
-		if (!this.block.isBlock)
-			this.block.isBlock = true;
+		if (!this.snippet.isSnippet)
+			this.snippet.isSnippet = true;
 
 		if (info.html) {
 			// Бухнули верстку в div блока
-			this.block.DOMelem.innerHTML = info.html;
+			this.snippet.domElem.html(info.html);
 			// Формирование дерева lx-сущностей
-			this.riseTree(this.block, info.lx);
+			this.riseTree(this.snippet, info.lx);
 		}
 
 		// Блок принес всякие настройки для элемента, в который он выгружается

@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class ModelSchema {
+class ModelSchema extends ApplicationTool {
 	protected
 		$provider,
 		$name,
@@ -13,6 +13,7 @@ class ModelSchema {
 		$relations = [];
 
 	public function __construct($provider, $name, $schema) {
+		parent::__construct($provider->app);
 		$this->provider = $provider;
 		$this->name = $name;
 

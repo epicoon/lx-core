@@ -1,83 +1,124 @@
-#lx:use lx.Rect as Rect;
-#lx:use lx.Box as Box;
-#lx:use lx.Input as Input;
-#lx:use lx.Dropbox as Dropbox;
-#lx:use lx.Table as Table;
+#lx:module lx.Calendar;
 
-class Calendar extends Input #lx:namespace lx {
+#lx:use lx.Rect;
+#lx:use lx.Box;
+#lx:use lx.Input;
+#lx:use lx.Dropbox;
+#lx:use lx.Table;
+
+#lx:private;
+#lx:client {
+	/*
+	 * Кэширует таблицу календаря - она нужна в единственном экземпляре,
+	 * не предусмотрено ситуаций, чтобы было раскрыто несколько календарей одновременно
+	 * соответственно таблица - синглтон, создается при первом вызове, потом достается из кэша
+	 */
+	let __menu = null;
+	let __oldDate = null;
+	let __active = null;
+}
+
+class Calendar extends lx.Input #lx:namespace lx {
 	//todo - сделать инициализацию даты + см. тудуху для lx.Date
-	postBuild(config) {
-		this.date = lx.Date();
-
+	build(config) {
+		this.date = config.date || lx.Date();
 		this.value( this.date.format() );
-		this.on('mouseup', self::open);
+	}
+
+	#lx:client {
+		postBuild(config) {
+			this.on('mouseup', _handler_open);
+		}
+
+		postUnpack() {
+			this.date = lx.Date(this.date);
+		}
 	}
 	
-	static open() {
-		lx.on('mouseup', self::outclick);
-		self::active = this;
-		self::oldDate = this.date.format();
-		self::renew();
-		var menu = self::getMenu();
+	getBasicCss() {
+		return {
+			main: 'lx-Calendar',
+			arroy: 'lx-Calendar-arroy',
+			dayOfWeek: 'lx-Calendar-day-of-week',
+			today: 'lx-Calendar-today',
+			cellToday: 'lx-Calendar-cell-today',
+			cellDay: 'lx-Calendar-cell-day',
+			menu: 'lx-Calendar-menu'
+		};
+	}
+}
 
+#lx:client {
+	function _handler_open() {
+		__active = this;
+		__oldDate = this.date.format();
+		__renew();
+
+		var menu = __getMenu();
 		menu.satelliteTo(this);
+
+		lx.on('mouseup', _lxHandler_outclick);
 	}
 
-	static close(event) {
-		if ( this.active.date.format() != this.oldDate )
-			this.active.trigger('change', event);
-		this.active = null;
-		this.getMenu().hide();
-		lx.off('mouseup', [this, this.outclick]);
-	}
-
-	static outclick(event) {
-		if (this.active === null) return;
+	function _lxHandler_outclick(event) {
+		if (__active === null) return;
 		event = event || window.event;
 
-		if (event.target.lx === this.active) return;
-		if (event.target.lx && (
-			event.target.lx.ancestor({hasProperties: {key: 'calendarMenu'}})
-			|| (Dropbox.opened && Dropbox.opened.ancestor({hasProperties: {key: 'calendarMenu'}}))
+		var widget = lx.WidgetHelper.getByElem(event.target);
+		if (widget === __active) return;
+		if (widget && (
+			widget.ancestor({is:__menu})
+			|| (lx.Dropbox.getOpened() && lx.Dropbox.getOpened().ancestor({is:__menu}))
 		)) return;
-		this.close(event);
+
+		__close(event);
 	}
 
-	static renew() {
-		var date = this.active.date,
+	function __close(event) {
+		if ( __active.date.format() != __oldDate )
+			__active.trigger('change', event);
+
+		__getMenu().hide();
+		__active = null;
+
+		lx.off('mouseup', _lxHandler_outclick);
+	}
+
+	function __renew() {
+		var date = __active.date,
 			max = date.getMaxDate(),
 			row = 1,
-			list = this.getMenu(),
+			list = __getMenu(),
 			actDate = date.getDate(),
 			tab = list.get('table');
 
-		this.active.value( this.active.date.format() );
+		__active.value( __active.date.format() );
 
-		list.get('month').value( date.getMonth() );
-		list.get('year').value( date.getFullYear() );
+		list->month.value( date.getMonth() );
+		list->year.value( date.getFullYear() );
 
 		tab.cells(1, 0, 6, 6)
 			.call('text', '')
-			// .call('removeClass', lx.cssClasses.names['calendarCell'])
-			// .call('removeClass', lx.cssClasses.names['calendarActCell'])
-			;
+			.call('removeClass', __active.basicCss.cellDay)
+			.call('removeClass', __active.basicCss.cellToday);
 		for (var i=1; i<=max; i++) {
 			var d = lx.Date( date.getFullYear(), date.getMonth(), i ),
 				dow = d.getDay();
 			var col = (dow ? dow-1 : 6);
 			tab.cell(row, col).text(i);
-			// tab.cell(row, col).addClass( lx.cssClasses.names[(i==actDate) ? 'calendarActCell' : 'calendarCell'] );
+			if (i == actDate) tab.cell(row, col).addClass(__active.basicCss.cellToday);
+			else tab.cell(row, col).addClass(__active.basicCss.cellDay);
 			if (!dow) row++;
 		}
 	}
 
-	static setDate(event) {
-		var calendar = this.active;
+	function _handler_setDate(event) {
+		var calendar = __active;
 
 		if ( this.key == 'today' ) {
 			calendar.date = lx.Date();
 			calendar.value( calendar.date.format() );
-			this.close(event);
+			__close(event);
 			return;
 		}
 
@@ -86,91 +127,87 @@ class Calendar extends Input #lx:namespace lx {
 
 		calendar.date.setDate(val);
 		calendar.value( calendar.date.format() );
-		this.close(event);
+		__close(event);
 	}
 
-	static getMenu() {
-		if (this.menu) {
-			this.menu.show();
-			return this.menu;
+	function __getMenu() {
+		if (__menu) {
+			__menu.show();
+			return __menu;
 		}
 
-		var calendarMenu = new Box({
+		var calendarMenu = new lx.Box({
+			parent: lx.body,
 			key: 'calendarMenu',
-			size: ['200px', '260px'],
+			geom: true,
+			css: __active.basicCss.menu,
+			size: ['200px', '236px'],
 			style: { overflow: 'visible' }
 		}).style('z-index', 1000);  //todo доберусь до индекса, тут будет косяк
 		calendarMenu.begin();
 
-		new Rect({
+		new lx.Rect({
 			key: 'pre',
 			geom: [0, 0, '20px', '30px'],
-			css: 'lx-Calendar-arroy',
+			css: __active.basicCss.arroy,
 			click: function() {
-				lx.Calendar.active.date = lx.Calendar.active.date.shiftMonth(-1);
-				lx.Calendar.renew();
+				__active.date = __active.date.shiftMonth(-1);
+				__renew();
 			}
 		});
-		new Rect({
+		new lx.Rect({
 			key: 'post',
 			geom: [null, 0, '20px', '30px', 0],
-			css: 'lx-Calendar-arroy',
+			css: __active.basicCss.arroy,
 			click: function() {
-				lx.Calendar.active.date = lx.Calendar.active.date.shiftMonth(1);
-				lx.Calendar.renew();
+				__active.date = __active.date.shiftMonth(1);
+				__renew();
 			}
 		}).style('transform', 'scale(-1, 1)');
 
-		new Input({
+		new lx.Input({
 			key: 'year',
 			geom: ['20px', 0, '54px', '30px']
 		}).on('blur', function() {
-			lx.Calendar.active.date.setFullYear(this.value());
-			lx.Calendar.renew();
+			__active.date.setFullYear(this.value());
+			__renew();
 		});
 
-		var month = new Dropbox({
+		var month = new lx.Dropbox({
 			key: 'month',
 			geom: ['74px', 0, '106px', '30px'],
 			options: lx.Date.monthNamesRu()
 		}).style('z-index', 1001);
 		month.on('change', function() {
-			lx.Calendar.active.date.setMonth(this.value());
-			lx.Calendar.renew();
+			__active.date.setMonth(this.value());
+			__renew();
 		});
 
-		var tab = new Table({
+		var tab = new lx.Table({
 			key: 'table',
 			top: '30px',
-			bottom: '30px',
 			cols: 7,
 			rows: 7,
-			overflow: 'hidden'
+			overflow: 'hidden',
+			colWidth: '25px'
 		});
+		tab.setColWidth(0, '29px');
 		tab.setContent([ 'П', 'В', 'С', 'Ч', 'П', 'С', 'В' ]);
-		tab.row(0).addClass('lx-Calendar-info');
+		tab.row(0).addClass(__active.basicCss.dayOfWeek);
 		tab.cells().call('align', lx.CENTER, lx.MIDDLE);
-		tab.cells(1, 0, 6, 6).call('click', this.setDate);
+		tab.cells(1, 0, 6, 6).call('click', _handler_setDate);
 
-		var today = new Box({
+		var today = new lx.Box({
 			key: 'today',
 			height: '30px',
 			bottom: 0,
 			text: 'Сегодня: ' + lx.Date().format(),
-			css: 'lx-Calendar-today'
+			css: __active.basicCss.today
 		}).align(lx.CENTER, lx.MIDDLE);
-		today.on('mouseup', this.setDate);
+		today.on('mouseup', _handler_setDate);
 
 		calendarMenu.end();
-		this.menu = calendarMenu;
+		__menu = calendarMenu;
 		return calendarMenu;
 	}
 }
-
-/*
- * Кэширует таблицу календаря - она нужна в единственном экземпляре, не предусмотрено ситуаций, чтобы было раскрыто несколько календарей одновременно
- * соответственно таблица - синглтон, создается при первом вызове, потом достается из кэша
- * */
-lx.Calendar.menu = null;
-lx.Calendar.oldDate = null;
-lx.Calendar.active = null;

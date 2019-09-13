@@ -1,5 +1,3 @@
-#lx:use lx.PositioningStrategy as PositioningStrategy;
-
 /*
 количество элементов определяется заданным числом строк и колонок, либо общим числом элементов
 размеры всех элементов одинаковые	
@@ -11,14 +9,13 @@
 добавление новых элементов пересчитывает размеры уже имеющимся, не влияя на размер самой коробки
 todo - можно добавить фиксированную высоту, чтобы высота коробки менялась + автоопределение числа колонок
 */
-class SlotPositioningStrategy extends PositioningStrategy #lx:namespace lx {
+class SlotPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 	constructor(owner, config) {
 		super(owner);
 
-		this.innerFormat = PositioningStrategy.FORMAT_PX;
-		this.defaultFormat = PositioningStrategy.FORMAT_PX;
+		this.innerFormat = lx.PositioningStrategy.FORMAT_PX;
+		this.defaultFormat = lx.PositioningStrategy.FORMAT_PX;
 
-		this.owner.slots=()=>this.owner.getChildren();
 		if (config) this.init(config);
 	}
 
@@ -48,82 +45,32 @@ class SlotPositioningStrategy extends PositioningStrategy #lx:namespace lx {
 		} else return;
 
 		var type = config.type || lx.Box;
-		this.autoActualize = false;
-		for (var i=0; i<count; i++)
-			new type({ key:'s', parent:this.owner });
-		this.autoActualize = true;
-		this.actualizeProcess();
+		type.construct(count, { key:'s', parent:this.owner });
+
+		#lx:server{ this.needJsActualize = 1; }
 	}
 
-	unpackProcess(config) {
+	#lx:server pack() {
+		var str = super.pack();
+		str += ';k:' + this.k + ';c:' + this.cols;
+		if (this.align) str += ';a:' + this.align;
+		return str;
+	}
+
+	#lx:client unpackProcess(config) {
 		this.k = +config.k;
 		this.cols = +config.c;
-		if (config.align) this.align = +config.align;
+		if (config.a) this.align = +config.a;
 	}
 
 	/**
 	 * Для позиционирования нового элемента, добавленного в контейнер
 	 * */
 	allocate(elem, config) {
-		this.actualize();
-	}
+		elem.addClass('lx-abspos');
 
-	/**
-	 * Актуализация позиций элементов в контейнере
-	 * info = {
-	 *	from: Rect  // если указан - с него начать актуализацию
-	 *	changed: Rect  // если указан - актуализация была вызвана в связи с изменением этих элементов
-	 *	deleted: Array  // если указан - актуализация была вызвана в связи с удалением этих элементов
-	 * }
-	 * */
-	actualizeProcess(info) {
-		var sz = this.owner.size('px'),
-			rows = this.rows(),
-			amt = [this.cols, rows],
-			k = this.k,
-			r = this.getIndents(),
-			align = this.align || null,
-			step = r.step,
-			marg = r.padding,
-			axe = (k*this.cols/rows > sz[0]/sz[1]) ? 0 : 1,
-			axe2 = +!axe,
-			cellSz = [0, 0];
-
-		cellSz[axe] = (sz[axe] - marg[axe][0] - marg[axe][1] - step[axe] * (amt[axe] - 1)) / amt[axe];
-		if (axe == 1) cellSz[axe2] = k * cellSz[axe];
-		else cellSz[axe2] = cellSz[axe] / k;
-
-		switch (align) {
-			case null:
-				step[axe2] = (sz[axe2] - cellSz[axe2] * amt[axe2]) / (amt[axe2] + 1);
-				marg[axe2][0] = step[axe2];
-				break;
-			case lx.CENTER:
-			case lx.MIDDLE:
-				marg[axe2][0] = (sz[axe2] - cellSz[axe2] * amt[axe2] - step[axe2] * (amt[axe2] - 1)) * 0.5;
-				break;
-			case lx.JUSTIFY:
-				step[axe2] = (sz[axe2] - cellSz[axe2] * amt[axe2] - marg[axe2][0] - marg[axe2][1]) / (amt[axe2] - 1);
-				break;
-			case lx.LEFT:
-			case lx.TOP:
-				marg[axe2][0] = marg[+!axe2][0];
-				break;
-			case lx.RIGHT:
-			case lx.BOTTOM:
-				marg[axe2][0] = sz[axe2] - (cellSz[axe2] + step[axe2]) * amt[axe2];
-				break;
-		}
-
-		this.relocate(marg[0][0], marg[1][0], cellSz, step);
-	}
-
-	/**
-	 * Сброс данных и влияний на владельца при смене им стратегии
-	 * */
-	clear() {
-		this.reset();
-		delete this.owner.slots;
+		#lx:server{ super.allocate(elem, config); }
+		#lx:client{ this.actualize(); }
 	}
 
 	/**
@@ -134,28 +81,80 @@ class SlotPositioningStrategy extends PositioningStrategy #lx:namespace lx {
 		return false;
 	}
 
-	relocate(x0, y0, sz, step) {
-		var slots = this.owner.getChildren(),
-			x = x0,
-			y = y0;
+	#lx:client {
+		/**
+		 * Актуализация позиций элементов в контейнере
+		 * info = {
+		 *	from: Rect  // если указан - с него начать актуализацию
+		 *	changed: Rect  // если указан - актуализация была вызвана в связи с изменением этих элементов
+		 *	deleted: Array  // если указан - актуализация была вызвана в связи с удалением этих элементов
+		 * }
+		 * */
+		actualizeProcess(info) {
+			var sz = this.owner.size('px'),
+				rows = this.rows(),
+				amt = [this.cols, rows],
+				k = this.k,
+				r = this.getIndents(),
+				align = this.align || null,
+				step = r.step,
+				marg = r.padding,
+				axe = (k*this.cols/rows > sz[0]/sz[1]) ? 0 : 1,
+				axe2 = +!axe,
+				cellSz = [0, 0];
 
-		for (var i=0, rows=this.rows(); i<rows; i++) {
-			for (var j=0; j<this.cols; j++) {
-				var slot = slots.next();
-				if (!slot) return;
-				this.setParam(slot, lx.LEFT, x, true);
-				this.setParam(slot, lx.TOP, y, true);
-				this.setParam(slot, lx.WIDTH, sz[0], true);
-				this.setParam(slot, lx.HEIGHT, sz[1], true);
-				slot.trigger('resize');
-				x += sz[0] + step[0];
+			cellSz[axe] = (sz[axe] - marg[axe][0] - marg[axe][1] - step[axe] * (amt[axe] - 1)) / amt[axe];
+			if (axe == 1) cellSz[axe2] = k * cellSz[axe];
+			else cellSz[axe2] = cellSz[axe] / k;
+
+			switch (align) {
+				case null:
+					step[axe2] = (sz[axe2] - cellSz[axe2] * amt[axe2]) / (amt[axe2] + 1);
+					marg[axe2][0] = step[axe2];
+					break;
+				case lx.CENTER:
+				case lx.MIDDLE:
+					marg[axe2][0] = (sz[axe2] - cellSz[axe2] * amt[axe2] - step[axe2] * (amt[axe2] - 1)) * 0.5;
+					break;
+				case lx.JUSTIFY:
+					step[axe2] = (sz[axe2] - cellSz[axe2] * amt[axe2] - marg[axe2][0] - marg[axe2][1]) / (amt[axe2] - 1);
+					break;
+				case lx.LEFT:
+				case lx.TOP:
+					marg[axe2][0] = marg[+!axe2][0];
+					break;
+				case lx.RIGHT:
+				case lx.BOTTOM:
+					marg[axe2][0] = sz[axe2] - (cellSz[axe2] + step[axe2]) * amt[axe2];
+					break;
 			}
-			x = x0;
-			y += sz[1] + step[1];
-		}
-	}
 
-	rows() {
-		return Math.floor((this.owner.getChildren().len + this.cols - 1) / this.cols);
+			this.relocate(marg[0][0], marg[1][0], cellSz, step);
+		}
+
+		relocate(x0, y0, sz, step) {
+			var slots = this.owner.getChildren(),
+				x = x0,
+				y = y0;
+
+			for (var i=0, rows=this.rows(); i<rows; i++) {
+				for (var j=0; j<this.cols; j++) {
+					var slot = slots.next();
+					if (!slot) return;
+					this.setParam(slot, lx.LEFT, x, true);
+					this.setParam(slot, lx.TOP, y, true);
+					this.setParam(slot, lx.WIDTH, sz[0], true);
+					this.setParam(slot, lx.HEIGHT, sz[1], true);
+					slot.trigger('resize');
+					x += sz[0] + step[0];
+				}
+				x = x0;
+				y += sz[1] + step[1];
+			}
+		}
+
+		rows() {
+			return Math.floor((this.owner.getChildren().len + this.cols - 1) / this.cols);
+		}
 	}
 }

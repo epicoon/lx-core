@@ -1,5 +1,3 @@
-#lx:widget Table;
-
 class ModelListDisplayer #lx:namespace lx {
 	/**
 	 * config = {
@@ -190,7 +188,7 @@ class ModelListDisplayer #lx:namespace lx {
 			left: sideWidth,
 			top: height,
 			width: bodyWidth,
-			stream: {sizeBehavior: lx.StreamPositioningStrategy.SIZE_BEHAVIOR_BY_CONTENT}
+			stream: true
 		});
 		body.border();
 
@@ -199,23 +197,25 @@ class ModelListDisplayer #lx:namespace lx {
 			top: height,
 			width: sideWidth,
 			style: {border:'', fill:'lightgray'},
-			stream: {sizeBehavior: lx.StreamPositioningStrategy.SIZE_BEHAVIOR_BY_CONTENT}
+			stream: true
 		});
 
-		var headBody = elem.add(lx.TableRow, {
+		var headBody = elem.add(lx.Box, {
 			key: 'headBody',
 			left: sideWidth,
 			width: bodyWidth,
 			height: height,
 			style: {border:'', fill:'lightgray'}
 		});
+		headBody.streamProportional({direction: lx.HORIZONTAL});
 
-		var headSide = elem.add(lx.TableRow, {
+		var headSide = elem.add(lx.Box, {
 			key: 'headSide',
 			width: sideWidth,
 			height: height,
 			style: {border:'', fill:'lightgray'}
 		});
+		headSide.streamProportional({direction: lx.HORIZONTAL});
 
 		elem.on('scroll', function() {
 			var pos = this.scrollPos();

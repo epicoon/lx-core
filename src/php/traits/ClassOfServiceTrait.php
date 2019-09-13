@@ -26,7 +26,7 @@ trait ClassOfServiceTrait {
 			return null;
 		}
 
-		return \lx::getService($name);
+		return \lx::$app->getService($name);
 	}
 
 	/**

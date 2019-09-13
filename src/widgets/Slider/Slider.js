@@ -1,7 +1,9 @@
-#lx:use lx.Rect as Rect;
-#lx:use lx.Box as Box;
+#lx:module lx.Slider;
 
-class Slider extends Box #lx:namespace lx {
+#lx:use lx.Rect;
+#lx:use lx.Box;
+
+class Slider extends lx.Box #lx:namespace lx {
 	build(config) {
 		super.build(config);
 
@@ -17,53 +19,58 @@ class Slider extends Box #lx:namespace lx {
 		this.style('overflow', 'visible');
 
 		// трек
-		var track = new Rect({
+		var track = new lx.Rect({
 			parent: this,
 			key: 'track',
-			geom: (this.width('px') > this.height('px'))
-				? ['0%', '17%', '100%', '66%']
-				: ['17%', '0%', '66%', '100%'],
-			css: 'lx-slider-track'
+			css: this.basicCss.track
 		});
 
 		// бегунок
-		var handle = new Rect({
+		var handle = new lx.Rect({
 			parent: this,
 			key: 'handle',
-			css: 'lx-slider-handle'
+			css: this.basicCss.handle
 		});
 	}
 
-	postBuild(config) {
+	#lx:client postBuild(config) {
 		super.postBuild(config);
-		var handle = this.handle(),
-			h = this.height('px'),
+
+		var h = this.height('px'),
 			w = this.width('px'),
 			handleSize = Math.min(h, w);
 		this.orientation = (w > h)
 			? lx.HORIZONTAL
 			: lx.VERTICAL;
-		handle.size(handleSize+'px', handleSize+'px');
-		if (this.orientation == lx.HORIZONTAL) handle.top(0);
-		else handle.top(h - handleSize);
 
-		this.value(this._value);
+		var handle = this.handle();
+		handle.size(handleSize+'px', handleSize+'px');
+		this.locateHandle();
+
+		if (this.orientation == lx.HORIZONTAL)
+			this->track.setGeom(['0%', '17%', '100%', '66%']);
+		else
+			this->track.setGeom(['17%', '0%', '66%', '100%']);
+
 		handle.move()
+			.on('moveBegin', self::start)
 			.on('move', self::move)
 			.on('moveEnd', self::stop);
+
+		this->track.click(self::trackClick);
+	}
+
+	//TODO предусмотреть чтобы нормально дизаблилось
+	getBasicCss() {
+		return {
+			track: 'lx-slider-track',
+			handle: 'lx-slider-handle'
+		};
 	}
 
 	change(func) {
 		this.on('change', func);
 		return this;
-	}
-
-	static move(event) {
-		this.parent.setValueByHandle( this, event );
-	}
-
-	static stop(event) {
-		this.parent.trigger( 'change', event );
 	}
 
 	handle() {
@@ -75,50 +82,87 @@ class Slider extends Box #lx:namespace lx {
 			return this._value;
 		}
 
-		var handle = this.handle(),
-			min = this.min,
-			max = this.max;
-		if (val > max) val = max;
-		if (val < min) val = min;
-
+		if (val > this.max) val = this.max;
+		if (val < this.min) val = this.min;
 		this._value = val;
 
-		var step = this.step,
-			range = max - min,
-			rangeW, pos;
-		if ( this.orientation == lx.HORIZONTAL ) {
-			rangeW = this.width('px') - handle.width('px');
-			pos = (val - this.min) * rangeW / range;
-			handle.left( pos + 'px' );
-		} else {
-			rangeW = this.height('px') - handle.height('px');
-			pos = (val - this.min) * rangeW / range;
-			handle.top( this.height('px') - handle.height('px') - pos + 'px' );
+		#lx:client {
+			this.locateHandle();
+			if (event) this.trigger('input', event);
 		}
-
-		if (event) this.trigger('input', event);
 
 		return this;
 	}
 
-	setValueByHandle(handle, event) {
-		var val, rangeW,
-			min = this.min,
-			max = this.max,
-			step = this.step,
-			range = max - min;
-
-		if (this.orientation == lx.HORIZONTAL) {
-			val = handle.left('px');
-			rangeW = this.width('px') - handle.width('px');
-		} else {
-			val = handle.bottom('px');
-			rangeW = this.height('px') - handle.height('px');
+	#lx:client {
+		static start(event) {
+			this.parent._oldValue = this.parent._value;
 		}
 
-		var locval = (val * range / rangeW) + min;
-		locval = Math.floor(locval / step) * step;
+		static move(event) {
+			this.parent.setValueByHandle(this, event);
+		}
 
-		if (this._value != locval) this.value(locval, event);
+		static stop(event) {
+			var oldVal = this.parent._oldValue;
+			if (this.parent._value == oldVal) return;
+			this.parent.trigger('change', event, oldVal);
+		}
+
+		static trackClick(event) {
+			var slider = this.parent,
+				handle = slider->handle,
+				point = slider.globalPointToInner(event),
+				crd  , param;
+			if (slider.orientation == lx.HORIZONTAL) {
+				crd = point.x - handle.width('px') * 0.5;
+				param = 'left';
+			} else {
+				crd = point.y - handle.height('px') * 0.5;
+				param = 'top';
+			}
+			handle[param](crd + 'px');
+			handle.returnToParentScreen();
+			var oldVal = slider.value();
+			slider.setValueByHandle(handle);
+			if (slider.value() != oldVal)
+				slider.trigger('change', event, oldVal);
+		}
+
+		setValueByHandle(handle, event) {
+			var val, rangeW,
+				min = this.min,
+				max = this.max,
+				step = this.step,
+				range = max - min;
+
+			if (this.orientation == lx.HORIZONTAL) {
+				val = handle.left('px');
+				rangeW = this.width('px') - handle.width('px');
+			} else {
+				val = handle.top('px');
+				rangeW = this.height('px') - handle.height('px');
+			}
+
+			var locval = (val * range / rangeW) + min;
+			locval = Math.floor(locval / step) * step;
+
+			if (this._value != locval) this.value(locval, event);
+		}
+
+		locateHandle() {
+			var handle = this.handle(),
+				range = this.max - this.min,
+				rangeW, pos;
+			if ( this.orientation == lx.HORIZONTAL ) {
+				rangeW = this.width('px') - handle.width('px');
+				pos = (this._value - this.min) * rangeW / range;
+				handle.left( pos + 'px' );
+			} else {
+				rangeW = this.height('px') - handle.height('px');
+				pos = (this._value - this.min) * rangeW / range;
+				handle.top( pos + 'px' );
+			}
+		}
 	}
 }

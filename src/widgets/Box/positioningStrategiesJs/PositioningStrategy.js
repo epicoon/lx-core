@@ -4,38 +4,70 @@ class PositioningStrategy #lx:namespace lx {
 	constructor(owner) {
 		this.owner = owner;
 
+		//TODO!!!
 		this.innerFormat = self::FORMAT_FREE;
 		this.defaultFormat = self::FORMAT_PERCENT;
 
 		this.autoActualize = true;
 	}
 
-	unpack(info) {
-		var config = {};
-		for (var i=0, l=info.length; i<l; i++) {
-			var temp = info[i].split(':');
-			config[temp[0]] = temp[1];
+	#lx:server {
+		pack() {
+			var str = this.lxFullClassName
+				+ ';ds:' + this.defaultFormat
+				+ ';if:' + this.innerFormat;
+			if (this.needJsActualize) str += ';na:1';
+			var indents = this.packIndents();
+			if (indents) str += ';i:' + indents;
+			return str;
 		}
-		this.innerFormat = +config.if || lx.PositioningStrategy.FORMAT_PX;
-		this.defaultFormat = +config.df || lx.PositioningStrategy.FORMAT_PX;
-		this.unpackProcess(config);
-		if (config.i) this.unpackIndents(config.i);
-		if (config.na) this.owner.__na = true;
+
+		packIndents() {
+			if (!this.indents) return false;
+			return this.indents.pack();
+		}
 	}
 
-	unpackProcess(config) {
+	#lx:client {
+		unpack(info) {
+			var config = {};
+			for (var i = 0, l = info.length; i < l; i++) {
+				var temp = info[i].split(':');
+				config[temp[0]] = temp[1];
+			}
+			this.innerFormat = +config.if || lx.PositioningStrategy.FORMAT_PX;
+			this.defaultFormat = +config.df || lx.PositioningStrategy.FORMAT_PX;
+			this.unpackProcess(config);
+			if (config.i) this.unpackIndents(config.i);
+			if (config.na) this.owner.__na = true;
+		}
 
+		unpackIndents(info) {
+			var indents = lx.IndentData.unpackOrNull(info);
+			if (indents) this.indents = indents;
+		}
+
+		unpackProcess(config) {}
 	}
 
 	actualize(info) {
 		if (this.autoActualize) this.actualizeProcess(info);
 	}
 
+	onDel() {}
+
 	/**
 	 * Для позиционирования нового элемента, добавленного в контейнер
 	 * */
 	allocate(elem, config) {
 		var geom = this.geomFromConfig(config);
+		if (geom.lxEmpty) {
+			elem.trigger('resize');
+			return;
+		}
+
+		if (geom.l !== undefined || geom.t !== undefined || geom.r !== undefined || geom.b !== undefined)
+			elem.addClass('lx-abspos');
 
 		if (geom.w === undefined) {
 			geom.l = geom.l || 0;
@@ -48,13 +80,13 @@ class PositioningStrategy #lx:namespace lx {
 		}
 
 		if (geom.lxEmpty) return;
-		if ( geom.r !== undefined ) this.setParam(elem, lx.RIGHT, geom.r);
-		if ( geom.w !== undefined ) this.setParam(elem, lx.WIDTH, geom.w);
-		if ( geom.l !== undefined ) this.setParam(elem, lx.LEFT, geom.l);
+		if ( geom.r !== undefined ) this.setParam(elem, lx.RIGHT, geom.r, true);
+		if ( geom.w !== undefined ) this.setParam(elem, lx.WIDTH, geom.w, true);
+		if ( geom.l !== undefined ) this.setParam(elem, lx.LEFT, geom.l, true);
 
-		if ( geom.b !== undefined ) this.setParam(elem, lx.BOTTOM, geom.b);
-		if ( geom.h !== undefined ) this.setParam(elem, lx.HEIGHT, geom.h);
-		if ( geom.t !== undefined ) this.setParam(elem, lx.TOP, geom.t);
+		if ( geom.b !== undefined ) this.setParam(elem, lx.BOTTOM, geom.b, true);
+		if ( geom.h !== undefined ) this.setParam(elem, lx.HEIGHT, geom.h, true);
+		if ( geom.t !== undefined ) this.setParam(elem, lx.TOP, geom.t, true);
 		elem.trigger('resize');
 	}
 
@@ -67,7 +99,7 @@ class PositioningStrategy #lx:namespace lx {
 	 * }
 	 * */
 	actualizeProcess(info) {
-		this.owner.getChildren().each((a)=> a.trigger('resize'));
+		this.owner.getChildren().each((a)=>a.trigger('resize'));
 	}
 
 	/**
@@ -82,7 +114,7 @@ class PositioningStrategy #lx:namespace lx {
 
 	/**
 	 * Запрос на изменение позиционного параметра для конкретного элемента
-	 * Должен вернуть булево значения - true и поменять параметр, либо false и не менять параметр
+	 * Должен вернуть булево значение - true и поменять параметр, либо false и не менять параметр
 	 * */
 	tryReposition(elem, param, val) {
 		this.setParam(elem, param, val);
@@ -123,24 +155,28 @@ class PositioningStrategy #lx:namespace lx {
 	}
 
 	/**
+	 * TODO
 	 * Установка геометрического параметра элементу
 	 * */
 	setParam(elem, param, val, forse=false) {
-		elem.geomPriority(param);
+		if (val === null) {
+			elem.domElem.style(lx.Geom.geomName(param), null);
+			return;
+		}
 
 		if (forse) {
 			if (val.isNumber) val += this.getFormatText(this.innerFormat);
 			if (lx.Geom.directionByGeom(param) == lx.HORIZONTAL)
 				elem.geomPriorityH(param);
 			else elem.geomPriorityV(param);
-			elem.DOMelem.style[lx.Geom.geomName(param)] = val;
+			elem.domElem.style(lx.Geom.geomName(param), val);
 			return;
 		}
 
 		var splittedVal = this.splitParam(param, val);
 
 		if (isNaN(splittedVal[0])) {
-			elem.DOMelem.style[lx.Geom.geomName(param)] = 'auto';
+			elem.domElem.style(lx.Geom.geomName(param), 'auto');
 			return;
 		}
 
@@ -150,7 +186,7 @@ class PositioningStrategy #lx:namespace lx {
 		но это тоже не так однозначно (как хранить, как в итоге представлять, дальше тоже идет мозговыносящая логика, которая все так и так меняет),
 		нужна подробная аналитика
 		*/
-		elem.DOMelem.style[lx.Geom.geomName(param)] = splittedVal[0] + this.getFormatText(splittedVal[1]);
+		elem.domElem.style([lx.Geom.geomName(param)], splittedVal[0] + this.getFormatText(splittedVal[1]));
 
 		var format = this.getFormat(param);
 		if (splittedVal[1] != format) {
@@ -159,12 +195,12 @@ class PositioningStrategy #lx:namespace lx {
 				var valName = lx.Geom.geomName(param);
 
 				if (format == self::FORMAT_PX) {
-					elem.DOMelem.style[lx.Geom.geomName(param)] = elem[valName]('px') + 'px';
+					elem.domElem.style([lx.Geom.geomName(param)], elem[valName]('px') + 'px');
 				} else {
 					var parent = this.owner,
 						eVal = elem[valName]('px'),
 						pVal = parent[valName]('px');
-					elem.DOMelem.style[lx.Geom.geomName(param)] = (eVal * 100 / pVal) + '%';
+					elem.domElem.style([lx.Geom.geomName(param)], (eVal * 100 / pVal) + '%');
 				}
 			}
 		} else {
@@ -217,29 +253,21 @@ class PositioningStrategy #lx:namespace lx {
 	 * Можно задать настройки для отступов
 	 * */
 	setIndents(config={}) {
-		delete this.indents;
 		var indents = lx.IndentData.createOrNull(config);
 		if (indents) this.indents = indents;
+		else delete this.indents;
 		return this;
-	}
-
-	/**
-	 * Распаковка отступов при получении с сервера
-	 * */
-	unpackIndents(info) {
-		var indents = lx.IndentData.unpackOrNull(info);
-		if (indents) this.indents = indents;
 	}
 
 	/**
 	 * Если настройки для отступов не заданы, будет возвращен полноценный объект настроек, заполненный нулями
 	 * */
-	getIndents() {
+	getIndents(owner = true) {
 		if (!this.indents) {
 			if (this.owner.getIndents) return this.owner.getIndents();
 			return lx.IndentData.getZero();
 		}
-		return this.indents.get(this.owner);
+		return this.indents.get(owner ? this.owner : undefined);
 	}
 
 	/**
@@ -256,6 +284,10 @@ class PositioningStrategy #lx:namespace lx {
 		});
 
 		var geom = {};
+
+		if (config.geom === true) config.geom = [
+			0, 0, undefined, undefined, 0, 0
+		];
 
 		if ( config.margin ) config.geom = [
 			config.margin,

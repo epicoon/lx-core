@@ -2,156 +2,72 @@
 
 namespace lx;
 
-class I18nMap extends DataObject {
+class I18nMap extends ApplicationTool {
 	const DEFAULT_FILE_NAME = 'i18n';
 
-	private static $appMap = null;
-	private $module = null;
-	private $service = null;
-	private $map = null;
+	protected $map = null;
+	protected $tags;
 
-	public function __construct($config = []) {
-		if (isset($config['service'])) {
-			$this->service = $config['service'];
-			unset($config['service']);
+	public function __construct($app, $config = []) {
+		parent::__construct($app);
+
+		foreach ($config as $key => $value) {
+			if (property_exists($this, $key)) {
+				$this->$key = $value;
+			}
 		}
 
-		if (isset($config['module'])) {
-			$this->module = $config['module'];
-			$this->service = $this->module->getService();
-			unset($config['module']);
-		}
-
-		$this->setProperties($config);
+		$this->init($config);
 	}
 
-	/**
-	 *
-	 * */
-	public static function getAppMap() {
-		if (self::$appMap === null) {
-			self::loadAppMap();
-		}
-
-		return self::$appMap;
+	protected function init($config) {
 	}
 
-	/**
-	 *
-	 * */
-	public function getSelfMap() {
+	public function getMap() {
 		if ($this->map === null) {
 			$this->loadMap();
 		}
-
+		
 		return $this->map;
 	}
 
-	/**
-	 *
-	 * */
 	public function getFullMap() {
-		if (self::$appMap === null) {
-			self::loadAppMap();
+		return $this->getMap();
+	}
+
+	public function add($map, $rewrite = false) {
+		if (!is_array($map) && is_object($map) && method_exists($map, 'toArray')) {
+			$map = $map->toArray();
 		}
-
-		return $this->getSelfMap() + self::$appMap;
+		
+		if (!is_array($map)) {
+			return;
+		}
+		
+		$this->loadMap();
+		$this->map = $this->mapMerge($this->map, $map, $rewrite);
 	}
 
 	/**
-	 * @param $map \lx\I18nMap
-	 * */
-	public function add($map) {
-		$this->map += $map->toArray();
-	}
-
-	/**
-	 * Метод для переопределения чтобы подключать кастомные файлы с картами перевода
-	 * */
-	public function mapFiles() {
+	 * Метод для переопределения, чтобы подключать файлы не через конфигурацию, а через код
+	 * @return array
+	 */
+	protected function files() {
 		return [];
 	}
 
-	/**
-	 * @param $obj \lx\Service | \lx\Module | null
-	 * */
-	protected static function getFile($obj = null) {
-		if ($obj === null) {
-			$path = \lx::sitePath();
-			$fileName = \lx::getConfig('i18nFile');
-		} elseif ($obj instanceof Module) {
-			$path = $obj->getPath();
-			$fileName = $obj->getConfig('i18nFile');
-		} elseif ($obj instanceof Service) {
-			$path = $obj->getPath();
-			$fileName = $obj->getConfig('service.i18nFile');
-		} else {
-			return null;
+	protected function loadMap() {
+		if ($this->map !== null) {
+			return;
 		}
 
-		if (!$fileName) {
-			$fileName = self::DEFAULT_FILE_NAME;
-		}
-
-		$fullPath = \lx::$conductor->getFullPath($fileName, $path);
-		$file = new ConfigFile($fullPath);
-		return $file;
-	}
-
-	/**
-	 *
-	 * */
-	private function loadMap() {
 		$this->map = [];
-
-		if ($this->module) {
-			$this->mapMerge($this->loadFromMapFiles());
-
-			$file = self::getFile($this->module);
-			if ($file->exists()) {
-				$this->mapMerge($file->get());
-			}
-
-			$this->map += $this->service->i18nMap->getSelfMap();
-			if ($this->module->prototype) {
-				$this->mapMerge($this->module->prototypeService()->i18nMap->getSelfMap());
-			}
-
-		} elseif ($this->service) {
-			$this->mapMerge($this->loadFromMapFiles());
-
-			$file = self::getFile($this->service);
-			if ($file->exists()) {
-				$this->mapMerge($file->get());
-			}
-		}
 	}
 
-	/**
-	 *
-	 * */
-	private function loadFromMapFiles() {
-		$result = [];
+	protected function mapMerge($map1, $map2, $rewrite = false) {
+		$codes = $this->app->language->codes;
 
-		$fileNames = $this->mapFiles();
-		foreach ($fileNames as $fileName) {
-			$path = \lx::$conductor->getFullPath($fileName);
-			$file = new ConfigFile($path);
-			if ($file->exists()) {
-				$result += $file->get();
-			}
-		}
-
-		return $result;
-	}
-
-	/**
-	 *
-	 * */
-	private function mapMerge($map) {
-		$codes = \lx::$components->language->codes;
-
-		foreach ($map as $key => $value) {
+		foreach ($map2 as $key => $value) {
 			if (!in_array($key, $codes)) {
 				if (is_array($this->tags) && array_key_exists($key, $this->tags)) {
 					$key = $this->tags[$key];
@@ -162,21 +78,34 @@ class I18nMap extends DataObject {
 				continue;
 			}
 
-			if (!array_key_exists($key, $this->map)) {
-				$this->map[$key] = $value;
+			if (!array_key_exists($key, $map1)) {
+				$map1[$key] = $value;
 			} else {
-				$this->map[$key] += $value;
+				if ($rewrite) {
+					$map1[$key] = $value + $map1[$key];
+				} else {
+					$map1[$key] += $value;
+				}
 			}
 		}
+
+		return $map1;
 	}
 
-	/**
-	 *
-	 * */
-	private static function loadAppMap() {
-		$file = self::getFile();
-		self::$appMap = $file->exists()
-			? $file->get()
-			: [];
-	}
+
+	// // Остаток от старой логики. Может сгодится для TODO про ::files()
+	// protected function loadFromMapFiles() {
+	// 	$result = [];
+
+	// 	$fileNames = $this->mapFiles();
+	// 	foreach ($fileNames as $fileName) {
+	// 		$path = $this->app->conductor->getFullPath($fileName);
+	// 		$file = new ConfigFile($path);
+	// 		if ($file->exists()) {
+	// 			$result += $file->get();
+	// 		}
+	// 	}
+
+	// 	return $result;
+	// }
 }

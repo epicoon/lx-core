@@ -1,62 +1,93 @@
-#lx:use lx.Rect as Rect;
+#lx:module lx.Input;
 
-class Input extends Rect #lx:namespace lx {
+#lx:use lx.Rect;
+
+class Input extends lx.Rect #lx:namespace lx {
 	/**
 	 * config = {
 	 *	// стандартные для Rect,
 	 *	
-	 *	hint: string
+	 *	placeholder: string
 	 *	value: string
 	 * }
 	 * */
 	build(config) {
 		super.build(config);
 
-		if (config.hint) this.attr('placeholder', config.hint);
+		if (config.placeholder) this.setAttribute('placeholder', config.placeholder);
 		if (config.value != '') this.value(config.value);
 	}
 
-	postBuild(config) {
-		super.postBuild(config);
-		this.on('focus', self::setEntry );
-		this.on('blur', self::unsetEntry );
+	#lx:client {
+		postBuild(config) {
+			super.postBuild(config);
+			this.on('focus', self::setEntry );
+			this.on('blur', self::unsetEntry );
+		}
+
+		static setEntry(event) {
+			lx.entryElement = this;
+			this._oldValue = this.value();
+		}
+
+		static unsetEntry(event) {
+			lx.entryElement = null;
+		}
+
+		valueChanged() {
+			return this._oldValue != this.value();
+		}
+
+		oldValue() {
+			if (this._oldValue === undefined) return null;
+			return this._oldValue;
+		}
 	}
 
-	tagForDOM() {
+	getBasicCss() {
+		return 'lx-Input';
+	}
+
+	static getStaticTag() {
 		return 'input';
 	}
 
 	value(val) {
-		if (val == undefined) return this.DOMelem.value;
-		this.DOMelem.value = val;
+		#lx:server {
+			if (val == undefined) return this.getAttribute('value');
+			this.setAttribute('value', val);
+		}
+
+		#lx:client {
+			if (val == undefined) return this.domElem.param('value');
+			this.domElem.param('value', val);
+		}
+
 		return this;
 	}
 
-	oldValue() {
-		if (this._oldValue === undefined) return null;
-		return this._oldValue;
+	placeholder(val) {
+		if (val === undefined) return this.getAttribute('placeholder');
+		this.setAttribute('placeholder');
 	}
 
 	focus(func) {
-		if (func == undefined) {
-			lx.entryElement = this;
-			this.DOMelem.focus();
+		#lx:client{ if (func === undefined) {
+			var elem = this.getDomElem();
+			if (elem) elem.focus();
 			return this;
-		}
+		}}
 		this.on('focus', func);
 		return this;
 	}
 
-	valueChanged() {
-		return this._oldValue != this.value();
-	}
-
-	static setEntry(event) {
-		lx.entryElement = this;
-		this._oldValue = this.value();
-	}
-	
-	static unsetEntry(event) {
-		lx.entryElement = null;
+	blur(func) {
+		#lx:client{ if (func === undefined) {
+			var elem = this.getDomElem();
+			if (elem) elem.blur();
+			return this;
+		}}
+		this.on('blur', func);
+		return this;
 	}
 }

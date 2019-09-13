@@ -673,7 +673,7 @@ class DbCrudAdapter extends CrudAdapter {
 		}
 
 		if (preg_match('/\./', $modelName)) {
-			$manager = \lx::getModelManager($modelName);
+			$manager = $this->app->getModelManager($modelName);
 			if ( ! $manager || ! $this->compatible($manager->getCrudAdapter())) {
 				return null;
 			}
@@ -791,7 +791,7 @@ class DbCrudAdapter extends CrudAdapter {
 	 * */
 	private function applyOuterActions($schema, &$outerActions) {
 		$modelName = $schema->getName();
-		$this->setModelManagerPappet($modelName, new ModelManager($this, $schema));
+		$this->setModelManagerPappet($modelName, new ModelManager($this->app, $this, $schema));
 
 		foreach ($outerActions as &$action) {
 			$actionKey = $action[0];

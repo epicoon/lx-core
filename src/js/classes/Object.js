@@ -50,5 +50,4 @@ class Object #lx:namespace lx {
 	static __afterDefinition() {
 		if (this.lxHasMethod('__injectBehaviors')) this.__injectBehaviors();
 	}
-
 }

@@ -6,9 +6,8 @@ class I18nHelper {
 	/**
 	 * @param $data string текст для интернационализации
 	 * @param $map array массив основных переводов
-	 * @param $mapExtends array массив дополнительных карт для локализации
 	 * */
-	public static function localize($data, $map, $mapExtends = []) {
+	public static function localize($data, $map) {
 		preg_match_all('/#lx:i18n([\w\W]*?)i18n:lx#/', $data, $matches);
 		$keys = array_unique($matches[1]);
 		foreach ($keys as $match) {
@@ -21,7 +20,7 @@ class I18nHelper {
 				$params = trim($arr[2], ' {}');
 			}
 
-			$translation = self::translate($key, $map, $mapExtends);
+			$translation = self::translate($key, $map);
 			if ($params) {
 				$translation = self::parseParams($translation, $params);
 			}
@@ -32,39 +31,25 @@ class I18nHelper {
 	}
 
 	/**
-	 * @param $module модуль, в рамках которого осуществляем интернационализацию
+	 * @param $plugin плагин, в рамках которого осуществляем интернационализацию
 	 * @param $data текст для интернационализации
-	 * @param $mapExtends массив дополнительных карт для локализации
 	 * */
-	public static function localizeModule($module, $data, $mapExtends = []) {
-		$map = $module->i18nMap;
+	public static function localizePlugin($plugin, $data) {
+		$map = $plugin->i18nMap;
 		$fullMap = $map->getFullMap();
-		return self::localize($data, $fullMap, $mapExtends);
+		return self::localize($data, $fullMap);
 	}
 
 	/**
 	 * @param $key ключ переводимого текста
 	 * @param $map основная карта переводов
-	 * @param $mapExtends дополнительные карты переводов
 	 * */
-	public static function translate($key, $map, $mapExtends = []) {
-		$lang = \lx::$components->language->current;
+	public static function translate($key, $map) {
+		$lang = \lx::$app->language->current;
 
 		if (array_key_exists($lang, $map) && array_key_exists($key, $map[$lang])) {
 			return $map[$lang][$key];
 		}
-
-		foreach ($mapExtends as $mapExtend) {
-			if (!array_key_exists($lang, $mapExtend)) {
-				continue;
-			}
-
-			$langMap = $mapExtend[$lang];
-			if (array_key_exists($key, $langMap)) {
-				return $langMap[$key];
-			}
-		}
-
 
 		//todo - логировать отсутствие локализации?
 		return $key;

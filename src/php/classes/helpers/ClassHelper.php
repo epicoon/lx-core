@@ -10,6 +10,10 @@ class ClassHelper {
 		return ($currentClass == $baseClass || is_subclass_of($currentClass, $baseClass));
 	}
 
+	public static function isWidget($className) {
+		return self::checkInstance($className, Rect::class);
+	}
+
 	/**
 	 * Проверяет существование класса в проекте
 	 * */

@@ -19,11 +19,11 @@ class ServiceController {
 	/**
 	 *
 	 * */
-	public function renderModule($module) {
-		if (is_string($module)) {
-			$module = $this->service->getModule($module);
+	public function renderPlugin($plugin) {
+		if (is_string($plugin)) {
+			$plugin = $this->service->getPlugin($plugin);
 		}
 
-		return ServiceResponse::renderModule($module);
+		return ServiceResponse::renderPlugin($plugin);
 	}
 }

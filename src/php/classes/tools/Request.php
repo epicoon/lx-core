@@ -19,7 +19,7 @@ Class Request {
 		if ($url) {
 			$tempUrl = explode('?', $url);
 			if (count($tempUrl) > 1) {
-				$urlParams = \lx::$dialog->translateGetParams($tempUrl[1]);
+				$urlParams = \lx::$app->dialog->translateGetParams($tempUrl[1]);
 			} else {
 				$urlParams = [];
 			}

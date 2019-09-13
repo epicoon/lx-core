@@ -45,6 +45,22 @@ lx.createFunctionByInlineString = function(str) {
 };
 
 /**
+ * Превращает функцию в строку в формате '(arg1, arg2) => ...function code'
+ * */
+lx.functionToString = function(func) {
+	var funcText = null;
+	if (func.isFunction) {
+		funcText = func.toString();
+		if (funcText.match(/^\s*\(/))
+			funcText = funcText.replace(/^\s*\(([^\)]*?)\)\s*=>\s*{\s*/, '($1)=>');
+		else
+			funcText = funcText.replace(/^\s*function\s*\(([^\)]*?)\)\s*{\s*/, '($1)=>');
+		funcText = funcText.replace(/\s*}\s*$/, '');
+	} else if (func.isString) funcText = func;
+	return funcText;
+};
+
+/**
  * Создать функцию по аргументам и коду
  * */
 lx.createFunction = function(args, code) {
