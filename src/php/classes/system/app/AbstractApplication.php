@@ -182,6 +182,15 @@ abstract class AbstractApplication {
 
 	abstract public function run();
 
+	public function renewConfig() {
+		$path = $this->_conductor->appConfig;
+		if (!$path) {
+			$this->_config = [];
+		} else {
+			$this->_config = require($path);
+		}
+	}
+
 	/**
 	 * Загрузка основных конфигов приложения
 	 */

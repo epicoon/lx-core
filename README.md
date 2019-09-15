@@ -51,6 +51,7 @@ This repository contains platform core. The core is enough for web application d
    To use other lx-packages, simply add them to the composer configuration file. [Example](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/doc/composer-example.md).<br>
    At the root of the project, run the command `composer install`.<br>
    As a result a directory `vendor` will be created. It will contain composer packages in a directory `lx`.
+   Note the "scripts" section. This script will create the `lx` folder at the root of the application. The `lx` folder is necessary for the platform to function. Inside there will be configuration files, a CLI launch file, system directories etc. This script will also create (or modify) the `.gitignore` file so that the platform system files are not monitored by the version control system.
 2. Setting up a server for `nginx` for `Ubuntu`.<br>
    Configuration:
    ```
@@ -78,11 +79,7 @@ This repository contains platform core. The core is enough for web application d
    Note the paths and version of php-fpm, substitute your values.<br>
    Add an entity in `/etc/hosts`.<br>
    Restart server.<br>
-3. To deploy the platform in the project run php-script `vendor/lx/lx-core/lx-install`.<br>
-   As a result in the root of the project follow directories will be created:
-   * lx - directory for platform configuration and system files. Mandatory.
-   * services - catalog for application services (details below). Optional. Work with services is configured in the application configuration.
-4. It remains to trigger the launch of the lx application in your code.
+3. It remains to trigger the launch of the lx application in your code.
    To do this, add the code in the index file:
    ```php
    /* An example is given for the situation when the index file is in the project root
@@ -92,7 +89,7 @@ This repository contains platform core. The core is enough for web application d
    $app = new lx\Application();
    $app->run();
    ```
-5. If in the browser on the domain specified in the server configuration and the file `/etc/hosts` you see the page:
+4. If in the browser on the domain specified in the server configuration and the file `/etc/hosts` you see the page:
    ![lx start page](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/images/lx-start-page.png)
    then everything worked out.
 

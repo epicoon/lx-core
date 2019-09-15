@@ -25,6 +25,21 @@ $lx = $site->getOrMakeDirectory('lx');
 $system = $lx->getOrMakeDirectory('.system');
 $system->getOrMakeDirectory('temp');
 
+// Корректируем ".gitignore"
+$gitignore = $site->makeFile('.gitignore');
+if ($gitignore->exists()) {
+    $str = '# lx local system dir' . PHP_EOL . '/lx/.system' . PHP_EOL . PHP_EOL;
+    $text = $gitignore->get();
+    if (!preg_match('/\/vendor\b/', $text)) {
+        $str .= '# composer vendor dir' . PHP_EOL . '/vendor' . PHP_EOL . PHP_EOL;
+    }
+    $str .= $text;
+} else {
+	$str = '# lx local system dir' . PHP_EOL . '/lx/.system' . PHP_EOL . PHP_EOL;
+	$str .= '# composer vendor dir' . PHP_EOL . '/vendor' . PHP_EOL . PHP_EOL;
+}
+$gitignore->put($str);
+
 // Создаем файл для работы в консольном режиме
 require(__DIR__ . '/install-src/lxConsole.php');
 /**
@@ -56,6 +71,8 @@ if (!$lx->contain('config')) {
 
 	$configService = $config->makeFile('service.php');
 	$configService->put($configServiceCode);
+
+	$app->renewConfig();
 }
 
 $data = $lx->getOrMakeDirectory('data');
