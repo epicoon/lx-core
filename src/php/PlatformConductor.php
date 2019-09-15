@@ -82,7 +82,7 @@ class PlatformConductor {
 			if (file_exists($config . '/main.yaml')) {
 				return $config . '/main.yaml';
 			}
-			throw new \Exception('Application configuration file not found', 400);
+			return null;
 		}
 
 		return false;

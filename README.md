@@ -40,7 +40,12 @@ This repository contains platform core. The core is enough for web application d
                "type":"git",
                "url":"https://github.com/epicoon/lx-core"
            }
-        ]
+        ],
+        "scripts": {
+           "post-update-cmd": [
+               "php vendor/lx/lx-core/lx-install"
+           ]
+        }
    }
    ```
    To use other lx-packages, simply add them to the composer configuration file. [Example](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/doc/composer-example.md).<br>

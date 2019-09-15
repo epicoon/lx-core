@@ -187,6 +187,10 @@ abstract class AbstractApplication {
 	 */
 	private function loadConfig() {
 		$path = $this->_conductor->appConfig;
-		$this->_config = require($path);
+		if (!$path) {
+			$this->_config = [];
+		} else {
+			$this->_config = require($path);
+		}
 	}
 }

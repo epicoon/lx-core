@@ -40,7 +40,12 @@
                "type":"git",
                "url":"https://github.com/epicoon/lx-core"
            }
-        ]
+        ],
+        "scripts": {
+           "post-update-cmd": [
+               "php vendor/lx/lx-core/lx-install"
+           ]
+        }
    }
    ```
    Чтобы использовать прочие lx-пакеты, просто добавьте их в конфигурационный файл по аналогии с пакетом `lx/lx-core`, например: [конфигурация с прочими lx-пакетами](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/doc/composer-example.md).<br>

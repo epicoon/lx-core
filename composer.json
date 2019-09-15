@@ -9,10 +9,5 @@
             "name": "a.sedov",
             "email": "altkkb.vds@mail.ru"
         }
-    ],
-    "scripts": {
-        "post-dependencies-solving": [
-            "php lx-install"
-        ]
-    }
+    ]
 }
