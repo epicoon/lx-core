@@ -283,7 +283,7 @@ Of all the elements of the architecture a service and a plugin are configurable 
   Path to the snippet named `snippetName` variants:
   * path/to/snippet/snippetName.js
   * path/to/snippet/snippetName/snippetName.js
-  * path/to/snippet/snippetName/\_snippetName.js
+  * path/to/snippet/snippetName/\_snippetName.js<br>
   Thus, the philosophy of the snippets implies their use in situations where the use of OO techniques is not necessary for an interface fragment (encapsulation, inheritance, polymorphism). This part of the GUI is specific to this part of the application. However, this does not mean that there is no mechanism for reusing the code for snippets.
 
   A snippet can have its own JS-code running on the client side. To do this, you need to define a function in the snippet code and pass it to the `Snipept.onload ()` method:
