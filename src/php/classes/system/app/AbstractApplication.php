@@ -151,7 +151,10 @@ abstract class AbstractApplication {
 			$pluginName = $arr[1];
 		}
 
-		return $this->getService($serviceName)->getPlugin($pluginName);
+		$service = $this->getService($serviceName);
+		if (!$service) return null;
+
+		return $service->getPlugin($pluginName);
 	}
 
 	/**

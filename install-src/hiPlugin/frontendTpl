@@ -38,7 +38,7 @@ list.each((item, key)=>{
 });
 
 function loadPlugin(name, title, boxName, data) {
-	if (data === false) {
+	if (data.success === false) {
 		lx.Tost.warning('Application need service "'+ name +'"');
 		return;
 	}
