@@ -27,7 +27,8 @@ class Table extends lx.Box #lx:namespace lx {
 		var indentData = this.indents.get();
 
 		var rowStreamConfig = {};
-		if (!!this.getInnerSize(lx.HEIGHT) && config.rowHeight === undefined)
+
+		if (config.rowHeight === undefined)
 			rowStreamConfig.type = lx.StreamPositioningStrategy.TYPE_PROPORTIONAL;
 		if (indentData.stepY) rowStreamConfig.stepY = indentData.stepY;
 		if (indentData.paddingTop)    rowStreamConfig.paddingTop    = indentData.paddingTop;
@@ -57,7 +58,7 @@ class Table extends lx.Box #lx:namespace lx {
 
 	row(row) {
 		if (!this.children.r) return null;
-		if (this.children.r instanceof TableRow) return this.children.r;
+		if (this.children.r instanceof lx.TableRow) return this.children.r;
 		if (!this.children.r[row]) return null;
 		return this.children.r[row];
 	}
@@ -189,7 +190,7 @@ class Table extends lx.Box #lx:namespace lx {
 
 		config.css = this.basicCss.row;
 		config.cols = cols;
-		var c = TableRow.construct(amt, config);
+		var c = lx.TableRow.construct(amt, config);
 		return c;
 	}
 
@@ -268,7 +269,7 @@ class Table extends lx.Box #lx:namespace lx {
 //=============================================================================================================================
 
 //=============================================================================================================================
-class TableRow extends lx.Box {
+class TableRow extends lx.Box #lx:namespace lx {
 	build(config) {
 		var colConfig = {direction: lx.HORIZONTAL},
 			table = this.parent,
@@ -282,7 +283,7 @@ class TableRow extends lx.Box {
 		if (colConfig.minWidth === undefined) colConfig.minWidth = '5px';
 
 		this.streamProportional(colConfig);
-		TableCell.construct(config.cols, {parent: this, key: 'c', css: table.basicCss.cell});
+		lx.TableCell.construct(config.cols, {parent: this, key: 'c', css: table.basicCss.cell});
 		if (table.colsWidths) this.style('grid-template-columns', table.colsWidths)
 	}
 
@@ -299,7 +300,7 @@ class TableRow extends lx.Box {
 
 	cell(num) {
 		if (!this.children.c) return null;
-		if (this.children.c instanceof TableCell) return this.children.c;
+		if (this.children.c instanceof lx.TableCell) return this.children.c;
 		if (!this.children.c[num]) return null;
 		return this.children.c[num];
 	}
@@ -315,14 +316,14 @@ class TableRow extends lx.Box {
 		else config.parent = this;
 
 		config.css = this.parent.basicCss.cell;
-		var c = TableCell.construct(count, config);
+		var c = lx.TableCell.construct(count, config);
 		return c;
 	}
 }
 //=============================================================================================================================
 
 //=============================================================================================================================
-class TableCell extends lx.Box {
+class TableCell extends lx.Box #lx:namespace lx {
 	table() {
 		return this.parent.parent;
 	}

@@ -24,13 +24,17 @@ class PluginBrowser {
 		$config = $configFile ? $configFile->get() : [];
 		$config += \lx::$app->getDefaultPluginConfig();
 
-		if (isset($config['frontend']) && isset($config['jsMain'])
-			&& file_exists($directory->getPath() . '/' . $config['frontend'] . '/' . $config['jsMain'])
+		if (isset($config['jsMain'])
+			&& file_exists($directory->getPath() . '/' . $config['jsMain'])
 		) return true;
 
 		if (isset($config['rootSnippet'])
 			&& file_exists($directory->getPath() . '/' . $config['rootSnippet'])
 		) return true;
+		
+		$commonConfig = \lx::$app->getDefaultPluginConfig();
+		if (file_exists($directory->getPath() . '/' . $commonConfig['jsMain'])) return true;
+		if (file_exists($directory->getPath() . '/' . $commonConfig['rootSnippet'])) return true;
 
 		return false;
 	}
