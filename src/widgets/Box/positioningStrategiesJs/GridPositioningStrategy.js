@@ -93,7 +93,9 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		this.cols = +config.c;
 		this.type = +config.t;
 		if (config.mh) this.minHeight = config.mh;
-		this.map = lx.BitMap.createFromString(config.m);
+		this.map = config.m == ''
+			? new lx.BitMap(this.cols)
+			: lx.BitMap.createFromString(config.m);
 	}
 
 	/**

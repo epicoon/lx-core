@@ -331,7 +331,9 @@ class Rect #lx:namespace lx {
         var basicCss = config.basicCss;
         if (!basicCss) {
             var plugin = this.getPlugin();
-            if (plugin) basicCss = plugin.getWidgetBasicCss(this.lxFullClassName);
+            if (plugin) {
+                basicCss = plugin.getWidgetBasicCss(this.lxFullClassName);
+            }
         }
         if (!basicCss) basicCss = this.getBasicCss();
         if (basicCss) this.setBasicCss(basicCss);
@@ -1639,8 +1641,6 @@ class Rect #lx:namespace lx {
             if (f) return f;
             f = this.findFunction('::' + handler);
             if (f) return f;
-            f = this.findFunction('->' + handler);
-            if (f) return f;
             f = this.findFunction('lx.' + handler);
             if (f) return f;
 
@@ -1654,10 +1654,13 @@ class Rect #lx:namespace lx {
          * */
         unpackFunction(str) {
             var f = null;
-            if (str.match(/^\(.*?\)\s*=>/))
+            if (str.match(/^\(.*?\)\s*=>/)) {
+                str = str.replace(
+                    /^(\(.*?\)\s*=>\s*{?}?)/,
+                    '$1const Plugin=this.getPlugin();const Snippet=this.getSnippet(); '
+                );
                 f = lx.createFunctionByInlineString(str);
-            else
-                f = this.findFunction(str);
+            } else f = this.findFunction(str);
             if (!f) return null;
             return f;
         }

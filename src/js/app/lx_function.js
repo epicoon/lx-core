@@ -23,7 +23,7 @@ lx.getHandler = function(name) {
  * */
 lx.callFunction = function(data, args = []) {
 	if (data.isFunction) data.apply(null, args);
-	else if (data.isArray) data[0].apply(data[1], args);
+	else if (data.isArray) data[1].apply(data[0], args);
 };
 
 /**

@@ -6,6 +6,12 @@ class BitMap #lx:namespace lx {
 		else this.map = [];
 	}
 
+	toString() {
+		var arr = [];
+		this.map.each((a)=>arr.push(a.toString()));
+		return arr.join(lx.EOL);
+	}
+
 	static createFromString(str) {
 		var arr = str.split(/\s+/);
 		var map = new this(arr[0].length, arr.length);
@@ -128,11 +134,5 @@ class BitMap #lx:namespace lx {
 
 		for (var i=y, l=y+h; i<l; i++)
 			this.map[i].unsetBit(x, w);
-	}
-
-	toString() {
-		var arr = [];
-		this.map.each((a)=>arr.push(a.toString()));
-		return arr.join(lx.EOL);
 	}
 }

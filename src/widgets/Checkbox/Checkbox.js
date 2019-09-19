@@ -30,8 +30,8 @@ class Checkbox extends lx.Rect #lx:namespace lx {
 
 	getBasicCss() {
 		return {
-			checked: 'lx-Checkbox-0',
-			unchecked: 'lx-Checkbox-1'
+			checked: 'lx-Checkbox-1',
+			unchecked: 'lx-Checkbox-0'
 		};
 	}
 

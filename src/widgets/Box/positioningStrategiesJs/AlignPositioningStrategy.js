@@ -17,9 +17,22 @@ class AlignPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		this.owner.style('flex-direction', this.direction == lx.HORIZONTAL ? 'row' : 'column');
 		var vAlign, hAlign;
 		switch (this.horizontal) {
-			case lx.LEFT: hAlign = 'flex-start'; break;
-			case lx.CENTER: hAlign = 'center'; break;
-			case lx.RIGHT: hAlign = 'flex-end'; break;
+			case lx.LEFT:
+				this.owner.style('text-align', 'left');
+				hAlign = 'flex-start';
+				break;
+			case lx.CENTER:
+				this.owner.style('text-align', 'center');
+				hAlign = 'center';
+				break;
+			case lx.JUSTIFY:
+				this.owner.style('text-align', 'justify');
+				hAlign = 'center';
+				break;
+			case lx.RIGHT:
+				this.owner.style('text-align', 'right');
+				hAlign = 'flex-end';
+				break;
 		}
 		switch (this.vertical) {
 			case lx.TOP: vAlign = 'flex-start'; break;

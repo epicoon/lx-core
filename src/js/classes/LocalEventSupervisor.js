@@ -1,0 +1,23 @@
+class LocalEventSupervisor #lx:namespace lx {
+	constructor() {
+		this.listeners = {};
+	}
+
+	subscribe(eventName, callback) {
+		if (eventName.isObject) {
+			for (var i in eventName) this.subscribe(i, eventName[i]);
+			return;
+		}
+
+		if (!(eventName in this.listeners)) this.listeners[eventName] = [];
+		this.listeners[eventName].push(callback);
+	}
+
+	trigger(eventName, args = []) {
+		if (eventName in this.listeners) {
+			if (!args.isArray) args = [args];
+			for (var i=0, l=this.listeners[eventName].len; i<l; i++)
+				lx.callFunction(this.listeners[eventName][i], args);
+		}
+	}
+}

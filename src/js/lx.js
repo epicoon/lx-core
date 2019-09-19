@@ -35,13 +35,15 @@ Object.defineProperty(lx, "globalContext", {
 	};
 };
 
-lx.createNamespace = function(namespace) {
+lx.createNamespace = function(namespace, props) {
 	var arr = namespace.split(/[.\\]/),
 		temp = lx.globalContext;
 	for (var i=0, l=arr.length; i<l; i++) {
 		if (temp[arr[i]] === undefined) temp[arr[i]] = {};
 		temp = temp[arr[i]];
 	}
+	if (props) temp.lxMerge(props);
+	return temp;
 };
 
 lx.getNamespace = function(namespace) {

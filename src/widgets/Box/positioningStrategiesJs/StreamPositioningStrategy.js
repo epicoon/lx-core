@@ -64,6 +64,11 @@ class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx 
 		this.sequense = Sequense.create(this);
 	}
 
+	reset() {
+		if (this.direction == lx.VERTICAL) this.owner.style('grid-template-rows', null)
+		else this.owner.style('grid-template-columns', null);
+	}
+
 	/**
 	 * Для позиционирования нового элемента, добавленного в контейнер
 	 * */
