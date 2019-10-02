@@ -34,6 +34,10 @@ class ApplicationConductor extends ApplicationTool {
 		return $alias;
 	}
 
+	public function getRootPath() {
+		return \lx::$conductor->site;
+	}
+
 	/**
 	 * Перезаписать список алиасов переданным массивом
 	 * */
@@ -63,6 +67,11 @@ class ApplicationConductor extends ApplicationTool {
 		$this->aliases[$name] = $path;
 	}
 
+	public function getRelativePath($path, $defaultLocation = null) {
+		$fullPath = $this->getFullPath($path, $defaultLocation);
+		return explode($this->sitePath . '/', $fullPath)[1];
+	}
+
 	/**
 	 * Если путь начинается с '/' - он будет достроен путем от корня сайта
 	 * Если путь начинается с '@' - он будет достроен расшифровкой алиаса
@@ -83,7 +92,7 @@ class ApplicationConductor extends ApplicationTool {
 		}
 
 		if ($path{0} == '{') {
-			return $this->getRelativePath($path);
+			return $this->getStuffPath($path);
 		}
 
 		if ($defaultLocation === null) $defaultLocation = $this->sitePath;
@@ -138,7 +147,7 @@ class ApplicationConductor extends ApplicationTool {
 	/**
 	 *
 	 * */
-	private function getRelativePath($path) {
+	private function getStuffPath($path) {
 		preg_match_all('/^{([^:]+?):([^}]+?)}\/?(.+?)$/', $path, $matches);
 		if (empty($matches[1])) {
 			return false;

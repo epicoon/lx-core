@@ -98,6 +98,10 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 			: lx.BitMap.createFromString(config.m);
 	}
 
+	reset() {
+		this.map.fullReset();
+	}
+
 	/**
 	 * Для позиционирования нового элемента, добавленного в контейнер
 	 * */

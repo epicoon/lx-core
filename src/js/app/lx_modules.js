@@ -12,7 +12,6 @@ lx.modules = {
 	 * */ 
 	defineNecessary: function(list) {
 		if (this.data == {}) return list;
-
 		var result = [];
 		for (let i=0, l=list.len; i<l; i++)
 			if (!(list[i] in this.data))

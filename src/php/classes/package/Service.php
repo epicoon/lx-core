@@ -303,7 +303,7 @@ class Service extends ApplicationTool {
 	/**
 	 *
 	 * */
-	public function getPlugin($pluginName, $params = []) {
+	public function getPlugin($pluginName, $argRenderParams = []) {
 		// Карта динамических модулей
 		/*
 		dynamicPlugins:
@@ -322,13 +322,13 @@ class Service extends ApplicationTool {
 			if (is_array($info)) {
 				if (isset($info['method'])) {
 					if (!method_exists($this, $info['method'])) {
-						throw new \Exception("Plugin '$pluginName' not found", 400);
+						return null;
 					}
 					return $this->{$info['method']}();
 				}
 
 				if (!isset($info['prototype'])) {
-					throw new \Exception("Plugin '$pluginName' not found", 400);
+					return null;
 				}
 				$path = $this->app->getPluginPath($info['prototype']);
 				$plugin = Plugin::create($this, $pluginName, $path, $info['prototype']);
@@ -346,21 +346,21 @@ class Service extends ApplicationTool {
 					}
 					$plugin->addRenderParams($renderParams);
 				}
-				$plugin->addRenderParams($params);
+				$plugin->addRenderParams($argRenderParams);
 				return $plugin;
 			} else {
 				//todo - если не массив?
-				throw new \Exception("Plugin '$pluginName' not found", 400);
+				return null;
 			}
 		}
 
 		// Поиск статических модулей
 		$pluginPath = $this->conductor->getPluginPath($pluginName);
 		if ($pluginPath === null) {
-			throw new \Exception("Plugin '$pluginName' not found", 400);
+			return null;
 		}
 		$plugin = Plugin::create($this, $pluginName, $pluginPath);
-		$plugin->addRenderParams($params);
+		$plugin->addRenderParams($argRenderParams);
 		return $plugin;
 	}
 

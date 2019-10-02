@@ -2,104 +2,128 @@
 
 namespace lx;
 
-class SnippetBuildContext extends ApplicationTool implements ContextTreeInterface {
+class SnippetBuildContext extends ApplicationTool implements ContextTreeInterface
+{
 	use ContextTreeTrait;
 
+	/** @var PluginBuildContext */
 	private $pluginBuildContext;
 	private $snippet;
 	private $tempFile;
+	/** @var SnippetCacheData */
+	private $cacheData;
 	private $idCounter;
-	private $keyCounter;
 	private $autoParentStack;
 
-
-	public function __construct($pluginBuildContext, $snippetData = [], $parent = null) {
+	public function __construct($pluginBuildContext, $snippetData = [], $contextConfig = null)
+	{
 		parent::__construct($pluginBuildContext->app);
 
 		$this->pluginBuildContext = $pluginBuildContext;
 		$this->idCounter = 0;
 		$this->autoParentStack = new Vector();
-		$this->ContextTreeTrait($parent);
-		$this->createSnippet($snippetData);
+		$this->ContextTreeTrait($contextConfig);
+		if ($this->isHead()) {
+			$this->cacheData = new SnippetCacheData($this);
+		}
+
+		if ($snippetData instanceof Snippet) {
+			$this->snippet = $snippetData;
+		} else {
+			$this->createSnippet($snippetData);
+		}
 	}
 
-	public function __set($name, $val) {
+	public function __set($name, $val)
+	{
 		if ($name == 'autoParent') {
 			if ($val === null) $this->resetAutoParent();
 			else $this->setAutoParent($val);
 		}
 	}
 
-	public function __get($name) {
+	public function __get($name)
+	{
 		if ($name == 'autoParent') return $this->getAutoParent();
 		return parent::__get($name);
 	}
 
-	public function build() {
+	public function build()
+	{
 		if (!$this->snippet) {
 			return [];
 		}
 
-		$this->runSnippetCode();
-		return $this->packSnippets();
+		$buildType = $this->getPlugin()->getConfig('snippetBuildType');
+		$this->cacheData->initBuildType($buildType);
+
+		switch ($buildType) {
+			case Plugin::CACHE_BUILD:
+				return $this->buildProcess(true);
+			case Plugin::CACHE_NONE:
+				return $this->buildProcess(false);
+			case Plugin::CACHE_STRICT:
+				return $this->getCache() ?? $this->buildProcess(true);
+			case Plugin::CACHE_ON:
+				return $this->getCache() ?? '[]';
+			case Plugin::CACHE_SMART:
+				return $this->getSmartCache();
+		}
 	}
 
-	public function addSnippet($snippetData) {
+	public function addSnippet($snippetData)
+	{
 		$contex = $this->add($this->pluginBuildContext, $snippetData);
 		return $contex->getSnippet();
 	}
 
-	public function getPluginBuildContext() {
+	public function getPluginBuildContext()
+	{
 		return $this->pluginBuildContext;
 	}
 
-	public function getPlugin() {
+	/**
+	 * @return Plugin
+	 */
+	public function getPlugin()
+	{
 		return $this->pluginBuildContext->getPlugin();
 	}
 
-	public function getSnippet() {
+	public function getSnippet()
+	{
 		return $this->snippet;
-	}
-
-	/**
-	 * Ключ для очередного рендерящегося элемента
-	 */
-	public function genWidgetKey() {
-		return $this->getHead()->incWidgetKey();
-	}
-
-	/**
-	 * Количество выданных ключей
-	 */
-	public function incWidgetKey() {
-		return 'e' . Math::decChangeNotation($this->keyCounter++, 62);
 	}
 
 	/**
 	 * Установить на вершину стека дефолтный родительский элемент
 	 * */
-	public function setAutoParent($el) {
+	public function setAutoParent($el)
+	{
 		$this->autoParentStack->push($el);
 	}
 
 	/**
 	 * Получить дефолтный родительский элемент
 	 * */
-	public function getAutoParent() {
+	public function getAutoParent()
+	{
 		return $this->autoParentStack->last();
 	}
 
 	/**
 	 * Отменить дефолтный родительский элемент, находящийся на вершине стека
 	 * */
-	public function popAutoParent() {
+	public function popAutoParent()
+	{
 		return $this->autoParentStack->pop();
 	}
 
 	/**
 	 * Сбросить весь стек дефолтных родительских элементов и установить переданный
 	 * */
-	public function resetAutoParent($elem=null) {
+	public function resetAutoParent($elem = null)
+	{
 		$this->autoParentStack->reset();
 		if ($elem !== null) $this->setAutoParent($elem);
 	}
@@ -109,10 +133,86 @@ class SnippetBuildContext extends ApplicationTool implements ContextTreeInterfac
 	 * PRIVATE
 	 ******************************************************************************************************************/
 
-	private function createSnippet($snippetData) {
+	private function getCache()
+	{
+		$cacheData = $this->cacheData->get();
+		if (!$cacheData) {
+			return null;
+		}
+
+		$this->getPlugin()->setRootSnippetKey($cacheData['rootSnippetKey']);
+		$this->pluginBuildContext->applayDependencies($cacheData['dependencies']);
+		return $cacheData['cache'];
+	}
+
+	private function getSmartCache()
+	{
+		if ($this->cacheData->isEmpty()) {
+			return $this->buildProcess(true);
+		}
+
+		$changed = $this->cacheData->getDiffs();
+		if (empty($changed)) {
+			return $this->getCache();
+		}
+
+		return $this->actualizeCache($changed);
+	}
+
+	private function buildProcess($renewCache)
+	{
+		$this->getPlugin()->setRootSnippetKey($this->getKey());
+
+		$this->runSnippetCode();
+		$snippets = $this->getSnippets();
+		$snippetsData = [];
+		foreach ($snippets as $key => $snippet) {
+			$snippetsData[$key] = $snippet->getData();
+		}
+		$result = json_encode($snippetsData);
+
+		if ($renewCache) {
+			$this->cacheData->renew(
+				$this->getKey(),
+				$snippets,
+				$snippetsData,
+				$result
+			);
+		}
+
+		return $result;
+	}
+
+	private function actualizeCache($changed)
+	{
+		$plugin = $this->getPlugin();
+		$cacheMap = $this->cacheData->getMap();
+		$snippets = [];
+		foreach ($changed as $key) {
+			$data = $cacheMap['map'][$key];
+			$context = new SnippetBuildContext(
+				$this->pluginBuildContext,
+				[
+					'path' => $plugin->getFilePath($data['path']),
+					'renderParams' => $data['renderParams'] ?? [],
+					'clientParams' => $data['clientParams'] ?? [],
+				],
+				['key' => $key]
+			);
+			$context->runSnippetCode();
+			$snippets = array_merge($snippets, $context->getSnippets());
+		}
+
+		$cacheData = $this->cacheData->smartRenew($changed, $snippets);
+		$this->getPlugin()->setRootSnippetKey($cacheData['rootSnippetKey']);
+		$this->pluginBuildContext->applayDependencies($cacheData['dependencies']);
+		return $cacheData['cache'];
+	}
+
+	private function createSnippet($snippetData)
+	{
 		if (!isset($snippetData['path'])) {
-			$plugin = $this->pluginBuildContext->getPlugin();
-			$path = $plugin->conductor->getSnippetPath();
+			$path = $this->getPlugin()->conductor->getSnippetPath();
 			if (!$path) {
 				return;
 			}
@@ -124,7 +224,8 @@ class SnippetBuildContext extends ApplicationTool implements ContextTreeInterfac
 		$this->snippet = new Snippet($this, $snippetData);
 	}
 
-	private function runSnippetCode() {
+	private function runSnippetCode()
+	{
 		$app = $this->app;
 		$plugin = $this->getPlugin();
 		$snippet = $this->snippet;
@@ -163,10 +264,14 @@ class SnippetBuildContext extends ApplicationTool implements ContextTreeInterfac
 		$post = 'return {
 			app: App.getResult(),
 			plugin: Plugin.getResult(),
-			snippet: Snippet.getResult()
+			snippet: Snippet.getResult(),
+			dependencies: {}
+				.lxMerge(App.getDependencies())
+				.lxMerge(Plugin.getDependencies())
+				.lxMerge(Snippet.getDependencies())
 		};';
 
-		$compiler = new JsCompiler($this->app, $this->pluginBuildContext);
+		$compiler = new JsCompiler($this->app, $plugin->conductor);
 		$compiler->setBuildModules(true);
 		$executor = new NodeJsExecutor($this->app, $compiler);
 		$res = $executor->run([
@@ -179,8 +284,13 @@ class SnippetBuildContext extends ApplicationTool implements ContextTreeInterfac
 
 		$app->applyBuildData($res['app']);
 		$plugin->applyBuildData($res['plugin']);
-		// Получаем html и пояснительную записку контента, дорабатываем её
 		$snippet->applyBuildData($res['snippet']);
+
+		// Зависимости ниппету запомнить, к плагину применить
+		$dependencies = $compiler->getDependencies();
+		$dependencies->add($res['dependencies']);
+		$snippet->setDependencies($dependencies, $compiler->getCompiledFiles());
+		$this->pluginBuildContext->applayDependencies($dependencies);
 
 		// Строится дерево контекстов с собранными сниппетами
 		foreach ($this->nestedContexts as $context) {
@@ -189,28 +299,14 @@ class SnippetBuildContext extends ApplicationTool implements ContextTreeInterfac
 	}
 
 	/**
-	 * Консолидация данных по отрендеренным блокам
+	 * Выстраивание сниппетов в массив
 	 * */
-	private function packSnippets() {
+	private function getSnippets()
+	{
 		$arr = [];
-		$this->eachContext(function($context) use (&$arr) {
-			$arr[$context->getKey()] = $context->getSnippet()->getData();
+		$this->eachContext(function ($context) use (&$arr) {
+			$arr[$context->getKey()] = $context->getSnippet();
 		});
 		return $arr;
-	}
-
-
-	/*******************************************************************************************************************
-	 * INNER
-	 ******************************************************************************************************************/
-
-	protected function genUniqKey() {
-		return $this->getHead()->genId();
-	}
-
-	private function genId() {
-		$id = $this->idCounter;
-		$this->idCounter++;
-		return $id;
 	}
 }

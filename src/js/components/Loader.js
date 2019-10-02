@@ -74,18 +74,16 @@ function parseInfo(info) {
 	while (match = reg.exec(pluginsInfo)) {
 		var key = match[1],
 			pluginString = pluginsInfo.match(new RegExp('<plugin '+key+'>([\\w\\W]*?)</plugin '+key+'>'))[1];
-		loadData.plugins[key] = {
+		var info = {
 			key,
 			info: lx.Json.parse(pluginString.match(new RegExp('<mi '+key+'>([\\w\\W]*?)</mi '+key+'>'))[1]),
 			bootstrapJs: pluginString.match(new RegExp('<bs '+key+'>([\\w\\W]*?)</bs '+key+'>'))[1],
 			snippets: lx.Json.parse(pluginString.match(new RegExp('<bl '+key+'>([\\w\\W]*?)</bl '+key+'>'))[1]),
 			mainJs: pluginString.match(new RegExp('<mj '+key+'>([\\w\\W]*?)</mj '+key+'>'))[1]
 		};
-
-		// Корневой модуль - первый
-		if (mainKey === null) mainKey = key;
+		loadData.plugins[info.info.anchor] = info;
 	}
-	loadData.rootKey = mainKey;
+	loadData.rootKey = '_root_';
 }
 
 
@@ -226,7 +224,7 @@ function createPlugin(pluginInfo, el, parent, clientCallback) {
 
 	// Сборка блоков
 	loadData.snippetsInfo[m.key] = snippets;
-	(new SnippetBuilder(m, null, el, 0)).unpack();
+	(new SnippetBuilder(m, null, el, info.rsk)).unpack();
 	
 	//todo - с ним явно что-то не то
 	// Явно обнулим замыкание после использования
@@ -306,7 +304,7 @@ class SnippetJsNode {
 		var args = [];
 
 		var counter = 0,
-			pre = '(function(w,p){const Snippet = new lx.Snippet(w,p);lx.WidgetHelper.autoParent=w;w=p=undefined;',
+			pre = '(function(_w,_p){const Snippet = new lx.Snippet(_w,_p);lx.WidgetHelper.autoParent=_w;_w=_p=undefined;',
 			post = 'lx.WidgetHelper.popAutoParent();',
 			begin = [],
 			end = [];
@@ -490,8 +488,8 @@ class SnippetBuilder {
 			}
 
 			// Пришел плагин, собранный в этот элемент
-			if (el.pluginData)
-				createPlugin(loadData.plugins[el.lxExtract('pluginData')], el, this.plugin);
+			if (el.pluginAnchor)
+				createPlugin(loadData.plugins[el.lxExtract('pluginAnchor')], el, this.plugin);
 
 			delete el.inLoad;
 		}
@@ -526,12 +524,6 @@ class SnippetBuilder {
 	 * Основной алгоритм распаковки
 	 * */
 	unpack() {
-		//todo подумать насколько эта идея была нормальной
-		// // убедимся, что блок чистый
-		// var temp = new lx[this.snippet.lxClassName]();
-		// for (var i in this.snippet)
-		// 	//todo проверки не нравятся
-		// 	if (i != 'plugin' && i != 'key' && !(i in temp)) delete this.snippet[i];
 		var info = loadData.snippetsInfo[this.plugin.key][this.index];
 		if (!info) return;
 
@@ -551,7 +543,7 @@ class SnippetBuilder {
 		// Допилить содержимое
 		if (this.elems.length) this.unpackContent();
 
-		// Вызовы js-кода блоков
+		// Вызовы js-кода сниппетов
 		this.unpackJs(info);
 	}
 }

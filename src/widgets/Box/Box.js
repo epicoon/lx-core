@@ -99,6 +99,17 @@ class Box extends lx.Rect #lx:namespace lx {
             if (this.lxExtract('__na'))
                 this.positioningStrategy.actualize();
         }
+
+        destructProcess() {
+            this.setBuildMode(true);
+            this.eachChild((child)=>{
+                if (child.destruct) child.destruct();
+            });
+            this.setBuildMode(false);
+            var container = __getContainer(this);
+            container.dropPlugin();
+            super.destructProcess();
+        }
     }
 
     #lx:server {
@@ -264,9 +275,11 @@ class Box extends lx.Rect #lx:namespace lx {
             
             if (!name.isString) return;
             var container = __getContainer(this);
-            container.pluginInfo = {name};
-            if (renderParams) container.pluginInfo.renderParams = renderParams;
-            if (clientParams) container.pluginInfo.clientParams = clientParams;
+            container.pluginAnchor = App.genId();
+            var data = {name, anchor:container.pluginAnchor};
+            if (renderParams) data.renderParams = renderParams;
+            if (clientParams) data.clientParams = clientParams;
+            this.getSnippet().addPlugin(data);
         }
     }
 
@@ -516,7 +529,6 @@ class Box extends lx.Rect #lx:namespace lx {
      * */
     eachChild(func) {
         function re(elem) {
-            // if (elem.destruct) elem.destruct();
             if (!elem.child) return;
             var num = 0,
                 child = elem.child(num);
@@ -534,6 +546,7 @@ class Box extends lx.Rect #lx:namespace lx {
      * */
     clear() {
         var container = __getContainer(this);
+        #lx:client{ if (container.domElem.html() == '') return; }
 
         // Сначала все потомки должны освободить используемые ресурсы
         container.eachChild((child)=>{
@@ -597,11 +610,12 @@ class Box extends lx.Rect #lx:namespace lx {
             if (el.key && el.key in container.children) return this.del(el.key, el._index, 1);
 
             // Если ключа нет - удаляем проще
-            #lx:client{ lx.WidgetHelper.removeFromFrontMap(el); }
             var pre = el.prevSibling();
             container.domElem.removeChild(el.domElem);
+            #lx:client{ lx.WidgetHelper.checkFrontMap(); }
             container.positioning().actualize({from: pre, deleted: [el]});
             container.positioning().onDel();
+            el.destruct();
             return 1;
         }
 
@@ -613,8 +627,8 @@ class Box extends lx.Rect #lx:namespace lx {
         if (!container.children[el].isArray) {
             var elem = container.children[el],
                 pre = elem.prevSibling();
-            #lx:client{ lx.WidgetHelper.removeFromFrontMap(elem); }
             container.domElem.removeChild(elem.domElem);
+            #lx:client{ lx.WidgetHelper.checkFrontMap(); }
             delete container.children[el];
             container.positioning().actualize({from: pre, deleted: [elem]});
             container.positioning().onDel();
@@ -636,9 +650,10 @@ class Box extends lx.Rect #lx:namespace lx {
             var elem = container.children[el][i];
 
             deleted.push(elem);
-            #lx:client{ lx.WidgetHelper.removeFromFrontMap(elem); }
             container.domElem.removeChild(elem.domElem);
         }
+        #lx:client{ lx.WidgetHelper.checkFrontMap(); }
+
         container.children[el].splice(index, count);
         for (var i=index,l=container.children[el].length; i<l; i++)
             container.children[el][i]._index = i;
@@ -834,7 +849,7 @@ class Box extends lx.Rect #lx:namespace lx {
             var elem = container.getDomElem();
             if (!elem) {
                 if (!container.renderCacheStatus) return null;
-                if (num += container.renderCache.len) return null;
+                if (num >= container.renderCache.len) return null;
                 return container.renderCache[num];
             }
 

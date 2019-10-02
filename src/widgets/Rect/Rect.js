@@ -162,10 +162,21 @@ class Rect #lx:namespace lx {
      * Метод для освобождения ресурсов
      * */
     destruct() {
+        this.trigger('beforeDestruct');
+
+        this.__eee = {
+            parent: this.parent,
+            elem: this.domElem
+        };
+
+        this.destructProcess();
         this.parent = null;
-        this.domElem.clear();
+        if (this.domElem) this.domElem.clear();
         this.domElem = null;
+        this.trigger('afterDestruct');
     }
+
+    destructProcess() {}
 
     #lx:client {
         /**
@@ -231,27 +242,6 @@ class Rect #lx:namespace lx {
         if (this._index === undefined) return this.key;
         return this.key + '[' + this._index + ']';
     }
-
-    //TODO - вроде бы морально устаревший метод
-    // /**
-    //  * Строка, показывающая расположение в иерархии элементов - перечисление ключей всех родительских элементов через /
-    //  * */
-    // path() {
-    //     var arr = [],
-    //         temp = this,
-    //         path = '';
-    //
-    //     while (temp) {
-    //         arr.push( temp.indexedKey() );
-    //         temp = temp.parent;
-    //     }
-    //
-    //     path = arr[arr.length-1];
-    //     for (var i=arr.length-2; i>=0; i--)
-    //         path += '/' + arr[i];
-    //
-    //     return path;
-    // }
 
     /**
      * Путь для запроса изображений (идея единого хранилища изображений в рамках модуля)
@@ -554,6 +544,14 @@ class Rect #lx:namespace lx {
 
     visibility(vis) {
         if (vis !== undefined) { vis ? this.show(): this.hide(); return this; }
+
+        if (!this.domElem) {
+            console.log('----------');
+            console.log(this);
+            console.log(vis);
+            console.log('==========');
+        }
+
         if ( !this.domElem.style('visibility') || this.domElem.style('visibility') == 'inherit' ) {
             var p = this.domElem.parent;
             while (p) { if (p.domElem.style('visibility') == 'hidden') return false; p = p.domElem.parent; }
@@ -1482,14 +1480,21 @@ class Rect #lx:namespace lx {
     displayOut(func) { this.on('displayout', func); return this; }
 
     displayOnce(func) {
-        if (func.isString) func = this.unpackFunction(func);
-        if (!func) return this;
-        var f;
-        f = function() {
-            func.call(this);
-            this.off('displayin', f);
+        #lx:server {
+            this.onload('.displayOnce', func);
         };
-        this.on('displayin', f);
+
+        #lx:client {
+            if (func.isString) func = this.unpackFunction(func);
+            if (!func) return this;
+            var f;
+            f = function() {
+                func.call(this);
+                this.off('displayin', f);
+            };
+            this.on('displayin', f);
+        };
+
         return this;
     }
 

@@ -12,11 +12,19 @@ class ServiceConductor {
 		$this->service = $service;
 	}
 
+	public function getRootPath() {
+		return $this->getPath();
+	}
+
 	/**
 	 * @return string - путь к сервису на сервере
 	 * */
 	public function getPath() {
 		return $this->service->directory->getPath();
+	}
+
+	public function getSystemPath() {
+		return $this->getPath() . '/.system';
 	}
 
 	/**
@@ -126,28 +134,18 @@ class ServiceConductor {
 		return $result;
 	}
 
-	/**
-	 *
-	 * */
 	public function getMigrationDirectory() {
-		$dir = new Directory($this->getPath() . '/.system/migrations');
+		$dir = new Directory($this->getSystemPath() . '/migrations');
 		$dir->make();
 		return $dir;
-
-//		$system = $this->service->directory->getOrMakeDirectory('.system');
-//		$migrationsDirectory = $system->getOrMakeDirectory('migrations');
-//		return $migrationsDirectory;
 	}
 
 	public function getModuleMapDirectory() {
-		$dir = new Directory($this->getPath() . '/.system/modules');
+		$dir = new Directory($this->getSystemPath() . '/modules');
 		$dir->make();
 		return $dir;
 	}
 
-	/**
-	 *
-	 * */
 	private function decodeAlias($path) {
 		$aliases = $this->service->getConfig('service.aliases');
 		if (!$aliases) return $path;

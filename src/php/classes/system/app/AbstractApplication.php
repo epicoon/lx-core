@@ -129,6 +129,30 @@ abstract class AbstractApplication {
 	}
 
 	/**
+	 * @param $file string|File
+	 * @return Service|null
+	 */
+	public function getServiceByFile($file) {
+		if (is_string($file)) {
+			$filePath = $this->conductor->getFullPath($file);
+		} elseif ($file instanceof File) {
+			$filePath = $file->getPath();
+		} else {
+			return null;
+		}
+
+		$map = Autoloader::getInstance()->map->packages;
+		foreach ($map as $name => $servicePath) {
+			$fullServicePath = addcslashes($this->sitePath . '/' . $servicePath, '/');
+			if (preg_match('/^' . $fullServicePath . '\//', $filePath)) {
+				return $this->getService($name);
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 *
 	 * */
 	public function getPackagePath($name) {
@@ -144,17 +168,30 @@ abstract class AbstractApplication {
 	/**
 	 * Получение модуля из сервиса
 	 * */
-	public function getPlugin($serviceName, $pluginName = null) {
-		if ($pluginName === null) {
-			$arr = explode(':', $serviceName);
-			$serviceName = $arr[0];
-			$pluginName = $arr[1];
+	public function getPlugin($fullPluginName, $renderParams = [], $clientParams = []) {
+		if (is_array($fullPluginName)) {
+			return $this->getPlugin(
+				$fullPluginName['name'] ?? $fullPluginName['plugin'],
+				$fullPluginName['renderParams'] ?? [],
+				$fullPluginName['clientParams'] ?? []
+			);
 		}
+
+		$arr = explode(':', $fullPluginName);
+		$serviceName = $arr[0];
+		$pluginName = $arr[1];
 
 		$service = $this->getService($serviceName);
 		if (!$service) return null;
 
-		return $service->getPlugin($pluginName);
+		$plugin = $service->getPlugin($pluginName);
+		if (!empty($renderParams)) {
+			$plugin->addRenderParams($renderParams);
+		}
+		if (!empty($clientParams)) {
+			$plugin->clientParams->setProperties($clientParams);
+		}
+		return $plugin;
 	}
 
 	/**

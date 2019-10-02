@@ -5,12 +5,15 @@ namespace lx;
 class Snippet extends ApplicationTool {
 	public
 		$renderIndex = null,
+		$innerSnippetKeys = [],
 		$renderParams = [],
 		$clientParams = [];
 
 	protected
 		$file,  // файл с исходным кодом
 
+		$dependencies,
+		$fileDependencies,
 		$self = [],  // свойства виджета самого блока (стили, атрибуты, поля) - собирают инфу из $widget при рендеринге
 		$htmlContent = '',  // верстка содержимого
 		$lx = [],    // пояснительная записка к содержимому
@@ -33,6 +36,19 @@ class Snippet extends ApplicationTool {
 	public function getFile() {
 		return $this->file;
 	}
+	
+	public function setDependencies($dependencies, $files) {
+		$this->dependencies = $dependencies;
+		$this->fileDependencies = $files;
+	}
+
+	public function getDependencies() {
+		return $this->dependencies;
+	}
+
+	public function getFileDependencies() {
+		return $this->fileDependencies;
+	}
 
 	public function getBuildData() {
 		return [
@@ -46,6 +62,9 @@ class Snippet extends ApplicationTool {
 		return $this->pluginBuildContext->getPlugin();
 	}
 
+	/**
+	 * @param $data
+	 */
 	public function applyBuildData($data) {
 		$this->clientParams = $data['clientParams'];
 		$this->self = $data['selfData'];
@@ -106,31 +125,12 @@ class Snippet extends ApplicationTool {
 		if (file_exists($path . '.js')) {
 			return $path . '.js';
 		}
+
+		return false;
 	}
 
 	private function runBuildProcess() {
 		foreach ($this->lx as &$elemData) {
-			// Внедление плагина в элемент
-			if (isset($elemData['pluginInfo'])) {
-				$pluginInfo = $elemData['pluginInfo'];
-				unset($elemData['pluginInfo']);
-
-				if (isset($pluginInfo['name'])) {
-					$plugin = $this->app->getPlugin($pluginInfo['name']);
-					if (isset($pluginInfo['renderParams'])) {
-						$plugin->addRenderParams($pluginInfo['renderParams']);
-					}
-
-					if (isset($pluginInfo['clientParams'])) {
-						$plugin->clientParams->setProperties($pluginInfo['clientParams']);
-					}
-
-					$context = $this->pluginBuildContext->add($plugin);
-					$context->compile();
-					$elemData['pluginData'] = $context->getKey();
-				}
-			}
-
 			// Внедрение сниппета в элемент
 			if (isset($elemData['snippetInfo'])) {
 				$snippetInfo = $elemData['snippetInfo'];
@@ -177,7 +177,7 @@ class Snippet extends ApplicationTool {
 			}
 		}
 
-		if (!file_exists($fullPath)) {
+		if (!$this->tryFindPath($fullPath)) {
 			return null;
 		}
 
@@ -186,7 +186,8 @@ class Snippet extends ApplicationTool {
 			'renderParams' => $renderParams,
 			'clientParams' => $clientParams,
 		]);
-
+		$this->innerSnippetKeys[] = $snippet->renderIndex;
+			
 		return $snippet;
 	}
 }

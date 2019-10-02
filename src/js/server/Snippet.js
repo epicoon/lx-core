@@ -15,10 +15,16 @@ class Snippet #lx:namespace lx {
         this.htmlContent = '';  // строка html сниппета
         this.lx = {};  // массив пояснительных записок
         this.clientJs = null;  // js-код, который будет выполнен на клиенте
+
+        this.plugins = [];
     }
 
     get widget() {
         return this._widget;
+    }
+
+    addPlugin(data) {
+        this.plugins.push(data);
     }
 
     addSnippet(snippetPath, config = {}, renderParams = {}, clientParams = {}) {
@@ -80,7 +86,13 @@ class Snippet #lx:namespace lx {
         js = js.replace(/^\([^)]*?\)=>/, '');
         this.clientJs = js;
     }
-    
+
+    getDependencies() {
+        return {
+            plugins: this.plugins
+        };
+    }
+
     getResult() {
         __prepareSelfData(this);
         __renderContent(this);

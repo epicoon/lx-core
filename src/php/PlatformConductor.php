@@ -69,7 +69,7 @@ class PlatformConductor {
 		if ($name == 'site') {
 			return $this->_sitePath;
 		}
-		
+
 		if (in_array($name, $this->publicFields)) {
 			return $this->{'_' . $name};
 		} elseif ($name == 'pluginConfig') {
@@ -86,6 +86,10 @@ class PlatformConductor {
 		}
 
 		return false;
+	}
+
+	public function getRootPath() {
+		return $this->_sitePath;
 	}
 
 	/**

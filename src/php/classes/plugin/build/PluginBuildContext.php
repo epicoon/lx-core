@@ -31,7 +31,7 @@ class PluginBuildContext extends ApplicationTool implements ContextTreeInterface
 		$this->compiled = false;
 		$this->ContextTreeTrait($parent);
 		$this->moduleDependencies = [];
-		$this->jsCompiler = new JsCompiler($this->app, $this);
+		$this->jsCompiler = new JsCompiler($this->app, $this->getPlugin()->conductor);
 
 		if (!$parent) {
 			$this->commonModuleDependencies = [];
@@ -52,16 +52,16 @@ class PluginBuildContext extends ApplicationTool implements ContextTreeInterface
 	}
 
 	public function noteModuleDependencies($moduleNames) {
-		$this->moduleDependencies = array_unique(array_merge(
+		$this->moduleDependencies = array_values(array_unique(array_merge(
 			$this->moduleDependencies,
 			$moduleNames
-		));
+		)));
 
 		$head = $this->getHead();
-		$head->commonModuleDependencies = array_unique(array_merge(
+		$head->commonModuleDependencies = array_values(array_unique(array_merge(
 			$head->commonModuleDependencies,
 			$moduleNames
-		));
+		)));
 	}
 
 	/**
@@ -108,8 +108,11 @@ class PluginBuildContext extends ApplicationTool implements ContextTreeInterface
 		}
 
 		$this->compileSnippet();
+
 		$this->compileBootstrapJs();
 		$this->compileMainJs();
+		$this->applayDependencies($this->jsCompiler->getDependencies());
+
 		$this->compilePluginInfo();
 
 		$key = $this->getKey();
@@ -124,6 +127,38 @@ class PluginBuildContext extends ApplicationTool implements ContextTreeInterface
 
 		$this->compiled = true;
 		$this->getPlugin()->afterCompile();
+	}
+
+	/**
+	 * @param $dependencies JsCompileDependencies
+	 */
+	public function applayDependencies($dependencies) {
+		$dependenciesArray = $dependencies->toArray();
+
+		if (isset($dependenciesArray['plugins'])) {
+			foreach ($dependenciesArray['plugins'] as $pluginInfo) {
+				$plugin = $this->app->getPlugin($pluginInfo);
+				$plugin->setAnchor($pluginInfo['anchor']);
+				$context = $this->add($plugin);
+				$context->compile();
+			}
+		}
+
+		if (isset($dependenciesArray['modules'])) {
+			$this->noteModuleDependencies($dependenciesArray['modules']);
+		}
+
+		if (isset($dependenciesArray['scripts'])) {
+			foreach ($dependenciesArray['scripts'] as $script) {
+				$this->getPlugin()->script($script);
+			}
+		}
+
+		if (isset($dependenciesArray['i18n'])) {
+			foreach ($dependenciesArray['i18n'] as $config) {
+				$this->app->useI18n($config);
+			}
+		}
 	}
 
 	
@@ -144,13 +179,16 @@ class PluginBuildContext extends ApplicationTool implements ContextTreeInterface
 			$info['modep'] = $this->moduleDependencies;
 		}
 
+		// Root snippet key
+		$info['rsk'] = $this->getPlugin()->getRootSnippetKey();
+
 		$this->pluginInfo = json_encode($info);
 	}
 
 	private function compileSnippet() {
 		$this->rootSnippetBuildContext = new SnippetBuildContext($this);
 		$snippets = $this->rootSnippetBuildContext->build();
-		$this->snippetData = json_encode($snippets);
+		$this->snippetData = $snippets;
 	}
 
 	private function compileBootstrapJs() {

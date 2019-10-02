@@ -24,21 +24,27 @@ class JsCompiler extends ApplicationTool {
 
 	private $context;
 	private $buildModules;
-	private $filesCompiled;
-	private $moduleDependencies;
+	private $allCompiledFiles;
+	private $compiledFiles;
 
-	private $pluginBuildContext;
 	private $sintaxExtender;
-	
-	public function __construct($app, $pluginBuildContext = null) {
+	private $conductor;
+	private $dependencies;
+
+	/**
+	 * JsCompiler constructor.
+	 * @param $app Application
+	 * @param null $conductor
+	 */
+	public function __construct($app, $conductor = null) {
 		parent::__construct($app);
-		$this->pluginBuildContext = $pluginBuildContext;
+		$this->conductor = $conductor ?? $app->conductor;
 		$this->sintaxExtender = new SintaxExtender($this);
 		
 		$this->context = self::CONTEXT_CLIENT;
 		$this->buildModules = false;
-		$this->filesCompiled = [];
-		$this->moduleDependencies = [];
+		$this->allCompiledFiles = [];
+		$this->compiledFiles = [];
 	}
 	
 	public function setContext($context) {
@@ -65,32 +71,28 @@ class JsCompiler extends ApplicationTool {
 		return $this->context == self::CONTEXT_SERVER;
 	}
 
-	public function getPlugin() {
-		if (!$this->pluginBuildContext) {
-			return null;
-		}
-
-		return $this->pluginBuildContext->getPlugin();
+	public function getDependencies() {
+		return $this->dependencies;
 	}
-	
-	public function getModuleDependencies() {
-		return $this->moduleDependencies;
+
+	public function getCompiledFiles() {
+		return $this->compiledFiles;
 	}
 
 	/**
 	 * Компилировать файл по его пути
 	 * */
 	public function compileFile($path) {
-		$code = $this->compileFileRe($path);
-		return $this->finishPrepare($code);
+		$this->dependencies = new JsCompileDependencies();
+		return $this->compileFileRe($path);
 	}
 
 	/**
 	 * Компилировать код, учитывая путь файла, откуда его взяли
 	 * */
 	public function compileCode($code, $path = null) {
-		$code = $this->compileCodeProcess($code, $path);
-		return $this->finishPrepare($code);
+		$this->dependencies = new JsCompileDependencies();
+		return $this->compileCodeProcess($code, $path);
 	}
 
 
@@ -104,9 +106,13 @@ class JsCompiler extends ApplicationTool {
 	private function compileFileRe($path, $force = false) {
 		if ( !file_exists($path) ) return '';
 
-		if (!$force && isset($this->filesCompiled[$path])) return '';
+		if (!$force && isset($this->allCompiledFiles[$path])) return '';
 
-		$this->filesCompiled[$path] = 1;
+		if (preg_match('/^' . addcslashes($this->conductor->getRootPath(), '/') . '\//', $path)) {
+			$this->compiledFiles[] = $path;
+		}
+
+		$this->allCompiledFiles[$path] = 1;
 		$code = file_get_contents($path);
 		$code = $this->compileCodeProcess($code, $path);
 		return $code;
@@ -130,7 +136,7 @@ class JsCompiler extends ApplicationTool {
 		$code = $this->applyContext($code);
 
 		// Применить расширенный синтаксис
-		$code = $this->sintaxExtender->applyExtendedSintax($code);
+		$code = $this->sintaxExtender->applyExtendedSintax($code, $path);
 
 		// Парсит конфиг-файлы
 		if ($parentDir) {
@@ -226,16 +232,15 @@ class JsCompiler extends ApplicationTool {
 		$dirPathes = ($requireName[0] == '{')
 			? preg_split('/\s*,\s*/', trim(substr($requireName, 1, -1)))
 			: [$requireName];
-		$conductor = $this->getPlugin() ? $this->getPlugin()->conductor : $this->app->conductor;
 		$filePathes = [];
 		foreach ($dirPathes as $dirPath) {
 			if ( $dirPath{strlen($dirPath) - 1} != '/' ) {
 				if (!preg_match('/.js$/', $dirPath)) $dirPath .= '.js';
-				$filePathes[] = $conductor->getFullPath($dirPath, $parentDir);
+				$filePathes[] = $this->conductor->getFullPath($dirPath, $parentDir);
 				continue;
 			}
 
-			$dir = new Directory($conductor->getFullPath($dirPath, $parentDir));
+			$dir = new Directory($this->conductor->getFullPath($dirPath, $parentDir));
 			$files = $dir->getContent([
 				'mask' => '*.js',
 				'findType' => Directory::FIND_NAME,
@@ -264,11 +269,8 @@ class JsCompiler extends ApplicationTool {
 		$code = preg_replace($pattern, '', $code);
 
 		$moduleNames = $matches[1];
-		$this->moduleDependencies = array_unique(array_merge($this->moduleDependencies, $moduleNames));
-		if ($this->pluginBuildContext) {
-			$this->pluginBuildContext->noteModuleDependencies($moduleNames);
-		}
-		
+		$this->dependencies->addModules($moduleNames);
+
 		if (!$this->buildModules) {
 			return $code;
 		}
@@ -300,10 +302,10 @@ class JsCompiler extends ApplicationTool {
 		$parentDir = dirname($modulePath);
 		if (isset($moduleData['i18n'])) {
 			$path = $moduleData['i18n'];
-			$plugin = $this->getPlugin();
-			$conductor = $plugin ? $plugin->conductor : $this->app->conductor;
-			$fullPath = $conductor->getFullPath($path, $parentDir);
-			$this->app->useI18n($fullPath);
+			$fullPath = $this->conductor->getFullPath($path, $parentDir);
+			$this->dependencies->addI18n($fullPath);
+
+//			$this->app->useI18n($fullPath);
 		}
 	}
 
@@ -406,14 +408,6 @@ class JsCompiler extends ApplicationTool {
 		return implode('', $result);
 	}
 
-	/**
-	 * Окончательные преобразования кода уже по итогу сборки
-	 * */
-	private function finishPrepare($code) {
-		$code = $this->sintaxExtender->applyExtendedSintaxForClasses($code);
-		return $code;
-	}
-
 	private function applyContext($code) {
 		$regexpTail = '\s*(?P<re>{((?>[^{}]+)|(?P>re))*});?/';
 		if ($this->contextIsClient()) {
@@ -459,14 +453,11 @@ class JsCompiler extends ApplicationTool {
 	 * Подключает скрипты, указанные в js-файлах
 	 * */
 	private function plugScripts($code) {
-		$plugin = $this->getPlugin();
 		$regExp = '/(?<!\/\/ )(?<!\/\/)#lx:script [\'"]?(.*?)[\'"]?;/';
-		return preg_replace_callback($regExp, function($matches) use ($plugin) {
-			if ($plugin) {
-				$path = $matches[1];
-				if (!preg_match('/\.js$/', $path)) $path .= '.js';
-				$plugin->script($path);
-			}
+		return preg_replace_callback($regExp, function($matches) {
+			$path = $matches[1];
+			if (!preg_match('/\.js$/', $path)) $path .= '.js';
+			$this->dependencies->addScript($path);
 			return '';
 		}, $code);
 	}
@@ -476,11 +467,9 @@ class JsCompiler extends ApplicationTool {
 	 * */
 	private function loadConfig($code, $parentDir) {
 		$pattern = '/(?<!\/ )(?<!\/)#lx:load\s*\(?\s*[\'"]?(.*?)[\'"]?([;,)])/';
-		$plugin = $this->getPlugin();
-		$conductor = $plugin ? $plugin->conductor : $this->app->conductor;
-		$code = preg_replace_callback($pattern, function($matches) use ($parentDir, $conductor) {
+		$code = preg_replace_callback($pattern, function($matches) use ($parentDir) {
 			$path = $matches[1];
-			$fullPath = $conductor->getFullPath($path, $parentDir);
+			$fullPath = $this->conductor->getFullPath($path, $parentDir);
 			$file = new ConfigFile($fullPath);
 			if (!$file->exists()) {
 				return 'undefined';

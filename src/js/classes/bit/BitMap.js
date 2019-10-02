@@ -28,6 +28,11 @@ class BitMap #lx:namespace lx {
 		this.map.each((a, i)=>this.map[i] = new lx.BitLine(this.x));
 	}
 
+	fullReset() {
+		this.y = 0;
+		this.map = [];
+	}
+
 	setX(amt) {
 		if (this.x == amt) return;
 		this.map.each((a)=>a.setLen(amt));

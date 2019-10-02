@@ -27,6 +27,9 @@ class WidgetHelper {
 		LXID_TOSTS = lx\WidgetHelper::LXID_TOSTS,
 		LXID_BODY = lx\WidgetHelper::LXID_BODY;
 
+
+
+
 	popAutoParent() {
 		return autoParentStack.pop();
 	}
@@ -164,9 +167,11 @@ class WidgetHelper {
 				this.removeFromFrontMap(el);
 			}
 
-			el.__frontIndex = frontMap.len;
-			el.style('z-index', el.__frontIndex + frontStart);
-			frontMap.push(el);
+			if (el.getDomElem() && el.getDomElem().offsetParent) {
+				el.__frontIndex = frontMap.len;
+				el.style('z-index', el.__frontIndex + frontStart);
+				frontMap.push(el);
+			}
 		}
 
 		removeFromFrontMap(el) {
@@ -180,28 +185,18 @@ class WidgetHelper {
 		}
 
 		checkFrontMap() {
-			var groupSize = 0,
-				forDelete = 0,
-				deleted = 0;
+			var shown = 0,
+				newMap = [];
 			for (var i = 0, l = frontMap.len; i < l; i++) {
-				if (!frontMap[i].getDomElem().offsetParent) {
-					forDelete++;
-					groupSize++;
-				} else {
-					if (!deleted) continue;
-					frontMap[i].__frontIndex -= i - deleted;
-					frontMap[i].style('z-index', frontMap[i].__frontIndex + frontStart);
-
-					if (groupSize) {
-						frontMap.splice(i, groupSize);
-						deleted += groupSize;
-						i -= groupSize;
-						groupSize = 0;
-					}
+				if (frontMap[i].getDomElem() && frontMap[i].getDomElem().offsetParent) {
+					var elem = frontMap[i];
+					elem.__frontIndex = shown;
+					elem.style('z-index', frontMap[i].__frontIndex + frontStart);
+					newMap.push(elem);
+					shown++;
 				}
 			}
-
-			if (forDelete == frontMap.len) frontMap = [];
+			frontMap = newMap;
 		}
 	}
 }

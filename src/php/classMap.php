@@ -22,6 +22,7 @@ return [
 	'Console' => 'classes/system',
 	'HtmlHead' => 'classes/system',
 	'JsCompiler' => 'classes/system/JsCompiler',
+	'JsCompileDependencies' => 'classes/system/JsCompiler',
 	'NodeJsExecutor' => 'classes/system/JsCompiler',
 	'PluginEditor' => 'classes/system/editor',
 	'ServiceEditor' => 'classes/system/editor',
@@ -49,6 +50,7 @@ return [
 	'Respondent' => 'classes/plugin',
 	'PluginBuildContext' => 'classes/plugin/build',
 	'SnippetBuildContext' => 'classes/plugin/build',
+	'SnippetCacheData' => 'classes/plugin/build',
 
 	'Model' => 'classes/model',
 	'ModelBrowser' => 'classes/model',

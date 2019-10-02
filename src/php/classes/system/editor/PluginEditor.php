@@ -68,10 +68,16 @@ class PluginEditor {
 
 		$config = $d->makeFile('lx-config.yaml');
 		$text = 'class: ' . $namespace . '\\Plugin' . PHP_EOL . PHP_EOL;
+
 		$text .= 'rootSnippet: ' . $pluginConfig['rootSnippet'] . PHP_EOL;
 		$text .= 'snippets: ' . $pluginConfig['snippets'] . PHP_EOL . PHP_EOL;
+
 		$text .= 'jsMain: ' . $pluginConfig['jsMain'] . PHP_EOL;
 		$text .= 'jsBootstrap: ' . $pluginConfig['jsBootstrap'] . PHP_EOL . PHP_EOL;
+
+		$text .= 'images' . $pluginConfig['images'] . PHP_EOL;
+		$text .= 'css' . $pluginConfig['css'] . PHP_EOL;
+		$text .= 'bundles' . $pluginConfig['bundles'] . PHP_EOL . PHP_EOL;
 
 		if (is_array($pluginConfig['respondents'])) {
 			if (empty($pluginConfig['respondents'])) {

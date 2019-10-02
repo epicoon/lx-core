@@ -62,6 +62,43 @@ class BaseFile {
 		return file_exists($this->path);
 	}
 
+	public function belongs($parent) {
+		$path;
+		if (is_string($parent)) {
+			$path = $parent;
+		} else {
+			if ($parent instanceof Directory) {
+				$path = $parent->getPath();
+			} else {
+				return false;
+			}
+		}
+
+		$path = addcslashes($path, '/');
+		return preg_match('/^' . $path . '/', $this->getPath());
+	}
+
+	public function getRelativePath($parent) {
+		if (!$this->belongs($parent)) {
+			return false;
+		}
+
+		$path;
+		if (is_string($parent)) {
+			$path = $parent;
+		} else {
+			if ($parent instanceof Directory) {
+				$path = $parent->getPath();
+			} else {
+				return false;
+			}
+		}
+
+		$selfPath = $this->getPath();
+		$path = addcslashes($path, '/');
+		return preg_replace('/^' . $path . '\//', '', $selfPath);
+	}
+
 	public function createdAt() {
 		if (!$this->exists()) {
 			return INF;

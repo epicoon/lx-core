@@ -134,11 +134,6 @@ class Application extends AbstractApplication {
 	}
 
 	public function applyBuildData($data) {
-		if (isset($data['i18n'])) {
-			foreach ($data['i18n'] as $config) {
-				$this->useI18n($config);
-			}
-		}
 	}
 
 	public function run() {

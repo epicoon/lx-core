@@ -2,17 +2,28 @@
 
 namespace lx;
 
-class SintaxExtender {
+class SintaxExtender extends ApplicationTool {
+	/** @var JsCompiler */
 	private $compiler;
-	
+	private $currentPath;
+	private $currentService;
+
+	/**
+	 * SintaxExtender constructor.
+	 * @param $compiler JsCompiler
+	 */
 	public function __construct($compiler) {
+		parent::__construct($compiler->app);
 		$this->compiler = $compiler;
+
+		$this->currentPath = null;
+		$this->currentService = null;
 	}
 
 	/**
 	 *
 	 * */
-	public function applyExtendedSintax($code) {
+	public function applyExtendedSintax($code, $path) {
 		// #lx:php(php-code) => mixed
 		$code = preg_replace_callback('/#lx:php(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/', function($match) {
 			$phpCode = 'return ' . $match[1] . ';';
@@ -312,14 +323,184 @@ class SintaxExtender {
 		}, $code);
 
 		$code = $this->applyHtmlTemplater($code);
+		$code = $this->applyExtendedSintaxForClasses($code, $path);
 
 		return $code;
 	}
 
-	/**
-	 *
-	 * */
-	public function applyHtmlTemplater($code) {
+	private function applyExtendedSintaxForClasses($code, $path) {
+		// Работа со всеми классами
+		$reg = '/class\s+\b(.+?)\b([^{]*)(?P<re>{((?>[^{}]+)|(?P>re))*})/';
+		preg_match_all($reg, $code, $matches);
+
+		if (!empty($matches[0])) {
+			foreach ($matches[0] as $i => $implement) {
+				$class = $matches[1][$i];
+				preg_match('/#lx:namespace\s+([_\w\d.]+?)[\s{]/', $matches[2][$i], $namespace);
+				$namespace = $namespace[1] ?? null;
+
+				$implementResult = preg_replace('/#lx:namespace\s+[_\w\d.]+?(\s|{)/', '$1', $implement);
+
+				// 1. #lx:const NAME = value;
+				$implementResult = preg_replace_callback($this->inClassReg('const'), function ($matches) {
+					$constString = $matches[2];
+
+					$constPareArray = StringHelper::smartSplit($constString, [
+						'delimiter' => ',',
+						'save' => ['[]', '{}', '"', "'"],
+					]);
+
+					$code = '';
+					foreach ($constPareArray as $constPare) {
+						preg_match_all('/^([^=]+?)\s*=\s*([\w\W]+)\s*$/', $constPare, $pare);
+						$name = $pare[1][0];
+						$value = $pare[2][0];
+						if ($value{0} != '\'' && $value{0} != '"' && preg_match('/::/', $value)) {
+							$value = eval('return ' . $value . ';');
+							if (is_string($value)) $value = "'$value'";
+							else if (is_array($value)) $value = json_encode($value);
+						}
+						$code .= "static get $name(){return $value;}";
+					}
+
+					return $matches[1] . $code;
+				}, $implementResult);
+				
+				// 2. #lx:server methodName() {}  |  #lx:client methodName() {}
+				$regexpTail = '\s*[^\(]+?\([^\)]*?\)\s*(?P<re>{((?>[^{}]+)|(?P>re))*})/';
+				if ($this->compiler->contextIsClient()) {
+					$regexp = '/#lx:client/';
+					$implementResult = preg_replace($regexp, '', $implementResult);
+					$regexp = '/#lx:server' . $regexpTail;
+					$implementResult = preg_replace($regexp, '', $implementResult);
+				} elseif ($this->compiler->contextIsServer()) {
+					$regexp = '/#lx:server/';
+					$implementResult = preg_replace($regexp, '', $implementResult);
+					$regexp = '/#lx:client' . $regexpTail;
+					$implementResult = preg_replace($regexp, '', $implementResult);
+				}
+
+				if ($namespace) {
+					$str = "lx.createNamespace('$namespace');";
+					$str .= "if('$class' in $namespace)return;";
+					$str .= $implementResult;
+					$str .= "$class.__namespace='$namespace';$namespace.$class=$class;";
+					$implementResult = $str;
+				}
+
+				$implementResult .= "if($class.__afterDefinition)$class.__afterDefinition();";
+
+				if ($namespace) {
+					$implementResult = '(function(){' . $implementResult . '})();';
+				}
+
+				$code = str_replace($implement, $implementResult, $code);
+			}
+		}
+
+		// Работа с наследуемыми классами
+		$reg = '/class\s+\b(.+?)\b\s+extends\s+[^{]+?(?P<re>{((?>[^{}]+)|(?P>re))*})/';
+		preg_match_all($reg, $code, $matches);
+		if (!empty($matches[0])) {
+			foreach ($matches[0] as $i => $implement) {
+				$class = $matches[1][$i];
+				$implementResult = $implement;
+
+				// Среди таких классов - отнаследованные от модели имеют свой синтаксис:
+				// 1. #lx:schema ...;
+				/*
+					#lx:schema
+						aaa : {type:'integer', default: 11},
+						bbb,
+						ccc << arr[0],
+						ddd << arr[1] : {type:'string', default: 'ee'};
+
+					__setSchema() {
+						this.setSchema({
+							aaa:{type:'integer', default: 11},
+							bbb:{},
+							ccc:{ref:'arr[0]'},
+							ddd:{type:'string', default: 'ee',ref:'arr[1]'};
+						});
+					}
+				*/
+				$implementResult = preg_replace_callback($this->inClassReg('schema'), function ($matches) {
+					$schema = $matches[2];
+					$regexp = '/(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
+					preg_match_all($regexp, $schema, $defs);
+					$schema = preg_replace($regexp, '№№№', $schema);
+					$fields = preg_split('/\s*,\s*/', $schema);
+					$index = 0;
+					foreach ($fields as &$field) {
+						$pare = preg_split('/\s*:\s*/', $field);
+						$key = $pare[0];
+						$def = (isset($pare[1])) ? $pare[1] : '{}';
+						if ($def == '№№№') {
+							$def = $defs[0][$index++];
+						}
+						if (preg_match('/<</', $key)) {
+							$temp = preg_split('/[\s\r]*<<[\s\r]*/', $key);
+							$key = $temp[0];
+							if ($def == '{}')
+								$def = '{ref:\''.$temp[1].'\'}';
+							else {
+								$def = preg_replace('/}$/', ',ref:\''.$temp[1].'\'}', $def);
+							}
+						}
+						$field = "$key:$def";
+					}
+					unset($field);
+
+					$code = 'static __setSchema(){this.initSchema({'. implode(',', $fields) .'});}';
+					return $matches[1] . $code;
+				}, $implementResult);
+
+				// 2. #lx:behaviors ...;
+				/*
+				//todo
+				нужно генерить код, проверяющий, что предложенные бихевиоры это реально существующие
+				классы, отнаследованные от lx.Behavior
+				*/
+				$implementResult = preg_replace_callback($this->inClassReg('behaviors?'), function ($matches) {
+					$behaviors = preg_split('/[\s\r]*,[\s\r]*/', $matches[2]);
+					foreach ($behaviors as &$behavior) {
+						$behavior .= '.inject(this);';
+					}
+					unset($behavior);
+					$behaviorsCode = 'static __injectBehaviors(){' . implode(',', $behaviors) . '}';
+
+					return $matches[1] . $behaviorsCode;
+				}, $implementResult);
+
+				// 3. #lx:modelName xxx;
+				$implementResult = preg_replace_callback('/#lx:modelName[\s\r]+([^;]+)?;/', function ($matches) use ($path) {
+					$modelName = $matches[1];
+
+					$service = $this->getCurrentService($path);
+					if (!$service) {
+						return '';
+					}
+
+					$schema = $service->modelProvider->getSchema($modelName);
+					$fields = [];
+					foreach ($schema->fieldNames() as $fieldName) {
+						$field = $schema->field($fieldName);
+						if ($field->isForbidden()) continue;
+						$fields[] = $field->toStringForClient();
+					}
+
+					$fieldCode = 'static __setSchema(){this.initSchema({' . implode(',', $fields) . '});}';
+					return $fieldCode;
+				}, $implementResult);
+
+				$code = str_replace($implement, $implementResult, $code);
+			}
+		}
+
+		return $code;
+	}
+
+	private function applyHtmlTemplater($code) {
 		$reg = '/#lx:(?P<tpl>\<((?>[^<>]+)|(?P>tpl))*\>)/';
 		return preg_replace_callback($reg, function($match) {
 			$tpl = $match['tpl'];
@@ -502,188 +683,17 @@ class SintaxExtender {
 			return $result;
 		}, $code);
 	}
-	
-	/**
-	 *
-	 * */
-	public function applyExtendedSintaxForClasses($code) {
-		// Работа со всеми классами
-		$reg = '/class\s+\b(.+?)\b([^{]*)(?P<re>{((?>[^{}]+)|(?P>re))*})/';
-		preg_match_all($reg, $code, $matches);
 
-		if (!empty($matches[0])) {
-			foreach ($matches[0] as $i => $implement) {
-				$class = $matches[1][$i];
-				preg_match('/#lx:namespace\s+([_\w\d.]+?)[\s{]/', $matches[2][$i], $namespace);
-				$namespace = $namespace[1] ?? null;
-
-				$implementResult = preg_replace('/#lx:namespace\s+[_\w\d.]+?(\s|{)/', '$1', $implement);
-
-				// 1. #lx:const NAME = value;
-				$implementResult = preg_replace_callback($this->inClassReg('const'), function ($matches) {
-					$constString = $matches[2];
-
-					$constPareArray = StringHelper::smartSplit($constString, [
-						'delimiter' => ',',
-						'save' => ['[]', '{}', '"', "'"],
-					]);
-
-					$code = '';
-					foreach ($constPareArray as $constPare) {
-						preg_match_all('/^([^=]+?)\s*=\s*([\w\W]+)\s*$/', $constPare, $pare);
-						$name = $pare[1][0];
-						$value = $pare[2][0];
-						if ($value{0} != '\'' && $value{0} != '"' && preg_match('/::/', $value)) {
-							$value = eval('return ' . $value . ';');
-							if (is_string($value)) $value = "'$value'";
-							else if (is_array($value)) $value = json_encode($value);
-						}
-						$code .= "static get $name(){return $value;}";
-					}
-
-					return $matches[1] . $code;
-				}, $implementResult);
-				
-				// 2. #lx:server methodName() {}  |  #lx:client methodName() {}
-				$regexpTail = '\s*[^\(]+?\([^\)]*?\)\s*(?P<re>{((?>[^{}]+)|(?P>re))*})/';
-				if ($this->compiler->contextIsClient()) {
-					$regexp = '/#lx:client/';
-					$implementResult = preg_replace($regexp, '', $implementResult);
-					$regexp = '/#lx:server' . $regexpTail;
-					$implementResult = preg_replace($regexp, '', $implementResult);
-				} elseif ($this->compiler->contextIsServer()) {
-					$regexp = '/#lx:server/';
-					$implementResult = preg_replace($regexp, '', $implementResult);
-					$regexp = '/#lx:client' . $regexpTail;
-					$implementResult = preg_replace($regexp, '', $implementResult);
-				}
-
-				if ($namespace) {
-					$str = "lx.createNamespace('$namespace');";
-					$str .= "if('$class' in $namespace)return;";
-					$str .= $implementResult;
-					$str .= "$class.__namespace='$namespace';$namespace.$class=$class;";
-					$implementResult = $str;
-				}
-
-				$implementResult .= "if($class.__afterDefinition)$class.__afterDefinition();";
-
-				if ($namespace) {
-					$implementResult = '(function(){' . $implementResult . '})();';
-				}
-
-				$code = str_replace($implement, $implementResult, $code);
-			}
-		}
-
-		// Работа с наследуемыми классами
-		$reg = '/class\s+\b(.+?)\b\s+extends\s+[^{]+?(?P<re>{((?>[^{}]+)|(?P>re))*})/';
-		preg_match_all($reg, $code, $matches);
-		if (!empty($matches[0])) {
-			foreach ($matches[0] as $i => $implement) {
-				$class = $matches[1][$i];
-				$implementResult = $implement;
-
-				// Среди таких классов - отнаследованные от модели имеют свой синтаксис:
-				// 1. #lx:schema ...;
-				/*
-					#lx:schema
-						aaa : {type:'integer', default: 11},
-						bbb,
-						ccc << arr[0],
-						ddd << arr[1] : {type:'string', default: 'ee'};
-
-					__setSchema() {
-						this.setSchema({
-							aaa:{type:'integer', default: 11},
-							bbb:{},
-							ccc:{ref:'arr[0]'},
-							ddd:{type:'string', default: 'ee',ref:'arr[1]'};
-						});
-					}
-				*/
-				$implementResult = preg_replace_callback($this->inClassReg('schema'), function ($matches) {
-					$schema = $matches[2];
-					$regexp = '/(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
-					preg_match_all($regexp, $schema, $defs);
-					$schema = preg_replace($regexp, '№№№', $schema);
-					$fields = preg_split('/\s*,\s*/', $schema);
-					$index = 0;
-					foreach ($fields as &$field) {
-						$pare = preg_split('/\s*:\s*/', $field);
-						$key = $pare[0];
-						$def = (isset($pare[1])) ? $pare[1] : '{}';
-						if ($def == '№№№') {
-							$def = $defs[0][$index++];
-						}
-						if (preg_match('/<</', $key)) {
-							$temp = preg_split('/[\s\r]*<<[\s\r]*/', $key);
-							$key = $temp[0];
-							if ($def == '{}')
-								$def = '{ref:\''.$temp[1].'\'}';
-							else {
-								$def = preg_replace('/}$/', ',ref:\''.$temp[1].'\'}', $def);
-							}
-						}
-						$field = "$key:$def";
-					}
-					unset($field);
-
-					$code = 'static __setSchema(){this.initSchema({'. implode(',', $fields) .'});}';
-					return $matches[1] . $code;
-				}, $implementResult);
-
-				// 2. #lx:behaviors ...;
-				/*
-				//todo
-				нужно генерить код, проверяющий, что предложенные бихевиоры это реально существующие
-				классы, отнаследованные от lx.Behavior
-				*/
-				$implementResult = preg_replace_callback($this->inClassReg('behaviors?'), function ($matches) {
-					$behaviors = preg_split('/[\s\r]*,[\s\r]*/', $matches[2]);
-					foreach ($behaviors as &$behavior) {
-						$behavior .= '.inject(this);';
-					}
-					unset($behavior);
-					$behaviorsCode = 'static __injectBehaviors(){' . implode(',', $behaviors) . '}';
-
-					return $matches[1] . $behaviorsCode;
-				}, $implementResult);
-
-				// 3. #lx:modelName xxx;
-				$implementResult = preg_replace_callback('/#lx:modelName[\s\r]+([^;]+)?;/', function ($matches) {
-					$modelName = $matches[1];
-
-					$plugin = $this->compiler->getPlugin();
-					if (!$plugin) {
-						return '';
-					}
-
-					$mp = $plugin->getService()->modelProvider;
-					$schema = $mp->getSchema($modelName);
-
-					$fields = [];
-					foreach ($schema->fieldNames() as $fieldName) {
-						$field = $schema->field($fieldName);
-						if ($field->isForbidden()) continue;
-						$fields[] = $field->toStringForClient();
-					}
-
-					$fieldCode = 'static __setSchema(){this.initSchema({' . implode(',', $fields) . '});}';
-					return $fieldCode;
-				}, $implementResult);
-
-				$code = str_replace($implement, $implementResult, $code);
-			}
-		}
-
-		return $code;
-	}
-
-	/**
-	 *
-	 * */
 	private function inClassReg($keyword) {
 		return '/(}|;|{)\s*#lx:'.$keyword.'[\s\r]+([^;]+)?[\s\r]*;/';
+	}
+
+	private function getCurrentService($path) {
+		if ($this->currentPath == $path) {
+			return $this->currentService;
+		}
+
+		$this->currentPath = $path;
+		$this->currentService = $this->app->getServiceByFile($path);
 	}
 }

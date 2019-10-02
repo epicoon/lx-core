@@ -53,6 +53,12 @@ namespace lx;
 	public function getCss()
 */
 class Plugin extends ApplicationTool {
+	const CACHE_NONE = 'none';
+	const CACHE_ON = 'cache';
+	const CACHE_STRICT = 'strict';
+	const CACHE_BUILD = 'build';
+	const CACHE_SMART = 'smart';
+
 	public
 		$title = null,   // Заголовок страницы плагина (для использования плагина во фрэйме не актуально)
 		$icon = null,
@@ -70,6 +76,8 @@ class Plugin extends ApplicationTool {
 		$_conductor = null,  // Проводник по структуре плагина
 		$_i18nMap = null,    // Карта переводов
 		$isMain = false,     // Главный плагин - который рендерился с ядром, при начальной загрузке страницы
+		$anchor,
+		$rootSnippetKey,
 		
 		$screenModes = [],
 
@@ -140,16 +148,26 @@ class Plugin extends ApplicationTool {
 		$this->isMain = $bool;
 	}
 
-	/**
-	 *
-	 * */
 	public function setConfig($name, $value) {
 		$this->config[$name] = $value;
 	}
 
-	/**
-	 *
-	 * */
+	public function setAnchor($anchor) {
+		$this->anchor = $anchor;
+	}
+
+	public function getAnchor() {
+		return $this->anchor;
+	}
+
+	public function setRootSnippetKey($key) {
+		$this->rootSnippetKey = $key;
+	}
+
+	public function getRootSnippetKey() {
+		return $this->rootSnippetKey;
+	}
+
 	public function setScreenModes($arr) {
 		foreach ($arr as &$value) {
 			if ($value == INF) $value = 'inf';
@@ -274,7 +292,7 @@ class Plugin extends ApplicationTool {
 	 * Возвращает путь к директории, являющейся корневой для плагина
 	 * */
 	public function getPath() {
-		return $this->conductor->getPluginPath();
+		return $this->conductor->getPath();
 	}
 
 	/**
@@ -468,6 +486,7 @@ class Plugin extends ApplicationTool {
 		$this->_name = $this->service->getID() . ':' . $data['name'];
 		$this->clientParams = new DataObject();
 		$this->renderParams = new DataObject();
+		$this->anchor = '_root_';
 
 		if (isset($data['prototype'])) {
 			$this->_prototype = $data['prototype'];
@@ -527,7 +546,8 @@ class Plugin extends ApplicationTool {
 	public function getSelfInfo() {
 		$config = $this->config;
 		$info = [
-			'name' => $this->_name
+			'name' => $this->_name,
+			'anchor' => $this->anchor,
 		];
 
 		// Если плагин собирался при загрузке страницы

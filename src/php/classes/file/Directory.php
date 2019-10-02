@@ -81,6 +81,10 @@ class Directory extends BaseFile {
 	 *
 	 * */
 	public function remove() {
+		if (!$this->exists()) {
+			return;
+		}
+
 		$dirDel = function($dir) use(&$dirDel) {
 			$d = opendir($dir);
 			while (($entry = readdir($d)) !== false) {

@@ -39,6 +39,10 @@ class File extends BaseFile {
 	}
 
 	public function remove() {
+		if (!$this->exists()) {
+			return;
+		}
+
 		unlink($this->getPath());
 	}
 

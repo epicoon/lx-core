@@ -208,7 +208,6 @@ class Dropbox extends lx.Box #lx:namespace lx {
 			parent: lx.body,
 			key: 'dropboxOptions',
 			geom: true,
-			height: 0,
 			cols: 1
 		}).style('z-index', 1001).hide();
 		return tab;

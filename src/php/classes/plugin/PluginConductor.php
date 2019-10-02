@@ -4,7 +4,7 @@ namespace lx;
 
 /*
 	public function __construct($plugin)
-	public function getPluginPath()
+	public function getPath()
 	public function pluginContain($path)
 	public function getFullPath($fileName)
 	public function getPathInSite($fileName)
@@ -35,11 +35,19 @@ class PluginConductor {
 		$this->app = $plugin->app;
 	}
 
+	public function getRootPath() {
+		return $this->getPath();
+	}
+
 	/**
 	 *
 	 * */
-	public function getPluginPath() {
+	public function getPath() {
 		return $this->plugin->directory->getPath();
+	}
+
+	public function getSystemPath() {
+		return $this->getPath() . '/.system';
 	}
 
 	/**
@@ -58,10 +66,15 @@ class PluginConductor {
 		}
 		
 		if ($relativePath === null) {
-			$relativePath = $this->getPluginPath();
+			$relativePath = $this->getPath();
 		}
 
 		return $this->app->conductor->getFullPath($fileName, $relativePath);
+	}
+
+	public function getRelativePath($path, $defaultLocation = null) {
+		$fullPath = $this->getFullPath($path, $defaultLocation);
+		return explode($this->getPath() . '/', $fullPath)[1];
 	}
 
 	/**
@@ -235,7 +248,7 @@ class PluginConductor {
 
 		// Получение собственных настроек
 		foreach ($pathes as $path) {
-			$fullPath = $this->getPluginPath() . '/' . $path;
+			$fullPath = $this->getPath() . '/' . $path;
 			if (file_exists($fullPath)) {
 				return $fullPath;
 			}

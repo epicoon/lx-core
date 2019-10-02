@@ -55,7 +55,7 @@ class Image extends lx.Rect #lx:namespace lx {
 		isLoaded() {
 			var elem = this.getDomElem();
 			if (!elem) return false;
-			return !!this.getAttribute('loaded');
+			return !!+this.getAttribute('loaded');
 		}
 
 		adapt() {
@@ -73,12 +73,11 @@ class Image extends lx.Rect #lx:namespace lx {
 						elem.naturalHeight,
 						elem.naturalWidth
 					);
-
 				this.width(sizes[1] + 'px');
 				this.height(sizes[0] + 'px');
 				this.off('load', scale);
 			};
-
+			
 			if (this.isLoaded()) scale.call(this);
 			else this.on('load', scale);
 			return this;

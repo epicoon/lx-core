@@ -17,6 +17,10 @@ class Plugin #lx:namespace lx {
         return null;
     }
 
+    getDependencies() {
+        return {};
+    }
+
     getResult() {
         var result = {
             clientParams: this.clientParams
