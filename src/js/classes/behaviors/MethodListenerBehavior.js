@@ -64,15 +64,15 @@ function __setMethodEvent(funcName, func, category) {
 		finded = false;
 	while (temp && !finded) {
 		var names = Object.getOwnPropertyNames(temp);
-		if (names.contain(funcName) && obj[funcName].isFunction) finded = true;
+		if (names.contains(funcName) && obj[funcName].isFunction) finded = true;
 		temp = temp.__proto__;
 	}
 	var names = Object.getOwnPropertyNames(obj);
-	var selfFail = (!names.contain(funcName) || !obj[funcName].isFunction);
+	var selfFail = (!names.contains(funcName) || !obj[funcName].isFunction);
 	var prototypeFail = true;
 	if (obj.prototype) {
 		var names = Object.getOwnPropertyNames(obj.prototype);
-		prototypeFail = (!names.contain(funcName) || !obj[funcName].isFunction);
+		prototypeFail = (!names.contains(funcName) || !obj[funcName].isFunction);
 	}
 	if (!finded && selfFail && prototypeFail) return;
 

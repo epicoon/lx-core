@@ -44,12 +44,12 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 			ActiveBoxAdhesor.makeAdhesion(this);
 		}
 
-		if (this.contain('resizer') || this.contain('header')) {
+		if (this.contains('resizer') || this.contains('header')) {
 			this.click(()=>lx.WidgetHelper.bringToFront(this));
 			lx.WidgetHelper.bringToFront(this);
 		}
 
-		if (this.contain('header')) {
+		if (this.contains('header')) {
 			this->header.on('dblclick', function() {
 				if (!this.lxActiveBoxGeom) {
 					this.lxActiveBoxGeom = this.parent.getGeomMask();
@@ -131,7 +131,7 @@ function __setBody(self, constructor) {
 	}
 	config.parent = self;
 	config.key = 'body';
-	config.top = self.contain('header') ? lx.ActiveBox.HEADER_HEIGHT : 0;
+	config.top = self.contains('header') ? lx.ActiveBox.HEADER_HEIGHT : 0;
 	new constructor(config);
 }
 
@@ -165,7 +165,7 @@ function __setBody(self, constructor) {
 					bDist = lims.bottom - aLims.top,
 					valid = this.getValid(lDist, rDist, tDist, bDist, lims, aLims);
 
-				if (!valid.ok() && ctx.adhesiveBonds && ctx.adhesiveBonds.contain(a)) {
+				if (!valid.ok() && ctx.adhesiveBonds && ctx.adhesiveBonds.contains(a)) {
 					ctx.adhesiveBonds.remove(a);
 					if (a.adhesiveBonds) {
 						a.adhesiveBonds.remove(ctx);
@@ -238,7 +238,7 @@ function __setBody(self, constructor) {
 		static getAdhesiveBondsBlank() {
 			return {
 				l: {}, r: {}, t: {}, b: {},
-				contain: function (el) {
+				contains: function (el) {
 					var key = el.lxid;
 					if (key in this.l) return true;
 					if (key in this.r) return true;
@@ -263,7 +263,7 @@ function __setBody(self, constructor) {
 			el.setBuildMode(true);
 			if (el.adhesiveBonds.r.lxEmpty) {
 				el.del('r_size_share');
-			} else if (!el.contain('r_size_share')) {
+			} else if (!el.contains('r_size_share')) {
 				seams.push(el.add(lx.Rect, {
 					key: 'r_size_share',
 					width: size + 'px',
@@ -274,7 +274,7 @@ function __setBody(self, constructor) {
 
 			if (el.adhesiveBonds.b.lxEmpty) {
 				el.del('b_size_share');
-			} else if (!el.contain('b_size_share')) {
+			} else if (!el.contains('b_size_share')) {
 				seams.push(el.add(lx.Rect, {
 					key: 'b_size_share',
 					ignoreHeaderHeight: true,

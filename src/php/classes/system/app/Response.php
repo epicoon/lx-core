@@ -2,20 +2,20 @@
 
 namespace lx;
 
-class Response extends ApplicationTool {
+class Response extends ApplicationTool
+{
 	const CODE_OK = 200;
 	const CODE_ERROR = 400;
 	const CODE_FORBIDDEN = 403;
 	const CODE_NOT_FOUND = 404;
 
+	/** @var int */
 	private $code;
-
+	/** @var ResponseSource */
 	private $source;
 
-	/**
-	 * 
-	 */
-	public function run() {
+	public function run()
+	{
 		if (!$this->getSource()) {
 			$this->code = self::CODE_NOT_FOUND;
 			return;
@@ -29,10 +29,8 @@ class Response extends ApplicationTool {
 		$this->code = self::CODE_OK;
 	}
 
-	/**
-	 * 
-	 */
-	public function send() {
+	public function send()
+	{
 		if ($this->code == self::CODE_OK) {
 			$this->sendOk();
 		} else {
@@ -43,7 +41,8 @@ class Response extends ApplicationTool {
 	/**
 	 * @return bool
 	 */
-	private function getSource() {
+	private function getSource()
+	{
 		if ($this->app->dialog->isAjax()) {
 			$ajaxRouter = new AjaxRouter($this->app);
 
@@ -69,7 +68,8 @@ class Response extends ApplicationTool {
 	/**
 	 * @return bool
 	 */
-	private function checkAccess() {
+	private function checkAccess()
+	{
 		// Если нет компонента "пользователь"
 		if (!$this->app->user) {
 			return true;
@@ -108,18 +108,15 @@ class Response extends ApplicationTool {
 		return true;
 	}
 
-	/**
-	 * 
-	 */
-	private function sendOk() {
+	private function sendOk()
+	{
 		$result = false;
 
 		if ($this->source->isPlugin()) {
 			$plugin = $this->source->getPlugin();
 			if ($this->app->dialog->isPageLoad()) {
 				$this->renderPlugin($plugin);
-				$this->app->dialog->send();
-				return;
+				$result = null;
 			} else {
 				$builder = new PluginBuildContext($plugin);
 				$result = $builder->build();
@@ -134,12 +131,11 @@ class Response extends ApplicationTool {
 		}
 
 		$this->app->dialog->send($result);
+		$this->afterSuccessfulSending();
 	}
 
-	/**
-	 * 
-	 */
-	private function sendNotOk() {
+	private function sendNotOk()
+	{
 		if ($this->app->dialog->isPageLoad()) {
 			$this->renderStandartResponse($this->code);
 		} else {
@@ -148,12 +144,14 @@ class Response extends ApplicationTool {
 				'error' => $this->code,
 			]);
 		}
+		$this->afterFailedSending();
 	}
 
 	/**
-	 * @param $plugin
+	 * @param $plugin Plugin
 	 */
-	private function renderPlugin($plugin) {
+	private function renderPlugin($plugin)
+	{
 		if (!$plugin) {
 			$this->renderStandartResponse(self::CODE_NOT_FOUND);
 			return;
@@ -186,7 +184,8 @@ class Response extends ApplicationTool {
 		$this->renderStandartResponse(self::CODE_OK, ['head' => $head, 'js' => $js]);
 	}
 
-	private function renderStandartResponse($code, $params = []) {
+	private function renderStandartResponse($code, $params = [])
+	{
 		$path = \lx::$conductor->getSystemPath('stdResponses') . '/' . $code . '.php';
 		if (!file_exists($path)) {
 			$path = \lx::$conductor->getSystemPath('stdResponses') . '/404.php';
@@ -194,5 +193,41 @@ class Response extends ApplicationTool {
 
 		extract($params);
 		require_once($path);
+	}
+
+	private function beforeSending()
+	{
+		if ($this->source) {
+			$this->source->invoke('beforeSending');
+		}
+	}
+
+	private function beforeSuccessfulSending()
+	{
+		if ($this->source) {
+			$this->source->invoke('beforeSuccessfulSending');
+		}
+	}
+
+	private function beforeFailedSending()
+	{
+		if ($this->source) {
+			$this->source->invoke('beforeFailedSending');
+		}
+	}
+	private function afterSuccessfulSending()
+	{
+		if ($this->source) {
+			$this->source->invoke('afterSuccessfulSending');
+			$this->source->invoke('afterSending');
+		}
+	}
+	
+	private function afterFailedSending()
+	{
+		if ($this->source) {
+			$this->source->invoke('afterFailedSending');
+			$this->source->invoke('afterSending');
+		}
 	}
 }

@@ -24,7 +24,7 @@ namespace lx;
  *	splice($index, $count=1, $replacement=[])
  *	insert($index, $elems)
  *	indexOf($elem)
- *	contain($elem)
+ *	contains($elem)
  *	each($func)
  *	eachRevert($func)
  *	maxOnRange($i0, $i1)
@@ -104,7 +104,7 @@ class Vector extends DataObject {
 	}
 
 	public function pushUnique($el) {
-		if (!$this->contain($el))
+		if (!$this->contains($el))
 			$this->push($el);
 	}
 
@@ -150,7 +150,7 @@ class Vector extends DataObject {
 		return $index;
 	}
 
-	public function contain($elem) {
+	public function contains($elem) {
 		return $this->indexOf($elem) !== -1;
 	}
 

@@ -241,7 +241,7 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 	if (isAjax(url)) {
 		// Заголовок для сервера, что это AJAX-запрос
 		request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-		if (lx.auth) lx.auth(request);
+		if (lx.__auth) lx.__auth(request);
 	}
 	for (var name in headers) {
 		request.setRequestHeader(name, headers[name]);

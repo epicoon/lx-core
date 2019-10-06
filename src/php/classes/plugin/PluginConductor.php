@@ -54,7 +54,7 @@ class PluginConductor {
 	 *
 	 * */
 	public function pluginContain($path) {
-		return $this->plugin->directory->contain($path);
+		return $this->plugin->directory->contains($path);
 	}
 
 	/**

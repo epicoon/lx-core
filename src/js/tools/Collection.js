@@ -5,7 +5,7 @@
 	at(k)
 	to(k)
 	set(i, val)
-	contain(obj)
+	contains(obj)
 	first()
 	last()
 	current(value)
@@ -134,7 +134,7 @@ class Collection extends lx.Object #lx:namespace lx {
 		return this;
 	}
 
-	contain(obj) {
+	contains(obj) {
 		this.cachePosition();
 		var match = false;
 		var curr = this.first();
@@ -538,7 +538,7 @@ class Collection extends lx.Object #lx:namespace lx {
 	 * 3. (prop, val) - выберет все объекты, у которых есть свойство prop и оно равно val
 	 * 4. (prop, op, val) - выберет все объекты, у которых есть свойство prop и сравнит с val, варианты оператора op:
 	 *    a. >, <, >=, <=
-	 *    b. contain - для массива prop на наличие элемента val
+	 *    b. contains - для массива prop на наличие элемента val
 	 *    c. like - для строки prop проверяет совпадение регулярным выражением
 	 * */
 	select() {
@@ -578,7 +578,7 @@ class Collection extends lx.Object #lx:namespace lx {
 								case '<': if (a[prop] >= val) match = false; break;
 								case '>=': if (a[prop] < val) match = false; break;
 								case '<=': if (a[prop] > val) match = false; break;
-								case 'contain':
+								case 'contains':
 									if (!a[prop].isArray || a[prop].indexOf(val) == -1) match = false;
 								break;
 								case 'like':

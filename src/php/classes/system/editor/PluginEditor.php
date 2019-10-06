@@ -75,9 +75,11 @@ class PluginEditor {
 		$text .= 'jsMain: ' . $pluginConfig['jsMain'] . PHP_EOL;
 		$text .= 'jsBootstrap: ' . $pluginConfig['jsBootstrap'] . PHP_EOL . PHP_EOL;
 
-		$text .= 'images' . $pluginConfig['images'] . PHP_EOL;
-		$text .= 'css' . $pluginConfig['css'] . PHP_EOL;
-		$text .= 'bundles' . $pluginConfig['bundles'] . PHP_EOL . PHP_EOL;
+		$text .= 'images: ' . $pluginConfig['images'] . PHP_EOL;
+		$text .= 'css: ' . $pluginConfig['css'] . PHP_EOL;
+		$text .= 'bundles: ' . $pluginConfig['bundles'] . PHP_EOL . PHP_EOL;
+
+		$text .= 'cacheType: ' . ($pluginConfig['cacheType'] ?? lx\Plugin::CACHE_NONE) . PHP_EOL . PHP_EOL;
 
 		if (is_array($pluginConfig['respondents'])) {
 			if (empty($pluginConfig['respondents'])) {

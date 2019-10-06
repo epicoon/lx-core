@@ -318,7 +318,7 @@ class Dialog extends ApplicationTool {
 		if ($data === null) {
 			header('Content-Type: text/html; charset=utf-8');
 			if ($content != '') {
-				echo $content;
+				$this->echo($content);
 			}
 		} else {
 			$isStr = is_string($data);
@@ -337,8 +337,23 @@ class Dialog extends ApplicationTool {
 			}
 
 			$data = $isStr ? $data : json_encode($data);
-			echo $data;
+			$this->echo($data);
 		}
+	}
+
+	private function echo($data) {
+		// https://stackoverflow.com/questions/15273570/continue-processing-php-after-sending-http-response
+		ignore_user_abort(true);
+		set_time_limit(0);
+		ob_start();
+		echo $data;
+		header('Connection: close');
+		header('Content-Length: ' . ob_get_length());
+		ob_end_flush();
+		ob_flush();
+		flush();
+		if (session_id()) session_write_close();
+		fastcgi_finish_request();
 	}
 
 	/**

@@ -21,9 +21,8 @@ lx.Storage = {
 		try {
 			localStorage.setItem(key, lx.Json.encode(value));
 		} catch (e) {
-			if (e == QUOTA_EXCEEDED_ERR) {
-				console.log('localStorage is full');
-			}
+			console.log('Local storage error');
+			console.log(e);
 		}
 	},
 

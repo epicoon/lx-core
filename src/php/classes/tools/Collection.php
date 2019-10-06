@@ -481,7 +481,7 @@ class Collection {
 	 * 2. ($prop, $val) - выберет все объекты, у которых есть свойство $prop и оно равно $val
 	 * 3. ($prop, $op, $val) - выберет все объекты, у которых есть свойство $prop и сравнит с $val, варианты оператора $op:
 	 *    a. >, <, >=, <=
-	 *    b. contain - для массива $prop на наличие элемента $val
+	 *    b. contains - для массива $prop на наличие элемента $val
 	 *    c. like - для строки $prop проверяет совпадение регулярным выражением
 	 * */
 	public function select() {
@@ -522,7 +522,7 @@ class Collection {
 								case '<': if ($a->$prop >= $val) $match = false; break;
 								case '>=': if ($a->$prop < $val) $match = false; break;
 								case '<=': if ($a->$prop > $val) $match = false; break;
-								case 'contain':
+								case 'contains':
 									if (!is_array($a->$prop) || array_search($val, $a->$prop) === false) $match = false;
 								break;
 								case 'like':

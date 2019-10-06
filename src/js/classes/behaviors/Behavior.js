@@ -20,16 +20,16 @@ class Behavior #lx:namespace lx {
 				if (this[staticNames[i]].isFunction) staticFuncNames.push(staticNames[i]);
 			}
 			for (var i=0, l=staticFuncNames.length; i<l; i++) {
-				if (supportedEssence[staticFuncNames[i]] === undefined || this.overridedMethods().contain(staticFuncNames[i]))
+				if (supportedEssence[staticFuncNames[i]] === undefined || this.overridedMethods().contains(staticFuncNames[i]))
 					supportedEssence[staticFuncNames[i]] = this[staticFuncNames[i]];
 			}
 			for (var i=0, l=funcNames.length; i<l; i++) {
-				if (supportedEssence.prototype[funcNames[i]] === undefined || this.overridedMethods().contain(staticFuncNames[i]))
+				if (supportedEssence.prototype[funcNames[i]] === undefined || this.overridedMethods().contains(staticFuncNames[i]))
 					supportedEssence.prototype[funcNames[i]] = this.prototype[funcNames[i]];
 			}
 		} else if (supportedEssence instanceof lx.Object) {
 			for (var i=0, l=funcNames.length; i<l; i++) {
-				if (supportedEssence[funcNames[i]] === undefined || this.overridedMethods().contain(staticFuncNames[i]))
+				if (supportedEssence[funcNames[i]] === undefined || this.overridedMethods().contains(staticFuncNames[i]))
 					supportedEssence[funcNames[i]] = this.prototype[funcNames[i]];
 			}			
 		}

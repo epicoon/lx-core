@@ -121,7 +121,7 @@ return [
 	 * build - [[lx\Plugin::CACHE_BUILD]] allways rebuild plugin and cache
 	 * smart - [[lx\Plugin::CACHE_SMART]] update cache if files were changed
 	 */
-	'snippetBuildType' => lx\Plugin::CACHE_SMART,
+	'cacheType' => lx\Plugin::CACHE_SMART,
 ];
 
 EOT;

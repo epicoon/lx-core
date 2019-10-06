@@ -111,9 +111,9 @@ class ModelListDisplayer #lx:namespace lx {
 	dropData() {
 		if (!this.data) return;
 
-		if (this.box.contain('side'))
+		if (this.box.contains('side'))
 			lx.Binder.unbindMatrix(this.box->side);
-		if (this.box.contain('body'))
+		if (this.box.contains('body'))
 			lx.Binder.unbindMatrix(this.box->body);
 
 		this.data = null;
@@ -249,9 +249,9 @@ class ModelListDisplayer #lx:namespace lx {
 				bodyFields: {}
 			};
 		for (var name in schema) {
-			if (this.hide.contain(name)) continue;
+			if (this.hide.contains(name)) continue;
 
-			var side = +lock.contain(name);
+			var side = +lock.contains(name);
 			switch (schema[name]) {
 				case 'pk'     : width[side] += wInt[0];  widget = lx.Box;      break;
 				case 'boolean': width[side] += wBool[0]; widget = lx.Checkbox; break;

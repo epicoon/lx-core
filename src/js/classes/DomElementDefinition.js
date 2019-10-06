@@ -125,7 +125,7 @@ class DomElementDefinition #lx:namespace lx {
 
 	hasClass(className) {
 		if (this.elem) return this.elem.classList.contains(className);
-		return this.classList.contain(className);
+		return this.classList.contains(className);
 	}
 
 	addClass(className) {
@@ -225,7 +225,7 @@ class DomElementDefinition #lx:namespace lx {
 	hasEvent(eventName, func) {
 		if (this.elem) return lx.Event.has(this.elem, type, func);
 		if (func === undefined) return (eventName in this.events);
-		return ((eventName in this.events) && this.events[eventName].contain(func));
+		return ((eventName in this.events) && this.events[eventName].contains(func));
 	}
 
 	getEvents() {

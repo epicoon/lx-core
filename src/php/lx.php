@@ -23,6 +23,7 @@ class lx {
 	const POSTUNPACK_TYPE_FIRST_DISPLAY = 2;
 	const POSTUNPACK_TYPE_ALL_DISPLAY = 3;
 
+	/** @var lx\PlatformConductor */
 	public static $conductor;
 	public static $app;
 

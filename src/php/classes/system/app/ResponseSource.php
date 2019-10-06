@@ -14,6 +14,7 @@ class ResponseSource extends ApplicationTool {
 	const RESTRICTION_INSUFFICIENT_RIGHTS = 10;
 
 	private $data;
+	private $plugin;
 	private $restrictions;
 
 	/**
@@ -72,21 +73,25 @@ class ResponseSource extends ApplicationTool {
 	/**
 	 *
 	 * */
-	public function invoke() {
+	public function invoke($methodName = null, $params = null) {
 		if ($this->isObject()) {
-			return $this->invokeObjectMethod();
+			return $this->invokeObjectMethod($methodName, $params);
 		}
 
 		if ($this->isWidget()) {
-			return $this->invokeWidgetMethod();
+			return $this->invokeWidgetMethod($methodName, $params);
 		}
 
 		if ($this->isStaticMethod()) {
-			return $this->invokeStaticMethod();
+			return $this->invokeStaticMethod($methodName, $params);
 		}
 
 		if ($this->isAction()) {
-			return $this->invokeAction();
+			return $this->invokeAction($methodName, $params);
+		}
+
+		if ($this->isPlugin()) {
+			return $this->invokePluginMethod($methodName, $params);
 		}
 
 		return false;
@@ -139,21 +144,25 @@ class ResponseSource extends ApplicationTool {
 	 * */
 	public function getPlugin() {
 		if ($this->isPlugin()) {
-			$plugin = $this->getService()->getPlugin($this->data['plugin']);
+			if (!$this->plugin) {
+				$plugin = $this->getService()->getPlugin($this->data['plugin']);
 
-			if (isset($this->data['renderParams'])) {
-				$plugin->addRenderParams($this->data['renderParams']);
+				if (isset($this->data['renderParams'])) {
+					$plugin->addRenderParams($this->data['renderParams']);
+				}
+
+				if (isset($this->data['clientParams'])) {
+					$plugin->clientParams->setProperties($this->data['clientParams']);
+				}
+
+				if (isset($this->data['dependencies'])) {
+					$plugin->setDependencies($this->data['dependencies']);
+				}
+
+				$this->plugin = $plugin;
 			}
 
-			if (isset($this->data['clientParams'])) {
-				$plugin->clientParams->setProperties($this->data['clientParams']);
-			}
-
-			if (isset($this->data['dependencies'])) {
-				$plugin->setDependencies($this->data['dependencies']);
-			}
-
-			return $plugin;
+			return $this->plugin;
 		}
 
 		return null;
@@ -164,93 +173,92 @@ class ResponseSource extends ApplicationTool {
 	 * PRIVATE
 	 ******************************************************************************************************************/
 
-	/**
-	 *
-	 * */
-	private function invokeAction() {
-		if (!isset($this->data['class']) || !isset($this->data['method'])) {
+	private function invokeAction($methodName, $params)
+	{
+		$methodName = $methodName ?? $this->data['method'] ?? null;
+		if (!isset($this->data['class']) || !$methodName) {
+			return false;
+		}
+
+		if (!method_exists($this->data['class'], $methodName)) {
 			return false;
 		}
 
 		$class = $this->data['class'];
 		$instance = new $class($this->getService());
-		$method = $this->data['method'];
-		$params = isset($this->data['params']) ? $this->data['params'] : null;
-
-		$result = $params
-			? \call_user_func_array([$instance, $method], $params)
-			: $instance->$method();
-		
-		return $result;
+		$params = $params ?? $this->data['params'] ?? null;
+		return $params
+			? \call_user_func_array([$instance, $methodName], $params)
+			: $instance->$methodName();
 	}
 
-	/**
-	 *
-	 * */
-	private function invokeObjectMethod() {
-		$object = isset($this->data['object']) ? $this->data['object'] : null;
-		if (!$object) {
+	private function invokePluginMethod($methodName, $params)
+	{
+		$plugin = $this->getPlugin();
+		if (!$plugin || !$methodName || !method_exists($plugin, $methodName)) {
 			return false;
 		}
 
-		$method = isset($this->data['method']) ? $this->data['method'] : null;
-		if (!$method) {
-			return false;
-		}
-
-		$params = isset($this->data['params']) ? $this->data['params'] : null;
-
-		$result = $params
-			? \call_user_func_array([$object, $method], $params)
-			: $object->$method();
-		
-		return $result;
+		return $params
+			? \call_user_func_array([$plugin, $methodName], $params)
+			: $plugin->$methodName();
 	}
 
-	/**
-	 *
-	 * */
-	private function invokeWidgetMethod() {
-		$class = isset($this->data['class']) ? $this->data['class'] : null;
-		if (!$class) {
+	private function invokeObjectMethod($methodName, $params)
+	{
+		$methodName = $methodName ?? $this->data['method'] ?? null;
+		if (!$methodName) {
 			return false;
 		}
 
-		$method = isset($this->data['method']) ? $this->data['method'] : null;
-		if (!$method) {
+		$object = $this->data['object'] ?? null;
+		if (!$object || !method_exists($object, $methodName)) {
 			return false;
 		}
 
-		$params = isset($this->data['params']) ? $this->data['params'] : null;
+		$params = $params ?? $this->data['params'] ?? null;
+		return $params
+			? \call_user_func_array([$object, $methodName], $params)
+			: $object->$methodName();
+	}
+
+	private function invokeWidgetMethod($methodName, $params)
+	{
+		$methodName = $methodName ?? $this->data['method'] ?? null;
+		if (!$methodName) {
+			return false;
+		}
+
+		$class = $this->data['class'] ?? null;
+		if (!$class || !method_exists($class, $methodName)) {
+			return false;
+		}
 
 		$widget = new $class($this->app);
-		$result = $params
-			? \call_user_func_array([$widget, $method], $params)
-			: $widget->$method();
-
-		return $result;
+		$params = $params ?? $this->data['params'] ?? null;
+		return $params
+			? \call_user_func_array([$widget, $methodName], $params)
+			: $widget->$methodName();
 	}
 
-	/**
-	 *
-	 * */
-	private function invokeStaticMethod() {
-		$class = isset($this->data['class']) ? $this->data['class'] : null;
-		if (!$class) {
+	private function invokeStaticMethod($methodName, $params)
+	{
+		$methodName = $methodName ?? $this->data['method'] ?? null;
+		if (!$methodName) {
 			return false;
 		}
 
-		$method = isset($this->data['method']) ? $this->data['method'] : null;
-		if (!$method) {
+		$class = $this->data['class'] ?? null;
+		if (!$class || !method_exists($class, $methodName)) {
 			return false;
 		}
 
-		$params = isset($this->data['params']) ? $this->data['params'] : null;
+		$params = $params ?? $this->data['params'] ?? null;
 		if (is_array($params)) {
-			$result = \call_user_func_array([$class, $method], $params);
+			$result = \call_user_func_array([$class, $methodName], $params);
 		} else {
 			$re = new \ReflectionClass($class);
-			$methodRe = $re->getMethod($method);
+			$methodRe = $re->getMethod($methodName);
 			$result = $methodRe->invoke(null);
 		}
 

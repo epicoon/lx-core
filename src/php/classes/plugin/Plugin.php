@@ -129,13 +129,14 @@ class Plugin extends ApplicationTool {
 		return $plugin;
 	}
 
-	public function beforeCompile() {
-		
-	}
-
-	public function afterCompile() {
-		
-	}
+	public function beforeCompile() {}
+	public function afterCompile() {}
+	public function beforeSending() {}
+	public function beforeSuccessfulSending() {}
+	public function beforeFailedSending() {}
+	public function afterSuccessfulSending() {}
+	public function afterFailedSending() {}
+	public function afterSending() {}
 
 
 	//=========================================================================================================================

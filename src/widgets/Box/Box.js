@@ -44,7 +44,7 @@ lx.Textarea
  * find(key, all=true)
  * findAll(key, all=true)
  * findOne(key, all=true)
- * contain(key)
+ * contains(key)
  * childrenCount(key)
  * child(num)
  * lastChild()
@@ -671,12 +671,12 @@ class Box extends lx.Rect #lx:namespace lx {
     }
 
     text(text) {
-        if (text == undefined) {
-            if ( !this.contain('text') ) return '';
+        if (text === undefined) {
+            if ( !this.contains('text') ) return '';
             return this.children.text.value();
         }
 
-        if (!this.contain('text')) new lx.TextBox({parent: this});
+        if (!this.contains('text')) new lx.TextBox({parent: this});
 
         this.children.text.value(text);
         return this;
@@ -698,7 +698,7 @@ class Box extends lx.Rect #lx:namespace lx {
         todo
         делать по механизму как редактор, а не через инпут
         */
-        if ( this.contain('input') ) return;
+        if ( this.contains('input') ) return;
 
         var _t = this,
             boof = this.text(),
@@ -796,7 +796,7 @@ class Box extends lx.Rect #lx:namespace lx {
         return c.at(0);
     }
 
-    contain(key) {
+    contains(key) {
         var container = __getContainer(this);
 
         if (key instanceof lx.Rect) {

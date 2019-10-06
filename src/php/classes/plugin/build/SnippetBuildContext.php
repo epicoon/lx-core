@@ -54,7 +54,7 @@ class SnippetBuildContext extends ApplicationTool implements ContextTreeInterfac
 			return [];
 		}
 
-		$buildType = $this->getPlugin()->getConfig('snippetBuildType');
+		$buildType = $this->getPlugin()->getConfig('cacheType') ?? Plugin::CACHE_NONE;
 		$this->cacheData->initBuildType($buildType);
 
 		switch ($buildType) {

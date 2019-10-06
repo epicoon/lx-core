@@ -50,7 +50,7 @@ class BehaviorMap #lx:namespace lx {
 	 * */
 	has(behavior) {
 		if (this.isEmpty) return false;
-		return this.map.list.contain(behavior);
+		return this.map.list.contains(behavior);
 	}
 
 	/**	

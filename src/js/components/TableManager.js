@@ -18,7 +18,7 @@ lx.TableManager = {
 	cellEnterEnable: true,  // разрешается ввод текста в ячейки
 
 	register: function(table, config = {}) {
-		if (!(table instanceof lx.Table) || this.tables.contain(table)) return;
+		if (!(table instanceof lx.Table) || this.tables.contains(table)) return;
 		if (this.tables.lxEmpty) this.start();
 		this.tables.push(table);
 
@@ -102,7 +102,7 @@ lx.TableManager = {
 
 	toUp: function(event) {
 		var cell = this.activeCell;
-		if ( cell.contain('input') ) return;
+		if ( cell.contains('input') ) return;
 
 		var tab = this.activeTable,
 			coords = cell.indexes(),
@@ -129,7 +129,7 @@ lx.TableManager = {
 
 	toDown: function(event) {
 		var cell = this.activeCell;
-		if ( cell.contain('input') ) return;
+		if ( cell.contains('input') ) return;
 
 		var tab = this.activeTable,
 			coords = cell.indexes(),
@@ -163,7 +163,7 @@ lx.TableManager = {
 
 	toLeft: function(event) {
 		var cell = this.activeCell;
-		if ( cell.contain('input') ) return;
+		if ( cell.contains('input') ) return;
 
 		var tab = this.activeTable,
 			coords = cell.indexes(),
@@ -189,7 +189,7 @@ lx.TableManager = {
 
 	toRight: function(event) {
 		var cell = this.activeCell;
-		if ( cell.contain('input') ) return;
+		if ( cell.contains('input') ) return;
 
 		var tab = this.activeTable,
 			coords = cell.indexes(),
@@ -219,7 +219,7 @@ lx.TableManager = {
 		var tab = this.activeTable,
 			cell = this.activeCell;
 
-		if (cell.contain('input')) {
+		if (cell.contains('input')) {
 			var inp = cell.get('input');
 			inp.off('blur');
 			var boof = inp.getDomElem().value;
@@ -262,7 +262,7 @@ lx.TableManager = {
 		event = event || window.event;
 		var code = (event.charCode) ? event.charCode: event.keyCode;
 
-		var inputOn = ( this.activeCell && this.activeCell.contain('input') );
+		var inputOn = ( this.activeCell && this.activeCell.contains('input') );
 
 		switch (code) {
 			case 38: this.toUp(event);    if (!inputOn) event.preventDefault(); break;

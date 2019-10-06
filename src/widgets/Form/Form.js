@@ -44,7 +44,7 @@ class Form extends lx.Box #lx:namespace lx {
 		let obj = {};
 		var children = this.getChildren({ hasProperties: '_field', all: true });
 		children.each((a)=>{
-			if (map !== null && map.isArray && !map.contain(a._field)) return;
+			if (map !== null && map.isArray && !map.contains(a._field)) return;
 			obj[a._field] = a.lxHasMethod('value')
 				? a.value()
 				: a.text();

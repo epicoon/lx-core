@@ -4,7 +4,7 @@ namespace lx;
 
 /*
 	public function scan()
-	public function contain($name)
+	public function contains($name)
 	public function makeDirectory($name, $mode=0777, $recursive=false)
 	public function makeFile($name, $type=null)
 	public function getContent($rule = [])
@@ -38,7 +38,7 @@ class Directory extends BaseFile {
 	/**
 	 * Проверяет, содержит ли данный файл/каталог
 	 * */
-	public function contain($name) {
+	public function contains($name) {
 		return file_exists($this->path . '/' . $name);
 	}
 	
@@ -63,7 +63,7 @@ class Directory extends BaseFile {
 	 *
 	 * */
 	public function getOrMakeDirectory($name, $mode=0777, $recursive=false) {
-		if ($this->contain($name)) {
+		if ($this->contains($name)) {
 			return $this->get($name);
 		}
 		return $this->makeDirectory($name, $mode, $recursive);
@@ -153,7 +153,7 @@ class Directory extends BaseFile {
 			return $this;
 		}
 
-		if (!$this->contain($name)) {
+		if (!$this->contains($name)) {
 			return false;
 		}
 

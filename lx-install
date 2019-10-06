@@ -49,7 +49,7 @@ $lxConsole = $lx->makeFile('lx');
 $lxConsole->put($lxConsoleCode);
 
 // Если конфигов еще нет - создадим
-if (!$lx->contain('config')) {
+if (!$lx->contains('config')) {
 	$config = $lx->makeDirectory('config');
 
 	require(__DIR__ . '/install-src/configTpl.php');
@@ -76,7 +76,7 @@ if (!$lx->contain('config')) {
 }
 
 $data = $lx->getOrMakeDirectory('data');
-if (!$data->contain('languages.php')) {
+if (!$data->contains('languages.php')) {
 	$languages = $data->makeFile('languages.php');
 	$languages->put(require(__DIR__ . '/install-src/data/languages.php'));
 }

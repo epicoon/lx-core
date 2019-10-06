@@ -1288,7 +1288,7 @@ class Rect #lx:namespace lx {
                 if (lx.CompareHelper.deepCompare(val, oldVal)) return;
                 this.innerValue(val);
                 func.call(this, val, oldVal);
-                this.trigger('change');
+                this.trigger('change', val, oldVal);
             };
         }
 

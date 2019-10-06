@@ -449,7 +449,7 @@ Object.defineProperty(Array.prototype, "diff", {
 	}
 });
 
-Object.defineProperty(Array.prototype, "contain", {
+Object.defineProperty(Array.prototype, "contains", {
 	value: function(elem) {
 		return this.indexOf(elem) !== -1;
 	}

@@ -419,8 +419,7 @@ function __action(obj, name, newVal) {
 		return;
 	}
 	let arr = __getBind(obj.lxBindId)[name];
-
-	if (!arr) return;
+	if (!arr || !arr.isArray) return;
 	arr.each((a)=> __valueToWidget(a, newVal));
 }
 

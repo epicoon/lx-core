@@ -224,7 +224,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			this.createLeafs(this.data);
 			var work = this.children.work;
 			//todo с условием стало напутано - подменю не обязано быть логически связанным с кнопкой добавления. Подумать нужно ли оно вообще
-			if (this.addMode && this.rootAdding && !work.contain('submenu')) {
+			if (this.addMode && this.rootAdding && !work.contains('submenu')) {
 				var menu = new lx.Box({parent: work, key: 'submenu', height: this.leafHeight+'px'});
 				new lx.Rect({
 					key: 'add',
@@ -365,7 +365,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		}
 
 		deleteInput() {
-			if (!this.contain('inp')) return;
+			if (!this.contains('inp')) return;
 
 			var inp = this.children.inp;
 			inp.but.off('click');
