@@ -74,20 +74,23 @@ class ModelMigrateExecutor {
 		$needTable = $crudAdapter->checkNeedTable($this->modelName);
 		if ($needTable) {
 			$this->correctInnerYaml();
-			if (!$crudAdapter->createTable($this->modelName)) {
+			if ( ! $crudAdapter->createTable($this->modelName)) {
 				return false;
 			} else {
 				$migrationMaker->createTableMigration($this->modelName);
 			}
 		}
 
-		// if ($relationTableNames = $modelProvider->createRelationTables($this->modelName)) {
-		// 	var_dump($relationTableNames);
-		// // 	$migrationMaker->createRelationTablesMigration($this->modelName, $relationTableNames);
-		// }
+		list ($addedRelations, $deletedRelations) = $crudAdapter->acualizeRelationTables($this->modelName);
+		if ( ! empty($addedRelations)) {
+			$migrationMaker->createRelationTablesMigration($this->modelName, $addedRelations);
+		}
+		if ( ! empty($deletedRelations)) {
+			$migrationMaker->deleteRelationTablesMigration($this->modelName, $deletedRelations);
+		}
 
-		if (!$needTable) {
-			if (!empty($this->innerActions)) {
+		if ( ! $needTable) {
+			if ( ! empty($this->innerActions)) {
 				if ( ! $crudAdapter->correctModel(
 					$this->modelName,
 					$this->innerActions
@@ -103,29 +106,40 @@ class ModelMigrateExecutor {
 			}
 		}
 
-		$actions = $this->parseOuterActions();
-		if (!empty($actions)) {
-			if ( ! $crudAdapter->correctModelEssences(
-				$this->modelName,
-				$actions
-			)) {
-				return false;
-			}
-
-			$migrationMaker->createOuterMigration(
-				$this->modelName,
-				$actions
-			);
+		$essencesChanged = $this->runChangeEssences($this->parseOuterActions());
+		if ($essencesChanged) {
 			$this->correctOuterYaml();
 		}
 
-		return true;
+		return $essencesChanged;
+
+//		$actions = $this->parseOuterActions();
+//		if (!empty($actions)) {
+//			if ( ! $crudAdapter->correctModelEssences(
+//				$this->modelName,
+//				$actions
+//			)) {
+//				return false;
+//			}
+//
+//			$migrationMaker->createOuterMigration(
+//				$this->modelName,
+//				$actions
+//			);
+//			$this->correctOuterYaml();
+//		}
+//
+//		return true;
 	}
 
 	/**
 	 *
 	 * */
 	public function runChangeEssences($actions) {
+		if (empty($actions)) {
+			return false;
+		}
+
 		$crudAdapter = $this->service->modelProvider->getCrudAdapter();
 		// Если нет CRUD адаптера, то не нужно миграций
 		if ( ! $crudAdapter) {

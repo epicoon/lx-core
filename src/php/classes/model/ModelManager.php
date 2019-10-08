@@ -2,11 +2,25 @@
 
 namespace lx;
 
-class ModelManager extends ApplicationTool {
+/**
+ * Class ModelManager
+ * @package lx
+ */
+class ModelManager extends ApplicationTool
+{
+	/** @var CrudAdapter */
 	private $crudTool = null;
+	/** @var ModelSchema */
 	private $schema;
 
-	public function __construct($app, $crudTool, $schema) {
+	/**
+	 * ModelManager constructor.
+	 * @param $app AbstractApplication
+	 * @param $crudTool CrudAdapter
+	 * @param $schema ModelSchema
+	 */
+	public function __construct($app, $crudTool, $schema)
+	{
 		parent::__construct($app);
 		$this->crudTool = $crudTool;
 		$this->schema = $schema;
@@ -17,21 +31,41 @@ class ModelManager extends ApplicationTool {
 	 * CRUD действия с одной моделью
 	 *************************************************************************************************************************/
 
-	public function newModel() {
+	/**
+	 * @return array|ModelData
+	 */
+	public function newModel()
+	{
 		return ModelData::getNew($this, 1);
 	}
 
-	public function loadModel($condition) {
+	/**
+	 * @param $condition array|mixed
+	 * @return ModelData
+	 * @throws \Exception
+	 */
+	public function loadModel($condition)
+	{
 		$this->checkCrud();
 		return $this->crudTool->loadModel($this->schema->getName(), $condition);
 	}
 
-	public function saveModel($model) {
+	/**
+	 * @param $model ModelData
+	 * @throws \Exception
+	 */
+	public function saveModel($model)
+	{
 		$this->checkCrud();
 		$this->crudTool->saveModel($model);
 	}
 
-	public function deleteModel($model) {
+	/**
+	 * @param $model ModelData
+	 * @throws \Exception
+	 */
+	public function deleteModel($model)
+	{
 		if ($model->pk() === null) return;
 
 		$this->checkCrud();
@@ -40,17 +74,38 @@ class ModelManager extends ApplicationTool {
 		$model->setPk(null);
 	}
 
-	public function addRelations($model, $relation, $modelsList) {
+	/**
+	 * @param $model ModelData
+	 * @param $relation ModelFieldRelation
+	 * @param $modelsList array
+	 * @throws \Exception
+	 */
+	public function addRelations($model, $relation, $modelsList)
+	{
 		$this->checkCrud();
 		$this->crudTool->addRelations($model, $relation, $modelsList);
 	}
 
-	public function loadRelations($model, $relation) {
+	/**
+	 * @param $model ModelData
+	 * @param $relation ModelFieldRelation
+	 * @return array
+	 * @throws \Exception
+	 */
+	public function loadRelations($model, $relation)
+	{
 		$this->checkCrud();
 		return $this->crudTool->loadRelations($model, $relation);
 	}
 
-	public function delRelations($model, $relation, $modelsList) {
+	/**
+	 * @param $model ModelData
+	 * @param $relation ModelFieldRelation
+	 * @param $modelsList array
+	 * @throws \Exception
+	 */
+	public function delRelations($model, $relation, $modelsList)
+	{
 		$this->checkCrud();
 		$this->crudTool->delRelations($model, $relation, $modelsList);
 	}
@@ -62,26 +117,42 @@ class ModelManager extends ApplicationTool {
 
 	/**
 	 * Создание нескольких новых моделей
-	 * @param $count - сколько моделей создать
-	 * */
-	public function newModels($count) {
+	 * @param $count int - сколько моделей создать
+	 * @return array|ModelData
+	 */
+	public function newModels($count)
+	{
 		return ModelData::getNew($this, $count);
 	}
 
 	/**
 	 * Загрузка нескольких моделей
-	 * */
-	public function loadModels($condition = null) {
+	 * @param $condition null|array
+	 * @return array
+	 * @throws \Exception
+	 */
+	public function loadModels($condition = null)
+	{
 		$this->checkCrud();
 		return $this->crudTool->loadModels($this->schema->getName(), $condition);
 	}
 
-	public function saveModels($arr) {
+	/**
+	 * @param $arr array
+	 * @throws \Exception
+	 */
+	public function saveModels($arr)
+	{
 		$this->checkCrud();
 		$this->crudTool->saveModels($arr);
 	}
 
-	public function deleteModels($arr) {
+	/**
+	 * @param $arr array
+	 * @throws \Exception
+	 */
+	public function deleteModels($arr)
+	{
 		$this->checkCrud();
 		$this->crudTool->deleteModels($arr);
 	}
@@ -91,27 +162,51 @@ class ModelManager extends ApplicationTool {
 	 * Всякое прочее
 	 *************************************************************************************************************************/
 
-	public function getModelName() {
+	/**
+	 * @return string
+	 */
+	public function getModelName()
+	{
 		return $this->schema->getName();
 	}
 
-	public function getSchema() {
+	/**
+	 * @return ModelSchema
+	 */
+	public function getSchema()
+	{
 		return $this->schema;
 	}
 
-	public function getCrudAdapter() {
+	/**
+	 * @return CrudAdapter
+	 */
+	public function getCrudAdapter()
+	{
 		return $this->crudTool;
 	}
 
-	public function getService() {
+	/**
+	 * @return Service
+	 */
+	public function getService()
+	{
 		return $this->crudTool->getService();
 	}
 
-	public function resetModels() {
-		$this->models = [];
-	}
+//	/**
+//	 * TODO идея для кэширования, пока нет такого
+//	 */
+//	public function resetModels()
+//	{
+//		$this->models = [];
+//	}
 
-	private function checkCrud() {
+	/**
+	 * @throws \Exception
+	 */
+	private function checkCrud()
+	{
 		if ($this->crudTool === null) {  //todo какой-нибудь интерфейс еще проверять
 			throw new \Exception('ModelManager CRUD operation failed. There is no CRUD tool.', 400);
 		}

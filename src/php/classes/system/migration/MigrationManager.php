@@ -159,7 +159,7 @@ class MigrationManager {
 	private function runMigrationProcess($service, $migrationName, $migration) {
 		$crudAdapter = $service->modelProvider->getCrudAdapter();
 		switch ($migration['type']) {
-			case 'table_create':
+			case MigrationMaker::TYPE_NEW_TABLE:
 				$name = $migration['model'];
 				$schema = new ModelSchema($service->modelProvider, $name, $migration['schema']);
 				if ( ! $crudAdapter->createTable($name, $schema)) {
@@ -167,25 +167,37 @@ class MigrationManager {
 				}
 				break;
 
-			case 'table_delete':
+			case MigrationMaker::TYPE_DROP_TABLE:
 				$name = $migration['model'];
 				if ( ! $crudAdapter->deleteTable($name)) {
 					return false;
 				}
 				break;
 
-			case 'table_alter':
+			case MigrationMaker::TYPE_ALTER_TABLE:
 				if ( ! $crudAdapter->correctModel($migration['model'], $migration['actions'])) {
 					return false;
 				}
 				break;
 
-			case 'table_content':
+			case MigrationMaker::TYPE_CONTENT_TABLE:
 				$name = $migration['model'];
 				$schema = new ModelSchema($service->modelProvider, $name, $migration['schema']);
 				if ( ! $crudAdapter->correctModelEssences($migration['model'], $migration['actions'], $schema)) {
 					return false;
 				}
+				break;
+
+			case MigrationMaker::TYPE_RELATIONS_TABLE:
+				//TODO
+				// $migration['model']
+				// $migration['relations']
+				break;
+
+			case MigrationMaker::TYPE_DELETE_RELATIONS_TABLE:
+				//TODO
+				// $migration['model']
+				// $migration['relations']
 				break;
 		}
 
@@ -199,14 +211,14 @@ class MigrationManager {
 	private function downMigrationProcess($service, $migrationName, $migration) {
 		$crudAdapter = $service->modelProvider->getCrudAdapter();
 		switch ($migration['type']) {
-			case 'table_create':
+			case MigrationMaker::TYPE_NEW_TABLE:
 				$name = $migration['model'];
 				if ( ! $crudAdapter->deleteTable($name)) {
 					return false;
 				}
 				break;
 
-			case 'table_delete':
+			case MigrationMaker::TYPE_DROP_TABLE:
 				$name = $migration['model'];
 				$schema = new ModelSchema($service->modelProvider, $name, $migration['schema']);
 				if ( ! $crudAdapter->createTable($name, $schema)) {
@@ -214,7 +226,7 @@ class MigrationManager {
 				}
 				break;
 
-			case 'table_alter':
+			case MigrationMaker::TYPE_ALTER_TABLE:
 				foreach ($migration['actions'] as &$action) {
 					switch ($action['action']) {
 						case ModelMigrateExecutor::ACTION_ADD_FIELD:
@@ -240,7 +252,7 @@ class MigrationManager {
 				}
 				break;
 
-			case 'table_content':
+			case MigrationMaker::TYPE_CONTENT_TABLE:
 				foreach ($migration['actions'] as &$action) {
 					switch ($action[0]) {
 						case 'add':
@@ -272,6 +284,18 @@ class MigrationManager {
 				if ( ! $crudAdapter->correctModelEssences($migration['model'], $migration['actions'], $schema)) {
 					return false;
 				}
+				break;
+
+			case MigrationMaker::TYPE_RELATIONS_TABLE:
+				//TODO
+				// $migration['model']
+				// $migration['relations']
+				break;
+
+			case MigrationMaker::TYPE_DELETE_RELATIONS_TABLE:
+				//TODO
+				// $migration['model']
+				// $migration['relations']
 				break;
 		}
 

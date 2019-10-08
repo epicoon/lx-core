@@ -695,5 +695,6 @@ class SintaxExtender extends ApplicationTool {
 
 		$this->currentPath = $path;
 		$this->currentService = $this->app->getServiceByFile($path);
+		return $this->currentService;
 	}
 }

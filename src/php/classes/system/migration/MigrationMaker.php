@@ -4,79 +4,128 @@ namespace lx;
 
 /**
  * Класс для создания файлов миграций
- * */
-class MigrationMaker {
+ * Class MigrationMaker
+ * @package lx
+ */
+class MigrationMaker
+{
 	const TYPE_NEW_TABLE = 'new_table';
 	const TYPE_DROP_TABLE = 'del_table';
 	const TYPE_ALTER_TABLE = 'alter_table';
 	const TYPE_CONTENT_TABLE = 'content_table';
+	const TYPE_RELATIONS_TABLE = 'relations_table';
+	const TYPE_DELETE_RELATIONS_TABLE = 'del_relations_table';
 
+	/** @var Service */
 	private $service;
 
 	/**
-	 *
-	 * */
-	public function __construct($service) {
+	 * MigrationMaker constructor.
+	 * @param $service Service
+	 */
+	public function __construct($service)
+	{
 		$this->service = $service;
 	}
 
 	/**
 	 * Сгенерировать миграции, отметить их выполненными
 	 * Для ситуации создания таблицы модели
-	 * */
-	public function createTableMigration($modelName) {
-		$migrationData = [
-			'type' => 'table_create',
+	 *
+	 * @param $modelName string
+	 */
+	public function createTableMigration($modelName)
+	{
+		$this->saveMigration($modelName, self::TYPE_NEW_TABLE, [
 			'model' => $modelName,
 			'schema' => $this->service->modelProvider->getSchemaArray($modelName),
-		];
-		$this->saveMigration($modelName, self::TYPE_NEW_TABLE, $migrationData);
+		]);
 	}
 
 	/**
 	 * Сгенерировать миграции, отметить их выполненными
 	 * Для ситуации удаления таблицы модели
-	 * */
-	public function deleteTableMigration($modelName) {
-		$migrationData = [
-			'type' => 'table_delete',
+	 *
+	 * @param $modelName string
+	 */
+	public function deleteTableMigration($modelName)
+	{
+		$this->saveMigration($modelName, self::TYPE_DROP_TABLE, [
 			'model' => $modelName,
 			'schema' => $this->service->modelProvider->getSchemaArray($modelName),
-		];
-		$this->saveMigration($modelName, self::TYPE_DROP_TABLE, $migrationData);
+		]);
 	}
 
 	/**
 	 * Сгенерировать миграции, отметить их выполненными
 	 * Для ситуаций корректировки схемы модели
-	 * */
-	public function createInnerMigration($modelName, $innerActions) {
-		$migrationData = [
-			'type' => 'table_alter',
+	 *
+	 * @param $modelName string
+	 * @param $innerActions array
+	 */
+	public function createInnerMigration($modelName, $innerActions)
+	{
+		$this->saveMigration($modelName, self::TYPE_ALTER_TABLE, [
 			'model' => $modelName,
 			'actions' => $innerActions,
-		];
-		$this->saveMigration($modelName, self::TYPE_ALTER_TABLE, $migrationData);
+		]);
 	}
 
 	/**
 	 * Сгенерировать миграции, отметить их выполненными
 	 * Для ситуаций добавления новых экземпляров моделей
-	 * */
-	public function createOuterMigration($modelName, $outerActions) {
-		$migrationData = [
-			'type' => 'table_content',
+	 *
+	 * @param $modelName string
+	 * @param $outerActions array
+	 */
+	public function createOuterMigration($modelName, $outerActions)
+	{
+		$this->saveMigration($modelName, self::TYPE_CONTENT_TABLE, [
 			'model' => $modelName,
 			'schema' => $this->service->modelProvider->getSchemaArray($modelName),
 			'actions' => $outerActions,
-		];
-		$this->saveMigration($modelName, self::TYPE_CONTENT_TABLE, $migrationData);
+		]);
+	}
+
+	/**
+	 * Сгенерировать миграции, отметить их выполненными
+	 * Для ситуаций добавления новых связей модели
+	 *
+	 * @param $modelName string
+	 * @param $relationTableNames array
+	 */
+	public function createRelationTablesMigration($modelName, $relationsData)
+	{
+		$this->saveMigration($modelName, self::TYPE_RELATIONS_TABLE, [
+			'model' => $modelName,
+			'relations' => $relationsData,
+		]);
+	}
+
+	/**
+	 * Сгенерировать миграции, отметить их выполненными
+	 * Для ситуаций добавления новых связей модели
+	 *
+	 * @param $modelName string
+	 * @param $relationTableNames array
+	 */
+	public function deleteRelationTablesMigration($modelName, $relationsData)
+	{
+		$this->saveMigration($modelName, self::TYPE_DELETE_RELATIONS_TABLE, [
+			'model' => $modelName,
+			'relations' => $relationsData,
+		]);
 	}
 
 	/**
 	 * Создание файла миграции
-	 * */
-	private function saveMigration($modelName, $type, $migrationData) {
+	 *
+	 * @param $modelName string
+	 * @param $type int
+	 * @param $migrationData array
+	 */
+	private function saveMigration($modelName, $type, $migrationData)
+	{
 		$time = explode(' ', microtime());
 		$time = $time[1] . '_' . $time[0];
 		$migrationName = 'm__' . $time . '__' . $modelName . '_' . $type;
@@ -84,7 +133,7 @@ class MigrationMaker {
 
 		$dir = $this->service->conductor->getMigrationDirectory();
 		$file = $dir->makeFile($migrationFileName);
-		$code = json_encode($migrationData);
+		$code = json_encode(array_merge(['type'=>$type], $migrationData));
 		$file->put($code);
 
 		MigrationMap::getInstance()->up($this->service->name, $migrationName);

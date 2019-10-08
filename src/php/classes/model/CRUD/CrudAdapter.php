@@ -26,15 +26,18 @@ abstract class CrudAdapter extends ApplicationTool {
 	abstract public function saveModels($arr);
 	abstract public function deleteModels($arr);
 
+	abstract public function addRelations($model, $relation, $modelsList);
+	abstract public function delRelations($model, $relation, $modelsList);
+	abstract public function loadRelations($model, $relation);
+
 	abstract public function checkNeedTable($modelName);
 	abstract public function createTable($modelName, $schema = null);
 	abstract public function deleteTable($modelName);
 
+	abstract public function acualizeRelationTables($modelName);
 	abstract public function checkNeedRelationTable($modelName, $relativeModelName);
 	abstract public function createRelationTable($modelName, $relativeModelName);
-	abstract public function addRelations($model, $relation, $modelsList);
-	abstract public function delRelations($model, $relation, $modelsList);
-	abstract public function loadRelations($model, $relation);
+	abstract public function createRelationTables($modelName, $schema = null, $relationNames = null);
 
 	abstract public function correctModel($modelName, $actions);
 	abstract public function correctModelEssences($modelName, &$actions, $schema = null);

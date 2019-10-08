@@ -2,28 +2,41 @@
 
 namespace lx;
 
-class ModelData {
+/**
+ * Class ModelData
+ * @package lx
+ */
+class ModelData
+{
 	private static $nullCache = null;
 	private $newFlag = true;
 
+	/** @var ModelManager */
 	protected $manager;
-	protected
-		$_prop = [],
-		$_oldProp = [];
-		
+	/** @var array */
+	protected $_prop;
+	/** @var array */
+	protected $_oldProp;
 
 	/**
-	 *
-	 * */
-	public function __construct($manager, $props) {
+	 * ModelData constructor.
+	 * @param $manager ModelManager
+	 * @param $props array
+	 */
+	public function __construct($manager, $props = [])
+	{
 		$this->manager = $manager;
 		$this->_prop = $props;
+		$this->_oldProp = [];
 	}
 
 	/**
-	 *
-	 * */
-	public static function getNew($manager, $count = 1) {
+	 * @param $manager ModelManager
+	 * @param $count int
+	 * @return array|ModelData
+	 */
+	public static function getNew($manager, $count = 1)
+	{
 		$schema = $manager->getSchema();
 		$props = [];
 
@@ -44,23 +57,32 @@ class ModelData {
 	}
 
 	/**
-	 *
-	 * */
-	public static function load($manager, $condition = null) {
+	 * @param $manager ModelManager
+	 * @param $condition null|array
+	 * @return array[ModelData]
+	 */
+	public static function load($manager, $condition = null)
+	{
 		return $manager->loadModels($condition);
 	}
 
 	/**
-	 *
-	 * */
-	public static function loadOne($manager, $condition = null) {
+	 * @param $manager ModelManager
+	 * @param $condition null|array
+	 * @return ModelData
+	 */
+	public static function loadOne($manager, $condition = null)
+	{
 		return $manager->loadModel($condition);
 	}
 
 	/**
-	 *
-	 * */
-	public function __set($prop, $val) {
+	 * @param $prop string
+	 * @param $val mixed
+	 * @throws \Exception
+	 */
+	public function __set($prop, $val)
+	{
 		//TODO костыль из-за геттера
 		if ($prop == 'nullCache') {
 			$this->nullCache = $val;
@@ -118,9 +140,11 @@ class ModelData {
 	}
 
 	/**
-	 *
-	 * */
-	public function &__get($prop) {
+	 * @param $prop string
+	 * @return mixed|null
+	 */
+	public function &__get($prop)
+	{
 		if (array_key_exists($prop, $this->_prop)) {			
 			return $this->_prop[$prop];
 		}
@@ -134,23 +158,28 @@ class ModelData {
 	}
 
 	/**
-	 *
-	 * */
-	public function pk() {
+	 * @return mixed|null
+	 */
+	public function pk()
+	{
 		return $this->{$this->pkName()};
 	}
 
 	/**
-	 *
-	 * */
-	public function pkName() {
+	 * @return string
+	 */
+	public function pkName()
+	{
 		return $this->getSchema()->pkName();
 	}
 
 	/**
 	 * Метод только для действительно важных моментов - когда персональный ключ, например, получен из других запросов
-	 * */
-	public function setPk($pk) {
+	 * @param $pk mixed
+	 * @throws \Exception
+	 */
+	public function setPk($pk)
+	{
 		$pkName = $this->pkName();
 		if (!$pkName) return;
 
@@ -164,37 +193,42 @@ class ModelData {
 	}
 
 	/**
-	 *
-	 * */
-	public function getManager() {
+	 * @return ModelManager
+	 */
+	public function getManager()
+	{
 		return $this->manager;
 	}
 
 	/**
-	 *
-	 * */
-	public function getSchema() {
+	 * @return ModelSchema
+	 */
+	public function getSchema()
+	{
 		return $this->manager->getSchema();
 	}
 
 	/**
-	 *
-	 * */
-	public function getModelName() {
+	 * @return string
+	 */
+	public function getModelName()
+	{
 		return $this->getSchema()->getName();
 	}
 
 	/**
-	 *
-	 * */
-	public function fieldNames() {
+	 * @return array
+	 */
+	public function fieldNames()
+	{
 		return array_keys($this->_prop);
 	}
 
 	/**
-	 *
-	 * */
-	public function setFields($fields) {
+	 * @param $fields array
+	 */
+	public function setFields($fields)
+	{
 		foreach ($fields as $key => $value) {
 			if (array_key_exists($key, $this->_prop)) {
 				$this->$key = $value;
@@ -203,9 +237,11 @@ class ModelData {
 	}
 
 	/**
-	 *
-	 * */
-	public function getFields($keys = null) {
+	 * @param $keys null|array
+	 * @return array
+	 */
+	public function getFields($keys = null)
+	{
 		if ($keys === null) return $this->_prop;
 
 		$result = [];
@@ -219,23 +255,28 @@ class ModelData {
 	}
 
 	/**
-	 *
-	 * */
-	public function hasField($name) {
+	 * @param $name string
+	 * @return bool
+	 */
+	public function hasField($name)
+	{
 		return array_key_exists($name, $this->_prop);
 	}
 
 	/**
-	 *
-	 * */
-	public function setNewFlag($flag) {
+	 * @param $flag bool
+	 */
+	public function setNewFlag($flag)
+	{
 		$this->newFlag = $flag;
 	}
 
+
 	/**
-	 *
-	 * */
-	public function isNew() {
+	 * @return bool|null
+	 */
+	public function isNew()
+	{
 		if ($this->newFlag) return true;
 
 		$pkName = $this->pkName();
@@ -244,16 +285,18 @@ class ModelData {
 	}
 
 	/**
-	 *
-	 * */
-	public function isChanged() {
+	 * @return bool
+	 */
+	public function isChanged()
+	{
 		return (!empty($this->_oldProp));
 	}
 
 	/**
-	 *
-	 * */
-	public function reset() {
+	 * Скинуть текущие изменения полей
+	 */
+	public function reset()
+	{
 		foreach ($this->_oldProp as $key => $value) {
 			$this->_prop[$key] = $this->_oldProp[$key];
 		}
@@ -262,24 +305,27 @@ class ModelData {
 
 	/**
 	 * При сохранении старые значения сбрасываются, новые считаются текущими, т.к. соответствуют сохраненному состоянию
-	 * */
-	public function save() {
+	 */
+	public function save()
+	{
 		$this->manager->saveModel($this);
 		$this->forgetOld();
 	}
 
 	/**
-	 *
-	 * */
-	public function delete() {
+	 * Удаление модели
+	 */
+	public function delete()
+	{
 		$this->manager->deleteModel($this);
 		$this->drop();
 	}
 
 	/**
 	 * Скинуть связь с таблицей - первичный ключ зануляется, все старые значения забываются
-	 * */
-	public function drop() {
+	 */
+	public function drop()
+	{
 		$this->{$this->pkName()} = null;
 		$this->forgetOld();
 		$this->setNewFlag(true);
@@ -287,15 +333,19 @@ class ModelData {
 
 	/**
 	 * Забыть старые значения. Используется менеджером, преимущественно системный метод. Не рекомендуется использовать
-	 * */
-	public function forgetOld() {
+	 */
+	public function forgetOld()
+	{
 		$this->_oldProp = [];
 	}
 
 	/**
-	 *
-	 * */
-	public function addRelations($arr, $relationName = null) {
+	 * @param $arr array
+	 * @param $relationName null|string
+	 * @return bool
+	 */
+	public function addRelations($arr, $relationName = null)
+	{
 		$schema = $this->getSchema();
 		$map = [];
 		foreach ($arr as $model) {
@@ -328,16 +378,22 @@ class ModelData {
 	}
 
 	/**
-	 *
-	 * */
-	public function addRelation($model, $relationName = null) {
+	 * @param $model ModelData
+	 * @param $relationName null|string
+	 * @return bool
+	 */
+	public function addRelation($model, $relationName = null)
+	{
 		return $this->addRelations([$model], $relationName);
 	}
 
 	/**
-	 *
-	 * */
-	public function delRelations($arr, $relationName = null) {
+	 * @param $arr array
+	 * @param $relationName null|string
+	 * @return bool
+	 */
+	public function delRelations($arr, $relationName = null)
+	{
 		$schema = $this->getSchema();
 		$map = [];
 		$filter = $relationName === null ? null : (array)$relationName;
@@ -371,9 +427,12 @@ class ModelData {
 	}
 
 	/**
-	 *
-	 * */
-	public function delRelation($model, $relationName = null) {
+	 * @param $model ModelData
+	 * @param $relationName null|string
+	 * @return bool
+	 */
+	public function delRelation($model, $relationName = null)
+	{
 		return $this->delRelations([$model], $relationName);
 	}
 
@@ -383,16 +442,18 @@ class ModelData {
 	 *************************************************************************************************************************/
 
 	/**
-	 *
-	 * */
-	protected function initProps($arr) {
+	 * @param $arr array
+	 */
+	protected function initProps($arr)
+	{
 		$this->_prop = $arr;
 	}
 
 	/**
-	 *
-	 * */
-	protected function & null() {
+	 * @return null
+	 */
+	protected function & null()
+	{
 		self::$nullCache = null;
 		return self::$nullCache;
 	}
@@ -403,9 +464,13 @@ class ModelData {
 	 *************************************************************************************************************************/
 
 	/**
-	 *
-	 * */
-	private function normalizeType($prop, $val) {
+	 * @param $prop string
+	 * @param $val mixed
+	 * @return mixed
+	 * @throws \Exception
+	 */
+	private function normalizeType($prop, $val)
+	{
 		$field = $this->getSchema()->field($prop);
 
 		try {

@@ -236,6 +236,81 @@ class DbCrudAdapter extends CrudAdapter {
 		$table->delete([$pkName => $pks]);
 	}
 
+	public function addRelations($baseModel, $relation, $modelsList) {
+		list ($tableName, $key1, $key2) = $this->getRelativeTableParams(
+			$baseModel->getModelName(),
+			$relation->getRelativeModelName()
+		);
+
+		$table = $this->getDb()->table($tableName);
+
+		$ids = [];
+		foreach ($modelsList as $model) {
+			$ids[] = $model->pk();
+		}
+
+		$idsExist = $table->selectColumn($key2, [$key1 => $baseModel->pk()]);
+		$ids = array_diff($ids, $idsExist);
+		if (empty($ids)) {
+			return;
+		}
+
+		$modelPk = $baseModel->pk();
+		$data = [];
+		foreach ($modelsList as $model) {
+			$pk = $model->pk();
+			if (array_search($pk, $ids) !== false) {
+				$data[] = [$modelPk, $pk];
+			}
+		}
+
+		$table->insert([$key1, $key2], $data, false);
+	}
+
+	/**
+	 *
+	 * */
+	public function delRelations($model, $relation, $modelsList) {
+		list ($tableName, $key1, $key2) = $this->getRelativeTableParams(
+			$model->getModelName(),
+			$relation->getRelativeModelName()
+		);
+		$table = $this->getDb()->table($tableName);
+
+		$ids = [];
+		foreach ($modelsList as $relModel) {
+			$ids[] = $relModel->pk();
+		}
+
+		$table->delete([
+			$key1 => $model->pk(),
+			$key2 => $ids,
+		]);
+
+
+		var_dump(333);
+	}
+
+	/**
+	 *
+	 * */
+	public function loadRelations($model, $relation) {
+		list ($tableName, $key1, $key2) = $this->getRelativeTableParams(
+			$model->getModelName(),
+			$relation->getRelativeModelName()
+		);
+
+		$table = $this->getDb()->table($tableName);
+		$ids = $table->selectColumn($key2, [$key1 => $model->pk()]);
+		$relativeSchema = $relation->getRelativeSchema();
+		return ModelData::load($relativeSchema->getManager(), $ids);
+	}
+
+
+	/*******************************************************************************************************************
+	 * Управление таблицами
+	 ******************************************************************************************************************/
+
 	/**
 	 * Проверить - существует ли для модели таблица
 	 * */
@@ -308,8 +383,27 @@ class DbCrudAdapter extends CrudAdapter {
 		return $result;
 	}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	public function acualizeRelationTables($modelName) {
+		
+	}
+	
 	/**
-	 *
+	 * TODO - учесть возможность других сервисов для моделей
 	 * */
 	public function checkNeedRelationTable($modelName, $relativeModelName) {
 		$manager = $this->getModelManager($modelName);
@@ -332,7 +426,7 @@ class DbCrudAdapter extends CrudAdapter {
 	}
 
 	/**
-	 *
+	 * TODO - учесть возможность других сервисов для моделей
 	 * */
 	public function createRelationTable($modelName, $relativeModelName) {
 		$manager = $this->getModelManager($modelName);
@@ -383,77 +477,51 @@ class DbCrudAdapter extends CrudAdapter {
 	}
 
 	/**
-	 *
-	 * */
-	public function addRelations($baseModel, $relation, $modelsList) {
-		list ($tableName, $key1, $key2) = $this->getRelativeTableParams(
-			$baseModel->getModelName(),
-			$relation->getRelativeModelName()
-		);
-
-		$table = $this->getDb()->table($tableName);
-
-		$ids = [];
-		foreach ($modelsList as $model) {
-			$ids[] = $model->pk();
+	 * TODO - переделываем createRelationTable, тут тоже что-то меняем
+	 * @param $modelName
+	 * @param null $schema
+	 * @param null $relationNames
+	 * @return array|bool
+	 * @throws \Exception
+	 */
+	public function createRelationTables($modelName, $schema = null, $relationNames = null) {
+		if ($this->checkNeedTable($modelName)) {
+			return false;
 		}
 
-		$idsExist = $table->selectColumn($key2, [$key1 => $baseModel->pk()]);
-		$ids = array_diff($ids, $idsExist);
-		if (empty($ids)) {
-			return;
+		if ($schema === null) {
+			$schema = $this->getSchema($modelName);
 		}
 
-		$modelPk = $baseModel->pk();
-		$data = [];
-		foreach ($modelsList as $model) {
-			$pk = $model->pk();
-			if (array_search($pk, $ids) !== false) {
-				$data[] = [$modelPk, $pk];
+		$result = [];
+		foreach ($schema->getRelations() as $name => $relation) {
+			$relativeModelName = $relation->getRelativeModelName();
+			if ($relationNames && array_search($relativeModelName, $relationNames) === false) {
+				continue;
+			}
+			if ($this->checkNeedTable($relativeModelName)) {
+				continue;
+			}
+
+			$relativeSchema = $relation->getRelativeSchema();
+			if ($this->checkNeedRelationTable($schema, $relativeSchema)) {
+				if ($this->createRelationTable($schema, $relativeSchema)) {
+					$result[] = [$schema->getName(), $relativeSchema->getName()];
+				}
 			}
 		}
 
-		$table->insert([$key1, $key2], $data, false);
-	}
-
-	/**
-	 *
-	 * */
-	public function delRelations($model, $relation, $modelsList) {
-		list ($tableName, $key1, $key2) = $this->getRelativeTableParams(
-			$model->getModelName(),
-			$relation->getRelativeModelName()
-		);
-		$table = $this->getDb()->table($tableName);
-
-		$ids = [];
-		foreach ($modelsList as $relModel) {
-			$ids[] = $relModel->pk();
+		if (empty($result)) {
+			return false;
 		}
 
-		$table->delete([
-			$key1 => $model->pk(),
-			$key2 => $ids,
-		]);
-
-
-		var_dump(333);
+		return $result;
 	}
 
-	/**
-	 *
-	 * */
-	public function loadRelations($model, $relation) {
-		list ($tableName, $key1, $key2) = $this->getRelativeTableParams(
-			$model->getModelName(),
-			$relation->getRelativeModelName()
-		);
 
-		$table = $this->getDb()->table($tableName);
-		$ids = $table->selectColumn($key2, [$key1 => $model->pk()]);
-		$relativeSchema = $relation->getRelativeSchema();
-		return ModelData::load($relativeSchema->getManager(), $ids);
-	}
+	/*******************************************************************************************************************
+	 * Реагируем на миграции
+	 ******************************************************************************************************************/
 
 	/**
 	 * //todo!!!! нормально с транзакциями сделать
@@ -790,8 +858,8 @@ class DbCrudAdapter extends CrudAdapter {
 	 *
 	 * */
 	private function applyOuterActions($schema, &$outerActions) {
+		$this->setModelManagerPappet($schema);
 		$modelName = $schema->getName();
-		$this->setModelManagerPappet($modelName, new ModelManager($this->app, $this, $schema));
 
 		foreach ($outerActions as &$action) {
 			$actionKey = $action[0];
@@ -812,7 +880,7 @@ class DbCrudAdapter extends CrudAdapter {
 		}
 		unset($action);
 
-		$this->dropModelManagerPappet($schema->getName());
+		$this->dropModelManagerPappet($schema);
 	}
 
 	/**
@@ -873,23 +941,26 @@ class DbCrudAdapter extends CrudAdapter {
 	/**
 	 *
 	 * */
-	private function setModelManagerPappet($modelName, $manager) {
-		$this->modelManagerPappets[$modelName] = $manager;
+	private function setModelManagerPappet($schema) {
+		$modelName = $schema->getName();
+		if ( ! array_key_exists($modelName, $this->modelManagerPappets)) {
+			$this->modelManagerPappets[$modelName] = new ModelManager($this->app, $this, $schema);
+		}
 	}
 
 	/**
 	 *
 	 * */
-	private function dropModelManagerPappet($modelName) {
-		unset($this->modelManagerPappets[$modelName]);
+	private function dropModelManagerPappet($schema) {
+		unset($this->modelManagerPappets[$schema->getName()]);
 	}
 }
 
 
-//=============================================================================================================================
+//======================================================================================================================
 
 
-//=============================================================================================================================
+//======================================================================================================================
 class DbCrudAdapterSysTable {
 	private $table;
 	private $cache;
