@@ -12,6 +12,23 @@ class ModelFieldString extends ModelField {
 			$this->_size = $data['size'];
 	}
 
+	public function typeCompare($field) {
+        $result = [];
+        if ($this->getType() != $field->getType()) {
+            return $result;
+        }
+
+        if ($this->size() != $field->size()) {
+            $result[] = [
+                'property' => 'size',
+                'current' => $this->size(),
+                'compared' => $field->size()
+            ];
+        }
+
+        return $result;
+    }
+
 	public function getTypeDb() {
 		return 'varchar';
 	}

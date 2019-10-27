@@ -65,7 +65,7 @@ return [
 	'ModelFieldTimestamp' => 'classes/model/field',
 	'ModelFieldRelation' => 'classes/model/field',
 	'CrudAdapter' => 'classes/model/CRUD',
-	'DbCrudAdapter' => 'classes/model/CRUD',
+	'DbCrudAdapter' => 'classes/model/CRUD/db',
 
 	'JsModuleMapBuilder' => 'classes/module',
 	'JsModuleMap' => 'classes/module',

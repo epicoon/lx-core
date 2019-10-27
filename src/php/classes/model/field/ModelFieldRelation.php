@@ -3,13 +3,11 @@
 namespace lx;
 
 class ModelFieldRelation {
-	protected $schema;
 	protected $name;
 	protected $relativeModelName;
 	protected $isArray;
 
-	public function __construct($schema, $name, $data) {
-		$this->schema = $schema;
+	public function __construct($name, $data) {
 		$this->name = $name;
 
 		if (preg_match('/\[\]$/', $data)) {
@@ -25,19 +23,7 @@ class ModelFieldRelation {
 		return $this->relativeModelName;
 	}
 
-	public function getSchema() {
-		return $this->schema;
-	}
-
-	public function getRelativeSchema() {
-		if (preg_match('/\./', $this->relativeModelName)) {
-			return $this->schema->app->getModelManager($this->relativeModelName)->getSchema();
-		}
-
-		return $this->getProvider()->getSchema($this->relativeModelName);
-	}
-
-	public function getProvider() {
-		return $this->schema->getProvider();
-	}
+	public function getName() {
+	    return $this->name;
+    }
 }

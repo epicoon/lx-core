@@ -54,6 +54,46 @@ abstract class ModelField {
 		return null;
 	}
 
+    /**
+     * @param $field ModelField
+     * @return array
+     */
+	public function compare($field) {
+	    $result = [];
+
+	    if ($this->isNotNull() != $field->isNotNull()) {
+            $result[] = [
+                'property' => 'notNull',
+                'current' => $this->isNotNull(),
+                'compared' => $field->isNotNull()
+            ];
+        }
+
+        if ($this->getDefault() != $field->getDefault()) {
+            $result[] = [
+                'property' => 'default',
+                'current' => $this->getDefault(),
+                'compared' => $field->getDefault()
+            ];
+        }
+
+	    if ($this->getType() == $field->getType()) {
+	        $result = array_merge($result, $this->typeCompare($field));
+        } else {
+	        $result[] = [
+	            'property' => 'type',
+                'current' => $this->getTypeSlug(),
+                'compared' => $field->getTypeSlug()
+            ];
+        }
+
+	    return $result;
+    }
+
+    public function typeCompare($field) {
+	    return [];
+    }
+
 	public function getDefinition($params = null) {
 		if ($params === null) {
 			$params = ['pk', 'type', 'dbType', 'default', 'notNull'];
@@ -161,7 +201,7 @@ abstract class ModelField {
 
 		if (array_key_exists('notNull', $data)) {
 			$this->notNull = $data['notNull'];
-			if (!array_key_exists('default', $data)) {
+			if ($this->notNull && !array_key_exists('default', $data)) {
 				$this->default = static::NOT_NULL_DEFAULT;
 			}
 		}

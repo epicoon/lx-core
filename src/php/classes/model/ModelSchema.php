@@ -50,7 +50,7 @@ class ModelSchema extends ApplicationTool {
 		if (isset($schema['relations']) && is_array($schema['relations'])) {
 			foreach ($schema['relations'] as $relationName => $relationData) {
 				$this->relationNames[] = $relationName;
-				$this->relations[$relationName] = new ModelFieldRelation($this, $relationName, $relationData);
+				$this->relations[$relationName] = new ModelFieldRelation($relationName, $relationData);
 			}
 		}
 	}
@@ -87,6 +87,21 @@ class ModelSchema extends ApplicationTool {
 	public function getName() {
 		return $this->name;
 	}
+
+	public function getRelativeSchema($relation) {
+	    $relationName = is_string($relation)
+            ? $relation
+            : $relation->getName();
+
+	    if ( ! array_key_exists($relationName, $this->relations)) {
+	        return null;
+        }
+
+	    $relativeModelName = $this->relations[$relationName]->getRelativeModelName();
+	    list($serviceName, $modelName) = $this->splitModelName($relativeModelName);
+	    $manager = $this->app->getModelManager($serviceName, $modelName);
+	    return $manager->getSchema();
+    }
 
 	public function pkName() {
 		return $this->pkName;
@@ -176,4 +191,13 @@ class ModelSchema extends ApplicationTool {
 		}
 		return $result;
 	}
+
+    private function splitModelName($name) {
+        $arr = explode('.', $name);
+        if (count($arr) == 1) {
+            return [$this->getProvider()->getService()->name, $name];
+        }
+
+        return $arr;
+    }
 }

@@ -2,6 +2,10 @@
 
 namespace lx;
 
+require_once(__DIR__ . '/DbCrudAdapterSysTable.php');
+require_once(__DIR__ . '/DbCrudAdapterFieldsComparator.php');
+require_once(__DIR__ . '/DbCrudAdapterRelationsComparator.php');
+
 class DbCrudAdapter extends CrudAdapter {
 	const SYS_TABLE_NAME = 'lx_crud_sys';
 
@@ -267,9 +271,6 @@ class DbCrudAdapter extends CrudAdapter {
 		$table->insert([$key1, $key2], $data, false);
 	}
 
-	/**
-	 *
-	 * */
 	public function delRelations($model, $relation, $modelsList) {
 		list ($tableName, $key1, $key2) = $this->getRelativeTableParams(
 			$model->getModelName(),
@@ -286,14 +287,8 @@ class DbCrudAdapter extends CrudAdapter {
 			$key1 => $model->pk(),
 			$key2 => $ids,
 		]);
-
-
-		var_dump(333);
 	}
 
-	/**
-	 *
-	 * */
 	public function loadRelations($model, $relation) {
 		list ($tableName, $key1, $key2) = $this->getRelativeTableParams(
 			$model->getModelName(),
@@ -302,7 +297,7 @@ class DbCrudAdapter extends CrudAdapter {
 
 		$table = $this->getDb()->table($tableName);
 		$ids = $table->selectColumn($key2, [$key1 => $model->pk()]);
-		$relativeSchema = $relation->getRelativeSchema();
+		$relativeSchema = $model->getSchema()->getRelativeSchema($relation);
 		return ModelData::load($relativeSchema->getManager(), $ids);
 	}
 
@@ -310,6 +305,50 @@ class DbCrudAdapter extends CrudAdapter {
 	/*******************************************************************************************************************
 	 * Управление таблицами
 	 ******************************************************************************************************************/
+
+    public function checkModelChanges($modelName, $modelSchema)
+    {
+        $result = [];
+        if ($this->checkNeedTable($modelName)) {
+            $result[] = [
+                'type' => MigrationMaker::TYPE_NEW_TABLE,
+            ];
+
+            if (isset($modelSchema['relations'])) {
+                $result[] = [
+                    'type' => MigrationMaker::TYPE_RELATIONS_TABLE,
+                    'info' => $modelSchema['relations'],
+                ];
+            }
+
+            return $result;
+        }
+
+        list ($serviceName, $selfModelName) = $this->splitModelName($modelName);
+        $tableName = $this->getSysTable()->getModelTableName($serviceName, $selfModelName);
+        $tableSchema = $this->getDb()->tableSchema($tableName, DB::SHORT_SCHEMA);
+        $comparator = new DbCrudAdapterFieldsComparator($modelSchema, $tableSchema);
+        $diff = $comparator->run();
+        if ( ! empty($diff)) {
+            $result[] = [
+                'type' => MigrationMaker::TYPE_ALTER_TABLE,
+                'info' => $diff,
+            ];
+        }
+
+        $relations = $modelSchema['relations'] ?? [];
+        $dbRelations = $this->getSysTable()->getModelRelations($serviceName, $selfModelName);
+        $comparator = new DbCrudAdapterRelationsComparator($serviceName, $relations, $dbRelations);
+        $diff = $comparator->run();
+        if ( ! empty($diff)) {
+            $result[] = [
+                'type' => MigrationMaker::TYPE_RELATIONS_TABLE,
+                'info' => $diff,
+            ];
+        }
+
+        return $result;
+    }
 
 	/**
 	 * Проверить - существует ли для модели таблица
@@ -320,7 +359,8 @@ class DbCrudAdapter extends CrudAdapter {
 			throw new \Exception("Not found db-connection for CRUD adapter in service '{$this->service()->name}'", 400);
 		}
 
-		$tableExists = $this->getSysTable()->tableExists($this->service, $modelName);
+		list($serviceName, $selfModelName) = $this->splitModelName($modelName);
+		$tableExists = $this->getSysTable()->tableExists($serviceName, $selfModelName);
 		return !$tableExists;
 	}
 
@@ -329,7 +369,7 @@ class DbCrudAdapter extends CrudAdapter {
 	 * */
 	public function createTable($modelName, $schema = null) {
 		if ( ! $this->checkNeedTable($modelName)) {
-			return;
+			return null;
 		}
 
 		if ($schema === null) {
@@ -356,10 +396,11 @@ class DbCrudAdapter extends CrudAdapter {
 			$schemaConfig[$fieldName] = $definition;
 		}
 
-		$tableName = $this->getSysTable()->defineModelTableName($this->service, $modelName);
+		list($serviceName, $selfModelName) = $this->splitModelName($modelName);
+		$tableName = $this->getSysTable()->defineModelTableName($serviceName, $selfModelName);
 		$result = $db->newTable($tableName, $schemaConfig);
 		if ($result) {
-			$this->getSysTable()->createTable($this->service, $modelName, $tableName);
+			$this->getSysTable()->createTable($serviceName, $selfModelName, $tableName);
 		}
 
 		return $result;
@@ -377,7 +418,8 @@ class DbCrudAdapter extends CrudAdapter {
 		$db = $this->getDb();
 		$result = $db->dropTable($tableName);
 		if ($result) {
-			$this->getSysTable()->deleteTable($this->service, $modelName, $tableName);
+		    list($serviceName, $selfModelName) = $this->splitModelName($modelName);
+			$this->getSysTable()->deleteTable($serviceName, $selfModelName, $tableName);
 		}
 
 		return $result;
@@ -398,125 +440,7 @@ class DbCrudAdapter extends CrudAdapter {
 
 
 
-	public function acualizeRelationTables($modelName) {
-		
-	}
-	
-	/**
-	 * TODO - учесть возможность других сервисов для моделей
-	 * */
-	public function checkNeedRelationTable($modelName, $relativeModelName) {
-		$manager = $this->getModelManager($modelName);
-		if ( ! $manager) {
-			throw new \Exception("Wrong model '$modelName' for CRUD adapter", 400);			
-		}
 
-		$relativeManager = $this->getModelManager($relativeModelName);
-		if ( ! $relativeManager) {
-			throw new \Exception("Wrong model '$relativeModelName' for CRUD adapter", 400);			
-		}
-
-		$db = $this->getDb();
-		if (!$db) {
-			throw new \Exception("Not found CRUD adapter db-connection", 400);
-		}
-
-		$tableName = $this->determineRelationTableName($manager, $relativeManager);
-		return (!$db->tableExists($tableName));
-	}
-
-	/**
-	 * TODO - учесть возможность других сервисов для моделей
-	 * */
-	public function createRelationTable($modelName, $relativeModelName) {
-		$manager = $this->getModelManager($modelName);
-		if ( ! $manager) {
-			throw new \Exception("Wrong model '$modelName' for CRUD adapter", 400);			
-		}
-
-		$relativeManager = $this->getModelManager($relativeModelName);
-		if ( ! $relativeManager) {
-			throw new \Exception("Wrong model '$relativeModelName' for CRUD adapter", 400);			
-		}
-
-		$db = $this->getDb();
-		if (!$db) {
-			throw new \Exception("Not found CRUD adapter db-connection", 400);
-		}
-
-		$tableName = $this->getSysTable()->getModelTableName(
-			$manager->getService(),
-			$manager->getModelName()
-		);
-		$relativeTableName = $this->getSysTable()->getModelTableName(
-			$relativeManager->getService(),
-			$relativeManager->getModelName()
-		);
-		$relTableName = $this->determineRelationTableName($manager, $relativeManager);
-		$key1 = 'id_' . $tableName;
-		$key2 = 'id_' . $relativeTableName;
-
-		$db = $this->getDb();
-
-		$schemaConfig = [
-			$key1 => $db->foreignKeyDefinition([
-				$relTableName,
-				$key1,
-				$tableName,
-				$manager->getSchema()->pkName()
-			]),
-			$key2 => $db->foreignKeyDefinition([
-				$relTableName,
-				$key2,
-				$relativeTableName,
-				$relativeManager->getSchema()->pkName()
-			]),
-		];
-
-		return $db->newTable($relTableName, $schemaConfig);
-	}
-
-	/**
-	 * TODO - переделываем createRelationTable, тут тоже что-то меняем
-	 * @param $modelName
-	 * @param null $schema
-	 * @param null $relationNames
-	 * @return array|bool
-	 * @throws \Exception
-	 */
-	public function createRelationTables($modelName, $schema = null, $relationNames = null) {
-		if ($this->checkNeedTable($modelName)) {
-			return false;
-		}
-
-		if ($schema === null) {
-			$schema = $this->getSchema($modelName);
-		}
-
-		$result = [];
-		foreach ($schema->getRelations() as $name => $relation) {
-			$relativeModelName = $relation->getRelativeModelName();
-			if ($relationNames && array_search($relativeModelName, $relationNames) === false) {
-				continue;
-			}
-			if ($this->checkNeedTable($relativeModelName)) {
-				continue;
-			}
-
-			$relativeSchema = $relation->getRelativeSchema();
-			if ($this->checkNeedRelationTable($schema, $relativeSchema)) {
-				if ($this->createRelationTable($schema, $relativeSchema)) {
-					$result[] = [$schema->getName(), $relativeSchema->getName()];
-				}
-			}
-		}
-
-		if (empty($result)) {
-			return false;
-		}
-
-		return $result;
-	}
 
 
 	/*******************************************************************************************************************
@@ -559,9 +483,21 @@ class DbCrudAdapter extends CrudAdapter {
 		return $result;
 	}
 
-	/**
-	 *
-	 * */
+    public function correctRelations($modelName, $actions) {
+        $db = $this->getDb();
+        $db->query('BEGIN;');
+        try {
+            $this->applyRelationActions($modelName, $actions);
+        } catch (\Exception $e) {
+            $db->query('ROLLBACK;');
+            throw $e;
+
+        }
+        $db->query('COMMIT;');
+
+        return true;
+    }
+
 	public function correctModelEssences($modelName, &$actions, $schema = null) {
 		/*
 		$actions - ассоциативный массив, варианты диерктив:
@@ -618,12 +554,12 @@ class DbCrudAdapter extends CrudAdapter {
 	 * */
 	protected function determineRelationTableName($manager, $relativeManager) {
 		$tableName = $this->getSysTable()->getModelTableName(
-			$manager->getService(),
+			$manager->getService()->name,
 			$manager->getModelName()
 		);
 
 		$relativeTableName = $this->getSysTable()->getModelTableName(
-			$relativeManager->getService(),
+			$relativeManager->getService()->name,
 			$relativeManager->getModelName()
 		);
 
@@ -647,11 +583,11 @@ class DbCrudAdapter extends CrudAdapter {
 		}
 
 		$tableName = $this->getSysTable()->getModelTableName(
-			$manager->getService(),
+			$manager->getService()->name,
 			$manager->getModelName()
 		);
 		$relativeTableName = $this->getSysTable()->getModelTableName(
-			$relativeManager->getService(),
+			$relativeManager->getService()->name,
 			$relativeManager->getModelName()
 		);
 		$key1 = 'id_' . $tableName;
@@ -685,13 +621,13 @@ class DbCrudAdapter extends CrudAdapter {
 		$tableName = self::SYS_TABLE_NAME;
 		if (!$db->tableExists($tableName)) {
 			$db->newTable($tableName, [
-				'service_name' => ['type' => 'string'],
-				'model_name' => ['type' => 'string'],
-				'table_name' => ['type' => 'string'],
+                'model_info' => ['type' => 'string'],
+                'table_name' => ['type' => 'string'],
+                'type' => ['type' => 'string'],
 			]);
 		}
 
-		$this->sysTable = new DbCrudAdapterSysTable($db->table($tableName));
+		$this->sysTable = new DbCrudAdapterSysTable($this, $db->table($tableName));
 		return $this->sysTable;
 	}
 
@@ -768,7 +704,8 @@ class DbCrudAdapter extends CrudAdapter {
 	 *
 	 * */
 	private function getModelTableName($modelName) {
-		return $this->getSysTable()->getModelTableName($this->service, $modelName);
+	    list($serviceName, $selfModelName) = $this->splitModelName($modelName);
+		return $this->getSysTable()->getModelTableName($serviceName, $selfModelName);
 	}
 
 	/**
@@ -790,7 +727,13 @@ class DbCrudAdapter extends CrudAdapter {
 		$tableName = $this->getModelTableName($modelName);
 
 		foreach ($innerActions as $actionData) {
-			$action = $actionData['action'];
+		    switch ($actionData['action']) {
+                case MigrationMaker::ACTION_ADD_FIELD: $action = 'addField'; break;
+                case MigrationMaker::ACTION_REMOVE_FIELD: $action = 'removeField'; break;
+                case MigrationMaker::ACTION_RENAME_FIELD: $action = 'renameField'; break;
+                case MigrationMaker::ACTION_CHANGE_FIELD: $action = 'changeFieldProperty'; break;
+            }
+
 			if (method_exists($this, $action)) {
 				$this->$action($tableName, $actionData);
 			}
@@ -811,38 +754,23 @@ class DbCrudAdapter extends CrudAdapter {
 	 *
 	 * */
 	private function renameField($tableName, $data) {
-		if ($data['category'] == 'fields') {
-			$this->getDb()->tableRenameColumn($tableName, $data['old'], $data['new']);
-		} elseif ($data['category'] == 'relations') {
-
-		}
+        $this->getDb()->tableRenameColumn($tableName, $data['old'], $data['new']);
 	}
 
 	/**
 	 *
 	 * */
 	private function addField($tableName, $data) {
-		if ($data['category'] == 'fields') {
-			$field = ModelField::create($data['name'], $data['params']);
-			$definition = $this->definitionByField($field);
-			$this->getDb()->tableAddColumn($tableName, $data['name'], $definition);
-		} elseif ($data['category'] == 'relations') {
-
-		}
+        $field = ModelField::create($data['name'], $data['params']);
+        $definition = $this->definitionByField($field);
+        $this->getDb()->tableAddColumn($tableName, $data['name'], $definition);
 	}
 
 	/**
 	 *
 	 * */
 	private function removeField($tableName, $data) {
-		if ($data['category'] == 'fields') {
-			$this->getDb()->tableDropColumn($tableName, $data['name']);
-		} elseif ($data['category'] == 'relations') {
-
-
-
-			var_dump($data);
-		}
+        $this->getDb()->tableDropColumn($tableName, $data['name']);
 	}
 
 	/**
@@ -854,10 +782,139 @@ class DbCrudAdapter extends CrudAdapter {
 
 	}
 
-	/**
-	 *
-	 * */
-	private function applyOuterActions($schema, &$outerActions) {
+	private function applyRelationActions($modelName, $actions) {
+        foreach ($actions as $action) {
+            switch ($action['action']) {
+                case MigrationMaker::ACTION_ADD_RELATION:
+                    $this->addRelation($modelName, $action);
+                    break;
+                case MigrationMaker::ACTION_REMOVE_RELATION:
+                    $this->removeRelation($modelName, $action);
+                    break;
+                case MigrationMaker::ACTION_RENAME_RELATION:
+                    $this->renameRelation($modelName, $action);
+                    break;
+                case MigrationMaker::ACTION_CHANGE_RELATION:
+                    $this->changeRelation($modelName, $action);
+                    break;
+            }
+        }
+    }
+
+    private function addRelation($modelName, $action) {
+        $manager = $this->getModelManager($modelName);
+        if ( ! $manager) {
+            throw new \Exception("Wrong model '$modelName' for CRUD adapter", 400);
+        }
+
+        $relativeModelName = $action['value'];
+        $relativeManager = $this->getModelManager($relativeModelName);
+        if ( ! $relativeManager) {
+            throw new \Exception("Wrong model '$relativeModelName' for CRUD adapter", 400);
+        }
+
+        $db = $this->getDb();
+        if (!$db) {
+            throw new \Exception("Not found CRUD adapter db-connection", 400);
+        }
+
+        if ($this->checkNeedTable($modelName) || $this->checkNeedTable($relativeModelName)) {
+            return null;
+        }
+
+        $tableName = $this->getSysTable()->getModelTableName(
+            $manager->getService()->name,
+            $manager->getModelName()
+        );
+        $relativeTableName = $this->getSysTable()->getModelTableName(
+            $relativeManager->getService()->name,
+            $relativeManager->getModelName()
+        );
+        $relTableName = $this->determineRelationTableName($manager, $relativeManager);
+        $key1 = 'id_' . $tableName;
+        $key2 = 'id_' . $relativeTableName;
+
+        $schemaConfig = [
+            $key1 => $db->foreignKeyDefinition([
+                $relTableName,
+                $key1,
+                $tableName,
+                $manager->getSchema()->pkName()
+            ]),
+            $key2 => $db->foreignKeyDefinition([
+                $relTableName,
+                $key2,
+                $relativeTableName,
+                $relativeManager->getSchema()->pkName()
+            ]),
+        ];
+
+        $result = $db->newTable($relTableName, $schemaConfig);
+        if ($result) {
+            $this->getSysTable()->createRelativeTable(
+                $manager->getSchema(),
+                $relativeManager->getSchema(),
+                $action['name'],
+                $relTableName
+            );
+        }
+
+        return $result;
+	}
+
+    private function removeRelation($modelName, $action) {
+        $manager = $this->getModelManager($modelName);
+        if ( ! $manager) {
+            throw new \Exception("Wrong model '$modelName' for CRUD adapter", 400);
+        }
+
+        $relativeModelName = $action['value'];
+        $relativeManager = $this->getModelManager($relativeModelName);
+        if ( ! $relativeManager) {
+            throw new \Exception("Wrong model '$relativeModelName' for CRUD adapter", 400);
+        }
+
+        $db = $this->getDb();
+        if (!$db) {
+            throw new \Exception("Not found CRUD adapter db-connection", 400);
+        }
+
+        if ($this->checkNeedTable($modelName) || $this->checkNeedTable($relativeModelName)) {
+            return null;
+        }
+
+        $tableName = $this->getSysTable()->getModelTableName(
+            $manager->getService()->name,
+            $manager->getModelName()
+        );
+        $relativeTableName = $this->getSysTable()->getModelTableName(
+            $relativeManager->getService()->name,
+            $relativeManager->getModelName()
+        );
+        $relTableName = $this->determineRelationTableName($manager, $relativeManager);
+
+        $result = $db->dropTable($relTableName);
+        if ($result) {
+            $this->getSysTable()->removeRelativeTable(
+                $manager->getSchema(),
+                $relativeManager->getSchema(),
+                $action['name'],
+                $relTableName
+            );
+        }
+
+        return $result;
+    }
+
+    private function renameRelation($modelName, $action) {
+        throw new \Exception('Not implemented yet', 405);
+    }
+
+    private function changeRelation($modelName, $action) {
+        throw new \Exception('Not implemented yet', 405);
+    }
+
+    private function applyOuterActions($schema, &$outerActions) {
 		$this->setModelManagerPappet($schema);
 		$modelName = $schema->getName();
 
@@ -883,9 +940,6 @@ class DbCrudAdapter extends CrudAdapter {
 		$this->dropModelManagerPappet($schema);
 	}
 
-	/**
-	 *
-	 * */
 	private function addModelsFromMigration($modelName, &$data) {
 		$manager = $this->getModelManager($modelName);
 		$models = $manager->newModels( count($data) );
@@ -909,9 +963,6 @@ class DbCrudAdapter extends CrudAdapter {
 		}
 	}
 
-	/**
-	 *
-	 * */
 	private function editModelsFromMigration($modelName, $pares) {
 		$manager = $this->getModelManager($modelName);
 		$models = [];
@@ -926,9 +977,6 @@ class DbCrudAdapter extends CrudAdapter {
 		$manager->saveModels($models);
 	}
 
-	/**
-	 *
-	 * */
 	private function delModelsFromMigration($modelName, $data) {
 		$manager = $this->getModelManager($modelName);
 		$models = [];
@@ -938,9 +986,40 @@ class DbCrudAdapter extends CrudAdapter {
 		$manager->deleteModels($models);
 	}
 
-	/**
-	 *
-	 * */
+
+    /*******************************************************************************************************************
+     * PRIVATE INNER LOGIC
+     ******************************************************************************************************************/
+
+    private function checkNeedRelationTable($modelName, $relativeModelName) {
+        $manager = $this->getModelManager($modelName);
+        if ( ! $manager) {
+            throw new \Exception("Wrong model '$modelName' for CRUD adapter", 400);
+        }
+
+        $relativeManager = $this->getModelManager($relativeModelName);
+        if ( ! $relativeManager) {
+            throw new \Exception("Wrong model '$relativeModelName' for CRUD adapter", 400);
+        }
+
+        $db = $this->getDb();
+        if (!$db) {
+            throw new \Exception("Not found CRUD adapter db-connection", 400);
+        }
+
+        $tableName = $this->determineRelationTableName($manager, $relativeManager);
+        return (!$db->tableExists($tableName));
+    }
+
+	private function splitModelName($name) {
+	    $arr = explode('.', $name);
+	    if (count($arr) == 1) {
+	        return [$this->getService()->name, $name];
+        }
+
+	    return $arr;
+    }
+
 	private function setModelManagerPappet($schema) {
 		$modelName = $schema->getName();
 		if ( ! array_key_exists($modelName, $this->modelManagerPappets)) {
@@ -948,134 +1027,7 @@ class DbCrudAdapter extends CrudAdapter {
 		}
 	}
 
-	/**
-	 *
-	 * */
 	private function dropModelManagerPappet($schema) {
 		unset($this->modelManagerPappets[$schema->getName()]);
-	}
-}
-
-
-//======================================================================================================================
-
-
-//======================================================================================================================
-class DbCrudAdapterSysTable {
-	private $table;
-	private $cache;
-
-	public function __construct($table) {
-		$this->table = $table;
-		$this->cache = [];
-	}
-
-	public function tableExists($service, $modelName) {
-		return (bool)$this->getModelTableName($service, $modelName);
-	}
-
-	public function getModelTableName($service, $modelName) {
-		$data = $this->getServiceData($service);
-		if ( ! $data) {
-			return null;
-		}
-
-		if ( ! array_key_exists($modelName, $data)) {
-			return null;
-		}
-
-		return $data[$modelName]['table'];
-	}
-
-	public function defineModelTableName($service, $modelName) {
-		$name = $this->getModelTableName($service, $modelName);
-		if ( ! $name) {
-			$snakeCase = lcfirst(preg_replace_callback('/(.)([A-Z])/', function($match) {
-				return $match[1] . '_' . strtolower($match[2]) ;
-			}, $modelName));
-
-			$snakeCase = $this->avoidReservedNames($snakeCase);
-
-			$i = 0;
-			$tempName = $snakeCase;
-			while ($this->table->getDb()->tableExists($tempName)) {
-				$tempName = $snakeCase . (++$i);
-			}
-
-			$name = $tempName;
-		}
-
-		return $name;
-	}
-
-	public function createTable($service, $modelName, $tableName) {
-		$serviceName = $service->name;
-		$this->table->insert([
-			'service_name' => $serviceName,
-			'model_name' => $modelName,
-			'table_name' => $tableName,
-		], false);
-
-		if ( ! array_key_exists($serviceName, $this->cache)) {
-			$this->cache[$serviceName] = [];
-		}
-
-		$this->cache[$serviceName][$modelName] = [
-			'table' => $tableName,
-		];
-	}
-
-	public function deleteTable($service, $modelName, $tableName) {
-		$serviceName = $service->name;
-		$this->table->delete([
-			'service_name' => $serviceName,
-			'model_name' => $modelName,
-			'table_name' => $tableName,
-		]);
-
-		unset($this->cache[$serviceName][$modelName]);
-		if (empty($this->cache[$serviceName])) {
-			unset($this->cache[$serviceName]);
-		}
-	}
-
-
-	/**************************************************************************************************************************
-	 * PRIVATE
-	 *************************************************************************************************************************/
-
-	private function getServiceData($service) {
-		$this->loadServiceData($service);
-
-		$serviceName = $service->name;
-		if ( ! array_key_exists($serviceName, $this->cache)) {
-			return null;
-		}
-
-		return $this->cache[$serviceName];
-	}
-
-	private function loadServiceData($service) {
-		$serviceName = $service->name;
-		if (array_key_exists($serviceName, $this->cache)) {
-			return;
-		}
-
-		$data = $this->table->select('model_name, table_name', ['service_name' => $serviceName]);
-		$this->cache[$serviceName] = [];
-		foreach ($data as $row) {
-			$this->cache[$serviceName][$row['model_name']] = [
-				'table' => $row['table_name'],
-			];
-		}
-	}
-
-	private function avoidReservedNames($name) {
-		switch ($name) {
-			// Postgresql reserved words
-			case 'user': return 'users';
-		}
-
-		return $name;
 	}
 }

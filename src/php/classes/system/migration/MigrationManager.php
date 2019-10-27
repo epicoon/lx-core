@@ -9,22 +9,29 @@ namespace lx;
  * - отсутствие таблиц для моделей
  * - наличие директив в yaml-схемах моделей
  * 3. Выполнение этих директив и создание для них миграций
- * */
-class MigrationManager {
+ *
+ * Class MigrationManager
+ * @package lx
+ */
+class MigrationManager
+{
 	/**
 	 * @var $migrationsChecked array - массив, в котором отмечаются проверенные сервисы на
 	 *      накаченные миграции в пределах выполняемой сессии применения всех изменений
 	 */
 	private $migrationsChecked = [];
 
-	/**
-	 * 1. Поиск и выполнение существующих ненакаченных миграций
-	 * 2. Поиск директив для изменения моделей
-	 * 3. Выполнение этих директив
-	 * 4. Создание соответствующих миграций
-	 * - делается по всему приложению
-	 * */
-	public function run($services = null) {
+    /**
+     * 1. Поиск и выполнение существующих ненакаченных миграций
+     * 2. Поиск директив для изменения моделей
+     * 3. Выполнение этих директив
+     * 4. Создание соответствующих миграций
+     * - делается по всему приложению
+     *
+     * @param $services null|array
+     */
+	public function run($services = null)
+    {
 		if ($services === null) {
 			$list = PackageBrowser::getServicesList();
 			$services = [];
@@ -40,14 +47,18 @@ class MigrationManager {
 		MigrationMap::getInstance()->close();
 	}
 
-	/**
-	 * 1. Поиск и выполнение существующих ненакаченных миграций
-	 * 2. Поиск директив для изменения моделей
-	 * 3. Выполнение этих директив
-	 * 4. Создание соответствующих миграций
-	 * - делается по выбранному сервису
-	 * */
-	public function runService($service) {
+    /**
+     * 1. Поиск и выполнение существующих ненакаченных миграций
+     * 2. Поиск директив для изменения моделей
+     * 3. Выполнение этих директив
+     * 4. Создание соответствующих миграций
+     * - делается по выбранному сервису
+     *
+     * @param $service Service
+     * @throws \Exception
+     */
+	public function runService($service)
+    {
 		MigrationMap::getInstance()->open();
 
 		// Проверка существующих миграций - все ли накачены
@@ -63,14 +74,21 @@ class MigrationManager {
 		MigrationMap::getInstance()->close();
 	}
 
-	/**
-	 * 1. Поиск и выполнение существующих ненакаченных миграций
-	 * 2. Поиск директив для изменения модели
-	 * 3. Выполнение этих директив
-	 * 4. Создание соответствующих миграций
-	 * - делается по выбранной модели
-	 * */
-	public function runModel($service, $modelName, $path = null, $code = null) {
+    /**
+     * 1. Поиск и выполнение существующих ненакаченных миграций
+     * 2. Поиск директив для изменения модели
+     * 3. Выполнение этих директив
+     * 4. Создание соответствующих миграций
+     * - делается по выбранной модели
+     *
+     * @param $service Service
+     * @param $modelName string
+     * @param $path null|string
+     * @param $code null|string
+     * @throws \Exception
+     */
+	public function runModel($service, $modelName, $path = null, $code = null)
+    {
 		MigrationMap::getInstance()->open();
 
 		// Проверка существующих миграций - все ли накачены
@@ -97,10 +115,15 @@ class MigrationManager {
 		MigrationMap::getInstance()->close();
 	}
 
-	/**
-	 * Накатывание конкретной миграции
-	 * */
-	public function upMigration($service, $migrationName) {
+    /**
+     * Накатывание конкретной миграции
+     *
+     * @param $service Service
+     * @param $migrationName string
+     * @return bool
+     */
+	public function upMigration($service, $migrationName)
+    {
 		$dir = $service->conductor->getMigrationDirectory();
 		$migrationFile = $dir->get($migrationName . '.json');
 		if ( ! $migrationFile) {
@@ -111,10 +134,15 @@ class MigrationManager {
 		return $this->runMigrationProcess($service, $migrationName, $migration);
 	}
 
-	/**
-	 * Откатывание конкретной миграции
-	 * */
-	public function downMigration($service, $migrationName) {
+    /**
+     * Откатывание конкретной миграции
+     *
+     * @param $service Service
+     * @param $migrationName string
+     * @return bool
+     */
+	public function downMigration($service, $migrationName)
+    {
 		$dir = $service->conductor->getMigrationDirectory();
 		$migrationFile = $dir->get($migrationName . '.json');
 		if ( ! $migrationFile) {
@@ -130,10 +158,13 @@ class MigrationManager {
 	 * PRIVATE
 	 *************************************************************************************************************************/
 
-	/**
-	 * Поиск ненакаченных миграций для сервиса и их выполнение
-	 * */
-	private function checkMigrations($service) {
+    /**
+     * Поиск ненакаченных миграций для сервиса и их выполнение
+     *
+     * @param $service Service
+     */
+	private function checkMigrations($service)
+    {
 		if (array_search($service->name, $this->migrationsChecked) !== false) {
 			return;
 		}
@@ -153,10 +184,16 @@ class MigrationManager {
 		}
 	}
 
-	/**
-	 * Алгоритм накатывания конкретной миграции
-	 * */
-	private function runMigrationProcess($service, $migrationName, $migration) {
+    /**
+     * Алгоритм накатывания конкретной миграции
+     *
+     * @param $service Service
+     * @param $migrationName array
+     * @param $migration string
+     * @return bool
+     */
+	private function runMigrationProcess($service, $migrationName, $migration)
+    {
 		$crudAdapter = $service->modelProvider->getCrudAdapter();
 		switch ($migration['type']) {
 			case MigrationMaker::TYPE_NEW_TABLE:
@@ -183,21 +220,15 @@ class MigrationManager {
 			case MigrationMaker::TYPE_CONTENT_TABLE:
 				$name = $migration['model'];
 				$schema = new ModelSchema($service->modelProvider, $name, $migration['schema']);
-				if ( ! $crudAdapter->correctModelEssences($migration['model'], $migration['actions'], $schema)) {
+				if ( ! $crudAdapter->correctModelEssences($name, $migration['actions'], $schema)) {
 					return false;
 				}
 				break;
 
 			case MigrationMaker::TYPE_RELATIONS_TABLE:
-				//TODO
-				// $migration['model']
-				// $migration['relations']
-				break;
-
-			case MigrationMaker::TYPE_DELETE_RELATIONS_TABLE:
-				//TODO
-				// $migration['model']
-				// $migration['relations']
+                if ( ! $crudAdapter->correctRelations($migration['model'], $migration['actions'])) {
+                    return false;
+                }
 				break;
 		}
 
@@ -205,10 +236,16 @@ class MigrationManager {
 		return true;
 	}
 
-	/**
-	 * Алгоритм откатывания конкретной миграции
-	 * */
-	private function downMigrationProcess($service, $migrationName, $migration) {
+    /**
+     * Алгоритм откатывания конкретной миграции
+     *
+     * @param $service Service
+     * @param $migrationName string
+     * @param $migration array
+     * @return bool
+     */
+	private function downMigrationProcess($service, $migrationName, $migration)
+    {
 		$crudAdapter = $service->modelProvider->getCrudAdapter();
 		switch ($migration['type']) {
 			case MigrationMaker::TYPE_NEW_TABLE:
@@ -229,21 +266,21 @@ class MigrationManager {
 			case MigrationMaker::TYPE_ALTER_TABLE:
 				foreach ($migration['actions'] as &$action) {
 					switch ($action['action']) {
-						case ModelMigrateExecutor::ACTION_ADD_FIELD:
-							$action['action'] = ModelMigrateExecutor::ACTION_REMOVE_FIELD;
+						case MigrationMaker::ACTION_ADD_FIELD:
+							$action['action'] = MigrationMaker::ACTION_REMOVE_FIELD;
 							break;
 
-						case ModelMigrateExecutor::ACTION_REMOVE_FIELD:
-							$action['action'] = ModelMigrateExecutor::ACTION_ADD_FIELD;
+						case MigrationMaker::ACTION_REMOVE_FIELD:
+							$action['action'] = MigrationMaker::ACTION_ADD_FIELD;
 							break;
 
-						case ModelMigrateExecutor::ACTION_RENAME_FIELD:
+						case MigrationMaker::ACTION_RENAME_FIELD:
 							$old = $action['old'];
 							$action['old'] = $action['new'];
 							$action['new'] = $old;
 							break;
 
-						// ModelMigrateExecutor::ACTION_CHANGE_FIELD_PROPERTY
+						// ModelMigrateExecutor::ACTION_CHANGE_FIELD
 					}
 				}
 				unset($action);
@@ -255,13 +292,8 @@ class MigrationManager {
 			case MigrationMaker::TYPE_CONTENT_TABLE:
 				foreach ($migration['actions'] as &$action) {
 					switch ($action[0]) {
-						case 'add':
-							$action[0] = 'del';
-							break;
-						
-						case 'del':
-							$action[0] = 'add';
-							break;
+						case 'add': $action[0] = 'del'; break;
+						case 'del': $action[0] = 'add'; break;
 
 						case 'edit':
 							foreach ($action[1] as &$pare) {
@@ -287,15 +319,25 @@ class MigrationManager {
 				break;
 
 			case MigrationMaker::TYPE_RELATIONS_TABLE:
-				//TODO
-				// $migration['model']
-				// $migration['relations']
-				break;
+                foreach ($migration['actions'] as &$action) {
+                    switch ($action['action']) {
+                        case MigrationMaker::ACTION_ADD_RELATION:
+                            $action['action'] = MigrationMaker::ACTION_REMOVE_RELATION;
+                            break;
 
-			case MigrationMaker::TYPE_DELETE_RELATIONS_TABLE:
-				//TODO
-				// $migration['model']
-				// $migration['relations']
+                        case MigrationMaker::ACTION_REMOVE_RELATION:
+                            $action['action'] = MigrationMaker::ACTION_ADD_RELATION;
+                            break;
+
+                        //ACTION_RENAME_RELATION
+                        //ACTION_CHANGE_RELATION
+                        //ACTION_MAKE_RELATIONS
+                    }
+                }
+                unset($action);
+                if ( ! $crudAdapter->correctRelations($migration['model'], $migration['actions'])) {
+                    return false;
+                }
 				break;
 		}
 

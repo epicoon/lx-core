@@ -3,7 +3,7 @@
 namespace lx;
 
 class ModelFieldInteger extends ModelField {
-	const NOT_NULL_DEFAULT = 111;
+	const NOT_NULL_DEFAULT = 0;
 
 	protected function init($data) {
 		//todo min max

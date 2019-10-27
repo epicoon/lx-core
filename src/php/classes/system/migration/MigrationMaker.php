@@ -14,9 +14,24 @@ class MigrationMaker
 	const TYPE_ALTER_TABLE = 'alter_table';
 	const TYPE_CONTENT_TABLE = 'content_table';
 	const TYPE_RELATIONS_TABLE = 'relations_table';
-	const TYPE_DELETE_RELATIONS_TABLE = 'del_relations_table';
 
-	/** @var Service */
+    const ACTION_ADD_FIELD = 'add_field';
+    const ACTION_REMOVE_FIELD = 'remove_field';
+    const ACTION_RENAME_FIELD = 'rename_field';
+    const ACTION_CHANGE_FIELD = 'change_field';
+
+    // Создание новой связи между моделями
+    const ACTION_ADD_RELATION = 'add_relation';
+    // Удаление связи между моделями
+    const ACTION_REMOVE_RELATION = 'remove_relation';
+    // Переименование связи между моделями
+    const ACTION_RENAME_RELATION = 'rename_relation';
+    // Изменение связи между моделями
+    const ACTION_CHANGE_RELATION = 'change_relation';
+    // Создание/удаление связей между сущностями моделями
+    const ACTION_MAKE_RELATIONS = 'make_relations';
+
+    /** @var Service */
 	private $service;
 
 	/**
@@ -28,17 +43,19 @@ class MigrationMaker
 		$this->service = $service;
 	}
 
-	/**
-	 * Сгенерировать миграции, отметить их выполненными
-	 * Для ситуации создания таблицы модели
-	 *
-	 * @param $modelName string
-	 */
-	public function createTableMigration($modelName)
+    /**
+     * Сгенерировать миграции, отметить их выполненными
+     * Для ситуации создания таблицы модели
+     *
+     * @param $modelName string
+     * @param $modelSchema array|null
+     */
+	public function createTableMigration($modelName, $modelSchema = null)
 	{
+	    $schema = $modelSchema ?? $this->service->modelProvider->getSchemaArray($modelName);
 		$this->saveMigration($modelName, self::TYPE_NEW_TABLE, [
 			'model' => $modelName,
-			'schema' => $this->service->modelProvider->getSchemaArray($modelName),
+			'schema' => $schema,
 		]);
 	}
 
@@ -63,13 +80,28 @@ class MigrationMaker
 	 * @param $modelName string
 	 * @param $innerActions array
 	 */
-	public function createInnerMigration($modelName, $innerActions)
+	public function createFieldsMigration($modelName, $innerActions)
 	{
 		$this->saveMigration($modelName, self::TYPE_ALTER_TABLE, [
 			'model' => $modelName,
 			'actions' => $innerActions,
 		]);
 	}
+
+    /**
+     * Сгенерировать миграции, отметить их выполненными
+     * Для ситуаций корректировки связей модели
+     *
+     * @param $modelName
+     * @param $data
+     */
+	public function createRelationsMigration($modelName, $data)
+    {
+        $this->saveMigration($modelName, self::TYPE_RELATIONS_TABLE, [
+            'model' => $modelName,
+            'actions' => $data,
+        ]);
+    }
 
 	/**
 	 * Сгенерировать миграции, отметить их выполненными
@@ -84,36 +116,6 @@ class MigrationMaker
 			'model' => $modelName,
 			'schema' => $this->service->modelProvider->getSchemaArray($modelName),
 			'actions' => $outerActions,
-		]);
-	}
-
-	/**
-	 * Сгенерировать миграции, отметить их выполненными
-	 * Для ситуаций добавления новых связей модели
-	 *
-	 * @param $modelName string
-	 * @param $relationTableNames array
-	 */
-	public function createRelationTablesMigration($modelName, $relationsData)
-	{
-		$this->saveMigration($modelName, self::TYPE_RELATIONS_TABLE, [
-			'model' => $modelName,
-			'relations' => $relationsData,
-		]);
-	}
-
-	/**
-	 * Сгенерировать миграции, отметить их выполненными
-	 * Для ситуаций добавления новых связей модели
-	 *
-	 * @param $modelName string
-	 * @param $relationTableNames array
-	 */
-	public function deleteRelationTablesMigration($modelName, $relationsData)
-	{
-		$this->saveMigration($modelName, self::TYPE_DELETE_RELATIONS_TABLE, [
-			'model' => $modelName,
-			'relations' => $relationsData,
 		]);
 	}
 

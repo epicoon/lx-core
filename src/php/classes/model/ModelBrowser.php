@@ -137,7 +137,7 @@ class ModelBrowser extends ApplicationTool {
 				}
 				return $this->_schema;
 			
-			default: return null;
+			default: return parent::__get($name);
 		}
 	}
 
