@@ -32,6 +32,7 @@ abstract class DB {
 		switch ($type) {
 			case 'pg': return new DBpostgres($settings, $connection);
 			case 'mysql': return new DBmysql($settings, $connection);
+			case false: return null;
 		}
 	}
 

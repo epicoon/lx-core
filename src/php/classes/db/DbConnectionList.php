@@ -16,8 +16,9 @@ class DbConnectionList {
 			//todo если был 0 и было отключено - надо снова установить соединение. Но пока не отключаю
 		} else {
 			$connect = $this->tryConnect($settings);
+
 			if (!$connect) {
-				throw new \Exception('Can not connect to data base', 400);
+				return false;
 			}
 
 			$this->list[$key] = [

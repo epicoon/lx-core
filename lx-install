@@ -28,9 +28,12 @@ $system->getOrMakeDirectory('temp');
 // Корректируем ".gitignore"
 $gitignore = $site->makeFile('.gitignore');
 if ($gitignore->exists()) {
-    $str = '# lx local system dir' . PHP_EOL . '/lx/.system' . PHP_EOL . PHP_EOL;
+    $str = '';
     $text = $gitignore->get();
-    if (!preg_match('/\/vendor\b/', $text)) {
+    if ( ! preg_match('/\/lx\/.system\b/', $text)) {
+        $str .= '# lx local system dir' . PHP_EOL . '/lx/.system' . PHP_EOL . PHP_EOL;
+    }
+    if ( ! preg_match('/\/vendor\b/', $text)) {
         $str .= '# composer vendor dir' . PHP_EOL . '/vendor' . PHP_EOL . PHP_EOL;
     }
     $str .= $text;
@@ -81,6 +84,10 @@ if (!$data->contains('languages.php')) {
 	$languages->put(require(__DIR__ . '/install-src/data/languages.php'));
 }
 
+// Строим карту автозагрузки
+(new lx\AutoloadMapBuilder())->createCommonAutoloadMap();
+(new lx\JsModuleMapBuilder($app))->fullRenew();
+
 // Если нет HelloWorld-ного сервиса - создадим
 if (!$app->services->exists('lx/lx-hello')) {
 	$site->getOrMakeDirectory('vendor');
@@ -99,10 +106,6 @@ if (!$app->services->exists('lx/lx-hello')) {
 	$backend = $dir->get('backend/Respondent.php');
 	$backend->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/backendTpl'));
 }
-
-// Строим карту автозагрузки
-(new lx\AutoloadMapBuilder())->createCommonAutoloadMap();
-(new lx\JsModuleMapBuilder($app))->fullRenew();
 
 // Закончили упражнение
 lx\Console::outln('Done');

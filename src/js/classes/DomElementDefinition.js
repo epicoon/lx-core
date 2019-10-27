@@ -234,26 +234,13 @@ class DomElementDefinition #lx:namespace lx {
 	}
 
 	getHtmlStringBegin() {
-		var result = '<' + this.tag;
-
-		if (this.classList.len) result += ' class="' + this.classList.join(' ') + '"';
-
-		for (var name in this.attributes) {
-			result += ' ' + name + '="' + this.attributes[name] + '"';
-		}
-
-		if (!this.styleList.lxEmpty) {
-			result += ' style="';
-			for (var name in this.styleList) {
-				var val = this.styleList[name];
-				if (val === undefined || val === null || val === '') continue;
-				var propName = name.replace(/([A-Z])/g, function(x){return "-" + x.toLowerCase()});
-				result += propName + ':' + val + ';';
-			}
-			result += '"';
-		}
-
-		return result + '>';
+		var tag = new lx.Tag({
+			tag: this.tag,
+			attributes: this.attributes,
+			classList: this.classList,
+			style: this.styleList
+		});
+		return tag.getOpenString();
 	}
 
 	getHtmlStringEnd() {

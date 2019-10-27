@@ -385,6 +385,10 @@ class Service extends ApplicationTool {
 
 			$dbConfig = $dbList[$db];
 			$connection = DB::create($dbConfig);
+			if ( ! $connection) {
+				return null;
+			}
+
 			$connection->connect();
 			$this->dbConnections[$db] = $connection;
 		}

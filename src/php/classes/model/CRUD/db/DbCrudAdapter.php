@@ -356,7 +356,10 @@ class DbCrudAdapter extends CrudAdapter {
 	public function checkNeedTable($modelName) {
 		$db = $this->getDb();
 		if (!$db) {
-			throw new \Exception("Not found db-connection for CRUD adapter in service '{$this->service()->name}'", 400);
+			throw new \Exception(
+				"Not found db-connection for CRUD adapter in service '{$this->getService()->name}'",
+				400
+			);
 		}
 
 		list($serviceName, $selfModelName) = $this->splitModelName($modelName);

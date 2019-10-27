@@ -457,7 +457,7 @@ class CliProcessor extends ApplicationTool {
 		if (empty($servicesMigrateInfo)) {
 			$this->outln('No models need migrations', ['decor' => 'b']);
 		} else {
-			$this->outln('Following migrations and models need be applied:', ['decor' => 'b']);
+			$this->outln('Following migrations and models need to be applied:', ['decor' => 'b']);
 			foreach ($servicesMigrateInfo as $info) {
 				$service = $info['service'];
 				$this->out('Service: ', ['decor' => 'b']);
