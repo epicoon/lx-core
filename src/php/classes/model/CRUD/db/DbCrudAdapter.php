@@ -119,21 +119,22 @@ class DbCrudAdapter extends CrudAdapter {
 	 *
 	 * */
 	public function loadModels($modelName, $condition = null) {
+		$result = new ModelCollection();
+
 		$table = $this->getTable($modelName);
 		if (!$table) {
-			return [];
+			return $result;
 		}
 
 		$data = $table->select('*', $condition);
-		if (empty($data)) return [];
+		if (empty($data)) return $result;
 
 		$manager = $this->getModelManager($modelName);
 		if ( ! $manager) {
 			//TODO сообщение что адаптер не поддерживает такую модель
-			return [];
+			return $result;
 		}
 
-		$result = [];		
 		foreach ($data as $props) {
 			$obj = new ModelData($manager, $props);
 			$obj->setNewFlag(false);
@@ -147,6 +148,10 @@ class DbCrudAdapter extends CrudAdapter {
 	 * Массовое добавление/обновление моделей
 	 * */
 	public function saveModels($arr) {
+		if (is_object($arr) && method_exists($arr, 'toArray')) {
+			$arr = $arr->toArray();
+		}
+
 		if (!is_array($arr) || empty($arr)) return;
 
 		$schema = $arr[0]->getSchema();
@@ -213,6 +218,10 @@ class DbCrudAdapter extends CrudAdapter {
 	 * Массовое удаление моделей
 	 * */
 	public function deleteModels($arr) {
+		if (is_object($arr) && method_exists($arr, 'toArray')) {
+			$arr = $arr->toArray();
+		}
+
 		if (!is_array($arr) || empty($arr)) return;
 
 		$schema = $arr[0]->getSchema();
@@ -241,6 +250,10 @@ class DbCrudAdapter extends CrudAdapter {
 	}
 
 	public function addRelations($baseModel, $relation, $modelsList) {
+		if (is_object($modelsList) && method_exists($modelsList, 'toArray')) {
+			$modelsList = $modelsList->toArray();
+		}
+
 		list ($tableName, $key1, $key2) = $this->getRelativeTableParams(
 			$baseModel->getModelName(),
 			$relation->getRelativeModelName()
@@ -272,6 +285,10 @@ class DbCrudAdapter extends CrudAdapter {
 	}
 
 	public function delRelations($model, $relation, $modelsList) {
+		if (is_object($modelsList) && method_exists($modelsList, 'toArray')) {
+			$modelsList = $modelsList->toArray();
+		}
+
 		list ($tableName, $key1, $key2) = $this->getRelativeTableParams(
 			$model->getModelName(),
 			$relation->getRelativeModelName()

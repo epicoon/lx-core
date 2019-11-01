@@ -52,6 +52,7 @@ return [
 	'SnippetBuildContext' => 'classes/plugin/build',
 	'SnippetCacheData' => 'classes/plugin/build',
 
+	'ModelCollection' => 'classes/model',
 	'Model' => 'classes/model',
 	'ModelBrowser' => 'classes/model',
 	'ModelData' => 'classes/model',
