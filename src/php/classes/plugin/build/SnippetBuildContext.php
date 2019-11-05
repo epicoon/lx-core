@@ -249,6 +249,7 @@ class SnippetBuildContext extends ApplicationTool implements ContextTreeInterfac
 			'@core/js/tools/Collection',
 			'@core/js/tools/Tree',
 			'@core/js/classes/DomElementDefinition',
+			'@core/js/classes/Tag',
 			'@core/js/classes/bit/BitLine',
 			'@core/js/classes/bit/BitMap',
 			'@core/js/components/Date',
