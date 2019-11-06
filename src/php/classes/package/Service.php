@@ -2,6 +2,9 @@
 
 namespace lx;
 
+//TODO - убрать зависимость через конфиг через DI
+use lx\model\ModelProvider;
+
 class Service extends ApplicationTool {
 	/** @var $_name string - уникальное имя сервиса */
 	protected $_name;
@@ -14,7 +17,7 @@ class Service extends ApplicationTool {
 	protected $_dir = null;
 	/** @var $_conductor lx\Conductor - проводник по структуре сервиса */
 	protected $_conductor = null;
-	/** @var $_modelProvider lx\ModelProvider - провайдер моделей сервиса */
+	/** @var $_modelProvider ModelProvider - провайдер моделей сервиса */
 	protected $_modelProvider = null;
 	/** @var $_i18nMap lx\I18nMap - карта интернационализации */
 	protected $_i18nMap = null;

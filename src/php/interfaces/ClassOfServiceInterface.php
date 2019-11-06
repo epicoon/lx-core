@@ -19,12 +19,4 @@ interface ClassOfServiceInterface {
 	 * @return lx\Service|null
 	 * */
 	public function getService();
-
-	/**
-	 * Получить менеджер моделей сервиса для текущего класса
-	 *
-	 * @param $modelName string
-	 * @return lx\ModelManager|null
-	 * */
-	public function getModelManager($modelName);
 }

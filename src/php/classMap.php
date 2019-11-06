@@ -40,7 +40,6 @@ return [
 	'ServiceRouter' => 'classes/package',
 	'ServiceController' => 'classes/package',
 	'ServiceConductor' => 'classes/package',
-	'ServiceMigrationMap' => 'classes/package/system',
 
 	'PluginDirectory' => 'classes/plugin',
 	'PluginBrowser' => 'classes/plugin',
@@ -52,29 +51,8 @@ return [
 	'SnippetBuildContext' => 'classes/plugin/build',
 	'SnippetCacheData' => 'classes/plugin/build',
 
-	'ModelCollection' => 'classes/model',
-	'Model' => 'classes/model',
-	'ModelBrowser' => 'classes/model',
-	'ModelData' => 'classes/model',
-	'ModelManager' => 'classes/model',
-	'ModelProvider' => 'classes/model',
-	'ModelSchema' => 'classes/model',
-	'ModelField' => 'classes/model/field',
-	'ModelFieldString' => 'classes/model/field',
-	'ModelFieldInteger' => 'classes/model/field',
-	'ModelFieldBoolean' => 'classes/model/field',
-	'ModelFieldTimestamp' => 'classes/model/field',
-	'ModelFieldRelation' => 'classes/model/field',
-	'CrudAdapter' => 'classes/model/CRUD',
-	'DbCrudAdapter' => 'classes/model/CRUD/db',
-
 	'JsModuleMapBuilder' => 'classes/module',
 	'JsModuleMap' => 'classes/module',
-
-	'MigrationMap' => 'classes/system/migration',
-	'MigrationManager' => 'classes/system/migration',
-	'ModelMigrateExecutor' => 'classes/system/migration',
-	'MigrationMaker' => 'classes/system/migration',
 
 	'DataObject' => 'classes/dataClasses',
 
@@ -91,6 +69,7 @@ return [
 	'Vector' => 'classes/tools',
 	'Collection' => 'classes/tools',
 	'Tree' => 'classes/tools',
+	'Iterator' => 'classes/tools',
 
 	'BaseFile' => 'classes/file',
 	'File' => 'classes/file',

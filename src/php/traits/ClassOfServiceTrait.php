@@ -28,19 +28,4 @@ trait ClassOfServiceTrait {
 
 		return \lx::$app->getService($name);
 	}
-
-	/**
-	 * Получить менеджер моделей сервиса для текущего класса
-	 *
-	 * @param $modelName string
-	 * @return lx\ModelManager|null
-	 * */
-	public function getModelManager($modelName) {
-		$service = $this->getService();
-		if (!$service) {
-			return null;
-		}
-
-		return $service->getModelManager($modelName);
-	}
 }

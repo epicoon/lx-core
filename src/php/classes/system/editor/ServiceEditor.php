@@ -19,8 +19,9 @@ class ServiceEditor {
 		 * */
 
 		$serviceConfig = \lx::$app->getDefaultServiceConfig();
-		$pluginsDirName = $serviceConfig['plugins'];
-		$modelsDirName = $serviceConfig['models'];
+		$pluginsDirName = $serviceConfig['plugins'] ?? 'plugin';
+		$modelsDirName = $serviceConfig['models'] ?? 'model';
+		$modelCrudAdapter = $serviceConfig['modelCrudAdapter'] ?? null;
 
 		$namespace = $name;
 		preg_match_all('/^([^\/]+?)\//', $namespace, $matches);
@@ -43,6 +44,7 @@ class ServiceEditor {
 		$configCode = str_replace('<route>', $route, $configCode);
 		$configCode = str_replace('<plugin>', $pluginsDirName, $configCode);
 		$configCode = str_replace('<model>', $modelsDirName, $configCode);
+		$configCode = str_replace('<crud>', $modelCrudAdapter, $configCode);
 		$config = $serviceDir->makeFile('lx-config.yaml');
 		$config->put($configCode);
 

@@ -17,7 +17,7 @@ service:
 
   plugins: <plugin>
   models: <model>
-  modelCrudAdapter: \lx\DbCrudAdapter
+  modelCrudAdapter: <crud>
 
 EOT;
 

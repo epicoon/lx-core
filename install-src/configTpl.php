@@ -69,7 +69,7 @@ return [
 	'models' => 'model',
 
 	// Models save/load manage class
-	'modelCrudAdapter' => 'lx\DbCrudAdapter',
+	'modelCrudAdapter' => null,
 
 	// DB connection settings
 	'dbList' => [

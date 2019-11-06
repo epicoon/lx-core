@@ -2,7 +2,10 @@
 
 namespace lx;
 
-class User extends \lx\Model {
+//TODO убрать эту зависимость - пусть через конфиг инициализируется способ работы с моделью, данные хранятся композицией
+use lx\model\Model;
+
+class User extends Model {
 	protected $authFieldName;
 
 	public function __construct($params = []) {

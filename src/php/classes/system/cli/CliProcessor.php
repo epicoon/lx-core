@@ -2,6 +2,11 @@
 
 namespace lx;
 
+//TODO - рефакторить, чтобы консольные дела, связанные с моделями были описаны в том сервисе и сюда автоматически примешивались
+use lx\model\ModelBrowser;
+use lx\model\migration\MigrationManager;
+use lx\model\migration\ServiceMigrationMap;
+
 class CliProcessor extends ApplicationTool {
 	private $commandsList = [];
 
