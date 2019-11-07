@@ -9,7 +9,7 @@ const list = new lx.Dict({
 	cli: {
 		box: null,
 		title: 'CLI',
-		service: 'lx/lx-dev-wizard'
+		service: 'lx/lx-tools'
 	},
 	doc: {
 		box: null,
