@@ -276,6 +276,7 @@ class JsCompiler extends ApplicationTool {
 		}
 
 		$modelMap = (new JsModuleMap($this->app))->getMap();
+		$sitePath = $this->app->sitePath;
 		$filePathes = [];
 		foreach ($moduleNames as $moduleName) {
 			if (!array_key_exists($moduleName, $modelMap)) {
@@ -283,7 +284,7 @@ class JsCompiler extends ApplicationTool {
 			}
 
 			$filePath = $modelMap[$moduleName]['path'];
-			$filePathes[] = $filePath;
+			$filePathes[] = $sitePath . '/' . $filePath;
 
 			if (isset($modelMap[$moduleName]['data'])) {
 				$this->applyModuleData($modelMap[$moduleName]['data'], $filePath);

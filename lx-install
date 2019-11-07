@@ -86,7 +86,7 @@ if (!$data->contains('languages.php')) {
 
 // Строим карту автозагрузки
 (new lx\AutoloadMapBuilder())->createCommonAutoloadMap();
-(new lx\JsModuleMapBuilder($app))->fullRenew();
+(new lx\JsModuleMapBuilder($app))->renewHead();
 
 // Если нет HelloWorld-ного сервиса - создадим
 if (!$app->services->exists('lx/lx-hello')) {

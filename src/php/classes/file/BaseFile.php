@@ -83,7 +83,7 @@ class BaseFile {
 			return false;
 		}
 
-		$path;
+		$path = false;
 		if (is_string($parent)) {
 			$path = $parent;
 		} else {

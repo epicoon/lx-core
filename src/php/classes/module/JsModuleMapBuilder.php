@@ -3,14 +3,35 @@
 namespace lx;
 
 class JsModuleMapBuilder extends ApplicationTool {
-	public function coreRenew() {
+	public function renewHead() {
+		$list = PackageBrowser::getServicesList();
+		$names = [];
+		foreach (array_keys($list) as $serviceName) {
+			$service = $this->app->getService($serviceName);
+			if (!$service) {
+				continue;
+			}
+
+			$modulesDirectory = $service->conductor->getModuleMapDirectory();
+			$mapFile = new File($modulesDirectory->getPath() . '/jsModulesMap.json');
+			if ($mapFile->exists()) {
+				$names[] = $serviceName;
+			}
+		}
+
+		$path = \lx::$conductor->getSystemPath('systemPath') . '/jsModulesMap.json';
+		$file = new ConfigFile($path);
+		$file->put($names);
+	}
+
+	public function renewCore() {
 		$dir = new Directory($this->app->conductor->getFullPath('@core'));
 		$map = $this->makeMap($dir);
 		$mapFile = $dir->makeFile('jsModulesMap.json', ConfigFile::class);
 		$mapFile->put($map);
 	}
 
-	public function fullRenew() {
+	public function renewAllServices() {
 		$list = PackageBrowser::getServicesList();
 		$names = [];
 		foreach (array_keys($list) as $serviceName) {
@@ -32,7 +53,7 @@ class JsModuleMapBuilder extends ApplicationTool {
 	/**
 	 * @param $service
 	 */
-	public function serviceRenew($service) {
+	public function renewService($service) {
 		if ($this->serviceRenewProcess($service)) {
 			$this->addService($service->name);
 		} else {
@@ -66,7 +87,8 @@ class JsModuleMapBuilder extends ApplicationTool {
 	private function makeMap($dir) {
 		$files = $dir->getAllFiles('*.js');
 		$map = [];
-		$files->each(function($file) use (&$map) {
+		$sitePath = $this->app->sitePath;
+		$files->each(function($file) use ($sitePath, &$map) {
 			$code = $file->get();
 			preg_match('/(?<!\/ )(?<!\/)#lx:module\s+([^;]+?);/', $code, $matches);
 			if (empty($matches)) {
@@ -76,15 +98,7 @@ class JsModuleMapBuilder extends ApplicationTool {
 			//TODO нужна компиляция, список определенных классов, их расширения, зависимости от других модулей...
 			$info = [
 				'name' => $matches[1],
-				/*
-				 * TODO
-				 * серьезнейший баг!
-				 * надо тут сохранять условные пути относительно корня проекта
-				 * и учесть там, где эта карта читается (вроде только в компиляторе), что путь надо доопределять
-				 * И вообще сейчас пересобираются модули для вообще всех сервисов при инсталляции платформы
-				 * это вообще убрать как-то надо - там фактически только обобщающую карту надо создать
-				 */
-				'path' => $file->getPath(),
+				'path' => $file->getRelativePath($sitePath),
 				//classes
 			];
 

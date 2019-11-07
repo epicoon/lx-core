@@ -240,7 +240,7 @@ class CliProcessor extends ApplicationTool {
 	private function resetJsAutoloadMap() {
 		if ($this->getArg(0) == 'core') {
 			$this->outln('Creating core map...');
-			(new JsModuleMapBuilder($this->app))->coreRenew();
+			(new JsModuleMapBuilder($this->app))->renewCore();
 			$this->outln('Done');
 			return;
 		}
@@ -264,13 +264,13 @@ class CliProcessor extends ApplicationTool {
 
 		if ($service === null) {
 			$this->outln('Creating full map...');
-			(new JsModuleMapBuilder($this->app))->fullRenew();
+			(new JsModuleMapBuilder($this->app))->renewAllServices();
 			$this->outln('Done');
 			return;
 		}
 
 		$this->outln('Creating map for service "'. $service->name .'"...');
-		(new JsModuleMapBuilder($this->app))->serviceRenew($service);
+		(new JsModuleMapBuilder($this->app))->renewService($service);
 		$this->outln('Done');
 	}
 
