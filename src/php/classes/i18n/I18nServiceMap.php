@@ -2,9 +2,21 @@
 
 namespace lx;
 
-class I18nServiceMap extends I18nMap {
+class I18nServiceMap extends I18nMap implements FusionComponentInterface
+{
+	use FusionComponentTrait;
+
 	protected $service;
 	protected $fullMap;
+
+	public function __construct($service, $config = []) {
+		parent::__construct($service->app);
+		$this->constructFusionComponent($service, $config);
+	}
+
+	public function getService() {
+		return $this->owner;
+	}
 
 	public function getFullMap() {
 		if (!$this->fullMap) {
@@ -25,17 +37,17 @@ class I18nServiceMap extends I18nMap {
 		TODO
 		сделать возможность указывать в конфиге несколько файлов и даже каталогов с картами
 		*/
-		$fileName = $this->service->getConfig('service.i18nFile');
+		$fileName = $this->getService()->getConfig('service.i18nFile');
 		if (!$fileName) {
 			$fileName = self::DEFAULT_FILE_NAME;
 		}
 
-		$fullPath = $this->service->conductor->getFullPath($fileName);
+		$fullPath = $this->getService()->conductor->getFullPath($fileName);
 		$file = new ConfigFile($fullPath);
 		$this->map = $file->exists() ? $file->get() : [];
 
 		foreach ($this->files() as $fileName) {
-			$fullPath = $this->service->conductor->getFullPath($fileName);
+			$fullPath = $this->getService()->conductor->getFullPath($fileName);
 			$file = new ConfigFile($fullPath);
 			if ($file->exists()) {
 				$this->map = $this->mapMerge($this->map, $file->get());

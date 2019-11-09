@@ -3,9 +3,6 @@
 namespace lx;
 
 class ArrayHelper {
-	/**
-	 *
-	 * */
 	public static function map($array, $field) {
 		$result = [];
 
@@ -17,9 +14,22 @@ class ArrayHelper {
 		return $result;
 	}
 
-	/**
-	 *
-	 * */
+	public static function mergeRecursiveDistinct($array1, $array2, $change = false)
+	{
+		$merged = $array1;
+		foreach ($array2 as $key => $value) {
+			if (is_array($value) && array_key_exists($key, $merged) && is_array($merged[$key])) {
+				$merged[$key] = self::mergeRecursiveDistinct($merged[$key], $value, $change);
+			} else {
+				if (!array_key_exists($key, $merged) || $change) {
+					$merged[$key] = $value;
+				}
+			}
+		}
+
+		return $merged;
+	}
+
 	public static function isAssoc($array) {
 		$counter = 0;
 		foreach ($array as $key => $value) {

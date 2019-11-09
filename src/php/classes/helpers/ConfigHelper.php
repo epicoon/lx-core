@@ -29,15 +29,13 @@ class ConfigHelper {
 		}
 	}
 
-	public static function serviceInject($name, $injections, &$config) {
-		if ($injections) {
-			if (array_key_exists($name, $injections)) {
-				$configInjection = $injections[$name];
-				foreach ($configInjection as $key => $value) {
-					$config['service'][$key] = $value;
-				}
-			}
+	public static function serviceInject($name, $allInjections, &$config) {
+		if ( ! is_array($allInjections) || ! array_key_exists($name, $allInjections)) {
+			return;
 		}
+
+		$injections = $allInjections[$name];
+		$config['service'] = ArrayHelper::mergeRecursiveDistinct($config['service'], $injections, true);
 	}
 
 	public static function pluginInject($name, $prototype, $injections, &$config) {

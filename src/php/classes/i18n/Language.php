@@ -10,8 +10,8 @@ class Language extends ApplicationComponent {
 	/**
 	 *
 	 * */
-	public function __construct($config = []) {
-		parent::__construct($config);
+	public function __construct($app, $config = []) {
+		parent::__construct($app, $config);
 
 		$filePath = $this->app->conductor->getSystemPath('lxData') . '/languages';
 		$file = new ConfigFile($filePath);

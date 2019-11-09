@@ -3,36 +3,6 @@
 namespace lx;
 
 class Cli extends ApplicationTool {
-	const COMMANDS = [
-		'exit' => '\q',
-		'help' => ['\h', 'help'],
-		'move' => ['\g', 'goto'],
-		'full_path' => ['\p', 'fullpath'],
-		'reset_autoload_map' => ['\amr', 'autoload-map-reset'],
-		'reset_js_autoload_map' => ['\amrjs', 'autoload-map-reset-js'],
-
-		'show_services' => ['\sl', 'services-list'],
-		'show_plugins' => ['\pl', 'plugins-list'],
-		'show_models' => 'models-list',
-
-		'migrate_check' => 'migrate-check',
-		'migrate_run' => 'migrate-run',
-
-		'create_service' => ['\cs', 'create-service'],
-		'create_plugin' => ['\cp', 'create-plugin'],
-	];
-	/*
-	//todo
-	выбор создаваемых компонентов для нового плагина - какие каталоги, надо ли файл пееропределяющий сам плагин...
-	удаление плагина
-
-	запрос на какую-нибудь модель
-
-	??? надо ли с блоками отсюда работать
-		создание вью-блоков
-		просмотр дерева имеющихся блоков
-	*/
-
 	private $service = null;
 	private $plugin = null;
 
@@ -46,7 +16,7 @@ class Cli extends ApplicationTool {
 
 	public function __construct($app) {
 		parent::__construct($app);
-		$this->processor = new CliProcessor($app, self::COMMANDS);
+		$this->processor = new CliProcessor($app);
 	}
 
 	/**
@@ -94,7 +64,7 @@ class Cli extends ApplicationTool {
 						// TAB
 						9 => function() use($text) {
 							$currentInput = Console::getCurrentInput();
-							$command = $this->tryFinishCommand($currentInput);
+							$command = $this->autoCompleteCommand($currentInput);
 							if ($command) {
 								if ($command['common'] == $currentInput) {
 									Console::outln();
@@ -216,10 +186,10 @@ class Cli extends ApplicationTool {
 	}
 
 	/**
-	 *
+	 * Конвертирует команду в её ключ
 	 * */
 	private function identifyCommandType($command) {
-		$keywords = self::COMMANDS;
+		$keywords = $this->processor->getCommandsList();
 		foreach ($keywords as $key => $value) {
 			$value = (array)$value;
 			foreach ($value as $commandName) {
@@ -236,7 +206,7 @@ class Cli extends ApplicationTool {
 	 * @param $command string - команда, уже вычлененная из строки консольного ввода
 	 * */
 	private function checkCommand($command, $key) {
-		$keywords = self::COMMANDS[$key];
+		$keywords = $this->processor->getCommandsList()[$key];
 		if (is_array($keywords)) {
 			return (array_search($command, $keywords) !== false);
 		}
@@ -249,7 +219,7 @@ class Cli extends ApplicationTool {
 	 * - помимо общего возвращает список подходящих команд
 	 * @param $text string - строка, которую требуется дополнить
 	 * */
-	private function tryFinishCommand($text) {
+	private function autoCompleteCommand($text) {
 		if ($text{0} == '\\') {
 			return false;
 		}
@@ -261,7 +231,7 @@ class Cli extends ApplicationTool {
 
 		$matches = [];
 
-		foreach (self::COMMANDS as $keywords) {
+		foreach ($this->processor->getCommandsList() as $keywords) {
 			foreach ((array)$keywords as $command) {
 				if ($command != $text && preg_match('/^'. $text .'/', $command)) {
 					$matches[] = $command;

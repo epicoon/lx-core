@@ -136,7 +136,7 @@
   Имеет специальное поле с настройками в lx-конфигурации. Пример конфигурации на `yaml`:
   ```yaml
   # Имя сервиса
-  name: lx/lx-model
+  name: i-am-vendor/service-name
 
   # Правила автозагрузки
   autoload:
@@ -146,7 +146,7 @@
   # Поле с настройками сервиса - наличие именно этого поля превращает пакет в сервис
   service:
     # Если сервис представлен собственным классом, здесь указывается его имя
-    class: lx\model\Service
+    class: psrNamespace\Service
 
     # Прочие настройки сервиса
     plugins: plugin
@@ -189,11 +189,11 @@
   По аналогии с роутером приложения, роутер сервиса можно настроить с помощью файла lx-конфигурации сервиса, либо переопределить класс `lx\ServiceRouter`.<br>
   Пример настройки через файл lx-конфигурации:
   ```yaml
-  name: lx/lx-model
+  name: i-am-vendor/service-name
   ...
 
   service:
-    class: lx\model\Service
+    class: psrNamespace\Service
 
     # Настройки роутера сервиса
     router:

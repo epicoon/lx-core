@@ -135,7 +135,7 @@ Of all the elements of the architecture a service and a plugin are configurable 
   It has a special field with settings in the lx-configuration. Configuration example in `yaml`:
   ```yaml
   # Service name
-  name: lx/lx-model
+  name: i-am-vendor/service-name
 
   # Autoload rules
   autoload:
@@ -146,7 +146,7 @@ Of all the elements of the architecture a service and a plugin are configurable 
   # the presence of this field turns the package into a service
   service:
     # The name of the service class (if exists)
-    class: lx\model\Service
+    class: psrNamespace\Service
 
     # Other service settings
     plugins: plugin
@@ -189,11 +189,11 @@ Of all the elements of the architecture a service and a plugin are configurable 
   By analogy with the application’s router, the service’s router can be configured by the service’s lx-configuration file or it can be extended by class `lx\ServiceRouter`.<br>
   Example of configuration via the lx-configuration file:
   ```yaml
-  name: lx/lx-model
+  name: i-am-vendor/service-name
   ...
 
   service:
-    class: lx\model\Service
+    class: psrNamespace\Service
 
     # Service router settings
     router:

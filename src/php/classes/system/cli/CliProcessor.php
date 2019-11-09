@@ -2,13 +2,48 @@
 
 namespace lx;
 
-//TODO - рефакторить, чтобы консольные дела, связанные с моделями были описаны в том сервисе и сюда автоматически примешивались
-use lx\model\ModelBrowser;
-use lx\model\migration\MigrationManager;
-use lx\model\migration\ServiceMigrationMap;
-
 class CliProcessor extends ApplicationTool {
-	private $commandsList = [];
+	/*
+	//todo
+	выбор создаваемых компонентов для нового плагина - какие каталоги, надо ли файл пееропределяющий сам плагин...
+	удаление плагина
+
+	запрос на какую-нибудь модель
+
+	??? надо ли с блоками отсюда работать
+		создание вью-блоков
+		просмотр дерева имеющихся блоков
+	*/
+	const SELF_COMMANDS = [
+		'exit' => '\q',
+		'help' => ['\h', 'help'],
+		'move' => ['\g', 'goto'],
+		'full_path' => ['\p', 'fullpath'],
+		'reset_autoload_map' => ['\amr', 'autoload-map-reset'],
+		'reset_js_autoload_map' => ['\amrjs', 'autoload-map-reset-js'],
+
+		'show_services' => ['\sl', 'services-list'],
+		'show_plugins' => ['\pl', 'plugins-list'],
+
+		'create_service' => ['\cs', 'create-service'],
+		'create_plugin' => ['\cp', 'create-plugin'],
+	];
+	const METHOD_MAP = [
+		'help' => 'showHelp',
+		'move' => 'move',
+		'full_path' => 'fullPath',
+		'reset_autoload_map' => 'resetAutoloadMap',
+		'reset_js_autoload_map' => 'resetJsAutoloadMap',
+
+		'show_services' => 'showServices',
+		'show_plugins' => 'showPlugins',
+
+		'create_service' => 'createService',
+		'create_plugin' => 'createPlugin',
+	];
+	private $_extensions = null;
+	private $_commandsList = null;
+	private $_methodMap = null;
 
 	private $servicesList = null;
 	private $service = null;
@@ -22,76 +57,154 @@ class CliProcessor extends ApplicationTool {
 	private $invalidParams = [];
 	private $keepProcess = false;
 
-	public function __construct($app, $commandsList = []) {
-		parent::__construct($app);
-		$this->commandsList = $commandsList;
+	public function getCommandsList()
+	{
+		if ($this->_commandsList === null) {
+			return array_merge(
+				self::SELF_COMMANDS,
+				$this->getCommandsExtensionList()
+			);
+		}
+
+		return $this->_commandsList;
 	}
 
-	/**
-	 *
-	 * */
 	public function handleCommand($commandType, $args, $service, $plugin) {
 		$this->service = $service;
 		$this->plugin = $plugin;
 		$this->args = $args;
 
-		$methodMap = [
-			'help' => 'showHelp',
-			'move' => 'move',
-			'full_path' => 'fullPath',
-			'reset_autoload_map' => 'resetAutoloadMap',
-			'reset_js_autoload_map' => 'resetJsAutoloadMap',
-
-			'show_services' => 'showServices',
-			'show_plugins' => 'showPlugins',
-			'show_models' => 'showModels',
-
-			'migrate_check' => 'migrateCheck',
-			'migrate_run' => 'migrateRun',
-
-			'create_service' => 'createService',
-			'create_plugin' => 'createPlugin',
-		];
+		$methodMap = $this->getMethodMap();
 
 		$this->consoleMap = [];
 		$this->needParam = false;
-		$this->{$methodMap[$commandType]}();
+
+		$this->envolveMethod($methodMap, $commandType);
 		return $this->getResult();
 	}
 
-	/**
-	 *
-	 * */
-	public function setParams($params) {
-		$this->params = $params;
+
+	/*******************************************************************************************************************
+	 * Методы для описания работы процессора
+	 ******************************************************************************************************************/
+
+	public function getServicesList() {
+		if ($this->servicesList === null) {
+			$this->resetServicesList();
+		}
+		return $this->servicesList;
 	}
 
-	/**
-	 *
-	 * */
 	public function getService() {
 		return $this->service;
 	}
 
-	/**
-	 *
-	 * */
 	public function getPlugin() {
 		return $this->plugin;
 	}
 
+	public function setParams($params) {
+		$this->params = $params;
+	}
 
-	/**************************************************************************************************************************
-	 * Методы действий
-	 *************************************************************************************************************************/
+	public function setParam($name, $value) {
+		$this->params[$name] = $value;
+	}
+
+	public function getParam($name) {
+		if ( ! array_key_exists($name, $this->params)) {
+			return null;
+		}
+
+		return $this->params[$name];
+	}
+
+	public function getResult() {
+		return [
+			'output' => $this->consoleMap,
+			'params' => $this->params,
+			'invalidParams' => $this->invalidParams,
+			'need' => $this->needParam,
+			'keepProcess' => $this->keepProcess,
+		];
+	}
+
+	public function hasParam($name) {
+		return array_key_exists($name, $this->params);
+	}
+
+	public function invalidateParam($name) {
+		unset($this->params[$name]);
+		$this->invalidParams[] = $name;
+		$this->keepProcess = true;
+	}
+
+	public function done() {
+		$this->params = [];
+		$this->invalidParams = [];
+		$this->keepProcess = false;
+	}
+
+	public function out($text, $decor = []) {
+		$this->consoleMap[] = ['out', $text, $decor];
+	}
+
+	public function outln($text = '', $decor = []) {
+		$this->consoleMap[] = ['outln', $text, $decor];
+	}
+
+	public function in($needParam, $text, $decor = []) {
+		$this->needParam = $needParam;
+		$this->consoleMap[] = ['in', $text, $decor];
+	}
 
 	/**
-	 * Исходя из self::COMMAND автоматически строит список существующих команд.
+	 * Получить агрумент по ключу (или индексу, если массив аргументов перечислимый)
+	 * */
+	public function getArg($key) {
+		if (is_array($key)) {
+			foreach ($key as $item) {
+				if (array_key_exists($item, $this->args)) {
+					return $this->args[$item];
+				}
+			}
+			return null;
+		}
+
+		if (array_key_exists($key, $this->args)) {
+			return $this->args[$key];
+		}
+		return null;
+	}
+
+	/**
+	 * @param array $arr - массив вариантов значений
+	 * Ключи массива - ключи введенных аргументов, значения массива - допустимые значения для аргументов
+	 * */
+	public function validateArgs($arr) {
+		foreach ($arr as $i => $variants) {
+			$arg = $this->getArg($i);
+			if ($arg === null) continue;
+			if (array_search($arg, $variants) === false) {
+				$this->outln("Argument [$i] = '$arg' is not valid. Available are: " . implode(', ', $variants));
+				return false;
+			}
+		}
+		return true;
+	}
+
+
+	/*******************************************************************************************************************
+	 * Методы действий
+	 ******************************************************************************************************************/
+
+	/**
+	 * Исходя из списка команд Cli, автоматически строит список существующих команд.
 	 * Поэтому важно этому массиву давать вразумительные ключи
 	 * */
 	private function showHelp() {
 		$arr = [];
-		foreach ($this->commandsList as $key => $keywords) {
+		foreach ($this->getCommandsList() as $key => $keywords) {
 			$arr[] = [
 				ucfirst( str_replace('_', ' ', $key) ),
 				implode(', ', (array)$keywords)
@@ -373,151 +486,6 @@ class CliProcessor extends ApplicationTool {
 	}
 
 	/**
-	 * Отображает базовую информацию по моделям
-	 * Может принимать аргумент со значением:
-	 * [-s | --service]
-	 * [-m] - 'need-migrate' | '!need-migrate'
-	 * */
-	private function showModels() {
-		$service = null;
-		$serviceName = $this->getArg(0);
-		if (!$serviceName) {
-			$serviceName = $this->getArg('s');
-		}
-		if ($serviceName) {
-			try {
-				$service = $this->app->getService($serviceName);
-			} catch (\Exception $e) {
-				$this->outln("Service '$name' not found");
-				return;
-			}
-		}
-		if ($service === null) {
-			$service = $this->service;
-		}
-
-		if ($this->service === null) {
-			$this->outln("Models belong to services. Input the service name or enter one of them");
-			return;
-		}
-
-		if (!$this->checkArgs([
-			'm' => ['need-migrate', '!need-migrate']
-		])) {
-			return;
-		}
-
-		$data = [[
-			'name' => 'Name',
-			'needMigrate' => 'Need migrate',
-			'needTable' => 'Need table',
-			'changed' => 'Changed'
-		]];
-		$info = ModelBrowser::getModelsInfo($this->service, ['needTable', 'hasChanges']);
-		foreach ($info as $modelName => $modelInfo) {
-			$needTable = $modelInfo['needTable'];
-			$changed = $modelInfo['hasChanges'];
-			if ($this->getArg('m') == 'need-migrate') {
-				if (!$needTable && !$changed) continue;
-			} elseif ($this->getArg('m') == '!need-migrate') {
-				if ($needTable || $changed) continue;
-			}
-			$data[] = [
-				'name' => $modelName,
-				'needMigrate' => ($needTable || $changed) ? 'yes' : 'no',
-				'needTable' => $needTable ? 'yes' : 'no',
-				'changed' => $changed ? 'yes' : 'no',
-			];
-		}
-
-		$data = Console::normalizeTable($data);
-		foreach ($data as $i => $row) {
-			if ($i) $this->outln($row['name'].' | '.$row['needMigrate'].' | '.$row['needTable'].' | '.$row['changed']);
-			else $this->outln($row['name'].' | '.$row['needMigrate'].' | '.$row['needTable'].' | '.$row['changed'], ['decor' => 'b']);
-		}
-	}
-
-	/**
-	 * Посмотреть каким моделям нужны миграции
-	 * Аргументы:
-	 * [0] - имя модуля, необязательный
-	 * [1] - имя модели, необязательный
-	 * */
-	private function migrateCheck() {
-		$service = $this->getArg(0);
-		$model = $this->getArg(1);
-		if ($service) {
-			try {
-				$service = $this->app->getService($service);
-			} catch (\Exception $e) {
-				$this->outln("Service '$service' not found");
-				return;
-			}
-		}
-
-		//todo - проверка валидности имени модуля
-
-		$servicesMigrateInfo = $this->getServicesMigrateInfo($service, $model);
-
-		if (empty($servicesMigrateInfo)) {
-			$this->outln('No models need migrations', ['decor' => 'b']);
-		} else {
-			$this->outln('Following migrations and models need to be applied:', ['decor' => 'b']);
-			foreach ($servicesMigrateInfo as $info) {
-				$service = $info['service'];
-				$this->out('Service: ', ['decor' => 'b']);
-				$this->outln($service->name);
-				if (!empty($info['migrations'])) {
-					$this->outln('* Migrations:', ['decor' => 'b']);
-					foreach ($info['migrations'] as $name) {
-						$this->outln('- ' . $name);
-					}
-				}
-				if (!empty($info['models'])) {
-					$this->outln('* Models:', ['decor' => 'b']);
-					foreach ($info['models'] as $data) {
-						$this->outln('- ' . $data['name']);
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Запуск миграций
-	 * Аргументы:
-	 * [0] - имя модуля, необязательный
-	 * [1] - имя модели, необязательный
-	 * */
-	private function migrateRun() {
-		$service = $this->getArg(0);
-		if ($service) {
-			try {
-				$service = $this->app->getService($service);
-			} catch (\Exception $e) {
-				$this->outln("Service '$service' not found");
-				return;
-			}
-		}
-		$model = $this->getArg(1);
-		$servicesMigrateInfo = $this->getServicesMigrateInfo($service, $model);
-		if (empty($servicesMigrateInfo)) {
-			$this->outln('No models need migrations', ['decor' => 'b']);
-			return;
-		}
-		
-		$migrator = new MigrationManager();
-		foreach ($servicesMigrateInfo as $info) {
-			$this->out('Migration for service: ', ['decor' => 'b'] );
-			$this->outln($info['service']->name, '...');
-
-			$migrator->runService($info['service']);
-		}
-
-		$this->outln('Done', ['decor' => 'b']);
-	}
-
-	/**
 	 * Создание нового сервиса
 	 * //todo - флаг кастомного создания
 	 * */
@@ -533,16 +501,16 @@ class CliProcessor extends ApplicationTool {
 			return;
 		}
 
-		if ($this->requireParam('name')) {
+		if ($this->hasParam('name')) {
 			$name = $this->getArg(0);
 			if (!$name) {
 				$this->in('name', 'You need to enter new service name: ', ['decor' => 'b']);
 				return;
 			}
-			$this->params['name'] = $name;
+			$this->setParam('name', $name);
 		}
 		//todo проверить корректрость имени регуляркой
-		$name = $this->params['name'];
+		$name = $this->getParam('name');
 
 		if (count($dirs) == 1) {
 			$this->createServiceProcess($name, $dirs[0]);
@@ -550,7 +518,7 @@ class CliProcessor extends ApplicationTool {
 			return;
 		}
 
-		if ($this->requireParam('index')) {
+		if ($this->hasParam('index')) {
 			$this->outln('Available directories for new service:', ['decor' => 'b']);
 			$counter = 0;
 			foreach ($dirs as $dirPath) {
@@ -562,7 +530,7 @@ class CliProcessor extends ApplicationTool {
 			$this->in('index', 'Choose number of directory: ', ['decor' => 'b']);
 			return;
 		}
-		$i = $this->params['index'];
+		$i = $this->getParam('index');
 
 		if ($i == 'q') {
 			$this->outln('Aborted');
@@ -570,7 +538,7 @@ class CliProcessor extends ApplicationTool {
 			return;
 		}
 		if (!is_numeric($i) || $i <= 0 || $i > count($dirs)) {
-			$this->invalidParam('index');
+			$this->invalidateParam('index');
 			return;
 		}
 
@@ -590,16 +558,16 @@ class CliProcessor extends ApplicationTool {
 			return;
 		}
 
-		if ($this->requireParam('name')) {
+		if ($this->hasParam('name')) {
 			$name = $this->getArg(0);
 			if (!$name) {
 				$this->in('name', 'You need to enter new plugin name: ', ['decor' => 'b']);
 				return;
 			}
-			$this->params['name'] = $name;
+			$this->setParam('name', $name);
 		}
 		//todo проверить корректрость имени регуляркой
-		$name = $this->params['name'];
+		$name = $this->getParam('name');
 
 		// Смотрим по конфигу - какие каталоги содержат модули
 		$pluginDirs = $this->service->getConfig('service.plugins');
@@ -620,7 +588,7 @@ class CliProcessor extends ApplicationTool {
 			return;
 		}
 
-		if ($this->requireParam('index')) {
+		if ($this->hasParam('index')) {
 			$this->outln('Available directories for new plugin (relative to the service directory)::', ['decor' => 'b']);
 			$counter = 0;
 			foreach ($pluginDirs as $dirPath) {
@@ -632,7 +600,7 @@ class CliProcessor extends ApplicationTool {
 			$this->in('index', 'Choose number of directory: ', ['decor' => 'b']);
 			return;
 		}
-		$i = $this->params['index'];
+		$i = $this->getParam('index');
 
 		if ($i == 'q') {
 			$this->outln('Aborted');
@@ -640,7 +608,7 @@ class CliProcessor extends ApplicationTool {
 			return;
 		}
 		if (!is_numeric($i) || $i <= 0 || $i > count($dirs)) {
-			$this->invalidParam('index');
+			$this->invalidateParam('index');
 			return;
 		}
 
@@ -649,118 +617,9 @@ class CliProcessor extends ApplicationTool {
 	}
 
 
-	/**************************************************************************************************************************
-	 * Методы, обслуживающие базовую работу процессора
-	 *************************************************************************************************************************/
-
-	/**
-	 *
-	 * */
-	private function getResult() {
-		return [
-			'output' => $this->consoleMap,
-			'params' => $this->params,
-			'invalidParams' => $this->invalidParams,
-			'need' => $this->needParam,
-			'keepProcess' => $this->keepProcess,
-		];
-	}
-
-	/**
-	 *
-	 * */
-	private function requireParam($name) {
-		return !array_key_exists($name, $this->params);
-	}
-
-	/**
-	 *
-	 * */
-	private function invalidParam($name) {
-		unset($this->params[$name]);
-		$this->invalidParams[] = $name;
-		$this->keepProcess = true;
-	}
-
-	/**
-	 *
-	 * */
-	private function done() {
-		$this->params = [];
-		$this->invalidParams = [];
-		$this->keepProcess = false;
-	}
-
-	/**
-	 *
-	 * */
-	private function out($text, $decor = []) {
-		$this->consoleMap[] = ['out', $text, $decor];
-	}
-
-	/**
-	 *
-	 * */
-	private function outln($text = '', $decor = []) {
-		$this->consoleMap[] = ['outln', $text, $decor];	
-	}
-
-	/**
-	 *
-	 * */
-	private function in($needParam, $text, $decor = []) {
-		$this->needParam = $needParam;
-		$this->consoleMap[] = ['in', $text, $decor];		
-	}
-
-	/**
-	 * Получить агрумент по ключу (или индексу, если массив аргументов перечислимый)
-	 * */
-	private function getArg($key) {
-		if (is_array($key)) {
-			foreach ($key as $item) {
-				if (array_key_exists($item, $this->args)) {
-					return $this->args[$item];
-				}
-			}
-			return null;
-		}
-
-		if (array_key_exists($key, $this->args)) {
-			return $this->args[$key];
-		}
-		return null;
-	}
-
-	/**
-	 * @param array $arr - массив вариантов значений. Ключи массива - ключи введенных аргументов, значения массива - допустимые значения для аргументов
-	 * */
-	private function checkArgs($arr) {
-		foreach ($arr as $i => $variants) {
-			$arg = $this->getArg($i);
-			if ($arg === null) continue;
-			if (array_search($arg, $variants) === false) {
-				$this->outln("Argument [$i] = '$arg' is not valid. Available are: " . implode(', ', $variants));
-				return false;
-			}
-		}
-		return true;
-	}
-
-
-	/**************************************************************************************************************************
+	/*******************************************************************************************************************
 	 * Методы, обслуживающие действия
-	 *************************************************************************************************************************/
-
-	/**
-	 *
-	 * */
-	private function getServicesList() {
-		if ($this->servicesList === null) {
-			$this->resetServicesList();
-		}
-		return $this->servicesList;
-	}
+	 ******************************************************************************************************************/
 
 	/**
 	 *
@@ -777,85 +636,6 @@ class CliProcessor extends ApplicationTool {
 		}
 		uksort($data, 'strcasecmp');
 		$this->servicesList = $data;
-	}
-
-	/**
-	 * Собирает информацию - для каких сервисов для каких моделей нужно делать миграции
-	 * */
-	private function getServicesMigrateInfo($service = null, $modelName = null) {
-		// Определяем участвующие сервисы
-		$services = $service === null
-			? []
-			: $service;
-		if (!is_array($service)) {
-			$service = [$service];
-		}
-		if (empty($services)) {
-			$servicesList = $this->getServicesList();
-			foreach ($servicesList as $data) {
-				$services[] = $data['object'];
-			}
-		}
-
-		// Определяем участвующие модели
-		$modelNames = $modelName === null
-			? []
-			: (array)$modelName;
-
-		$map = [];
-		foreach ($services as $service) {
-			$modelsData = $service->conductor->getModelsPath();
-			$serviceModels = [];
-			if (empty($modelNames)) {
-				$serviceModels = $modelsData;
-			} else {
-				foreach ($modelNames as $modelName) {
-					if (array_key_exists($modelName, $modelsData)) {
-						$serviceModels[$modelName] = $modelsData[$modelName];
-					}
-				}
-			}
-
-			$migrationMap = new ServiceMigrationMap($service);
-			$list = $migrationMap->getUnappliedList();
-			if (!empty($list)) {
-				$map[$service->name] = [
-					'service' => $service,
-					'models' => [],
-					'migrations' => $list,
-				];
-			}
-
-			foreach ($serviceModels as $modelName => $path) {
-				$analizer = new ModelBrowser($this->app, [
-					'service' => $service,
-					'modelName' => $modelName,
-					'path' => $path,
-				]);
-				$needTable = $analizer->needTable();
-				$changed = $analizer->changed();
-				if (!$needTable && !$changed) {
-					continue;
-				}
-
-				if (!array_key_exists($service->name, $map)) {
-					$map[$service->name] = [
-						'service' => $service,
-						'models' => [],
-						'migrations' => [],
-					];
-				}
-
-				$map[$service->name]['models'][] = [
-					'name' => $modelName,
-					'path' => $path,
-					'needTable' => $needTable,
-					'changed' => $changed,
-				];
-			}
-		}
-
-		return $map;
 	}
 
 	/**
@@ -886,6 +666,93 @@ class CliProcessor extends ApplicationTool {
 			$this->outln($dir->getPath(), ['decor' => 'u']);
 		} catch (\Exception $e) {
 			$this->outln('Plugin was not created. ' . $e->getMessage());
+		}
+	}
+
+
+	/*******************************************************************************************************************
+	 * Методы внутренней работы процессора
+	 ******************************************************************************************************************/
+
+	private function envolveMethod($map, $command)
+	{
+		if (is_string($command)) {
+			$this->{$map[$command]}();
+		} elseif (is_array($command)) {
+			$object = new $command[0]();
+			$object->{$command[1]}();
+		}
+	}
+
+	private function getCommandsExtensionList()
+	{
+		if ($this->_extensions === null) {
+			$this->loadServiceExtensions();
+		}
+
+		return $this->extractCommandsExtensionList();
+	}
+
+	private function extractCommandsExtensionList()
+	{
+		$result = [];
+		foreach ($this->_extensions as $serviceData) {
+			foreach ($serviceData as $commandData) {
+				$result[$commandData['key']] = $commandData['command'];
+			}
+		}
+
+		return $result;
+	}
+
+	private function getMethodMap()
+	{
+		if ($this->_methodMap === null) {
+			$this->_methodMap = array_merge(
+				self::METHOD_MAP,
+				$this->getMethodMapExtension()
+			);
+		}
+
+		return $this->_methodMap;
+	}
+
+	private function getMethodMapExtension()
+	{
+		if ($this->_extensions === null) {
+			$this->loadServiceExtensions();
+		}
+
+		return $this->extractMethodMapExtension();
+	}
+
+	private function extractMethodMapExtension()
+	{
+		$result = [];
+		foreach ($this->_extensions as $serviceData) {
+			foreach ($serviceData as $commandData) {
+				$result[$commandData['key']] = $commandData['forEvolve'];
+			}
+		}
+
+		return $result;
+	}
+
+	private function loadServiceExtensions()
+	{
+		if ($this->_extensions === null) {
+			$this->_extensions = [];
+		}
+
+		$servicesList = $this->getServicesList();
+		foreach ($servicesList as $serviceName => $serviceData) {
+			$service = $serviceData['object'];
+			$serviceCli = $service->cli;
+			if ( ! $serviceCli || ! $serviceCli instanceof ServiceCliInterface) {
+				continue;
+			}
+
+			$this->_extensions[$serviceName] = $serviceCli->getExtensionData();
 		}
 	}
 }

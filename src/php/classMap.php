@@ -11,13 +11,18 @@ return [
 	'ApplicationConductor' => 'classes/system/app',
 	'ApplicationComponent' => 'classes/system/app',
 	'ApplicationLogger' => 'classes/system/app',
-	'ComponentList' => 'classes/system/app',
 	'Dialog' => 'classes/system/app',
 	'Router' => 'classes/system/app',
 	'AjaxRouter' => 'classes/system/app',
 	'Response' => 'classes/system/app',
 	'ResponseSource' => 'classes/system/app',
 	'User' => 'classes/system/app',
+
+	'FusionInterface' => 'classes/fusion',
+	'FusionTrait' => 'classes/fusion',
+	'FusionComponentInterface' => 'classes/fusion',
+	'FusionComponentTrait' => 'classes/fusion',
+	'ComponentList' => 'classes/fusion',
 
 	'Console' => 'classes/system',
 	'HtmlHead' => 'classes/system',
@@ -108,6 +113,7 @@ return [
 	'AuthenticationInterface' => 'interfaces',
 	'AuthorizationInterface' => 'interfaces',
 	'LoggerInterface' => 'interfaces',
+	'ServiceCliInterface' => 'interfaces',
 
 	'ClassOfServiceTrait' => 'traits',
 

@@ -17,7 +17,6 @@ service:
 
   plugins: <plugin>
   models: <model>
-  modelCrudAdapter: <crud>
 
 EOT;
 

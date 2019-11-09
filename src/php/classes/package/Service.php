@@ -2,25 +2,19 @@
 
 namespace lx;
 
-//TODO - убрать зависимость через конфиг через DI
-use lx\model\ModelProvider;
+class Service extends ApplicationTool implements FusionInterface {
+	use FusionTrait;
 
-class Service extends ApplicationTool {
 	/** @var $_name string - уникальное имя сервиса */
 	protected $_name;
 	/** @var $_path string - путь к каталогу сервиса относительно корня приложения */
 	protected $_path;
 	/** @var $_config array - массив настроек сервиса */
 	protected $_config = null;
-
 	/** @var $_dir lx\PackageDirectory - объект, воплощающий директорию сервиса */
 	protected $_dir = null;
 	/** @var $_conductor lx\Conductor - проводник по структуре сервиса */
 	protected $_conductor = null;
-	/** @var $_modelProvider ModelProvider - провайдер моделей сервиса */
-	protected $_modelProvider = null;
-	/** @var $_i18nMap lx\I18nMap - карта интернационализации */
-	protected $_i18nMap = null;
 
 	/** @var $dbConnections array - соединения с базами банных */
 	private $dbConnections = [];
@@ -61,7 +55,9 @@ class Service extends ApplicationTool {
 
 		$config['service']['dbList'] = $this->getDbConfig($config);
 		unset($config['service']['db']);
+
 		$this->_config = $config;
+		$this->initFusionComponents($this->getConfig('service.components'));
 	}
 
 	/**
@@ -144,36 +140,21 @@ class Service extends ApplicationTool {
 				}
 
 				return $this->_conductor;
+		}
 
-			case 'modelProvider':
-				if ($this->_modelProvider === null) {
-					$crudAdapterClass = $this->getConfig('service.modelCrudAdapter');
-					if ($crudAdapterClass === null) {
-						$crudAdapter = null;
-					} else {
-						$config = ClassHelper::prepareConfig($crudAdapterClass);
-						$crudAdapter = new $config['class']($this->app, $config['params']);
-					}
-
-					$this->_modelProvider = new ModelProvider($this, $crudAdapter);
-				}
-
-				return $this->_modelProvider;
-
-			case 'i18nMap':
-				if ($this->_i18nMap === null) {
-					$config = ClassHelper::prepareConfig(
-						$this->getConfig('service.i18nMap'),
-						I18nServiceMap::class
-					);
-					$config['params']['service'] = $this;
-					$this->_i18nMap = new $config['class']($this->app, $config['params']);
-				}
-
-				return $this->_i18nMap;
+		$component = $this->getFusionComponent($name);
+		if ($component) {
+			return $component;
 		}
 
 		return parent::__get($name);
+	}
+
+	public function getFusionComponentsDefaultConfig()
+	{
+		return [
+			'i18nMap' => I18nServiceMap::class,
+		];
 	}
 
 	/**
@@ -241,6 +222,10 @@ class Service extends ApplicationTool {
 	 *
 	 * */
 	public function getModelManager($modelName) {
+		if ( ! $this->modelProvider) {
+			return null;
+		}
+
 		return $this->modelProvider->getManager($modelName);
 	}
 

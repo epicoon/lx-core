@@ -12,9 +12,10 @@ namespace lx;
  * @property $conductor Conductor
  * @property $router Router
  */
-class Application extends AbstractApplication {
+class Application extends AbstractApplication implements FusionInterface {
+	use FusionTrait;
+
 	public $data;
-	protected $components;
 
 	private $_dialog;
 	private $_router;
@@ -34,8 +35,7 @@ class Application extends AbstractApplication {
 		$this->_dialog = new Dialog($this);
 		$this->retrieveRouter();
 
-		$this->components = new ComponentList($this);
-		$this->components->load($this->getConfig('components'), [
+		$this->initFusionComponents($this->getConfig('components'), [
 			'language' => Language::class,
 			'user' => User::class,
 		]);
@@ -56,8 +56,9 @@ class Application extends AbstractApplication {
 			}
 		}
 
-		if ($this->components->has($name)) {
-			return $this->components->$name;
+		$component = $this->getFusionComponent($name);
+		if ($component) {
+			return $component;
 		}
 
 		return parent::__get($name);

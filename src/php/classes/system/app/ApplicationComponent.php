@@ -2,14 +2,20 @@
 
 namespace lx;
 
-class ApplicationComponent extends ApplicationTool {
-	public function __construct($config = []) {
-		parent::__construct($config['app']);
+class ApplicationComponent implements FusionComponentInterface {
+	use FusionComponentTrait;
 
-		foreach ($config as $key => $value) {
-			if (property_exists($this, $key)) {
-				$this->$key = $value;
-			}
+	public function __construct($owner, $config = [])
+	{
+		$this->constructFusionComponent($owner, $config);
+	}
+
+	public function __get($name)
+	{
+		if ($name == 'app') {
+			return $this->owner;
 		}
-	}	
+
+		return $this->getFusionComponentProperty($name);
+	}
 }

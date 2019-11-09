@@ -27,6 +27,35 @@ class ClassHelper {
 		}
 	}
 
+	public static function publicPropertyExists($class, $property) {
+		if ( ! property_exists($class, $property)) {
+			return false;
+		}
+
+		$reflected = new \ReflectionClass($class);
+		$reflProperty = $reflected->getProperty($property);
+		return $reflProperty->isPublic();
+	}
+
+	public static function protectedPropertyExists($class, $property) {
+		if ( ! property_exists($class, $property)) {
+			return false;
+		}
+
+		$reflected = new \ReflectionClass($class);
+		$reflProperty = $reflected->getProperty($property);
+		return $reflProperty->isProtected();
+	}
+
+	public static function privatePropertyExists($class, $property) {
+		if ( ! property_exists($class, $property)) {
+			return false;
+		}
+
+		$reflected = new \ReflectionClass($class);
+		$reflProperty = $reflected->getProperty($property);
+		return $reflProperty->isPrivate();
+	}
 	/**
 	 * Получить пространство имен для класса или объекта
 	 * */
@@ -69,11 +98,16 @@ class ClassHelper {
 				$class = $config['class'];
 				unset($config['class']);
 			}
+
 			if (isset($config['params'])) {
 				$params = $config['params'];
 			} else {
 				$params = $config;
 			}
+		}
+
+		if ($class === null || !self::exists($class)) {
+			return null;
 		}
 
 		return [
