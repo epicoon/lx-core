@@ -3,6 +3,10 @@
 namespace lx;
 
 class CliProcessor extends ApplicationTool {
+	const COMMAND_TYPE_COMMON = 5;
+	const COMMAND_TYPE_CONSOLE_ONLY = 10;
+	const COMMAND_TYPE_WEB_ONLY = 15;
+
 	/*
 	//todo
 	выбор создаваемых компонентов для нового плагина - какие каталоги, надо ли файл пееропределяющий сам плагин...
@@ -42,7 +46,6 @@ class CliProcessor extends ApplicationTool {
 		'create_plugin' => 'createPlugin',
 	];
 	private $_extensions = null;
-	private $_commandsList = null;
 	private $_methodMap = null;
 
 	private $servicesList = null;
@@ -56,17 +59,14 @@ class CliProcessor extends ApplicationTool {
 	private $params = [];
 	private $invalidParams = [];
 	private $keepProcess = false;
+	private $extensionData = null;
 
-	public function getCommandsList()
+	public function getCommandsList($types = null, $excludedTypes = null)
 	{
-		if ($this->_commandsList === null) {
-			return array_merge(
-				self::SELF_COMMANDS,
-				$this->getCommandsExtensionList()
-			);
-		}
-
-		return $this->_commandsList;
+		return array_merge(
+			self::SELF_COMMANDS,
+			$this->getCommandsExtensionList($types, $excludedTypes)
+		);
 	}
 
 	public function handleCommand($commandType, $args, $service, $plugin) {
@@ -79,8 +79,18 @@ class CliProcessor extends ApplicationTool {
 		$this->consoleMap = [];
 		$this->needParam = false;
 
-		$this->envolveMethod($methodMap, $commandType);
+		$this->invokeMethod($methodMap, $commandType);
 		return $this->getResult();
+	}
+
+	public function getExtensionData()
+	{
+		return $this->extensionData;
+	}
+
+	public function setExtensionData($data)
+	{
+		$this->extensionData = $data;
 	}
 
 
@@ -120,13 +130,19 @@ class CliProcessor extends ApplicationTool {
 	}
 
 	public function getResult() {
-		return [
+		$result = [
 			'output' => $this->consoleMap,
 			'params' => $this->params,
 			'invalidParams' => $this->invalidParams,
 			'need' => $this->needParam,
 			'keepProcess' => $this->keepProcess,
 		];
+
+		if ( ! empty($this->getExtensionData())) {
+			$result['extensionData'] = $this->getExtensionData();
+		}
+
+		return $result;
 	}
 
 	public function hasParam($name) {
@@ -204,7 +220,11 @@ class CliProcessor extends ApplicationTool {
 	 * */
 	private function showHelp() {
 		$arr = [];
-		foreach ($this->getCommandsList() as $key => $keywords) {
+		$list = $this->getCommandsList([
+			self::COMMAND_TYPE_COMMON,
+			self::COMMAND_TYPE_CONSOLE_ONLY,
+		]);
+		foreach ($list as $key => $keywords) {
 			$arr[] = [
 				ucfirst( str_replace('_', ' ', $key) ),
 				implode(', ', (array)$keywords)
@@ -501,7 +521,7 @@ class CliProcessor extends ApplicationTool {
 			return;
 		}
 
-		if ($this->hasParam('name')) {
+		if ( ! $this->hasParam('name')) {
 			$name = $this->getArg(0);
 			if (!$name) {
 				$this->in('name', 'You need to enter new service name: ', ['decor' => 'b']);
@@ -518,7 +538,7 @@ class CliProcessor extends ApplicationTool {
 			return;
 		}
 
-		if ($this->hasParam('index')) {
+		if ( ! $this->hasParam('index')) {
 			$this->outln('Available directories for new service:', ['decor' => 'b']);
 			$counter = 0;
 			foreach ($dirs as $dirPath) {
@@ -558,7 +578,7 @@ class CliProcessor extends ApplicationTool {
 			return;
 		}
 
-		if ($this->hasParam('name')) {
+		if ( ! $this->hasParam('name')) {
 			$name = $this->getArg(0);
 			if (!$name) {
 				$this->in('name', 'You need to enter new plugin name: ', ['decor' => 'b']);
@@ -588,7 +608,7 @@ class CliProcessor extends ApplicationTool {
 			return;
 		}
 
-		if ($this->hasParam('index')) {
+		if ( ! $this->hasParam('index')) {
 			$this->outln('Available directories for new plugin (relative to the service directory)::', ['decor' => 'b']);
 			$counter = 0;
 			foreach ($pluginDirs as $dirPath) {
@@ -674,30 +694,36 @@ class CliProcessor extends ApplicationTool {
 	 * Методы внутренней работы процессора
 	 ******************************************************************************************************************/
 
-	private function envolveMethod($map, $command)
+	private function invokeMethod($map, $commandType)
 	{
+		$command = $map[$commandType];
 		if (is_string($command)) {
-			$this->{$map[$command]}();
+			$this->{$command}();
 		} elseif (is_array($command)) {
 			$object = new $command[0]();
+			$object->setProcessor($this);
 			$object->{$command[1]}();
 		}
 	}
 
-	private function getCommandsExtensionList()
+	private function getCommandsExtensionList($types, $excludedTypes)
 	{
 		if ($this->_extensions === null) {
 			$this->loadServiceExtensions();
 		}
 
-		return $this->extractCommandsExtensionList();
+		return $this->extractCommandsExtensionList($types, $excludedTypes);
 	}
 
-	private function extractCommandsExtensionList()
+	private function extractCommandsExtensionList($types, $excludedTypes)
 	{
 		$result = [];
 		foreach ($this->_extensions as $serviceData) {
 			foreach ($serviceData as $commandData) {
+				if ( ! $this->validateCommandType($commandData, $types, $excludedTypes)) {
+					continue;
+				}
+
 				$result[$commandData['key']] = $commandData['command'];
 			}
 		}
@@ -731,11 +757,32 @@ class CliProcessor extends ApplicationTool {
 		$result = [];
 		foreach ($this->_extensions as $serviceData) {
 			foreach ($serviceData as $commandData) {
-				$result[$commandData['key']] = $commandData['forEvolve'];
+				$result[$commandData['key']] = $commandData['handler'];
 			}
 		}
 
 		return $result;
+	}
+
+	private function validateCommandType($commandData, $types, $excludedTypes)
+	{
+		$type = $commandData['type'] ?? self::COMMAND_TYPE_COMMON;
+		$types = $types ?? [
+			self::COMMAND_TYPE_COMMON,
+			self::COMMAND_TYPE_CONSOLE_ONLY,
+			self::COMMAND_TYPE_WEB_ONLY,
+		];
+		$excludedTypes = $excludedTypes ?? [];
+
+		if (array_search($type, $excludedTypes) !== false) {
+			return false;
+		}
+
+		if (array_search($type, $types) === false) {
+			return false;
+		}
+
+		return true;
 	}
 
 	private function loadServiceExtensions()
