@@ -4,7 +4,7 @@ namespace lx;
 
 class JsModuleMapBuilder extends ApplicationTool {
 	public function renewHead() {
-		$list = PackageBrowser::getServicesList();
+		$list = PackageBrowser::getServiceNamesList();
 		$names = [];
 		foreach (array_keys($list) as $serviceName) {
 			$service = $this->app->getService($serviceName);
@@ -32,7 +32,7 @@ class JsModuleMapBuilder extends ApplicationTool {
 	}
 
 	public function renewAllServices() {
-		$list = PackageBrowser::getServicesList();
+		$list = PackageBrowser::getServiceNamesList();
 		$names = [];
 		foreach (array_keys($list) as $serviceName) {
 			$service = $this->app->getService($serviceName);

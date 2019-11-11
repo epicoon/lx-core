@@ -5,19 +5,16 @@ namespace lx;
 /**
  * Класс для обозревания пакетов со стороны
  * */
-class PackageBrowser {
-	/**
-	 *
-	 * */
-	public static function getPackagesList() {
+class PackageBrowser
+{
+	public static function getPackageNamesList()
+	{
 		return Autoloader::getInstance()->map->packages;
 	}
 
-	/**
-	 *
-	 * */
-	public static function getServicesList() {
-		$list = self::getPackagesList();
+	public static function getServiceNamesList()
+	{
+		$list = self::getPackageNamesList();
 		$result = [];
 
 		foreach ($list as $name => $path) {
@@ -29,10 +26,19 @@ class PackageBrowser {
 		return $result;
 	}
 
-	/**
-	 *
-	 * */
-	public static function checkDirectoryIsPackage($packagePath) {
+	public static function getServicesList()
+	{
+		$list = self::getServiceNamesList();
+		foreach ($list as $name => &$value) {
+			$value = \lx::$app->getService($name);
+		}
+		unset($value);
+
+		return $list;
+	}
+
+	public static function checkDirectoryIsPackage($packagePath)
+	{
 		$fullPath = \lx::$app->conductor->getFullPath($packagePath);
 
 		$directory = new PackageDirectory($fullPath);
@@ -64,7 +70,7 @@ class PackageBrowser {
 	 *
 	 * */
 	public static function checkPackageIsService($packageName) {
-		$list = self::getPackagesList();
+		$list = self::getPackageNamesList();
 		if (!array_key_exists($packageName, $list)) {
 			return false;
 		}

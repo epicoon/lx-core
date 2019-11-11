@@ -2,9 +2,15 @@
 
 namespace lx;
 
-class ComponentList extends ApplicationTool {
+class ComponentList {
+	private $fusion;
 	private $config = [];
 	private $list = [];
+
+	public function __construct($fusion)
+	{
+		$this->fusion = $fusion;
+	}
 
 	public function __get($name) {
 		if (array_key_exists($name, $this->list)) {
@@ -14,7 +20,7 @@ class ComponentList extends ApplicationTool {
 		if (array_key_exists($name, $this->config)) {
 			$data = $this->config[$name];
 			unset($this->config[$name]);
-			$this->list[$name] = new $data['class']($this->app, $data['params']);
+			$this->list[$name] = new $data['class']($this->fusion, $data['params']);
 			return $this->list[$name];
 		}
 

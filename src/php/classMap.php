@@ -101,19 +101,13 @@ return [
 	'WidgetHelper' => 'classes/helpers',
 	'I18nHelper' => 'classes/helpers',
 
-	'IndentData' => '../widgets/Box/positioningStrategiesPhp',
-	'PositioningStrategy' => '../widgets/Box/positioningStrategiesPhp',
-	'SimplePositioningStrategy' => '../widgets/Box/positioningStrategiesPhp',
-	'AlignPositioningStrategy' => '../widgets/Box/positioningStrategiesPhp',
-	'StreamPositioningStrategy' => '../widgets/Box/positioningStrategiesPhp',
-	'GridPositioningStrategy' => '../widgets/Box/positioningStrategiesPhp',
-	'SlotPositioningStrategy' => '../widgets/Box/positioningStrategiesPhp',
-
 	'ClassOfServiceInterface' => 'interfaces',
 	'AuthenticationInterface' => 'interfaces',
 	'AuthorizationInterface' => 'interfaces',
 	'LoggerInterface' => 'interfaces',
 	'ServiceCliInterface' => 'interfaces',
+	'ServiceCliExecutorInterface' => 'interfaces',
+	'ModelInterface' => 'interfaces',
 
 	'ClassOfServiceTrait' => 'traits',
 

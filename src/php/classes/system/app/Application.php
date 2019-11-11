@@ -214,16 +214,20 @@ class Application extends AbstractApplication implements FusionInterface {
 	 * Собирает js-ядро
 	 * */
 	private function compileJsCore($compiler) {
+		//TODO - кэшировать это
 		$path = $this->conductor->getSystemPath('jsCore');
 		$code = file_get_contents($path);
 		$code = $compiler->compileCode($code, $path);
 
-		if ($this->authenticationGate) {
-			$code .= $this->authenticationGate->getJs();
+		//TODO - кэшировать это
+		$servicesList = PackageBrowser::getServicesList();
+		$coreExtension = '';
+		foreach ($servicesList as $service) {
+			$coreExtension .= $service->getJsCoreExtension();
 		}
+		$code .= $coreExtension;
 
 		$code .= 'lx.lang=' . ArrayHelper::arrayToJsCode($this->language->getCurrentData()) . ';';
-
 		return $code;
 	}
 

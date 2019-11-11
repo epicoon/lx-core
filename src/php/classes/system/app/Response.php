@@ -110,8 +110,12 @@ class Response extends ApplicationTool
 
 	private function sendOk()
 	{
-		$result = false;
+		if ($this->source === false) {
+			$this->sendNotOk(403);
+			return;
+		}
 
+		$result = false;
 		if ($this->source->isPlugin()) {
 			$plugin = $this->source->getPlugin();
 			if ($this->app->dialog->isPageLoad()) {
@@ -134,8 +138,12 @@ class Response extends ApplicationTool
 		$this->afterSuccessfulSending();
 	}
 
-	private function sendNotOk()
+	private function sendNotOk($code = null)
 	{
+		if ($code) {
+			$this->code = $code;
+		}
+
 		if ($this->app->dialog->isPageLoad()) {
 			$this->renderStandartResponse($this->code);
 		} else {

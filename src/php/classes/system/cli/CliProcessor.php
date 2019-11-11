@@ -645,7 +645,7 @@ class CliProcessor extends ApplicationTool {
 	 *
 	 * */
 	private function resetServicesList() {
-		$services = PackageBrowser::getServicesList();
+		$services = PackageBrowser::getServiceNamesList();
 		$data = [];
 		foreach ($services as $name => $path) {
 			$data[$name] = [

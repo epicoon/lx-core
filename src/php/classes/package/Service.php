@@ -229,6 +229,10 @@ class Service extends ApplicationTool implements FusionInterface {
 		return $this->modelProvider->getManager($modelName);
 	}
 
+	public function getJsCoreExtension() {
+		return '';
+	}
+
 	/**
 	 *
 	 * */
