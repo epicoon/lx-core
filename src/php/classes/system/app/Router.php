@@ -99,10 +99,21 @@ class Router extends ApplicationTool {
 
 		if (isset($routeData['service-plugin'])) {
 			preg_match_all('/^([^:]*?):(.*?)$/', $routeData['service-plugin'], $matches);
-			return [
+			$result = [
 				'service' => $matches[1][0],
 				'plugin' => $matches[2][0],
 			];
+			if (isset($routeData['renderParams'])) {
+				$result['renderParams'] = $routeData['renderParams'];
+			}
+			if (isset($routeData['clientParams'])) {
+				$result['clientParams'] = $routeData['clientParams'];
+			}
+			if (isset($routeData['dependencies'])) {
+				$result['dependencies'] = $routeData['dependencies'];
+			}
+
+			return $result;
 		}
 	}
 
