@@ -15,7 +15,7 @@ class LocalEventSupervisor #lx:namespace lx {
 
 	trigger(eventName, args = []) {
 		if (eventName in this.listeners) {
-			if (!args.isArray) args = [args];
+			if (args === null || args === undefined || !args.isArray) args = [args];
 			for (var i=0, l=this.listeners[eventName].len; i<l; i++)
 				lx.callFunction(this.listeners[eventName][i], args);
 		}
