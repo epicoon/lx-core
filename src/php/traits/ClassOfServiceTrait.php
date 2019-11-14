@@ -12,7 +12,7 @@ trait ClassOfServiceTrait {
 	 * @return string|null
 	 * */
 	public function getServiceName() {
-		return ClassHelper::defineService(static::class);
+		return ClassHelper::defineServiceName(static::class);
 	}
 
 	/**

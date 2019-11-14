@@ -370,9 +370,6 @@ class Plugin extends ApplicationTool {
 		return $result + $this->scripts();
 	}
 
-	/**
-	 *
-	 * */
 	public function getPrototypePlugin() {
 		if ($this->prototype) {
 			return $this->app->getPlugin($this->prototype);
@@ -381,9 +378,6 @@ class Plugin extends ApplicationTool {
 		return null;
 	}
 
-	/**
-	 *
-	 * */
 	public function getPrototypeService() {
 		if ($this->prototype) {
 			$serviceName = explode(':', $this->prototype)[0];
@@ -391,6 +385,24 @@ class Plugin extends ApplicationTool {
 		}
 
 		return null;
+	}
+
+	public function getRootPlugin()
+	{
+		if ( ! $this->prototype) {
+			return $this;
+		}
+		
+		return $this->app->getPlugin($this->prototype)->getRootPlugin();
+	}
+
+	public function getRootService()
+	{
+		if ( ! $this->prototype) {
+			return $this->getService();
+		}
+
+		return $this->app->getPlugin($this->prototype)->getRootPlugin()->getService();
 	}
 
 

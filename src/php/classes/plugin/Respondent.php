@@ -33,6 +33,14 @@ class Respondent {
 		return $this->getPlugin()->getService();
 	}
 
+	public function getRootPlugin() {
+		return $this->getPlugin()->getRootPlugin();
+	}
+
+	public function getRootService() {
+		return $this->getPlugin()->getRootService();
+	}
+
 	public function getModelManager($name) {
 		return $this->getService()->getModelManager($name);
 	}

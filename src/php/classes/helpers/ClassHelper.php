@@ -121,7 +121,7 @@ class ClassHelper {
 	 * @return string|null - имя пакета, в котором класс объявен,
 	 *                       либо null, если класс не находится в пакете
 	 * */
-	public static function defineService($className) {
+	public static function defineServiceName($className) {
 		$reflected = new \ReflectionClass($className);
 		if (!$reflected->inNamespace()) {
 			return null;
@@ -130,8 +130,10 @@ class ClassHelper {
 		$classMap = Autoloader::getInstance()->map;
 
 		$namespace = $reflected->getNamespaceName() . '\\';
-		if (array_key_exists($namespace, $classMap->namespaces)) {
-			return $classMap->namespaces[$namespace]['package'];
+		foreach ($classMap->namespaces as $key => $value) {
+			if (preg_match('/^' . addcslashes($key, '\\') . '/', $namespace)) {
+				return $value['package'];
+			}
 		}
 
 		if (array_key_exists($className, $classMap->classes)) {
@@ -139,6 +141,16 @@ class ClassHelper {
 		}
 
 		return null;
+	}
+
+	public static function defineService($className)
+	{
+		$serviceName = self::defineServiceName($className);
+		if ( ! $serviceName) {
+			return null;
+		}
+
+		return \lx::$app->getService($serviceName);
 	}
 
 	/**
