@@ -202,7 +202,67 @@ class DBmysql extends DB {
 	 *
 	 * */
 	public function tableAddColumn($tableName, $name, $definition) {
+		/*
+		Для внешнего ключа
 
+		ALTER TABLE users ADD grade_id SMALLINT UNSIGNED NOT NULL DEFAULT 0;
+		ALTER TABLE users ADD CONSTRAINT fk_grade_id FOREIGN KEY (grade_id) REFERENCES grades(id);
+
+		ALTER TABLE my_table DROP FOREIGN KEY fk_name;
+		ALTER TABLE my_table DROP COLUMN my_column;
+
+		
+		Вроде как про "по поводу посмотреть есть ли внешний ключ":
+		
+		1) Попроще (показывает CONSTRAINT_NAME, REFERENCED_TABLE_NAME и REFERENCED_COLUMN_NAME для полей таблицы, если они есть):
+		use INFORMATION_SCHEMA;
+		select 
+		  TABLE_NAME,COLUMN_NAME,CONSTRAINT_NAME,REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME 
+		from 
+		  KEY_COLUMN_USAGE
+		where 
+		  TABLE_SCHEMA = "ИМЯ_БАЗЫ" 
+		and 
+		  TABLE_NAME = "ИМЯ_ТАБЛИЦЫ" 
+		and 
+		  REFERENCED_COLUMN_NAME is not NULL;
+
+		2) Понавороченней, показывает ВСЁ:
+		use INFORMATION_SCHEMA;
+		SELECT 
+		  cols.TABLE_NAME, cols.COLUMN_NAME, cols.ORDINAL_POSITION,
+		  cols.COLUMN_DEFAULT, cols.IS_NULLABLE, cols.DATA_TYPE,
+		  cols.CHARACTER_MAXIMUM_LENGTH, cols.CHARACTER_OCTET_LENGTH,
+		  cols.NUMERIC_PRECISION, cols.NUMERIC_SCALE,
+		  cols.COLUMN_TYPE, cols.COLUMN_KEY, cols.EXTRA,
+		  cols.COLUMN_COMMENT, refs.REFERENCED_TABLE_NAME,
+		  refs.REFERENCED_COLUMN_NAME,
+		  cRefs.UPDATE_RULE, cRefs.DELETE_RULE,
+		  links.TABLE_NAME, links.COLUMN_NAME,
+		  cLinks.UPDATE_RULE, cLinks.DELETE_RULE
+		FROM 
+		  `COLUMNS` as cols
+		LEFT JOIN `KEY_COLUMN_USAGE` AS refs ON 
+		  refs.TABLE_SCHEMA=cols.TABLE_SCHEMA
+		  AND refs.REFERENCED_TABLE_SCHEMA=cols.TABLE_SCHEMA
+		  AND refs.TABLE_NAME=cols.TABLE_NAME
+		  AND refs.COLUMN_NAME=cols.COLUMN_NAME
+		LEFT JOIN REFERENTIAL_CONSTRAINTS AS cRefs ON 
+		  cRefs.CONSTRAINT_SCHEMA=cols.TABLE_SCHEMA
+		  AND cRefs.CONSTRAINT_NAME=refs.CONSTRAINT_NAME
+		LEFT JOIN `KEY_COLUMN_USAGE` AS links ON 
+		  links.TABLE_SCHEMA=cols.TABLE_SCHEMA
+		  AND links.REFERENCED_TABLE_SCHEMA=cols.TABLE_SCHEMA
+		  AND links.REFERENCED_TABLE_NAME=cols.TABLE_NAME
+		  AND links.REFERENCED_COLUMN_NAME=cols.COLUMN_NAME
+		LEFT JOIN REFERENTIAL_CONSTRAINTS AS cLinks ON 
+		  cLinks.CONSTRAINT_SCHEMA=cols.TABLE_SCHEMA
+		  AND cLinks.CONSTRAINT_NAME=links.CONSTRAINT_NAME
+		WHERE 
+		  cols.TABLE_SCHEMA="ИМЯ_БАЗЫ"
+		AND 
+		  cols.TABLE_NAME="ИМЯ_ТАБЛИЦЫ";
+		*/
 	}
 
 	/**

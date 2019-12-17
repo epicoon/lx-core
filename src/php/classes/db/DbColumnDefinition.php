@@ -7,6 +7,7 @@ class DbColumnDefinition {
 		$type = null,
 		$size = null,
 		$isPK = false,
+		$isFK = false,
 		$notNull = false,
 		$default = null;
 

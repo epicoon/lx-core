@@ -43,7 +43,7 @@ class DbTable {
 	 * */
 	public function pkName() {
 		if ($this->_pkName === null) {
-			$this->_pkName = $this->schema()['pk'];
+			$this->_pkName = $this->schema()->getPk();
 		}
 
 		return $this->_pkName;
@@ -187,13 +187,13 @@ class DbTable {
 			if (is_string($key)) {
 				if (is_array($value)) {
 					foreach ($value as &$val) {
-						if (!is_string($val) && $schema['types'][$key] == 'string') $val = (string)$val;
+						if (!is_string($val) && $schema->getType($key) == 'string') $val = (string)$val;
 						$val = DB::valueForQuery($val);
 					}
 					unset($val);
 					$part = $key . ' IN (' . implode(', ', $value) . ')';
 				} else {
-					if (!is_string($value) && $schema['types'][$key] == 'string') $value = (string)$value;
+					if (!is_string($value) && $schema->getType($key) == 'string') $value = (string)$value;
 					$part = $key . '=' . DB::valueForQuery($value);
 				}
 			} else {

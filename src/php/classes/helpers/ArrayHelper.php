@@ -13,6 +13,49 @@ class ArrayHelper {
 
 		return $result;
 	}
+	
+	public static function extract($key, &$array, $default = null)
+	{
+		if ( ! array_key_exists($key, $array)) {
+			return $default;
+		}
+		
+		$result = $array[$key];
+		unset($array[$key]);
+		return $result;
+	}
+
+	public static function pathExists($array, $path)
+	{
+		$currentArray = $array;
+		foreach ($path as $key) {
+			if ( ! is_array($currentArray) || ! array_key_exists($key, $currentArray)) {
+				return false;
+			}
+
+			$currentArray = $currentArray[$key];
+		}
+
+		return true;
+	}
+
+	public static function createPath($array, $path)
+	{
+		$currentArray = &$array;
+		foreach ($path as $key) {
+			if ( ! is_array($currentArray)) {
+				return $array;
+			}
+
+			if ( ! array_key_exists($key, $currentArray)) {
+				$currentArray[$key] = [];
+			}
+
+			$currentArray = &$currentArray[$key];
+		}
+
+		return $array;
+	}
 
 	public static function mergeRecursiveDistinct($array1, $array2, $change = false)
 	{

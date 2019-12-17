@@ -2,8 +2,24 @@
 
 namespace lx;
 
-class StringHelper {
-	public static function smartSplit($string, $rules) {
+class StringHelper
+{
+	public static function camelToSnake($string)
+	{
+		return lcfirst(preg_replace_callback('/(.)([A-Z])/', function($match) {
+			return $match[1] . '_' . strtolower($match[2]) ;
+		}, $string));
+	}
+	
+	public static function snakeToCamel($string)
+	{
+		return preg_replace_callback('/_(.)/', function($match) {
+			return strtoupper($match[1]) ;
+		}, $string);
+	}
+
+	public static function smartSplit($string, $rules)
+	{
 		$delimiter = $rules['delimiter'];
 		$save = $rules['save'];
 		$saveStrings = array_search("'", $save) !== false;
@@ -49,5 +65,4 @@ class StringHelper {
 
 		return $arr;
 	}
-	
 }

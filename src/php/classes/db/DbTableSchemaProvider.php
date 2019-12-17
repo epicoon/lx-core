@@ -11,10 +11,13 @@ class DbTableSchemaProvider {
 		if (!array_key_exists($tableKey, self::$map)) {
 			$schema = $table->getDb()->tableSchema($table->getName(), DB::SHORT_SCHEMA);
 			$pk = null;
+			$fields = [];
 			$defaults = [];
 			$types = [];
 			$notNull = [];
 			foreach ($schema as $key => $value) {
+				$fields[] = $key;
+				
 				// Определение первичного ключа
 				if ($value['type'] == 'pk') {
 				// if (array_key_exists('default', $value) && $value['default'] == '@PK') {
@@ -42,12 +45,13 @@ class DbTableSchemaProvider {
 				$types[$key] = $value['type'] == 'pk' ? 'integer' : $value['type'];
 			}
 
-			self::$map[$tableKey] = [
+			self::$map[$tableKey] = new DbSchema([
 				'pk' => $pk,
+				'fields' => $fields,
 				'types' => $types,
 				'defaults' => $defaults,
 				'notNull' => $notNull,
-			];
+			]);
 		}
 
 		return self::$map[$tableKey];

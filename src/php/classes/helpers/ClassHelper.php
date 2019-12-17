@@ -56,6 +56,37 @@ class ClassHelper {
 		$reflProperty = $reflected->getProperty($property);
 		return $reflProperty->isPrivate();
 	}
+
+	public static function publicMethodExists($class, $method) {
+		if ( ! method_exists($class, $method)) {
+			return false;
+		}
+
+		$reflected = new \ReflectionClass($class);
+		$reflMethod = $reflected->getMethod($method);
+		return $reflMethod->isPublic();
+	}
+
+	public static function protectedMethodExists($class, $method) {
+		if ( ! method_exists($class, $method)) {
+			return false;
+		}
+
+		$reflected = new \ReflectionClass($class);
+		$reflMethod = $reflected->getMethod($method);
+		return $reflMethod->isProtected();
+	}
+
+	public static function privateMethodExists($class, $method) {
+		if ( ! method_exists($class, $method)) {
+			return false;
+		}
+
+		$reflected = new \ReflectionClass($class);
+		$reflMethod = $reflected->getMethod($method);
+		return $reflMethod->isPrivate();
+	}
+
 	/**
 	 * Получить пространство имен для класса или объекта
 	 * */
@@ -154,6 +185,29 @@ class ClassHelper {
 	}
 
 	/**
+	 * Получение поля объекта
+	 * @param $object
+	 * @param $propertyName
+	 */
+	public static function get($object, $propertyName)
+	{
+		$rc = new \ReflectionClass($object);
+		if ( ! $rc->hasProperty($propertyName)) {
+			return null;
+		}
+
+		$property = $rc->getProperty($propertyName);
+		if ($property->isPublic()) {
+			return $property->getValue($object);
+		}
+
+		$property->setAccessible(true);
+		$result = $property->getValue($object);
+		$property->setAccessible(false);
+		return $result;
+	}
+
+	/**
 	 * Вызов защищенного или приватного метода
 	 * */
 	public static function call($object, $methodName, $args = []) {
@@ -165,9 +219,9 @@ class ClassHelper {
 			$method->setAccessible(true);
 		}
 		if (is_object($object)) {
-			$result = $method->invokeArgs($object, $args);
+			$result = $method->invokeArgs($object, (array)$args);
 		} else {
-			$result = $method->invokeArgs(null, $args);
+			$result = $method->invokeArgs(null, (array)$args);
 		}
 		if ($isPrivate) {
 			$method->setAccessible(false);

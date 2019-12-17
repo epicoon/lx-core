@@ -130,8 +130,8 @@ class DBpostgres extends DB {
 
 		//todo - схема кэшируется. Подумать оставять так или нет
 		$schema = $table->schema();
-		$pk = $schema['pk'];
-		$fields = array_keys($schema['types']);
+		$pk = $schema->getPk();
+		$fields = $schema->getFields();
 		$set = [];
 		$values = [];
 		foreach ($fields as $field) {
@@ -140,8 +140,8 @@ class DBpostgres extends DB {
 			foreach ($rows as $row) {
 				$val = DB::valueForQuery($row[$field]);
 				// $val = DB::valueForQuery($record->$field);
-				if ($val == 'NULL' && $schema['types'][$field] != DB::TYPE_STRING) {
-					$val .= '::' . $schema['types'][$field];
+				if ($val == 'NULL' && $schema->getType($field) != DB::TYPE_STRING) {
+					$val .= '::' . $schema->getType($field);
 				}
 				$vals[] = $val;
 			}
@@ -229,7 +229,7 @@ class DBpostgres extends DB {
 					$data['default'] = $item['column_default'];
 				}
 			}
-			$data['notNull'] = $item['is_nullable'] == 'NO';
+			$data['notNull'] = ($item['is_nullable'] == 'NO');
 			if (!isset($data['type'])) {
 				if (preg_match('/^character/', $item['data_type'])) $data['type'] = 'string';
 				else $data['type'] = $item['data_type'];
@@ -241,18 +241,84 @@ class DBpostgres extends DB {
 		}
 		return $result;
 	}
+	
+	public function addForeignKey($config)
+	{
+		if (is_string($config)) {
+			preg_match_all('/\b[\w\d_]+?\b/', $config, $matches);
+			if (count($matches[0]) < 4) {
+				$this->error = 'Wrong data for foreign key: "'. $config .'"';
+				return false;
+			}
+			$config = $matches[0];
+		}
 
-	/**
-	 *
-	 * */
-	public function renameTable($oldName, $newName) {
+		$definition = $this->foreignKeyDefinition($config);
+		$schema = $this->table($definition->isFK['table'])->schema();
+		if ($schema->hasField($definition->isFK['field'])) {
+			return $this->addForeignKeyProcess(
+				$definition->isFK['table'],
+				$definition->isFK['field'],
+				$definition
+			);
+		}
+
+		return $this->tableAddColumn(
+			$definition->isFK['table'],
+			$definition->isFK['field'],
+			$definition
+		);
+	}
+
+	public function checkForeignKeyExists($tableName, $name)
+	{
+		if (preg_match('/\./', $tableName)) {
+			list($schema, $table) = explode('.', $tableName);
+			$fkName = "fk__{$schema}_{$table}__$name";
+		} else {
+			$schema = 'public';
+			$table = $tableName;
+			$fkName = "fk__{$table}__$name";
+		}
+
+		$fk = $this->select("
+			SELECT * FROM information_schema.table_constraints
+			WHERE constraint_type='FOREIGN KEY'
+				AND table_schema='$schema'
+				AND table_name='$table'
+				AND constraint_name='$fkName';
+		");
+
+		return !empty($fk);
+	}
+
+	public function dropForeignKey($config)
+	{
+		if (is_string($config)) {
+			preg_match_all('/\b[\w\d_]+?\b/', $config, $matches);
+			if (count($matches[0]) != 2) {
+				$this->error = 'Wrong data for drop foreign key: "'. $config .'"';
+				return false;
+			}
+			$config = $matches[0];
+		}
+
+		$definition = $this->foreignKeyDefinition($config);
+		$this->tableDropColumn(
+			$definition->isFK['table'],
+			$definition->isFK['field']
+		);
+
+		return true;
+	}
+
+	public function renameTable($oldName, $newName)
+	{
 		$this->query("ALTER TABLE $oldName RENAME TO $newName;");
 	}
 
-	/**
-	 *
-	 * */
-	public function tableRenameColumn($tableName, $oldName, $newName) {
+	public function tableRenameColumn($tableName, $oldName, $newName)
+	{
 		$this->query("ALTER TABLE $tableName RENAME COLUMN $oldName TO $newName;");
 	}
 
@@ -262,12 +328,24 @@ class DBpostgres extends DB {
 	public function tableAddColumn($tableName, $name, $definition) {
 		$definitionString = $this->definitionToString($definition);
 		$this->query("ALTER TABLE $tableName ADD COLUMN $name $definitionString;");
+		
+		if ($definition->isFK) {
+			return $this->addForeignKeyProcess($tableName, $name, $definition);
+		}
+
+		return true;
 	}
 
 	/**
 	 *
 	 * */
 	public function tableDropColumn($tableName, $name) {
+		if ($this->checkForeignKeyExists($tableName, $name)) {
+			$table = str_replace('.','_', $tableName);
+			$fkName = "fk__{$table}__$name";
+			$this->query("ALTER TABLE $tableName DROP CONSTRAINT $fkName;");
+		}
+
 		$this->query("ALTER TABLE $tableName DROP COLUMN $name;");
 	}
 
@@ -305,7 +383,7 @@ class DBpostgres extends DB {
 	public function normalizeTypes($table, $rows) {
 		$schema = $table->schema();
 		foreach ($rows as &$row) {
-			foreach ($schema['types'] as $field => $type) {
+			foreach ($schema->getTypes() as $field => $type) {
 				if (!array_key_exists($field, $row) || $row[$field] === null) continue;
 
 				switch ($type) {
@@ -321,5 +399,23 @@ class DBpostgres extends DB {
 		}
 		unset($row);
 		return $rows;
+	}
+
+	private function addForeignKeyProcess($tableName, $name, $definition) {
+		if ($this->checkForeignKeyExists($tableName, $name)) {
+			$this->error = 'Foreign key for "'. $tableName . '.' . $name .'" already exists';
+			return false;
+		}
+
+		$table = str_replace('.','_', $tableName);
+		$fkName = "fk__{$table}__$name";
+
+		//TODO ON DELETE|UPDATE CASCADE|RESTRICT
+		$this->query("
+			ALTER TABLE $tableName ADD CONSTRAINT $fkName FOREIGN KEY ($name)
+			REFERENCES {$definition->isFK['refTable']}({$definition->isFK['refField']});
+		");
+
+		return true;
 	}
 }

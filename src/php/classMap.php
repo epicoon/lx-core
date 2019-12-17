@@ -18,12 +18,6 @@ return [
 	'ResponseSource' => 'classes/system/app',
 	'User' => 'classes/system/app',
 
-	'FusionInterface' => 'classes/fusion',
-	'FusionTrait' => 'classes/fusion',
-	'FusionComponentInterface' => 'classes/fusion',
-	'FusionComponentTrait' => 'classes/fusion',
-	'ComponentList' => 'classes/fusion',
-
 	'Console' => 'classes/system',
 	'HtmlHead' => 'classes/system',
 	'JsCompiler' => 'classes/system/JsCompiler',
@@ -63,6 +57,7 @@ return [
 
 	'DbColumnDefinition' => 'classes/db',
 	'DbTableSchemaProvider' => 'classes/db',
+	'DbSchema' => 'classes/db',
 	'DbTable' => 'classes/db',
 	'DbRecord' => 'classes/db',
 	'DbConnectionList' => 'classes/db',
@@ -89,6 +84,11 @@ return [
 	'BitLine' => 'classes/bit',
 	'BitMap' => 'classes/bit',
 
+
+	/*******************************************************************************************************************
+	 * Helpers
+	 ******************************************************************************************************************/
+
 	'ConfigHelper' => 'classes/helpers',
 	'ClassHelper' => 'classes/helpers',
 	'ModuleHelper' => 'classes/helpers',
@@ -101,16 +101,36 @@ return [
 	'WidgetHelper' => 'classes/helpers',
 	'I18nHelper' => 'classes/helpers',
 
-	'ClassOfServiceInterface' => 'interfaces',
+
+	/*******************************************************************************************************************
+	 * Behaviors
+	 ******************************************************************************************************************/
+	'ClassOfServiceInterface' => 'behaviors/ClassOfService',
+	'ClassOfServiceTrait' => 'behaviors/ClassOfService',
+
+	'ContextTreeInterface' => 'behaviors/ContextTree',
+	'ContextTreeTrait' => 'behaviors/ContextTree',
+
+	'FusionInterface' => 'behaviors/Fusion',
+	'FusionTrait' => 'behaviors/Fusion',
+	'FusionComponentInterface' => 'behaviors/Fusion',
+	'FusionComponentTrait' => 'behaviors/Fusion',
+	'ComponentList' => 'behaviors/Fusion',
+
+	'ErrorCollectorInterface' => 'behaviors/ErrorCollector',
+	'ErrorCollectorTrait' => 'behaviors/ErrorCollector',
+	'ErrorCollectorList' => 'behaviors/ErrorCollector',
+	'ErrorCollectorError' => 'behaviors/ErrorCollector',
+
+
+	/*******************************************************************************************************************
+	 * Interfaces
+	 ******************************************************************************************************************/
 	'AuthenticationInterface' => 'interfaces',
 	'AuthorizationInterface' => 'interfaces',
 	'LoggerInterface' => 'interfaces',
 	'ServiceCliInterface' => 'interfaces',
 	'ServiceCliExecutorInterface' => 'interfaces',
 	'ModelInterface' => 'interfaces',
-
-	'ClassOfServiceTrait' => 'traits',
-
-	'ContextTreeInterface' => 'traits',
-	'ContextTreeTrait' => 'traits',
+	'ToStringConvertableInterface' => 'interfaces',
 ];

@@ -165,10 +165,13 @@ abstract class DB {
 	 * Сформировать новый DbColumnDefinition для внешнего ключа
 	 * */
 	public function foreignKeyDefinition($conf=[]) {
-		//TODO - надо создавать внешний ключ
-
 		$conf['type'] = 'integer';
-		// $conf['isFK'] = true; ????????
+		$conf['isFK'] = [
+			'table' => $conf['table'] ?? $conf[0],
+			'field' => $conf['field'] ?? $conf[1],
+			'refTable' => $conf['refTable'] ?? $conf[2] ?? '',
+			'refField' => $conf['refField'] ?? $conf[3] ?? '',
+		];
 		return new DbColumnDefinition($conf);
 	}
 
