@@ -141,7 +141,7 @@ class Model extends lx.Object #lx:namespace lx {
 	}
 
 	/**
-	 * Соответственно типу дефолтные знаяения для полей
+	 * Соответственно типу дефолтные значения для полей
 	 * */
 	static defaultIntegerFieldValue() { return 0; }
 	static defaultStringFieldValue()  { return ''; }

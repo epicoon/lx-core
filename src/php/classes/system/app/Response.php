@@ -32,7 +32,7 @@ class Response extends ApplicationTool
 	public function send()
 	{
 		if ($this->code == self::CODE_OK) {
-			$this->sendOk();
+			$this->trySend();
 		} else {
 			$this->sendNotOk();
 		}
@@ -90,9 +90,6 @@ class Response extends ApplicationTool
 
 		// Если при авторизации было наложено ограничение
 		if ($this->source->hasRestriction()) {
-			//TODO костыльненько, не нравится, подумать как переделать прокидывание сообщения
-			$this->app->dialog->useMessages();
-
 			if ($this->source->getRestriction() == ResponseSource::RESTRICTION_INSUFFICIENT_RIGHTS
 				&& $this->app->user->isGuest()
 				&& $this->app->dialog->isPageLoad()
@@ -108,7 +105,7 @@ class Response extends ApplicationTool
 		return true;
 	}
 
-	private function sendOk()
+	private function trySend()
 	{
 		if ($this->source === false) {
 			$this->sendNotOk(403);
@@ -134,12 +131,15 @@ class Response extends ApplicationTool
 			return;
 		}
 
+		$this->beforeSuccessfulSending();
 		$this->app->dialog->send($result);
 		$this->afterSuccessfulSending();
 	}
 
 	private function sendNotOk($code = null)
 	{
+		$this->beforeFailedSending();
+
 		if ($code) {
 			$this->code = $code;
 		}
@@ -152,6 +152,7 @@ class Response extends ApplicationTool
 				'error' => $this->code,
 			]);
 		}
+
 		$this->afterFailedSending();
 	}
 
@@ -203,16 +204,10 @@ class Response extends ApplicationTool
 		require_once($path);
 	}
 
-	private function beforeSending()
-	{
-		if ($this->source) {
-			$this->source->invoke('beforeSending');
-		}
-	}
-
 	private function beforeSuccessfulSending()
 	{
 		if ($this->source) {
+			$this->source->invoke('beforeSending');
 			$this->source->invoke('beforeSuccessfulSending');
 		}
 	}
@@ -220,6 +215,7 @@ class Response extends ApplicationTool
 	private function beforeFailedSending()
 	{
 		if ($this->source) {
+			$this->source->invoke('beforeSending');
 			$this->source->invoke('beforeFailedSending');
 		}
 	}

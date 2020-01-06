@@ -23,9 +23,6 @@ class Dialog extends ApplicationTool {
 	private $_location = null;
 	private $_clientIp;
 
-	private $messages;
-	private $_useMessages;
-
 	public function __construct($app) {
 		parent::__construct($app);
 		
@@ -55,23 +52,6 @@ class Dialog extends ApplicationTool {
 		'CONNECTION' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'keep-alive'</font> <i>(length=10)</i>
 		'HOST' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'lx_loc'</font> <i>(length=6)</i>
 		*/
-
-		$this->messages = [];
-		$this->_useMessages = false;
-	}
-
-	/**
-	 *
-	 * */
-	public function useMessages($bool = true) {
-		$this->_useMessages = $bool;
-	}
-
-	/**
-	 *
-	 * */
-	public function addMessage($msg) {
-		$this->messages[] = $msg;
 	}
 
 	/**
@@ -323,11 +303,7 @@ class Dialog extends ApplicationTool {
 		} else {
 			$isStr = is_string($data);
 			header('Content-Type: text/' . ($isStr ? 'plane' : 'json') . '; charset=utf-8');
-
-			if ($this->_useMessages && is_array($data) && !array_key_exists('message', $data) && !empty($this->messages)) {
-				$data['message'] = implode(PHP_EOL, $this->messages);
-			}
-
+			
 			if (\lx::$dump != '') {
 				if (is_array($data)) {
 					$data['lxdump'] = \lx::$dump;

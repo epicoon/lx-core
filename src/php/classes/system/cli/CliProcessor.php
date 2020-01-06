@@ -61,6 +61,11 @@ class CliProcessor extends ApplicationTool {
 	private $keepProcess = false;
 	private $extensionData = null;
 
+	/**
+	 * @param $types null|array
+	 * @param $excludedTypes null|array
+	 * @return array
+	 */
 	public function getCommandsList($types = null, $excludedTypes = null)
 	{
 		return array_merge(
@@ -225,6 +230,7 @@ class CliProcessor extends ApplicationTool {
 			self::COMMAND_TYPE_CONSOLE_ONLY,
 		]);
 		foreach ($list as $key => $keywords) {
+			$key = StringHelper::camelToSnake($key);
 			$arr[] = [
 				ucfirst( str_replace('_', ' ', $key) ),
 				implode(', ', (array)$keywords)
@@ -723,8 +729,9 @@ class CliProcessor extends ApplicationTool {
 				if ( ! $this->validateCommandType($commandData, $types, $excludedTypes)) {
 					continue;
 				}
-
-				$result[$commandData['key']] = $commandData['command'];
+				
+				$key = $this->getExtensionKey($commandData);
+				$result[$key] = $commandData['command'];
 			}
 		}
 
@@ -757,11 +764,17 @@ class CliProcessor extends ApplicationTool {
 		$result = [];
 		foreach ($this->_extensions as $serviceData) {
 			foreach ($serviceData as $commandData) {
-				$result[$commandData['key']] = $commandData['handler'];
+				$key = $this->getExtensionKey($commandData);
+				$result[$key] = $commandData['handler'];
 			}
 		}
 
 		return $result;
+	}
+	
+	private function getExtensionKey($extension)
+	{
+		return StringHelper::snakeToCamel(trim(((array)$extension['command'])[0], '\\'), ['_', '-']);
 	}
 
 	private function validateCommandType($commandData, $types, $excludedTypes)

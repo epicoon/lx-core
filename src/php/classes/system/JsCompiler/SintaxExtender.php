@@ -484,7 +484,7 @@ class SintaxExtender extends ApplicationTool {
 					$schema = $service->modelProvider->getSchema($modelName);
 					$fields = [];
 					foreach ($schema->getFieldNames() as $fieldName) {
-						$field = $schema->field($fieldName);
+						$field = $schema->getField($fieldName);
 						if ($field->isForbidden()) continue;
 						$fields[] = $field->toStringForClient();
 					}

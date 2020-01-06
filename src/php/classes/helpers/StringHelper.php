@@ -11,10 +11,14 @@ class StringHelper
 		}, $string));
 	}
 	
-	public static function snakeToCamel($string)
+	public static function snakeToCamel($string, $delimiter = '_')
 	{
-		return preg_replace_callback('/_(.)/', function($match) {
-			return strtoupper($match[1]) ;
+		if (is_array($delimiter)) {
+			$delimiter = '('. implode('|', $delimiter) .')';
+		}
+
+		return preg_replace_callback('/'. $delimiter .'(.)/', function($match) {
+			return strtoupper($match[2]) ;
 		}, $string);
 	}
 

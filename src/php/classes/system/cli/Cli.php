@@ -106,9 +106,10 @@ class Cli extends ApplicationTool {
 	 *************************************************************************************************************************/
 
 	/**
-	 *
-	 * */
-	private function handleCommand($commandType) {
+	 * @param $commandType string
+	 */
+	private function handleCommand($commandType)
+	{
 		$this->processor->setParams($this->processParams);
 		$result = $this->processor->handleCommand($commandType, $this->args, $this->service, $this->plugin);
 		foreach ($result['params'] as $key => $value) {
@@ -149,8 +150,9 @@ class Cli extends ApplicationTool {
 	 * lx-cli<app>: command -k=arg1 --key="arg2 by several words"
 	 * Но не перечислением и ключами одновременно (в этом случае ключи учтутся, перечисленные будут проигнорированы)
 	 * @param $input string - строка консольного ввода
-	 * */
-	private function parseInput($input) {
+	 */
+	private function parseInput($input)
+	{
 		preg_match_all('/".*?"/', $input, $matches);
 		$matches = $matches[0];
 		$line = preg_replace('/".*?"/', '№№№', $input);
@@ -184,11 +186,15 @@ class Cli extends ApplicationTool {
 		$args = empty($assoc) ? $counted : $assoc;
 		return [$command, $args];
 	}
-
+	
 	/**
 	 * Конвертирует команду в её ключ
-	 * */
-	private function identifyCommandType($command) {
+	 * 
+	 * @param $command string
+	 * @return string|false
+	 */
+	private function identifyCommandType($command)
+	{
 		$keywords = $this->processor->getCommandsList();
 		foreach ($keywords as $key => $value) {
 			$value = (array)$value;
@@ -204,9 +210,11 @@ class Cli extends ApplicationTool {
 	/**
 	 * Проверяет соответствует ли команда какой-то категории
 	 * @param $command string - команда, уже вычлененная из строки консольного ввода
-	 * */
-	private function checkCommand($command, $key) {
-		$keywords = $this->processor->getCommandsList()[$key];
+	 * @param $commandsGroupName string
+	 */
+	private function checkCommand($command, $commandsGroupName)
+	{
+		$keywords = $this->processor->getCommandsList()[$commandsGroupName] ?? null;
 		if (is_array($keywords)) {
 			return (array_search($command, $keywords) !== false);
 		}
@@ -218,8 +226,9 @@ class Cli extends ApplicationTool {
 	 * - находит ближайшее общее если подходящих команд несколько
 	 * - помимо общего возвращает список подходящих команд
 	 * @param $text string - строка, которую требуется дополнить
-	 * */
-	private function autoCompleteCommand($text) {
+	 */
+	private function autoCompleteCommand($text)
+	{
 		if ($text{0} == '\\') {
 			return false;
 		}

@@ -15,6 +15,7 @@ class Respondent {
 	public function __get($name) {
 		if ($name == 'db') return $this->getDb();
 		if ($name == 'plugin') return $this->getPlugin();
+		if ($name == 'service') return $this->getService();
 		if ($name == 'app') return $this->getPlugin()->app;
 		return null;
 	}
