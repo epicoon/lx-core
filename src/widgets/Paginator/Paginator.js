@@ -26,15 +26,15 @@ class Paginator extends lx.Box #lx:namespace lx {
 
 		this.firstSlotIndex = 0;
 
-        this.elementsCount = [config.elementsCount, 0].lxGetFirstDefined();
+        this.elementsCount = lx.getFirstDefined(config.elementsCount, 0);
         this.elementsPerPage = config.elementsPerPage || self::DEFAULT_ELEMENTS_PER_PAGE;
         this.pagesCount = Math.ceil(this.elementsCount / this.elementsPerPage);
 
-		this.slotsCount = [config.slotsCount, self::DEFAULT_SLOTS_COUNT].lxGetFirstDefined();
+		this.slotsCount = lx.getFirstDefined(config.slotsCount, self::DEFAULT_SLOTS_COUNT);
 		if (this.slotsCount <= 4) this.slotsCount = 1;
 
         this.runBuild();
-        this.selectPage([config.activePage, 1].lxGetFirstDefined());
+        this.selectPage(lx.getFirstDefined(config.activePage, 1));
 	}
 
     getBasicCss() {

@@ -24,8 +24,8 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 		__setHeader(this, config);
 		__setBody(this, config.body || lx.Box);
 
-		if ([config.resize, self::DEFAULT_RESIZE].lxGetFirstDefined()) this.setResizer(config);
-		this.adhesive = [config.adhesive, self::DEFAULT_ADHESIVE].lxGetFirstDefined();
+		if (lx.getFirstDefined(config.resize, self::DEFAULT_RESIZE)) this.setResizer(config);
+		this.adhesive = lx.getFirstDefined(config.adhesive, self::DEFAULT_ADHESIVE);
 
 		this.setBuildMode(false);
 
@@ -107,7 +107,7 @@ function __setHeader(self, config) {
 		wrapper.align(lx.CENTER, lx.MIDDLE);
 	}
 
-	if ([config.move, lx.ActiveBox.DEFAULT_MOVE].lxGetFirstDefined())
+	if (lx.getFirstDefined(config.move, lx.ActiveBox.DEFAULT_MOVE))
 		header.move({parentMove: true});
 
 	if (config.closeButton) {

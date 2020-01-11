@@ -55,17 +55,17 @@ class IndentData #lx:namespace lx
 		}
 
 		var step = [
-				part([this.stepX, this.step, this.indent, 0].lxGetFirstDefined(), lx.HORIZONTAL),
-				part([this.stepY, this.step, this.indent, 0].lxGetFirstDefined(), lx.VERTICAL)
+				part(lx.getFirstDefined(this.stepX, this.step, this.indent, 0), lx.HORIZONTAL),
+				part(lx.getFirstDefined(this.stepY, this.step, this.indent, 0), lx.VERTICAL)
 			],
 			padding = [
 				[
-					part([this.paddingLeft,  this.paddingX, this.padding, this.indent, 0].lxGetFirstDefined(), lx.HORIZONTAL),
-					part([this.paddingRight, this.paddingX, this.padding, this.indent, 0].lxGetFirstDefined(), lx.HORIZONTAL)
+					part(lx.getFirstDefined(this.paddingLeft,  this.paddingX, this.padding, this.indent, 0), lx.HORIZONTAL),
+					part(lx.getFirstDefined(this.paddingRight, this.paddingX, this.padding, this.indent, 0), lx.HORIZONTAL)
 				],
 				[
-					part([this.paddingTop,    this.paddingY, this.padding, this.indent, 0].lxGetFirstDefined(), lx.VERTICAL),
-					part([this.paddingBottom, this.paddingY, this.padding, this.indent, 0].lxGetFirstDefined(), lx.VERTICAL)
+					part(lx.getFirstDefined(this.paddingTop,    this.paddingY, this.padding, this.indent, 0), lx.VERTICAL),
+					part(lx.getFirstDefined(this.paddingBottom, this.paddingY, this.padding, this.indent, 0), lx.VERTICAL)
 				]
 			]; 
 

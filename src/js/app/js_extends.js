@@ -415,16 +415,6 @@ Object.defineProperty(Array.prototype, "isAssoc", {
 	}
 });
 
-Object.defineProperty(Array.prototype, "lxGetFirstDefined", {
-	value: function() {
-		if (this.isAssoc) return undefined;
-		for (var i=0, l=this.len; i<l; i++) {
-			if (this[i] !== undefined) return this[i];
-		}
-		return undefined;
-	}
-});
-
 Object.defineProperty(Array.prototype, "each", {
 	value: function(func) {
 		if (this.isAssoc) for (var key in this)

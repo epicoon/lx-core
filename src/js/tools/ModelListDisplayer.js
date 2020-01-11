@@ -63,20 +63,20 @@ class ModelListDisplayer #lx:namespace lx {
 	 * Инициализация параметров - перезаписываются переданные, непереданные остаются прежними
 	 * */
 	init(config) {
-		this.headHeight = [config.headHeight, this.headHeigh, '25px'].lxGetFirstDefined();
-		this.columnWidth = [config.columnWidth, this.columnWidth, '150px'].lxGetFirstDefined();
-		this.integerColumnWidth = [config.integerColumnWidth, this.integerColumnWidth, '100px'].lxGetFirstDefined();
-		this.booleanColumnWidth = [config.booleanColumnWidth, this.booleanColumnWidth, '100px'].lxGetFirstDefined();
+		this.headHeight = lx.getFirstDefined(config.headHeight, this.headHeigh, '25px');
+		this.columnWidth = lx.getFirstDefined(config.columnWidth, this.columnWidth, '150px');
+		this.integerColumnWidth = lx.getFirstDefined(config.integerColumnWidth, this.integerColumnWidth, '100px');
+		this.booleanColumnWidth = lx.getFirstDefined(config.booleanColumnWidth, this.booleanColumnWidth, '100px');
 
-		this.modelClass = [config.modelClass, this.modelClass, null].lxGetFirstDefined();
-		this.lock = [config.lock, this.lock, []].lxGetFirstDefined();
-		this.hide = [config.hide, this.hide, []].lxGetFirstDefined();
+		this.modelClass = lx.getFirstDefined(config.modelClass, this.modelClass, null);
+		this.lock = lx.getFirstDefined(config.lock, this.lock, []);
+		this.hide = lx.getFirstDefined(config.hide, this.hide, []);
 
-		this.formModifier = [config.formModifier, this.formModifier, null].lxGetFirstDefined();
-		this.fieldsModifier = [config.fieldsModifier, this.fieldsModifier, {}].lxGetFirstDefined();
+		this.formModifier = lx.getFirstDefined(config.formModifier, this.formModifier, null);
+		this.fieldsModifier = lx.getFirstDefined(config.fieldsModifier, this.fieldsModifier, {});
 
-		this.box = [config.box, this.box, null].lxGetFirstDefined();
-		this.data = [config.data, this.data, null].lxGetFirstDefined();
+		this.box = lx.getFirstDefined(config.box, this.box, null);
+		this.data = lx.getFirstDefined(config.data, this.data, null);
 	}
 
 	/**
@@ -85,11 +85,11 @@ class ModelListDisplayer #lx:namespace lx {
 	addColumn(config) {
 		if (!config.render || !config.render.isFunction) return;
 
-		config.lock = [config.lock, true].lxGetFirstDefined();
-		config.widget = [config.widget, lx.Box].lxGetFirstDefined();
-		config.position = [config.position, lx.RIGHT].lxGetFirstDefined();
-		config.width = [config.width, '100px'].lxGetFirstDefined();
-		config.label = [config.label, ''].lxGetFirstDefined();
+		config.lock = lx.getFirstDefined(config.lock, true);
+		config.widget = lx.getFirstDefined(config.widget, lx.Box);
+		config.position = lx.getFirstDefined(config.position, lx.RIGHT);
+		config.width = lx.getFirstDefined(config.width, '100px');
+		config.label = lx.getFirstDefined(config.label, '');
 
 		if (config.lock) this.sideColumns.push(config);
 		else this.bodyColumns.push(config);

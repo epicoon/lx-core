@@ -1088,7 +1088,7 @@ class Box extends lx.Rect #lx:namespace lx {
         lx.Binder.bindMatrix(
             config.items,
             this,
-            [config.type, lx.Binder.BIND_TYPE_FULL].lxGetFirstDefined()
+            lx.getFirstDefined(config.type, lx.Binder.BIND_TYPE_FULL)
         );
     }
 
