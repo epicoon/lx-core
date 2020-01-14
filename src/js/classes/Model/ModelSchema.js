@@ -15,6 +15,12 @@ class ModelSchema #lx:namespace lx {
 		this.fields = list.lxCopy();
 	}
 
+	getPkName() {
+		for (var i in this.fields)
+			if (this.fields[i].type == 'pk') return i;
+		return null;
+	}
+
 	/**
 	 *
 	 * */

@@ -168,6 +168,8 @@ Object.defineProperty(Object.prototype, "lxEmpty", {
 
 Object.defineProperty(Object.prototype, "lxMerge", {
 	value: function(obj, overwrite=false) {
+		if (!obj) return this;
+
 		if (this.isArray && !this.isAssoc && obj.isArray && !obj.isAssoc) {
 			for (var i=0, l=obj.length; i<l; i++)
 				this.push(obj[i]);

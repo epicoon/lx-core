@@ -20,7 +20,7 @@ class JsCompileDependencies {
 	}
 
 	public function addPlugins($arr) {
-		$this->plugins = array_unique(array_merge($this->plugins, $arr));
+		$this->plugins = array_merge($this->plugins, $arr);
 	}
 
 	public function addModule($moduleName) {

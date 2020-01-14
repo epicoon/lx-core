@@ -23,12 +23,21 @@ class ModelCollection extends lx.Collection #lx:namespace lx {
 		}
 	}
 
-	load(data) {
-		data.each((fields)=>this.add(fields));
+	load(list) {
+		list.each((fields)=>this.add(fields));
 	}
 
-	reset(data) {
+	reset(list) {
 		this.clear();
-		if (data) this.load(data);
+		if (list) this.load(list);
+	}
+
+	static create(config) {
+		class _am_ extends lx.BindableModel {};
+		_am_.initSchema(config.schema);
+		let c = new lx.ModelCollection();
+		c.setModelClass(_am_);
+		c.load(config.list);
+		return c;
 	}
 }

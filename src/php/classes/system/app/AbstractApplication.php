@@ -32,8 +32,7 @@ abstract class AbstractApplication {
 		$this->_services = new ServicesMap($this);
 
 		$loggerConfig = ClassHelper::prepareConfig($this->getConfig('logger'), ApplicationLogger::class);
-		$loggerConfig['params']['app'] = $this;
-		$this->_logger = new $loggerConfig['class']($loggerConfig['params']);
+		$this->_logger = new $loggerConfig['class']($this, $loggerConfig['params']);
 
 		\lx::$app = $this;
 	}
@@ -213,11 +212,20 @@ abstract class AbstractApplication {
 	public function getModelManager($serviceName, $modelName = null) {
 		if ($modelName === null) {
 			$arr = explode('.', $serviceName);
+			if (count($arr) != 2) {
+				return null;
+			}
+
 			$serviceName = $arr[0];
 			$modelName = $arr[1];
 		}
 
-		return $this->getService($serviceName)->getModelManager($modelName);
+		$service = $this->getService($serviceName);
+		if ( ! $service) {
+			return null;
+		}
+
+		return $service->getModelManager($modelName);
 	}
 
 	abstract public function run();

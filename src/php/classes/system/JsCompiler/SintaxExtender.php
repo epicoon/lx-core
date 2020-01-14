@@ -473,25 +473,27 @@ class SintaxExtender extends ApplicationTool {
 				}, $implementResult);
 
 				// 3. #lx:modelName xxx;
-				$implementResult = preg_replace_callback('/#lx:modelName[\s\r]+([^;]+)?;/', function ($matches) use ($path) {
-					$modelName = $matches[1];
+				$implementResult = preg_replace_callback(
+					'/#lx:modelName[\s\r]+([^;]+)?;/',
+					function ($matches) use ($path) {
+						$modelName = $matches[1];
 
-					$service = $this->getCurrentService($path);
-					if (!$service) {
-						return '';
-					}
+						$manager = $this->app->getModelManager($modelName);
+						if ( ! $manager) {
+							$service = $this->getCurrentService($path);
+							if (!$service) {
+								return '';
+							}
 
-					$schema = $service->modelProvider->getSchema($modelName);
-					$fields = [];
-					foreach ($schema->getFieldNames() as $fieldName) {
-						$field = $schema->getField($fieldName);
-						if ($field->isForbidden()) continue;
-						$fields[] = $field->toStringForClient();
-					}
+							$manager = $service->getModelManager($modelName);
+						}
 
-					$fieldCode = 'static __setSchema(){this.initSchema({' . implode(',', $fields) . '});}';
-					return $fieldCode;
-				}, $implementResult);
+						$schema = $manager->getSchema();
+						$fieldCode = 'static __setSchema(){this.initSchema(' . $schema->toStringForClient() . ');}';
+						return $fieldCode;
+					},
+					$implementResult
+				);
 
 				$code = str_replace($implement, $implementResult, $code);
 			}

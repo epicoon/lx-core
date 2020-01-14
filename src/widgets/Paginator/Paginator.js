@@ -31,10 +31,12 @@ class Paginator extends lx.Box #lx:namespace lx {
         this.pagesCount = Math.ceil(this.elementsCount / this.elementsPerPage);
 
 		this.slotsCount = lx.getFirstDefined(config.slotsCount, self::DEFAULT_SLOTS_COUNT);
-		if (this.slotsCount <= 4) this.slotsCount = 1;
+        if (this.slotsCount <= 4) this.slotsCount = 1;
+        this.slotsCountBase = this.slotsCount;
+		__normalizeSlotsCount(this);
 
         this.runBuild();
-        this.selectPage(lx.getFirstDefined(config.activePage, 1));
+        this.selectPage(lx.getFirstDefined(config.activePage, 0));
 	}
 
     getBasicCss() {
@@ -68,46 +70,53 @@ class Paginator extends lx.Box #lx:namespace lx {
         }
 
         static onSlotClick(event) {
-            this.ancestor({is:lx.Paginator}).selectPage(+(this->text.value()));
+            this.ancestor({is:lx.Paginator}).selectPage(+(this->text.value()) - 1);
         }
 
-        static toPrevPage() {
+        static toPrevPage(e) {
             var p = this.parent;
             p.selectPage(p.activePage - 1);
+            p.trigger('change', e, p.activePage);
         }
 
-        static toNextPage() {
+        static toNextPage(e) {
             var p = this.parent;
             p.selectPage(p.activePage + 1);
+            p.trigger('change', e, p.activePage);
         }
 
-        static toFirstPage() {
+        static toFirstPage(e) {
             var p = this.parent;
-            p.selectPage(1);
+            p.selectPage(0);
+            p.trigger('change', e, p.activePage);
         }
 
-        static toLastPage() {
+        static toLastPage(e) {
             var p = this.parent;
-            p.selectPage(p.pagesCount);
+            p.selectPage(p.pagesCount - 1);
+            p.trigger('change', e, p.activePage);
         }
     }
 
     setElementsCount(count) {
         this.elementsCount = count;
         this.pagesCount = Math.ceil(this.elementsCount / this.elementsPerPage);
+        __normalizeSlotsCount(this);
+
         var number = this.activePage;
         this.activePage = -1;
         this.selectPage(number);
     }
 
     runBuild() {
-	    this.stream({direction: lx.HORIZONTAL, columnDefaultWidth: null});
+	    this.streamProportional({direction: lx.HORIZONTAL, columnDefaultWidth: null});
 	    this.begin();
-            new lx.Box({key: 'toStart', css: this.basicCss.toStart});
-            new lx.Box({key: 'toLeft', css: this.basicCss.toLeft});
+	        //TODO 40px по задумке должны брыться из CSS, но не работает!
+            new lx.Box({key: 'toStart', width:'40px', css: this.basicCss.toStart});
+            new lx.Box({key: 'toLeft', width:'40px', css: this.basicCss.toLeft});
             new lx.Box({key: 'middle'});
-            new lx.Box({key: 'toRight', css: this.basicCss.toRight});
-            new lx.Box({key: 'toFinish', css: this.basicCss.toFinish});
+            new lx.Box({key: 'toRight', width:'40px', css: this.basicCss.toRight});
+            new lx.Box({key: 'toFinish', width:'40px', css: this.basicCss.toFinish});
         this.end();
 
         var middle = this->middle;
@@ -125,22 +134,42 @@ class Paginator extends lx.Box #lx:namespace lx {
 	    if (this.slotsCount == 1) __fillMiddleSimple(this);
         else if (this.slotsCount == 5 || this.slotsCount == 6) __fillMiddleMin(this);
         else __fillMiddleMax(this);
+	}
+}
+
+function __normalizeSlotsCount(self) {
+    self.slotsCount = self.slotsCountBase;
+    if (self.slotsCount == 1 || self.pagesCount >= 7) return;
+
+    if (self.pagesCount == 6) {
+        self.slotsCount = 6;
+        return;
     }
+
+    if (self.pagesCount == 5) {
+        self.slotsCount = 5;
+        return;
+    }
+
+    if (self.pagesCount < 5)
+        self.slotsCount = 1;
 }
 
 function __validatePageNumber(self, number) {
-    if (number < 1) number = 1;
-    if (number > this.pagesCount) number = self.pagesCount;
+    if (number < 0) number = 0;
+    if (number > this.pagesCount - 1) number = self.pagesCount - 1;
 
     self->toStart.disabled(false);
     self->toLeft.disabled(false);
     self->toRight.disabled(false);
     self->toFinish.disabled(false);
 
-    if (number == 1) {
+    if (number == 0) {
         self->toStart.disabled(true);
         self->toLeft.disabled(true);
-    } else if (number == self.pagesCount) {
+    }
+
+    if (number == self.pagesCount - 1) {
         self->toRight.disabled(true);
         self->toFinish.disabled(true);
     }
@@ -154,7 +183,7 @@ function __fillMiddleSimple(self) {
     if (middle.childrenCount() == 0) middle.align(lx.CENTER, lx.MIDDLE);
     middle.text(
         #lx:i18n(lx.Paginator.Page) + ' '
-        + self.activePage + ' '
+        + (self.activePage + 1) + ' '
         + #lx:i18n(lx.Paginator.of) + ' '
         + self.pagesCount
     );
@@ -164,13 +193,13 @@ function __fillMiddleMin(self) {
     __rebuildMiddle(self);
     __applyMiddleSequence(
         self,
-        __calcSequence(self.activePage, self.pagesCount, self.slotsCount)
+        __calcSequence(self.activePage + 1, self.pagesCount, self.slotsCount)
     );
 }
 
 function __fillMiddleMax(self) {
     __rebuildMiddle(self);
-    var seq = __calcSequence(self.activePage - 1, self.pagesCount - 2, self.slotsCount - 2);
+    var seq = __calcSequence(self.activePage, self.pagesCount - 2, self.slotsCount - 2);
     seq.each((a, i)=>{
         if (a !== null) seq[i] = a + 1;
     });
@@ -195,7 +224,7 @@ function __applyMiddleSequence(self, seq) {
     var middle = self->middle;
     middle.getChildren().each((a, i)=>{
         a.text(seq[i] === null ? '...' : seq[i]);
-        a.toggleClassOnCondition(seq[i] == self.activePage, self.basicCss.active);
+        a.toggleClassOnCondition(seq[i] - 1 == self.activePage, self.basicCss.active);
         #lx:client {
             if (seq[i] === null) a.off('click');
             else a.click(lx.Paginator.onSlotClick);
@@ -203,16 +232,16 @@ function __applyMiddleSequence(self, seq) {
     });
 }
 
-function __calcSequence(activePage, pagesCount, slotsCount) {
+function __calcSequence(pageNumber, pagesCount, slotsCount) {
     var result = new Array(slotsCount);
 
-    if (activePage <= Math.ceil(slotsCount * 0.5)) {
-        for (var i=0; i<slotsCount-1; i++) result[i] = i+1;
+    if (pageNumber <= Math.ceil(slotsCount * 0.5)) {
+        for (var i=0; i<slotsCount-1; i++) result[i] = i + 1;
         result[slotsCount - 1] = null;
         return result;
     }
 
-    if ((pagesCount - activePage) < (slotsCount - 2)) {
+    if ((pagesCount - pageNumber) < (slotsCount - 2)) {
         result[0] = null;
         for (var i=1; i<slotsCount; i++) result[i] = pagesCount - slotsCount + i + 1;
         return result;
@@ -221,7 +250,7 @@ function __calcSequence(activePage, pagesCount, slotsCount) {
     result[0] = null;
     result[slotsCount - 1] = null;
     var activeIndex = Math.ceil((slotsCount - 2) * 0.5),
-        firstPage = activePage - activeIndex;
+        firstPage = pageNumber - activeIndex;
     for (var i=1; i<slotsCount-1; i++) result[i] = firstPage + i;
     return result;
 }

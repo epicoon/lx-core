@@ -1664,7 +1664,7 @@ class Rect #lx:namespace lx {
                     /^(\(.*?\)\s*=>\s*{?}?)/,
                     '$1const Plugin=this.getPlugin();const Snippet=this.getSnippet(); '
                 );
-                f = lx.createFunctionByInlineString(str);
+                f = lx.stringToFunction(str);
             } else f = this.findFunction(str);
             if (!f) return null;
             return f;

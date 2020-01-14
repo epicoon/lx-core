@@ -35,6 +35,12 @@ Object.defineProperty(lx, "globalContext", {
 	};
 };
 
+lx.getFirstDefined = function(...args) {
+	for (var i=0, l=args.len; i<l; i++)
+		if (args[i] !== undefined) return args[i];
+	return undefined;
+};
+
 lx.createNamespace = function(namespace, props) {
 	var arr = namespace.split(/[.\\]/),
 		temp = lx.globalContext;

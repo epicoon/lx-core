@@ -35,16 +35,6 @@ lx.createAndCallFunction = function(args, code, context=null, params=[]) {
 };
 
 /**
- * Создает функцию из синтаксиса '(arg1, arg2) => ...function code'
- * */
-lx.createFunctionByInlineString = function(str) {
-	var reg = /^\(([\w\W]*?)\)\s*=>\s*([\w\W]*)/g,
-		arr = reg.exec(str);
-	if (!arr.len) return null;
-	return lx.createFunction(arr[1], arr[2]);
-};
-
-/**
  * Превращает функцию в строку в формате '(arg1, arg2) => ...function code'
  * */
 lx.functionToString = function(func) {
@@ -61,9 +51,34 @@ lx.functionToString = function(func) {
 };
 
 /**
+ * Создает функцию из вариантов синтаксиса:
+ * '(arg1, arg2) => ...function code'
+ * 'function code'
+ * 'function (arg1, arg2) { ...function code }'
+ * */
+lx.stringToFunction = function(str) {
+	if (str[0] == '(') {
+		var reg = /^\(\s*([\w\W]*?)\s*\)\s*=>\s*{?([\w\W]*?)}?\s*$/,
+			arr = reg.exec(str);
+		if (!arr.len) return null;
+		return lx.createFunction(arr[1], arr[2]);
+	}
+
+	if (str.match(/^function/)) {
+		var reg = /^function[^(]*\(\s*([\w\W]*?)\s*\)\s*{\s*([\w\W]*)\s*}\s*$/,
+			arr = reg.exec(str);
+		if (!arr.len) return null;
+		return lx.createFunction(arr[1], arr[2]);
+	}
+
+	return lx.createFunction(null, str);
+};
+
+/**
  * Создать функцию по аргументам и коду
  * */
 lx.createFunction = function(args, code) {
-	// code = lx.functionPrefix(code);  // Раньше был префикс для всех функций, теперь его нет, но вдруг что-то похожее снова возникнет, пока такая обертка
-	return Function(args, code);
+	if (code === undefined) return Function(args);
+	if (args) return Function(args, code);
+	return Function(code);
 };

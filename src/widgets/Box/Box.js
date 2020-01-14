@@ -272,7 +272,7 @@ class Box extends lx.Rect #lx:namespace lx {
                 clientParams = name.clientParams;
                 name = name.name;
             }
-            
+
             if (!name.isString) return;
             var container = __getContainer(this);
             container.pluginAnchor = App.genId();

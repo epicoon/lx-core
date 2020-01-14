@@ -41,13 +41,6 @@ lx.getPlugin = function(name) {
 	return null;
 };
 
-lx.getFirstDefined = function(...args) {
-	for (var i=0, l=args.len; i<l; i++)
-		if (args[i] !== undefined) return args[i];
-	return undefined;
-};
-
-
 
 #lx:require helpers/;
 #lx:require components/;

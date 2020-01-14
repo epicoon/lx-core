@@ -181,12 +181,12 @@ class SequenseProportional extends Sequense {
 
 	setParam(elem, param, val) {
 		if (val.isNumber) val = val + 'fr';
+		var needBuild = elem.streamSize !== undefined;
 		elem.streamSize = val;
 		var styleParam = this.owner.direction == lx.VERTICAL
 			? 'grid-template-rows'
 			: 'grid-template-columns',
-			tpl = this.owner.owner.style(styleParam),
-			needBuild = elem.nextSibling() || !tpl || !tpl.match(/ /);
+			tpl = this.owner.owner.style(styleParam);
 		if (needBuild) {
 			var arr = [];
 			this.owner.owner.getChildren().each((c)=>arr.push(c.streamSize));
@@ -194,7 +194,7 @@ class SequenseProportional extends Sequense {
 		} else {
 			this.owner.owner.style(
 				styleParam,
-				this.owner.owner.style(styleParam) + ' ' + elem.streamSize
+				tpl + ' ' + elem.streamSize
 			); 
 		}
 	}

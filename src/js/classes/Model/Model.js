@@ -7,6 +7,12 @@ class Model extends lx.Object #lx:namespace lx {
 		this.__init(data);
 	}
 
+	getPk() {
+		var pkName = self::__schema.getPkName();
+		if (!pkName) return undefined;
+		return this[pkName];
+	}
+
 	/**
 	 * Инициализация полей согласно схеме
 	 * */

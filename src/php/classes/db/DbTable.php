@@ -162,22 +162,38 @@ class DbTable {
 				$data->order = $condition['ORDER BY'];
 			}
 
+			if (array_key_exists('OFFSET', $condition)) {
+				$isMap = true;
+				$data->offset = $condition['OFFSET'];
+			}
+
+			if (array_key_exists('LIMIT', $condition)) {
+				$isMap = true;
+				$data->limit = $condition['LIMIT'];
+			}
+
 			if (!$isMap) {
 				$where = $condition;
 			}
 
 			if (isset($where)) {
-				$isIds = true;
 				if (is_array($where)) {
+					$isIds = true;
 					foreach ($where as $key => $item) {
 						if (is_string($key) || filter_var($item, FILTER_VALIDATE_INT) === false) {
 							$isIds = false;
 							break;
 						}
 					}
+				} else {
+					$isIds = filter_var($where, FILTER_VALIDATE_INT);
 				}
 
-				$data->where += $isIds ? [$this->pkName() => $where] : $where;
+				if (is_string($where)) {
+					$data->where[] = $where;
+				} else {
+					$data->where += $isIds ? [$this->pkName() => $where] : $where;
+				}
 			}
 		}
 
@@ -216,6 +232,14 @@ class DbTable {
 
 		if ($data->order) {
 			$result .= ' ORDER BY ' . $data->order;
+		}
+
+		if ($data->limit) {
+			$result .= ' LIMIT ' . $data->limit;
+		}
+
+		if ($data->offset) {
+			$result .= ' OFFSET ' . $data->offset;
 		}
 
 		return $result;

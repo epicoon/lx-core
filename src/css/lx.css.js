@@ -501,7 +501,7 @@ cssList.addClass('lx-Paginator-page', {
 
 cssList.addAbstractClass('lx-Paginator-button', {
 	cursor: 'pointer',
-	width: '40px',
+	// width: '40px',
 	backgroundRepeat: 'no-repeat',
 	backgroundSize: '100% 100%'
 });
