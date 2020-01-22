@@ -243,7 +243,6 @@ class SnippetBuildContext extends ApplicationTool implements ContextTreeInterfac
 
 			'@core/js/helpers/Math',
 			'@core/js/helpers/Geom',
-			'@core/js/helpers/WidgetHelper',
 
 			'@core/js/classes/Object',
 			'@core/js/tools/Collection',

@@ -83,7 +83,7 @@ class ErrorCollectorError implements ToStringConvertableInterface
 	/**
 	 * @return string
 	 */
-	private function __toString()
+	public function __toString()
 	{
 		$result = [];
 		if ($this->title != '') {

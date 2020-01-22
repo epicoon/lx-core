@@ -355,6 +355,7 @@ class SnippetBuilder {
 		this.elems = [];
 		this.onloadElems = [];
 		this.node = new SnippetJsNode(this, parentBuilder ? parentBuilder.node : null);
+		this.currentElement = 0;
 	}
 
 	/**
@@ -401,10 +402,9 @@ class SnippetBuilder {
 		for (var i=0,l=elem.getDomElem().children.length; i<l; i++) {
 			var node = elem.getDomElem().children[i];
 
-			var lxid = node.getAttribute('lxid');
-			if (lxid === null) continue;
+			if (node.getAttribute('lx') === null) continue;
 
-			var info = infoLx[lxid],
+			var info = infoLx[this.currentElement++],
 				namespace = info._namespace ? info._namespace : 'lx';
 
 			var namespaceObj = lx.getNamespace(namespace);
@@ -438,7 +438,7 @@ class SnippetBuilder {
 
 			el.parent = elem;
 			el.domElem.parent = elem;
-			elem.childrenPush(el);
+			elem.registerChild(el);
 
 			this.riseTree(el, infoLx);
 		}
@@ -462,14 +462,6 @@ class SnippetBuilder {
 			if (args === null) func.call(el);
 			else {
 				if (!args.isArray) args = [args];
-
-				//todo на php генерится такой путь '=' $item->path . '/' . $item->fullKey();
-				for (var j=0, l=args.length; j<l; j++) {
-					if (args[j] === null) continue;
-					// преобразование путей виджетов в их сущности
-					if (args[j].isString && args[j].match(/^!!!todo$/))
-						args[j] = null;/*!!!todo*/
-				}
 				func.apply(el, args);
 			}
 		}

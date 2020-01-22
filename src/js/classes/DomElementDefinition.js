@@ -16,17 +16,6 @@ class DomElementDefinition #lx:namespace lx {
 		this.next = null;
 	}
 
-    #lx:server createElement() {
-		lx.WidgetHelper.register(this.owner);
-		this.lxid = this.owner.lxid;
-		this.setAttribute('lxid', this.lxid);
-
-		if (this.parent) {
-			if (this.next) this.parent.allChildren.insertBefore(this.owner, this.next);
-			else this.parent.allChildren.push(this.owner);
-		}
-    }
-    
 	#lx:client createElement() {
 		if (this.elem) return;
 
@@ -53,6 +42,7 @@ class DomElementDefinition #lx:namespace lx {
 		if (this.content != '') this.elem.innerHTML = this.content;
 
 		this.setElem(this.elem);
+		this.applyElemFeatures();
 	}
 
 	setParent(parent, next) {
@@ -61,7 +51,7 @@ class DomElementDefinition #lx:namespace lx {
 	}
 
 	clear() {
-		lx.WidgetHelper.unregister(this.lxid);
+		if (this.elem) delete this.elem.__lx;
 
 		this.owner = null;
 		this.elem = null;
@@ -80,10 +70,6 @@ class DomElementDefinition #lx:namespace lx {
 	removeChild(elemDefinition) {
 		if (elemDefinition.parent) elemDefinition.parent = null;
 
-		#lx:server {
-			this.owner.allChildren.remove(elemDefinition.owner);
-		}
-		
 		#lx:client {
 			if (this.elem && elemDefinition.elem)
 				this.elem.removeChild(elemDefinition.elem);
@@ -96,31 +82,13 @@ class DomElementDefinition #lx:namespace lx {
 	}
 
 	nextSibling() {
-		#lx:server {
-			if (!this.parent) return null;
-			return this.parent.allChildren.next(this.owner);
-		}
-		
-		#lx:client {
-			if (!this.elem) return null;
-			var ns = this.elem.nextSibling;
-			if (!ns) return null;
-			return lx.WidgetHelper.getByElem(ns);
-		}
+		if (!this.parent) return null;
+		return this.parent.children.next(this.owner);
 	}
 
 	prevSibling() {
-		#lx:server {
-			if (!this.parent) return null;
-			return this.parent.allChildren.prev(this.owner);
-		}
-		
-		#lx:client {
-			if (!this.elem) return null;
-			var ps = this.elem.previousSibling;
-			if (!ps) return null;
-			return lx.WidgetHelper.getByElem(ps);
-		}
+		if (!this.parent) return null;
+		return this.parent.children.prev(this.owner);
 	}
 
 	hasClass(className) {
@@ -188,6 +156,12 @@ class DomElementDefinition #lx:namespace lx {
 
 		if (this.elem) this.elem.innerHTML = text;
 		else this.content = text;
+	}
+
+	outerHtml() {
+		if (this.elem) return this.elem.outerHTML;
+
+		//TODO перенести сюда логику рендеринга?
 	}
 
 	param(name, value) {
@@ -264,30 +238,29 @@ class DomElementDefinition #lx:namespace lx {
 	 * CLIENT ONLY
 	 ******************************************************************************************************************/
 	#lx:client {
+		rendered() {
+			return this.elem !== null;
+		}
+
 		setElem(elem) {
-			lx.WidgetHelper.register(this.owner, elem);
-			this.lxid = this.owner.lxid;
 			this.elem = elem;
+			this.elem.__lx = this.owner;
+		}
+
+		refreshElem(domElem) {
+			if (this.elem) delete this.elem.__lx;
+
+			this.elem = domElem;
+			this.elem.__lx = this.owner;
 			this.applyElemFeatures();
 		}
 
-		refreshElem(parent = null) {
-			this.elem = lx.WidgetHelper.getElementByLxid(this.lxid, parent);
-			for (var eventName in this.events) {
-				for (var i = 0, l = this.events[eventName].len; i < l; i++) {
-					lx.Event.add(this.elem, eventName, this.events[eventName][i]);
-				}
-			}
-		}
-
 		applyElemFeatures() {
-			if (this.params === undefined) return;
-
-			for (var name in this.params) {
+			if (this.params) for (var name in this.params) {
 				this.elem[name] = this.params[name];
 			}
 
-			for (var i = 0, l = this.actions.len; i < l; i++) {
+			if (this.actions) for (var i = 0, l = this.actions.len; i < l; i++) {
 				var item = this.actions[i],
 					funcName = item[0],
 					args = item[1];
@@ -295,7 +268,7 @@ class DomElementDefinition #lx:namespace lx {
 				else this.owner[funcName].call(this.owner);
 			}
 
-			for (var eventName in this.events) {
+			if (this.events) for (var eventName in this.events) {
 				for (var i = 0, l = this.events[eventName].len; i < l; i++) {
 					lx.Event.add(this.elem, eventName, this.events[eventName][i]);
 				}

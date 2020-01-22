@@ -21,9 +21,9 @@ lx.Plugin = function(info, snippet) {
 		 * */
 		del: function() {
 			// Удаление вложенных плагинов
-			var children = this.childPlugins(true);
-			for (var i=0, l=children.len; i<l; i++)
-				children[i].del();
+			var childPlugins = this.childPlugins(true);
+			for (var i=0, l=childPlugins.len; i<l; i++)
+				childPlugins[i].del();
 
 			// Клиентский метод очистки
 			if (this.destruct) this.destruct();

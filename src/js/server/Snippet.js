@@ -5,18 +5,17 @@ class Snippet #lx:namespace lx {
         if (data.renderParams) __extractRenderParams(data.renderParams);
         
         this.filePath = data.filePath || '';
-        //TODO - клиентские параметры нафиг не нужны в таком виде. Можно красивее эту идею обыгать - как поля сниппета, н-р
         this.clientParams = data.clientParams || {};
 
         // Коробка, представляющая сниппет
         this._widget = new lx.Box({parent: null});
 
-        this.selfData = {};
+        this.selfData = {};  // информация для коробки сниппета
         this.htmlContent = '';  // строка html сниппета
-        this.lx = {};  // массив пояснительных записок
+        this.lx = [];  // массив пояснительных записок
         this.clientJs = null;  // js-код, который будет выполнен на клиенте
 
-        this.plugins = [];
+        this.plugins = [];  // зависимости от плагинов
     }
 
     get widget() {
@@ -106,6 +105,16 @@ class Snippet #lx:namespace lx {
     }
 }
 
+
+/***********************************************************************************************************************
+ * PRIVATE
+ **********************************************************************************************************************/
+
+function __extractRenderParams(params) {
+    for (var name in params)
+        lx.globalContext[name] = params[name];
+}
+
 function __prepareSelfData(self) {
     var attrs = self.widget.domElem.attributes;
     if (!attrs.lxEmpty) self.selfData.attrs = attrs;
@@ -128,79 +137,90 @@ function __prepareSelfData(self) {
 
 function __renderContent(self) {
     var html = '';
-    self.widget.allChildren.each((a)=>html+=__renderElement(self, a));
+    self.widget.children.each((a)=>html+=__renderWidget(self, a));
     self.htmlContent = html;
 }
 
-function __renderElement(self, el) {
-    __getElementData(self, el);
+function __renderWidget(self, widget) {
+    __getWidgetData(self, widget);
 
-    if (el.allChildren === undefined) return el.domElem.getHtmlString();
+    if (widget.children === undefined) return widget.domElem.getHtmlString();
 
-    var result = el.domElem.getHtmlStringBegin() + el.domElem.content;
-    el.allChildren.each((a)=>result += __renderElement(self, a));
-    result += el.domElem.getHtmlStringEnd();
+    var result = widget.domElem.getHtmlStringBegin() + widget.domElem.content;
+    widget.children.each((a)=>result += __renderWidget(self, a));
+    result += widget.domElem.getHtmlStringEnd();
     return result;
 }
 
-function __getElementData(self, el) {
-    var data = {};
-    el.beforePack();
-    __packProperties(self, el, data);
-    __packHandlers(self, el, data);
-    __packOnLoad(self, el, data);
-
-    self.lx[el.lxid] = data;
+function __getWidgetData(self, widget) {
+    widget.setAttribute('lx');
+    widget.beforePack();
+    var pack = new PackData(widget);
+    self.lx.push(pack.getResult());
 }
 
-function __packProperties(self, el, data) {
-    for (var name in el) {
-        if (name == '__self' || name == 'lxid') continue;
 
-        var value = el[name];
-        if (name == 'geom') {
-            if (!value.lxEmpty) {
-                var temp = [];
-                temp.push(value.bpg ? value.bpg[0]+','+value.bpg[1] : '');
-                temp.push(value.bpv ? value.bpv[0]+','+value.bpv[1] : '');
-                data.geom = temp.join('|');
+/***********************************************************************************************************************
+ * PackData
+ **********************************************************************************************************************/
+
+class PackData {
+    constructor(widget) {
+        this.data = {};
+        this.widget = widget;
+    }
+
+    getResult() {
+        this.packProperties();
+        this.packHandlers();
+        this.packOnLoad();
+        return this.data;
+    }
+
+    packProperties() {
+        for (var name in this.widget) {
+            if (name == '__self' || name == 'lxid') continue;
+
+            var value = this.widget[name];
+            if (name == 'geom') {
+                if (!value.lxEmpty) {
+                    var temp = [];
+                    temp.push(value.bpg ? value.bpg[0]+','+value.bpg[1] : '');
+                    temp.push(value.bpv ? value.bpv[0]+','+value.bpv[1] : '');
+                    this.data.geom = temp.join('|');
+                }
+                continue;
             }
-            continue;
-        }
-        data[name] = value;
-    }
-}
-
-function __packHandlers(self, el, data) {
-    if (el.domElem.events.lxEmpty) return;
-
-    data.handlers = {};
-    for (var name in el.domElem.events) {
-        var handlers = el.domElem.events[name];
-        data.handlers[name] = [];
-        for (var i=0; i<handlers.len; i++) {
-            var funcText = lx.functionToString(handlers[i]);
-            if (funcText) data.handlers[name].push(funcText);
+            this.data[name] = value;
         }
     }
-}
 
-function __packOnLoad(self, el, data) {
-    if (!el.forOnload) return;
+    packHandlers() {
+        if (this.widget.domElem.events.lxEmpty) return;
 
-    data.forOnload = [];
-    for (var i=0, l=el.forOnload.len; i<l; i++) {
-        var item = el.forOnload[i], strItem;
-        if (item.isArray) {
-            strItem = lx.functionToString(item[0]);
-            if (strItem) strItem = [strItem, item[1]];
-        } else strItem = lx.functionToString(item);
+        this.data.handlers = {};
+        for (var name in this.widget.domElem.events) {
+            var handlers = this.widget.domElem.events[name];
+            this.data.handlers[name] = [];
+            for (var i=0; i<handlers.len; i++) {
+                var funcText = lx.functionToString(handlers[i]);
+                if (funcText) this.data.handlers[name].push(funcText);
+            }
+        }
     }
 
-    if (strItem) data.forOnload.push(strItem);
-}
+    packOnLoad() {
+        if (!this.widget.forOnload) return;
 
-function __extractRenderParams(params) {
-    for (var name in params)
-        lx.globalContext[name] = params[name];
+        this.data.forOnload = [];
+        for (var i=0, l=this.widget.forOnload.len; i<l; i++) {
+            var item = this.widget.forOnload[i], strItem;
+            if (item.isArray) {
+                strItem = lx.functionToString(item[0]);
+                if (strItem) strItem = [strItem, item[1]];
+            } else strItem = lx.functionToString(item);
+        }
+
+        if (strItem) this.data.forOnload.push(strItem);
+    }
 }

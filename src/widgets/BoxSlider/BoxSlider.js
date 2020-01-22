@@ -32,13 +32,13 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 
 	#lx:client {
 		postBuild() {
-			if (this.children.pre) this.children.pre.click(()=> this.timer.swapSlides(-1));
-			if (this.children.post) this.children.post.click(()=> this.timer.swapSlides(1));
+			if (this->pre) this->pre.click(()=> this.timer.swapSlides(-1));
+			if (this->post) this->post.click(()=> this.timer.swapSlides(1));
 		}
 
 		postUnpack() {
 			this.timer = new BoxSliderTimer(this, this.timer || {});
-			this.timer.slides = new lx.Collection(this.children.s);
+			this.timer.slides = new lx.Collection(this->s);
 			if (this.timer.auto) this.timer.start();
 		}
 
@@ -48,7 +48,7 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 		}
 
 		activeSlide() {
-			return this.children.s[this.timer.activeSlide];
+			return this->s[this.timer.activeSlide];
 		}
 
 		setAutoSlide(bool) {
@@ -75,8 +75,8 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 	}
 
 	slide(num) {
-		if (num >= this.children.s.len) return null;
-		return this.children.s[num];
+		if (num >= this->s.len) return null;
+		return this->s[num];
 	}
 
 	setSlides(count) {

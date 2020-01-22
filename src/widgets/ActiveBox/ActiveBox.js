@@ -192,11 +192,11 @@ function __setBody(self, constructor) {
 					}
 
 					// Запишем кто с кем связался
-					ctx.adhesiveBonds[valid.side()][a.lxid] = a;
+					ctx.adhesiveBonds[valid.side()].set(a, a);
 
 					// Если соседи оба адгезивные - они умеют делить размер
 					if (a.adhesiveBonds) {
-						a.adhesiveBonds[valid.contrSide()][ctx.lxid] = ctx;
+						a.adhesiveBonds[valid.contrSide()].set(ctx, ctx);
 						this.actualizeSizeShare(a);
 					}
 				}
@@ -237,21 +237,19 @@ function __setBody(self, constructor) {
 
 		static getAdhesiveBondsBlank() {
 			return {
-				l: {}, r: {}, t: {}, b: {},
+				l:new Map(), r:new Map(), t:new Map(), b:new Map(),
 				contains: function (el) {
-					var key = el.lxid;
-					if (key in this.l) return true;
-					if (key in this.r) return true;
-					if (key in this.t) return true;
-					if (key in this.b) return true;
+					if (this.l.has(el)) return true;
+					if (this.r.has(el)) return true;
+					if (this.t.has(el)) return true;
+					if (this.b.has(el)) return true;
 					return false;
 				},
 				remove: function (el) {
-					var key = el.lxid;
-					if (key in this.l) delete this.l[key];
-					else if (key in this.r) delete this.r[key];
-					else if (key in this.t) delete this.t[key];
-					else if (key in this.b) delete this.b[key];
+					if (this.l.has(el)) this.l.delete(el);
+					else if (this.r.has(el)) this.r.delete(el);
+					else if (this.t.has(el)) this.t.delete(el);
+					else if (this.b.has(el)) this.b.delete(el);
 				}
 			};
 		}
@@ -261,7 +259,7 @@ function __setBody(self, constructor) {
 				seams = [];
 
 			el.setBuildMode(true);
-			if (el.adhesiveBonds.r.lxEmpty) {
+			if (!el.adhesiveBonds.r.size) {
 				el.del('r_size_share');
 			} else if (!el.contains('r_size_share')) {
 				seams.push(el.add(lx.Rect, {
@@ -272,7 +270,7 @@ function __setBody(self, constructor) {
 				}).move({parentResize: true, yMove: false}));
 			}
 
-			if (el.adhesiveBonds.b.lxEmpty) {
+			if (!el.adhesiveBonds.b.size) {
 				el.del('b_size_share');
 			} else if (!el.contains('b_size_share')) {
 				seams.push(el.add(lx.Rect, {
@@ -300,8 +298,7 @@ function __setBody(self, constructor) {
 				els = bonds.r,
 				r = ab.left('px') + ab.width('px'),
 				delta = null;
-			for (var i in els) {
-				var el = els[i];
+			for (let el of els.values()) {
 				if (delta === null) delta = el.left('px') - r;
 				el.width(el.width('px') + delta + 'px');
 				el.left(r + 'px');
@@ -315,8 +312,7 @@ function __setBody(self, constructor) {
 				els = bonds.b,
 				b = ab.top('px') + ab.height('px'),
 				delta = null;
-			for (var i in els) {
-				var el = els[i];
+			for (let el of els.values()) {
 				if (delta === null) delta = el.top('px') - b;
 				el.height(el.height('px') + delta + 'px');
 				el.top(b + 'px');

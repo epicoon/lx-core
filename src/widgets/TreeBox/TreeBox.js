@@ -91,8 +91,8 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		postBuild(config) {
 			super.postBuild(config);
 
-			var work = this.children.work,
-				move = this.children.move;
+			var work = this->work,
+				move = this->move;
 			work.stream({
 				padding: this.indent+'px',
 				step: this.step+'px',
@@ -117,18 +117,18 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			if (this.leafConstructor)
 				this.leafConstructor = this.unpackFunction(this.leafConstructor);
 
-			this.children.work.clear();
+			this->work.clear();
 			this.prepareRoot();
 		}
 
 		leafs() {
-			if (!this.children.work.children.leaf) return new lx.Collection();
-			return new lx.Collection(this.children.work.children.leaf);
+			if (!this->work->leaf) return new lx.Collection();
+			return new lx.Collection(this->work->leaf);
 		}
 
 		leaf(i) {
-			if (!(i in this.children.work.children.leaf)) return null;
-			return this.children.work.children.leaf[i];
+			if (!(i in this->work->leaf)) return null;
+			return this->work->leaf[i];
 		}
 
 		leafByNode(node) {
@@ -182,12 +182,12 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			var scrollTop = this.domElem.param('scrollTop');
 			var opened = [];
 			this.leafs().each((a)=> {
-				if (a.children.open.opened)
+				if (a->open.opened)
 					opened.push(a.node);
 			});
 
 
-			this.children.work.clear();
+			this->work.clear();
 			this.prepareRoot();
 			for (var i in opened) {
 				// todo - неэффективно
@@ -205,7 +205,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		getOpenedInfo() {
 			var opened = [];
 			this.leafs().each((a, i)=> {
-				if (a.children.open.opened)
+				if (a->open.opened)
 					opened.push(i);
 			});
 			return opened;
@@ -222,7 +222,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 
 		prepareRoot() {
 			this.createLeafs(this.data);
-			var work = this.children.work;
+			var work = this->work;
 			//todo с условием стало напутано - подменю не обязано быть логически связанным с кнопкой добавления. Подумать нужно ли оно вообще
 			if (this.addMode && this.rootAdding && !work.contains('submenu')) {
 				var menu = new lx.Box({parent: work, key: 'submenu', height: this.leafHeight+'px'});
@@ -240,7 +240,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			if (!data || !(data instanceof lx.Tree)) return;
 
 			var config = {
-				parent: this.children.work,
+				parent: this->work,
 				key: 'leaf',
 				height: this.leafHeight + 'px',
 				style: {overflow: 'visible'}
@@ -270,7 +270,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 
 			if ( node.fill !== undefined && node.fill ) {
 				var _t = this;
-			// остаток от непосредственной связи с бд, разобраться и убрать эти хвосты
+			//TODO остаток от непосредственной связи с бд, разобраться и убрать эти хвосты
 			} else this.trigger('leafOpen', event, leaf);
 
 			if (!node.keys.len) return;
@@ -279,12 +279,12 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			var leafs = this.createLeafs(node, leaf);
 			leafs.each((a)=> {
 				var shift = this.step + (this.step + this.leafHeight) * (node.deep() + 1);
-				a.children.open.left(shift + 'px');
-				a.children.label.left(shift + this.step + this.leafHeight + 'px');
+				a->open.left(shift + 'px');
+				a->label.left(shift + this.step + this.leafHeight + 'px');
 			});
 			this.applyRenderCache();
 
-			var b = leaf.children.open;
+			var b = leaf->open;
 			b.opened = true;
 			b.removeClass(this.basicCss.buttonClosed);
 			b.addClass(this.basicCss.buttonOpened);
@@ -299,7 +299,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			var count = next ? next.index - leaf.index - 1 : Infinity;
 
 			leaf.parent.del('leaf', leaf.index + 1, count);
-			var b = leaf.children.open;
+			var b = leaf->open;
 			b.opened = false;
 			b.removeClass(this.basicCss.buttonOpened);
 			b.addClass(this.basicCss.buttonClosed);
@@ -330,7 +330,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			};
 			if ( this.trigger('beforeAdd', event, boof) === false ) return;
 
-			if (parentNode.root) this.leafByNode(parentNode).children.open.opened = true;
+			if (parentNode.root) this.leafByNode(parentNode)->open.opened = true;
 
 			var key = boof.node.key || parentNode.genKey(),
 				newBr = parentNode.add(key);
@@ -367,7 +367,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		deleteInput() {
 			if (!this.contains('inp')) return;
 
-			var inp = this.children.inp;
+			var inp = this->inp;
 			inp.but.off('click');
 			inp.but.click(self::addNode);
 
@@ -381,7 +381,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		static applyAddNode(event) {
 			var tw = this.ancestor({is: lx.TreeBox}),
 				node = (this.key == 'add') ? tw.data : this.parent.node,
-				text = tw.children.inp.value();
+				text = tw->inp.value();
 
 			tw.deleteInput();
 
@@ -389,7 +389,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		}
 
 		static watchForInput(e) {
-			var widget = lx.WidgetHelper.getByElem(e.target);
+			var widget = e.target.__lx;
 			if (!widget.hasTrigger('click', lx.TreeBox.applyAddNode))
 				this.deleteInput();
 		}

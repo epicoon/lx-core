@@ -74,7 +74,7 @@ class Slider extends lx.Box #lx:namespace lx {
 	}
 
 	handle() {
-		return this.children.handle;
+		return this->handle;
 	}
 
 	value(val, event) {

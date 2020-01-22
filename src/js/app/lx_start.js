@@ -10,7 +10,7 @@ function windowOnresize(event) {
 	function rec(el) {
 		el.trigger('resize', event);
 
-		if (!el.children) return;
+		if (!el.childrenCount) return;
 
 		for (var i=0; i<el.childrenCount(); i++) {
 			var child = el.child(i);

@@ -88,8 +88,8 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 
 	#lx:client postBuild(config) {
 		super.postBuild(config);
-		if (!this.children.label) return;
-		this.children.label.each((l)=>{
+		if (!this->label) return;
+		this->label.each((l)=>{
 			l.on('click', function() {
 				this.parent.widget(this.index).trigger('click');
 			});
@@ -100,22 +100,22 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 	}
 
 	widgets() {
-		if (!this.children.widget) return new lx.Collection();
-		return new lx.Collection(this.children.widget);
+		if (!this->widget) return new lx.Collection();
+		return new lx.Collection(this->widget);
 	}
 
 	labels() {
-		if (!this.children.label) return new lx.Collection();
-		return new lx.Collection(this.children.label);
+		if (!this->label) return new lx.Collection();
+		return new lx.Collection(this->label);
 	}
 
 	widget(num) {
-		if (!this.children.widget) return null;
-		return this.children.widget[num];
+		if (!this->widget) return null;
+		return this->widget[num];
 	}
 
 	label(num) {
-		if (!this.children.label) return null;
-		return this.children.label[num];
+		if (!this->label) return null;
+		return this->label[num];
 	}
 }

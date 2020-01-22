@@ -124,23 +124,23 @@ class MultiBox extends lx.Box #lx:namespace lx {
 	}
 
 	mark(num) {
-		if (!this.children.mark || num >= this.children.mark.len) return null;
-		return this.children.mark[num];
+		if (!this->mark || num >= this->mark.len) return null;
+		return this->mark[num];
 	}
 
 	marks() {
-		if (!this.children.mark) return null;
-		return new lx.Collection(this.children.mark);
+		if (!this->mark) return null;
+		return new lx.Collection(this->mark);
 	}
 
 	sheet(num) {
-		if (!this.children.sheet || num >= this.children.sheet.len) return null;
-		return this.children.sheet[num];
+		if (!this->sheet || num >= this->sheet.len) return null;
+		return this->sheet[num];
 	}
 
 	sheets() {
-		if (!this.children.sheet) return null;
-		return new lx.Collection(this.children.sheet);
+		if (!this->sheet) return null;
+		return new lx.Collection(this->sheet);
 	}
 
 	activeMark() {

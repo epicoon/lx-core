@@ -57,10 +57,10 @@ class Table extends lx.Box #lx:namespace lx {
 	}
 
 	row(row) {
-		if (!this.children.r) return null;
-		if (this.children.r instanceof lx.TableRow) return this.children.r;
-		if (!this.children.r[row]) return null;
-		return this.children.r[row];
+		if (!this->r) return null;
+		if (this->r instanceof lx.TableRow) return this->r;
+		if (!this->r[row]) return null;
+		return this->r[row];
 	}
 
 	cell(row, col) {
@@ -70,9 +70,9 @@ class Table extends lx.Box #lx:namespace lx {
 	}
 
 	rowsCount() {
-		if (!this.children.r) return 0;
-		if (this.children.r.isArray)
-			return this.children.r.len;
+		if (!this->r) return 0;
+		if (this->r.isArray)
+			return this->r.len;
 		return 1;
 	}
 
@@ -90,7 +90,7 @@ class Table extends lx.Box #lx:namespace lx {
 		if (!rows) return c;
 		if (r1 == undefined || r1 >= rows) r1 = rows - 1;
 
-		if (r0 == 0 && r1 == rows - 1) return c.add(this.children.r);
+		if (r0 == 0 && r1 == rows - 1) return c.add(this->r);
 	
 		for (var i=r0; i<=r1; i++) c.add( this.row(i) );
 		return c;
@@ -107,7 +107,7 @@ class Table extends lx.Box #lx:namespace lx {
 				cols = this.colsCount(i);
 			if (c1 == undefined || c1 >= cols) c1 = cols - 1;
 
-			if (c0 == 0 && c1 == cols - 1) c.add(r.children.c);
+			if (c0 == 0 && c1 == cols - 1) c.add(r->c);
 			else {
 				for (var j=c0; j<=c1; j++)
 					c.add( this.cell(i, j) );
@@ -292,21 +292,21 @@ class TableRow extends lx.Box #lx:namespace lx {
 	}
 
 	cellsCount() {
-		if (!this.children.c) return 0;
-		if (this.children.c.isArray)
-			return this.children.c.len;
+		if (!this->c) return 0;
+		if (this->c.isArray)
+			return this->c.len;
 		return 1;
 	}
 
 	cell(num) {
-		if (!this.children.c) return null;
-		if (this.children.c instanceof lx.TableCell) return this.children.c;
-		if (!this.children.c[num]) return null;
-		return this.children.c[num];
+		if (!this->c) return null;
+		if (this->c instanceof lx.TableCell) return this->c;
+		if (!this->c[num]) return null;
+		return this->c[num];
 	}
 
 	cells() {
-		return new lx.Collection(this.children.c);
+		return new lx.Collection(this->c);
 	}
 
 	insertCells(nextIndex, count) {

@@ -64,7 +64,7 @@ class Calendar extends lx.Input #lx:namespace lx {
 		if (__active === null) return;
 		event = event || window.event;
 
-		var widget = lx.WidgetHelper.getByElem(event.target);
+		var widget = event.target.__lx;
 		if (widget === __active) return;
 		if (widget && (
 			widget.ancestor({is:__menu})

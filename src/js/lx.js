@@ -4,6 +4,8 @@
 #lx:server{ global.lx = {}; };
 
 #lx:require app/lx_function;
+#lx:require widget/;
+
 
 lx.LEFT = 1;
 lx.CENTER = 2;

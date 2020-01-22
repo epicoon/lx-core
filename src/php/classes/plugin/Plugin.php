@@ -54,7 +54,7 @@ namespace lx;
 */
 class Plugin extends ApplicationTool {
 	const CACHE_NONE = 'none';
-	const CACHE_ON = 'cache';
+	const CACHE_ON = 'on';
 	const CACHE_STRICT = 'strict';
 	const CACHE_BUILD = 'build';
 	const CACHE_SMART = 'smart';

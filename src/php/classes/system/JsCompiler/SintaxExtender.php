@@ -87,9 +87,9 @@ class SintaxExtender extends ApplicationTool {
 			return $matches[1] . '.find(\'' . $matches[2] . '\')';
 		}, $code);
 
-		// element->child => element.children.child
+		// element->child => element.childrenByKeys.child
 		$code = preg_replace_callback('/([\w\d_)\[\]])->([\w_$])/', function($matches) {
-			return $matches[1] . '.children.' . $matches[2];
+			return $matches[1] . '.childrenByKeys.' . $matches[2];
 		}, $code);
 
 		// element->>child => element.find('child')

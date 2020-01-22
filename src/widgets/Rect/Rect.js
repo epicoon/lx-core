@@ -23,6 +23,13 @@ class Rect #lx:namespace lx {
     }
 
     #lx:server {
+        __construct() {
+            this.__self = {
+                domElem: null,
+                parent: null
+            };
+        }
+
         get domElem() { return this.__self.domElem; }
         set domElem(attr) { this.__self.domElem = attr; }
 
@@ -30,13 +37,6 @@ class Rect #lx:namespace lx {
         set parent(attr) { this.__self.parent = attr; }
 
         beforePack() { }
-    }
-
-    #lx:server __construct() {
-        this.__self = {
-            domElem: null,
-            parent: null
-        };
     }
 
     #lx:client __construct() {
@@ -75,13 +75,6 @@ class Rect #lx:namespace lx {
         else if (config.field) this.key = config.field;
 
         this.setParent(config);
-    }
-
-    /**
-     *
-     * */
-    createDomElement() {
-        this.domElem.createElement();
     }
 
     /**
@@ -147,9 +140,9 @@ class Rect #lx:namespace lx {
         config.parent = parent;
         if (parent) parent.useRenderCache();
         for (var i=0; i<count; i++) {
-            var modifArgs = config;
-            if (configurator.preBuild) modifArgs = configurator.preBuild.call(null, modifArgs, i);
-            var obj = new this(modifArgs);
+            var modifConfig = config;
+            if (configurator.preBuild) modifConfig = configurator.preBuild.call(null, modifConfig, i);
+            var obj = new this(modifConfig);
             c.add(obj);
             if (configurator.postBuild) configurator.postBuild.call(null, obj, i);
         };
@@ -163,12 +156,6 @@ class Rect #lx:namespace lx {
      * */
     destruct() {
         this.trigger('beforeDestruct');
-
-        this.__eee = {
-            parent: this.parent,
-            elem: this.domElem
-        };
-
         this.destructProcess();
         this.parent = null;
         if (this.domElem) this.domElem.clear();
@@ -1211,14 +1198,9 @@ class Rect #lx:namespace lx {
                 next = config.after.nextSibling();
             } else {
                 parent = config.parent || lx.WidgetHelper.autoParent;
-                if (!parent) return null;
-
-                //TODO будут проблемы если нет элемента (на клиенте при кэшировнии, на сервере всегда)
-                if (config.index !== undefined) next = (this.key && this.key in parent.children)
-                    ? parent.children[this.key][config.index]
-                    : lx.WidgetHelper.getByElem(parent.getDomElem().children[config.index]);
             }
         }
+        if (!parent) return null;
 
         config.nextSibling = next;
         parent.addChild(this, config);
@@ -1242,7 +1224,9 @@ class Rect #lx:namespace lx {
         //TODO - проверить важность этой строчки. После обертки над DOM-элементом, он может не существовать, а обертка да
         // if (!this.getDomElem()) return;
         var p = this.parent;
-        if (p) p.del(this);
+        if (p) return p.del(this);
+        // Если нет родителя - это корневой элемент, его не удаляем
+        return 0;
     }
 
     /**
@@ -1302,30 +1286,21 @@ class Rect #lx:namespace lx {
     /* 6. Environment navigation */
     nextSibling() {
         return this.domElem.nextSibling();
-        // var elem = this.getDomElem();
-        // if (!elem) return null;
-        // var ns = elem.nextSibling;
-        // if (!ns) return null;
-        // return lx.WidgetHelper.getByElem(ns);
     }
 
     prevSibling() {
         return this.domElem.prevSibling();
-        // var elem = this.getDomElem();
-        // if (!elem) return null;
-        // var ps = elem.previousSibling;
-        // if (!ps) return null;
-        // return lx.WidgetHelper.getByElem(ps);
     }
 
     /**
      * Поиск первого ближайшего предка, удовлетворяющего условию из переданной конфигурации:
      * 1. is - точное соответствие переданному конструктору или объекту
-     * 2. hasProperties - имеет свойство(ва), при передаче значений проверяется их соответствие
+     * 2. hasProperty|hasProperties - имеет свойство(ва), при передаче значений проверяется их соответствие
      * 3. checkMethods - имеет метод(ы), проверяются возвращаемые ими значения
      * 4. instance - соответствие инстансу (отличие от 1 - может быть наследником инстанса)
      * */
     ancestor(info={}) {
+        if (info.hasProperty) info.hasProperties = [info.hasProperty];
         var p = this.parent;
         while (p) {
             if (info.isFunction) {
@@ -1349,7 +1324,15 @@ class Rect #lx:namespace lx {
                                 break;
                             }
                         if (match) return p;
-                    } else if (prop in p) return p;
+                    } else if (prop.isArray) {
+                        var match = true;
+                        for (var j=0, l=prop.len; j<l; j++)
+                            if (!(prop[j] in p)) {
+                                match = false;
+                                break;
+                            }
+                        if (match) return p;
+                    }
                 }
 
                 if (info.checkMethods) {
@@ -1401,7 +1384,7 @@ class Rect #lx:namespace lx {
      * */
     getSnippet() {
         #lx:server { return Snippet; }
-        return this.ancestor({hasProperties: 'isSnippet'});
+        return this.ancestor({hasProperty: 'isSnippet'});
     }
 
     /*
@@ -1410,7 +1393,7 @@ class Rect #lx:namespace lx {
     rootSnippet() {
         #lx:server { return Snippet; }
         if (this.plugin) return this;
-        return this.ancestor({hasProperties: 'plugin'});
+        return this.ancestor({hasProperty: 'plugin'});
     }
 
     getPlugin() {
@@ -1554,16 +1537,8 @@ class Rect #lx:namespace lx {
     #lx:server {
         /**
          * Просто делегирование выполнения метода на JS
-         * сущности виджетов представляются путями '=path/to/elem/elemKey[index]'
-         * парсится lx.htmlLoader.unpackProperties()
          * */
         onload(handler, args = null) {
-            if (args && args.isArray) {
-                for(var i=0, l=args.len; i<l; i++) {
-                    var item = args[i];
-                    if (item instanceof lx.Rect) args[i] = '=' + item.lxid;
-                }
-            }
             if (!this.forOnload) this.forOnload = [];
             this.forOnload.push(args ? [handler, args] : handler);
             return this;

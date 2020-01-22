@@ -285,7 +285,7 @@ lx.TableManager = {
 		event = event || window.event;
 		//todo можно еще в родителях поискать
 
-		var target = lx.WidgetHelper.getByElem(event.target);
+		var target = event.target.__lx;
 		if (!target) return;
 
 		var newCell = target.lxClassName == 'TableCell'

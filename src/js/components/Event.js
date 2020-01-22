@@ -36,7 +36,7 @@ lx.Event = (function() {
 	}
 
 	function cht(e) {
-		var el = lx.WidgetHelper.getByElem(this);
+		var el = this.__lx ? this.__lx : this;
 
 		if ( el && el.lxHasMethod('disabled') && el.disabled() ) {
 			e.preventDefault();

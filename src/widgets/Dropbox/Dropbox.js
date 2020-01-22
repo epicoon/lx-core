@@ -94,7 +94,6 @@ class Dropbox extends lx.Box #lx:namespace lx {
 
 	option(index) {
 		return this.data.nth(index)
-		// return this.children.options.cell(index, 0);
 	}
 
 	selectedText() {

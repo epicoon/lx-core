@@ -1,34 +1,15 @@
 #lx:private;
 
-let prefix = null;
-let idCounter = 1;
-let list = [];
-
 let autoParentStack = [];
 
 let frontStart = 100;
 let frontMap = [];
-
-function __getPrefix() {
-	if (prefix === null) {
-		var time = Math.floor((new Date()).getTime() * 0.001);
-		prefix = ''
-			+ lx.Math.decChangeNotation(lx.Math.randomInteger(1, 9999), 62)
-			+ lx.Math.decChangeNotation(time, 62)
-			+ lx.Math.decChangeNotation(lx.Math.randomInteger(1, 9999), 62);
-	}
-
-	return prefix;
-}
 
 class WidgetHelper {
 	#lx:const
 		LXID_ALERTS = lx\WidgetHelper::LXID_ALERTS,
 		LXID_TOSTS = lx\WidgetHelper::LXID_TOSTS,
 		LXID_BODY = lx\WidgetHelper::LXID_BODY;
-
-
-
 
 	popAutoParent() {
 		return autoParentStack.pop();
@@ -37,40 +18,6 @@ class WidgetHelper {
 	resetAutoParent() {
 		autoParentStack = [];
 	}
-
-	genId() {
-		var id = '_' + __getPrefix() + lx.Math.decChangeNotation(idCounter, 62);
-		idCounter++;
-		return id;
-	}
-
-	getIdCounter() {
-		return idCounter;
-	}
-
-	setIdCounter(val) {
-		idCounter = Math.max(idCounter, val);
-	}
-
-	register(widget, elem) {
-		var lxid = elem ? elem.getAttribute('lxid') : null;
-		if (!lxid) {
-			lxid = this.genId();
-			if (elem) elem.setAttribute('lxid', lxid);
-		}
-
-		if (!(lxid in list)) list[lxid] = widget;
-		widget.lxid = lxid;
-	}
-
-	unregister(lxid) {
-		delete list[lxid];
-	}
-
-	getByLxid(lxid) {
-		return list[lxid];
-	}
-
 
 	/*******************************************************************************************************************
 	 * CLIENT ONLY
@@ -84,40 +31,26 @@ class WidgetHelper {
 			return (new lx.Box(config)).domElem.getHtmlString();
 		}
 
-		getElementByLxid(lxid, parent = null) {
+		getElementByLxId(id, parent = null) {
 			var elem = parent ? parent.getDomElem() : null;
-			if (elem) return elem.querySelector("[lxid^='" + lxid + "']");
-			else return document.querySelector("[lxid^='" + lxid + "']");
+			if (elem) return elem.querySelector("[lxid^='" + id + "']");
+			return document.querySelector("[lxid^='" + id + "']");
 		}
 
-		getByElem(elem) {
-			if (!elem || !(elem instanceof Element)) return null;
-			return this.getByLxid(elem.getAttribute('lxid'));
-		}
-
-		/**
-		 * Если присутствует голая верстка, можно вернуть суррогатный lx-объект над элементом, имеющим аттрибут id
-		 * */
 		getById(id, type = null) {
-			var el = document.getElementById(id);
-			if (!el) return null;
-			var widget = this.getByElem(el);
-			if (widget) return widget;
-
 			if (type === null || !type.rise) type = lx.Box;
-			return type.rise(el);
+			var el = document.getElementById(id);
+			let widget = el.__lx || type.rise(el);
+			return widget;
 		}
 
-		/**
-		 * Если присутствует голая верстка, можно вернуть коллекцию суррогатных lx-объектов над элементами, имеющими аттрибут name
-		 * */
 		getByName(name, type = null) {
 			if (type === null || !type.rise) type = lx.Box;
 			var els = document.getElementsByName(name),
 				c = new lx.Collection();
 			for (var i = 0, l = els.length; i < l; i++) {
 				let el = els[i];
-				let widget = this.getByElem(el);
+				let widget = el.__lx;
 				if (widget) c.add(widget);
 				else c.add(type.rise(el));
 			}
@@ -125,7 +58,8 @@ class WidgetHelper {
 		}
 
 		/**
-		 * Если присутствует голая верстка, можно вернуть коллекцию суррогатных lx-объектов над элементами, имеющими определенный css-класс
+		 * Если присутствует голая верстка, можно вернуть коллекцию суррогатных lx-объектов над элементами,
+		 * имеющими определенный css-класс
 		 * */
 		getByClass(className, type = null) {
 			if (type === null || !type.rise) type = lx.Box;
@@ -133,7 +67,7 @@ class WidgetHelper {
 				c = new lx.Collection();
 			for (var i = 0, l = els.length; i < l; i++) {
 				let el = els[i];
-				let widget = this.getByElem(el);
+				let widget = el.__lx;
 				if (widget) c.add(widget);
 				else c.add(type.rise(el));
 			}
@@ -144,21 +78,21 @@ class WidgetHelper {
 		 *
 		 * */
 		getBodyElement() {
-			return this.getElementByLxid(self::LXID_BODY);
+			return this.getElementByLxId(self::LXID_BODY);
 		}
 
 		/**
 		 *
 		 * */
 		getAlertsElement() {
-			return this.getElementByLxid(self::LXID_ALERTS);
+			return this.getElementByLxId(self::LXID_ALERTS);
 		}
 
 		/**
 		 *
 		 * */
 		getTostsElement() {
-			return this.getElementByLxid(self::LXID_TOSTS);
+			return this.getElementByLxId(self::LXID_TOSTS);
 		}
 
 		bringToFront(el) {

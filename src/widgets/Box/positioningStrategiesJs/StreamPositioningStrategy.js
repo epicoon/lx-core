@@ -181,20 +181,21 @@ class SequenseProportional extends Sequense {
 
 	setParam(elem, param, val) {
 		if (val.isNumber) val = val + 'fr';
-		var needBuild = elem.streamSize !== undefined;
+		var needBuild = ((elem.streamSize !== undefined) || elem.nextSibling());
 		elem.streamSize = val;
 		var styleParam = this.owner.direction == lx.VERTICAL
 			? 'grid-template-rows'
-			: 'grid-template-columns',
-			tpl = this.owner.owner.style(styleParam);
+			: 'grid-template-columns';
 		if (needBuild) {
 			var arr = [];
 			this.owner.owner.getChildren().each((c)=>arr.push(c.streamSize));
 			this.owner.owner.style(styleParam, arr.join(' '));
 		} else {
+			var tpl = this.owner.owner.style(styleParam);
+			tpl = tpl ? tpl + ' ' : '';
 			this.owner.owner.style(
 				styleParam,
-				tpl + ' ' + elem.streamSize
+				tpl + elem.streamSize
 			); 
 		}
 	}
