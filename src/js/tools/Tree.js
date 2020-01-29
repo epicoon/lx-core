@@ -42,6 +42,10 @@ class Tree #lx:namespace lx {
 		return this.keys.length == 0;
 	}
 
+	count() {
+		return this.keys.length;
+	}
+
 	genKey() {
 		return 'node' + this.keys.length;
 	}

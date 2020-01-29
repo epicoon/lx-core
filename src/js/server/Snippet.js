@@ -23,6 +23,14 @@ class Snippet #lx:namespace lx {
     }
 
     addPlugin(data) {
+        var re = function(obj) {
+            if (obj.isFunction) return lx.functionToString(obj);
+            if ( ! obj.isObject) return obj;
+            for (var name in obj) obj[name] = re(obj[name]);
+            return obj;
+        };
+        data = re(data);
+
         this.plugins.push(data);
     }
 

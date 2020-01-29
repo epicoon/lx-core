@@ -236,7 +236,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			}
 		}
 
-		createLeafs(data, after) {
+		createLeafs(data, before) {
 			if (!data || !(data instanceof lx.Tree)) return;
 
 			var config = {
@@ -245,9 +245,9 @@ class TreeBox extends lx.Box #lx:namespace lx {
 				height: this.leafHeight + 'px',
 				style: {overflow: 'visible'}
 			};
-			if (after) config.after = after;
+			if (before) config.before = before;
 
-			var result = TreeLeaf.construct(data.keys.len, config, {
+			var result = TreeLeaf.construct(data.count(), config, {
 				preBuild:(config,i)=> {
 					config.node = data.getNth(i);
 					return config;
@@ -276,7 +276,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			if (!node.keys.len) return;
 
 			this.useRenderCache();
-			var leafs = this.createLeafs(node, leaf);
+			var leafs = this.createLeafs(node, leaf.nextSibling());
 			leafs.each((a)=> {
 				var shift = this.step + (this.step + this.leafHeight) * (node.deep() + 1);
 				a->open.left(shift + 'px');

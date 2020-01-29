@@ -2,7 +2,7 @@
 
 namespace lx;
 
-interface AuthenticationInterface {
+interface AuthenticationInterface extends EventLestenerInterface {
 	public function authenticateUser();
 	public function responseToAuthenticate($responseSource);
 }

@@ -15,12 +15,7 @@ class File extends BaseFile {
 
 		if ($path instanceof Directory) $path = $path->getPath();
 		if (!preg_match('/\/$/', $path)) $path .= '/';
-		$this->path = $path . $name;
-
-		$this->parentDir = dirname($path);
-
-		preg_match_all('/\/([^\/]*)$/', $this->path, $matches);
-		$this->name = $matches[1][0];
+		parent::__construct($path . $name);
 	}
 
 	public function getExtension() {

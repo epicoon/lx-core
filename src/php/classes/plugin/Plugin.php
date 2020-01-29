@@ -96,7 +96,7 @@ class Plugin extends ApplicationTool {
 	/* * *  1. Основные  * * */
 
 	/**
-	 * //todo - плагин должен вызываться всегда опосредованно через сервис. Может закрыть этот метод?
+	 * Можно собрать плагин для сервиса по пути
 	 * */
 	public static function create($service, $pluginName, $pluginPath, $prototype = null) {
 		$dir = new PluginDirectory($pluginPath);
@@ -260,6 +260,7 @@ class Plugin extends ApplicationTool {
 		
 		$result = [
 			'name' => $this->_name,
+			'path' => $this->getPath(),
 			'images' => $this->conductor->getImagePathInSite(),
 			'serviceName' => $this->service->name,
 		];
@@ -283,6 +284,12 @@ class Plugin extends ApplicationTool {
 		}
 
 		$this->clientParams->setProperties($data['clientParams']);
+		foreach ($data['preJs'] as $code) {
+			$this->preJs($code);
+		}
+		foreach ($data['postJs'] as $code) {
+			$this->postJs($code);
+		}
 	}
 
 	public function getService() {

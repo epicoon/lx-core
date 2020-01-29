@@ -129,6 +129,10 @@ class NodeJsExecutor extends ApplicationTool {
 			$this->app->log($msg['data'], $msg['category']);
 		}
 
+		foreach ($result['dump'] as $item) {
+			\lx::dump($item);
+		}
+
 		if ($result['error'] != 0) {
 			$this->processError($result['error'], $result['result'], $file);
 		}

@@ -165,18 +165,19 @@ abstract class AbstractApplication {
 	}
 
 	/**
-	 * Получение модуля из сервиса
+	 * Получение плагина из сервиса
 	 * */
 	public function getPlugin($fullPluginName, $renderParams = [], $clientParams = []) {
 		if (is_array($fullPluginName)) {
 			return $this->getPlugin(
-				$fullPluginName['name'] ?? $fullPluginName['plugin'],
+				$fullPluginName['name'] ?? $fullPluginName['plugin'] ?? '',
 				$fullPluginName['renderParams'] ?? [],
 				$fullPluginName['clientParams'] ?? []
 			);
 		}
 
 		$arr = explode(':', $fullPluginName);
+		if (count($arr) != 2) return null;
 		$serviceName = $arr[0];
 		$pluginName = $arr[1];
 

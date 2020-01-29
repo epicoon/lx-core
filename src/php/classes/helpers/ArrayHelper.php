@@ -133,6 +133,14 @@ class ArrayHelper {
 
 			if (is_string($val)) {
 				if ($val == '') return '\'\'';
+				if (preg_match('/\n/', $val)) {
+					if (preg_match('/`/')) {
+						$val = preg_replace('/(?:\n|\r|\r\n)/', '$1\'+\'', $val);
+					} else {
+						$val = "`$val`";
+						return $val;
+					}
+				}
 				if ($val{0} != '\'') return "'$val'";
 			}
 			if ($val === true) return 'true';

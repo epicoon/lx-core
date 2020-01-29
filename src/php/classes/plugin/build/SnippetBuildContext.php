@@ -63,9 +63,9 @@ class SnippetBuildContext extends ApplicationTool implements ContextTreeInterfac
 			case Plugin::CACHE_NONE:
 				return $this->buildProcess(false);
 			case Plugin::CACHE_STRICT:
-				return $this->getCache() ?? $this->buildProcess(true);
-			case Plugin::CACHE_ON:
 				return $this->getCache() ?? '[]';
+			case Plugin::CACHE_ON:
+				return $this->getCache() ?? $this->buildProcess(true);
 			case Plugin::CACHE_SMART:
 				return $this->getSmartCache();
 		}
@@ -239,6 +239,7 @@ class SnippetBuildContext extends ApplicationTool implements ContextTreeInterfac
 			'@core/js/server/Plugin',
 			'@core/js/server/Snippet',
 
+			'@core/js/server/file/',
 			'@core/js/server/hash/HashMd5',
 
 			'@core/js/helpers/Math',
@@ -286,7 +287,7 @@ class SnippetBuildContext extends ApplicationTool implements ContextTreeInterfac
 		$plugin->applyBuildData($res['plugin']);
 		$snippet->applyBuildData($res['snippet']);
 
-		// Зависимости ниппету запомнить, к плагину применить
+		// Зависимости сниппету запомнить, к плагину применить
 		$dependencies = $compiler->getDependencies();
 		$dependencies->add($res['dependencies']);
 		$snippet->setDependencies($dependencies, $compiler->getCompiledFiles());

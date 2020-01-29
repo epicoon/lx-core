@@ -286,35 +286,35 @@ class Dialog extends ApplicationTool {
 	 *
 	 * */
 	public function send($data = null) {
-		$content = ob_get_contents();
-		if ($content != '') {
-			ob_end_clean();
+		if ($data === null) {
+			$type = 'html';
+			$content = ob_get_contents();
+			if ($content != '') {
+				ob_end_clean();
+			}
+		} else {
+			$type = is_string($data) ? 'plane' : 'json';
+			$content = $data;
+		}
+
+		if (\lx::$dump != '') {
+			if (is_array($content)) {
+				$content['lxdump'] = \lx::$dump;
+			} else {
+				if ($this->isAjax()) {
+					$content .= '<lx-var-dump>' . \lx::$dump . '</lx-var-dump>';
+				} else {
+					$content = '<pre class="lx-var-dump">' . \lx::$dump . '</pre>' . $content;
+				}
+			}
 		}
 
 		if ($this->app->user && $this->app->user->isGuest()) {
 			header('lx-user-status: guest');
 		}
-
-		if ($data === null) {
-			header('Content-Type: text/html; charset=utf-8');
-			if ($content != '') {
-				$this->echo($content);
-			}
-		} else {
-			$isStr = is_string($data);
-			header('Content-Type: text/' . ($isStr ? 'plane' : 'json') . '; charset=utf-8');
-			
-			if (\lx::$dump != '') {
-				if (is_array($data)) {
-					$data['lxdump'] = \lx::$dump;
-				} else {
-					$data .= '<lx-dump>' . \lx::$dump . '</lx-dump>';
-				}
-			}
-
-			$data = $isStr ? $data : json_encode($data);
-			$this->echo($data);
-		}
+		header("Content-Type: text/$type; charset=utf-8");
+		$content = $type=='json' ? json_encode($content) : $content;
+		$this->echo($content);
 	}
 
 	private function echo($data) {

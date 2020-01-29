@@ -292,7 +292,9 @@ class PluginConductor {
 	 * */
 	private function decodeAlias($path) {
 		$aliases = $this->plugin->getConfig('aliases');
-		if (!$aliases) return $path;
+		if (!$aliases) {
+			return $this->plugin->getService()->getFilePath($path);
+		}
 
 		$result = $path;
 		while (true) {

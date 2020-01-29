@@ -197,11 +197,15 @@ class Directory extends BaseFile {
 	 * */
 	public function find($filename, $flag = Directory::FIND_OBJECT) {
 		$arr = explode('/', $filename);
-		$fn = array_pop($arr);
-		$path = (count($arr))
-				? $this->path . '/' . implode('/', $arr)
-				: $this->path;
-		$f = self::staticFind($path, $fn);
+
+		if (count($arr) == 1) {
+			$f = self::staticFind($this->path, $filename);
+		} else {
+			$medName = array_shift($arr);
+			$fn = implode('/', $arr);
+			$f = self::staticFindExt($this->path, $medName, $fn);
+		}
+
 		if (!$f) return false;
 		if ($flag == self::FIND_NAME) return $f;
 		return (new BaseFile($f))->toFileOrDir();
@@ -272,25 +276,38 @@ class Directory extends BaseFile {
 	/**
 	 * Рекурсивный поиск файла, включая вложенные директории
 	 * */
-	private static function staticFind($dir, $tosearch) {
-		if (!file_exists($dir)) return false;
-		$files = array_diff(scandir($dir), ['.', '..']);
-		if ($dir[strlen($dir) - 1] != '/') $dir .= '/';
-		foreach ($files as $d) {
-			$path = $dir . $d; 
-			if ($d == $tosearch) return $path;
+	private static function staticFind($dirName, $fileName) {
+		if (!file_exists($dirName)) return false;
+		$files = array_diff(scandir($dirName), ['.', '..']);
+		if ($dirName[strlen($dirName) - 1] != '/') $dirName .= '/';
+		foreach ($files as $f) {
+			$path = $dirName . $f;
+			if ($f == $fileName) return $path;
 			if (is_dir($path)) {
-				$res = self::staticFind($dir . $d, $tosearch);
+				$res = self::staticFind($path, $fileName);
 				if ($res) return $res;
 			}
+		}
+		return false;
+	}
 
-			// if (!is_dir($dir . $d)) {
-			// 	if ($d == $tosearch)
-			// 	return $dir . $d;
-			// } else {
-			// 	$res = self::staticFind($dir . $d, $tosearch);
-			// 	if ($res) return $res;
-			// }
+	private static function staticFindExt($dirName, $medDirName, $fileName) {
+		if (!file_exists($dirName)) return false;
+		$files = array_diff(scandir($dirName), ['.', '..']);
+		if ($dirName[strlen($dirName) - 1] != '/') $dirName .= '/';
+		if ($medDirName[strlen($medDirName) - 1] != '/') $medDirName .= '/';
+		foreach ($files as $f) {
+			$path = $dirName . $f;
+			if ($f == $medDirName) {
+				$fullPath = $path . $fileName;
+				if (file_exists($fullPath)) {
+					return $fullPath;
+				}
+			}
+			if (is_dir($path)) {
+				$res = self::staticFindExt($path, $medDirName, $fileName);
+				if ($res) return $res;
+			}
 		}
 		return false;
 	}

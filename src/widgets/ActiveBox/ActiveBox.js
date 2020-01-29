@@ -63,6 +63,10 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 		this.setBuildMode(false);
 	}
 
+	setHeader(text) {
+		this->header->textWrapper.text(text);
+	}
+
 	setResizer(config) {
 		var resizer = new lx.Rect({
 			parent: this,
@@ -92,6 +96,7 @@ function __setHeader(self, config) {
 	var headerConfig = config.headerConfig || {};
 	if (config.headerHeight) headerConfig.height = config.headerHeight;
 	if (headerConfig.height === undefined) headerConfig.height = lx.ActiveBox.HEADER_HEIGHT;
+	headerConfig.geom = true;
 	headerConfig.parent = self;
 	headerConfig.key = 'header';
 
@@ -102,7 +107,7 @@ function __setHeader(self, config) {
 	header.fill('lightgray');
 
 	if (text != '') {
-		var wrapper = header.add(lx.Box, {key: 'textWrapper'});
+		var wrapper = header.add(lx.Box, {geom:true, key:'textWrapper'});
 		wrapper.text(text);
 		wrapper.align(lx.CENTER, lx.MIDDLE);
 	}

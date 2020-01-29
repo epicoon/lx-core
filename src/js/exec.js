@@ -1,17 +1,21 @@
-const fs = require("fs");
+const nodeModules = {
+	fs: require('fs'),
+	path: require('path')
+};
 
 let err = 0;
 let res = 0;
 let __out__ = {
-	logList: []
+	logList: [],
+	dumpList: []
 };
 
 let filePath = process.argv[2];
-let code = fs.readFileSync(filePath, "utf8");
+let code = nodeModules.fs.readFileSync(filePath, 'utf8');
 
 try {
-	var f = new Function('__out__', code);
-	res = f(__out__) || null;
+	var f = new Function('__nodeModules__, __out__', code);
+	res = f(nodeModules, __out__) || null;
 } catch (e) {
 	returnError(e, 1);
 	return;
@@ -22,7 +26,8 @@ try {
 	result = JSON.stringify({
 		error: err,
 		result: res,
-		log: __out__.logList
+		log: __out__.logList,
+		dump: __out__.dumpList
 	});
 } catch (e) {
 	returnError(e, 2);
@@ -39,6 +44,7 @@ function returnError(e, code) {
 			message: e.message,
 			stack: e.stack
 		},
-		log: __out__.logList
+		log: __out__.logList,
+		dump: __out__.dumpList
 	}));
 }

@@ -1,4 +1,5 @@
 <?php
+
 return [
 	'AutoloadMapBuilder' => 'classes/system/autoload',
 	'AutoloadMap' => 'classes/system/autoload',
@@ -17,6 +18,11 @@ return [
 	'Response' => 'classes/system/app',
 	'ResponseSource' => 'classes/system/app',
 	'User' => 'classes/system/app',
+	'UserEventsEnum' => 'classes/system/app',
+
+	'EventManager' => 'classes/system/event',
+	'EventLestenerInterface' => 'classes/system/event',
+	'EventListenerTrait' => 'classes/system/event',
 
 	'Console' => 'classes/system',
 	'HtmlHead' => 'classes/system',
@@ -126,6 +132,7 @@ return [
 	/*******************************************************************************************************************
 	 * Interfaces
 	 ******************************************************************************************************************/
+	'UserProcessorInterface' => 'interfaces',
 	'AuthenticationInterface' => 'interfaces',
 	'AuthorizationInterface' => 'interfaces',
 	'LoggerInterface' => 'interfaces',

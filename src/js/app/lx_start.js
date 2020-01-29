@@ -1,26 +1,5 @@
 #lx:private
 
-function resetInit() {
-	delete lx.setWatchForKeypress;
-	delete lx.useElementMoving;
-	delete lx.useTimers;
-}
-
-function windowOnresize(event) {
-	function rec(el) {
-		el.trigger('resize', event);
-
-		if (!el.childrenCount) return;
-
-		for (var i=0; i<el.childrenCount(); i++) {
-			var child = el.child(i);
-			if (!child || !child.getDomElem()) continue;
-			rec(child);
-		}
-	}
-	rec(lx.body);
-}
-
 lx.checkDisplay = function(event) {
 	this.triggerDisplay(event);
 
@@ -41,8 +20,8 @@ lx.start = function(settings, data, jsBootstrap, plugin, jsMain) {
 	this.setWatchForKeypress(true);
 	this.useElementMoving();
 	this.useTimers(true);
-	this.Event.add(window, 'resize', windowOnresize);
-	resetInit();
+	this.Event.add(window, 'resize', __windowOnresize);
+	__resetInit();
 
 	// Глобальный js-код, выполняемый ДО загрузки корневого модуля
 	if (jsBootstrap && jsBootstrap != '') lx.createAndCallFunction('', jsBootstrap, this);
@@ -53,6 +32,40 @@ lx.start = function(settings, data, jsBootstrap, plugin, jsMain) {
 	// Глобальный js-код, выполняемый ПОСЛЕ загрузки корневого модуля
 	if (jsMain && jsMain != '') lx.createAndCallFunction('', jsMain, this);
 
+	//TODO - ограничить код режимом НЕ-ПРОДА
+	// Ищем отладочные дампы
+	__findDump();
+
 	// Врубаем поддержку контроля времени
 	lx.go([Function("lx.doActions();")]);
 };
+
+function __windowOnresize(event) {
+	function rec(el) {
+		el.trigger('resize', event);
+
+		if (!el.childrenCount) return;
+
+		for (var i=0; i<el.childrenCount(); i++) {
+			var child = el.child(i);
+			if (!child || !child.getDomElem()) continue;
+			rec(child);
+		}
+	}
+	rec(lx.body);
+}
+
+function __resetInit() {
+	delete lx.setWatchForKeypress;
+	delete lx.useElementMoving;
+	delete lx.useTimers;
+}
+
+function __findDump() {
+	var elems = document.getElementsByClassName('lx-var-dump');
+	if (!elems.length) return;
+	var elem = elems[0];
+	var text = elem.innerHTML;
+	elem.offsetParent.removeChild(elem);
+	lx.Alert(text);
+}

@@ -8,7 +8,7 @@ namespace lx;
  *
  * @property $sitePath string
  * @property $autoloader Autoloader
- * @property $dialod Dialog
+ * @property $dialog Dialog
  * @property $conductor Conductor
  * @property $router Router
  */
@@ -38,6 +38,7 @@ class Application extends AbstractApplication implements FusionInterface {
 		$this->initFusionComponents($this->getConfig('components'), [
 			'language' => Language::class,
 			'user' => User::class,
+			'events' => EventManager::class,
 		]);
 
 		$this->data = new DataObject();

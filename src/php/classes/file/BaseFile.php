@@ -17,18 +17,6 @@ class BaseFile {
 		$this->setPath($path);
 	}
 
-	public static function getFileOrDir($path) {
-		if (is_dir($path)) {
-			return new Directory($path);
-		}
-
-		if (is_file($path)) {
-			return new File($path);
-		}
-
-		return null;
-	}
-
 	public function setPath($path) {
 		$this->path = $path;
 		$arr = explode('/', $path);
@@ -40,6 +28,18 @@ class BaseFile {
 		$this->parentDir = implode('/', $arr);
 
 		return $this;
+	}
+
+	public static function getFileOrDir($path) {
+		if (is_dir($path)) {
+			return new Directory($path);
+		}
+
+		if (is_file($path)) {
+			return new File($path);
+		}
+
+		return null;
 	}
 
 	public function getPath() {
@@ -134,7 +134,7 @@ class BaseFile {
 	}
 
 	/**
-	 * Пересестить файл в переданную директорию
+	 * Переместить файл в переданную директорию
 	 * @param $dir
 	 * @param $newName - если задан перемещение будет с переименованием
 	 * */

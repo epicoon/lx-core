@@ -5,7 +5,7 @@ namespace lx;
 class User extends ApplicationComponent
 {
 	/** @var null|string */
-	protected $userModelClass = null;
+	private static $userModelClass = null;
 
 	/** @var null|string */
 	private $authFieldName = null;
@@ -15,8 +15,13 @@ class User extends ApplicationComponent
 	public function __construct($owner, $config = [])
 	{
 		parent::__construct($owner, $config);
-		if ($this->userModelClass) {
-			$this->userModel = new $this->userModelClass();
+
+		if (self::$userModelClass === null) {
+			self::$userModelClass = $config['userModelClass'] ?? null;
+		}
+
+		if (self::$userModelClass) {
+			$this->userModel = new self::$userModelClass();
 		}
 	}
 
@@ -40,6 +45,19 @@ class User extends ApplicationComponent
 		}
 	}
 
+	public function __call($method, $args)
+	{
+		if (ClassHelper::publicMethodExists($this, $method)) {
+			return call_user_func_array([$this, $method], $args);
+		}
+
+		if ($this->userModel === null) {
+			return null;
+		}
+
+		return $this->userModel->__call($method, $args);
+	}
+
 	public function isGuest()
 	{
 		if ($this->isAvailable() || $this->authFieldName) {
@@ -52,7 +70,7 @@ class User extends ApplicationComponent
 
 	public function isAvailable()
 	{
-		return $this->userModelClass !== null && $this->userModel !== null;
+		return self::$userModelClass !== null && $this->userModel !== null;
 	}
 
 	public function set($userData)
@@ -62,6 +80,11 @@ class User extends ApplicationComponent
 		}
 
 		$this->userModel->setData($userData);
+	}
+
+	public function getAuthField()
+	{
+		return $this->{$this->authFieldName};
 	}
 
 	public function setAuthFieldName($name)

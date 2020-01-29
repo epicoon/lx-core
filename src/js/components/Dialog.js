@@ -179,26 +179,6 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 
 	// Обертка при успешном ответе - он может нести отладочную информацию
 	function successWrap(request) {
-		function findDump(res) {
-			if (res.isString) {
-				var dump = response.match(/<lx-dump>[\w\W]*<\/lx-dump>/);
-				if (dump) {
-					dump = dump[0];
-					res = res.replace(dump, '');
-					dump = dump.replace(/<lx-dump>/, '');
-					dump = dump.replace(/<\/lx-dump>/, '');
-				}
-				return [res, dump];
-			} else if (res.isObject) {
-				var dump = null;
-				if (res.lxdump) {
-					dump = res.lxdump;
-					delete res.lxdump;
-				}
-				return [res, dump];
-			} else return [res, null];
-		}
-
 		var response = request.response;
 
 		// Гостевой флаг
@@ -210,10 +190,10 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 			? JSON.parse(response)
 			: response;
 
-		var resultAndDump = findDump(result);
+		var resultAndDump = __findDump(result);
 		result = resultAndDump[0];
-
 		callHandler(handlerMap.success, [result, request]);
+
 		if (resultAndDump[1]) {
 			lx.Alert(resultAndDump[1]);
 		}
@@ -238,7 +218,7 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 
 	// Инициализируем соединение
 	request.open(method, url, true);
-	if (isAjax(url)) {
+	if (__isAjax(url)) {
 		// Заголовок для сервера, что это AJAX-запрос
 		request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 		if (lx.__auth) lx.__auth(request);
@@ -269,7 +249,28 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 /**
  * Определение типа запроса по URL
  * */
-function isAjax(url) {
+function __isAjax(url) {
 	var reg = new RegExp('^\w+?:' + '/' + '/');
 	return !url.match(reg);
+}
+
+//TODO - ограничить код режимом НЕ-ПРОДА
+function __findDump(res) {
+	if (res.isString) {
+		var dump = res.match(/<lx-var-dump>[\w\W]*<\/lx-var-dump>/);
+		if (dump) {
+			dump = dump[0];
+			res = res.replace(dump, '');
+			dump = dump.replace(/<lx-var-dump>/, '');
+			dump = dump.replace(/<\/lx-var-dump>/, '');
+		}
+		return [res, dump];
+	} else if (res.isObject) {
+		var dump = null;
+		if (res.lxdump) {
+			dump = res.lxdump;
+			delete res.lxdump;
+		}
+		return [res, dump];
+	} else return [res, null];
 }
