@@ -8,17 +8,18 @@ return [
 	'Application' => 'classes/system/app',
 	'ConsoleApplication' => 'classes/system/app',
 
-	'ApplicationTool' => 'classes/system/app',
 	'ApplicationConductor' => 'classes/system/app',
 	'ApplicationComponent' => 'classes/system/app',
 	'ApplicationLogger' => 'classes/system/app',
-	'Dialog' => 'classes/system/app',
 	'Router' => 'classes/system/app',
 	'AjaxRouter' => 'classes/system/app',
 	'Response' => 'classes/system/app',
 	'ResponseSource' => 'classes/system/app',
 	'User' => 'classes/system/app',
 	'UserEventsEnum' => 'classes/system/app',
+
+	'Dialog' => 'classes/system/dialog',
+	'Cookie' => 'classes/system/dialog',
 
 	'EventManager' => 'classes/system/event',
 	'EventLestenerInterface' => 'classes/system/event',
@@ -121,7 +122,7 @@ return [
 	'FusionTrait' => 'behaviors/Fusion',
 	'FusionComponentInterface' => 'behaviors/Fusion',
 	'FusionComponentTrait' => 'behaviors/Fusion',
-	'ComponentList' => 'behaviors/Fusion',
+	'FusionComponentList' => 'behaviors/Fusion',
 
 	'ErrorCollectorInterface' => 'behaviors/ErrorCollector',
 	'ErrorCollectorTrait' => 'behaviors/ErrorCollector',
@@ -140,4 +141,6 @@ return [
 	'ServiceCliExecutorInterface' => 'interfaces',
 	'ModelInterface' => 'interfaces',
 	'ToStringConvertableInterface' => 'interfaces',
+
+	'ApplicationToolTrait' => 'traits',
 ];

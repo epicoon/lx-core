@@ -2,15 +2,15 @@
 
 namespace lx;
 
-class HtmlHead extends ApplicationTool {
+class HtmlHead {
+	use ApplicationToolTrait;
+
 	private $title = 'lx';
 	private $icon = null;
 	private $css = null;
 	private $scripts = null;
 
-	public function __construct($app, $config) {
-		parent::__construct($app);
-		
+	public function __construct($config) {
 		$config = DataObject::create($config);
 		if ($config->title) $this->title = $config->title;
 		if ($config->icon) $this->icon = $config->icon;
@@ -85,7 +85,7 @@ class HtmlHead extends ApplicationTool {
 		$cssFile = new File($corePath . '/css/lx.css');
 		$cssJsFile = new File($corePath . '/css/lx.css.js');
 		if ($cssJsFile->exists() && $cssJsFile->isNewer($cssFile)) {
-			$exec = new NodeJsExecutor($this->app);
+			$exec = new NodeJsExecutor();
 			$res = $exec->runFile($cssJsFile, ['@core/js/classes/css/CssContext']);
 			$cssFile->put($res);
 		}		

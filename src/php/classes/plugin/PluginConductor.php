@@ -221,7 +221,7 @@ class PluginConductor {
 					if (!$pare['css']) {
 						$pare['css'] = $d->makeFile($key);
 					}
-					$exec = new NodeJsExecutor($this->app);
+					$exec = new NodeJsExecutor();
 					$cssCode = $exec->runFile($pare['js'], ['@core/js/classes/css/CssContext']);
 					$pare['css']->put($cssCode);
 				}

@@ -10,7 +10,7 @@ class I18nServiceMap extends I18nMap implements FusionComponentInterface
 	protected $fullMap;
 
 	public function __construct($service, $config = []) {
-		parent::__construct($service->app);
+		parent::__construct();
 		$this->constructFusionComponent($service, $config);
 	}
 

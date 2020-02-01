@@ -13,7 +13,7 @@ trait FusionTrait
 			$this->getFusionComponentsDefaultConfig()
 		);
 
-		$this->fusionComponentList = new ComponentList($this);
+		$this->fusionComponentList = new FusionComponentList($this);
 		$this->fusionComponentList->load($list ?? [], $allDefaults);
 	}
 

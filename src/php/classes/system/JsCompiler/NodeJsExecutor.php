@@ -6,7 +6,9 @@ namespace lx;
  * Class NodeJsExecutor
  * @package lx
  */
-class NodeJsExecutor extends ApplicationTool {
+class NodeJsExecutor {
+	use ApplicationToolTrait;
+
     private $filePath = null;
 
 	/**
@@ -16,13 +18,10 @@ class NodeJsExecutor extends ApplicationTool {
 
 	/**
 	 * NodeJsExecutor constructor.
-	 * @param $app Application
 	 * @param $compiler JsCompiler
 	 */
-    public function __construct($app, $compiler = null) {
-		parent::__construct($app);
-
-		$this->compiler = $compiler ?? new JsCompiler($this->app);
+    public function __construct($compiler = null) {
+		$this->compiler = $compiler ?? new JsCompiler();
 	}
 
 	/**

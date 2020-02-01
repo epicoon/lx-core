@@ -2,7 +2,8 @@
 
 namespace lx;
 
-class PluginBuildContext extends ApplicationTool implements ContextTreeInterface {
+class PluginBuildContext implements ContextTreeInterface {
+	use ApplicationToolTrait;
 	use ContextTreeTrait;
 
 	const DEFAULT_MODULE_TITLE = 'lx';
@@ -25,13 +26,11 @@ class PluginBuildContext extends ApplicationTool implements ContextTreeInterface
 	private $commonModuleDependencies;
 
 	public function __construct($plugin, $parent = null) {
-		parent::__construct($plugin->app);
-
 		$this->plugin = $plugin;
 		$this->compiled = false;
 		$this->ContextTreeTrait($parent);
 		$this->moduleDependencies = [];
-		$this->jsCompiler = new JsCompiler($this->app, $this->getPlugin()->conductor);
+		$this->jsCompiler = new JsCompiler($this->getPlugin()->conductor);
 
 		if (!$parent) {
 			$this->commonModuleDependencies = [];

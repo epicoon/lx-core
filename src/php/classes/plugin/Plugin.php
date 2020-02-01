@@ -32,11 +32,11 @@ namespace lx;
 	public function extractScripts()
 	public function prototypePlugin()
 	public function prototypeService()
+	public function getResponseSource($requestData)
 
 * * *  4. Методы формирования ответов  * * *
 	protected function scripts()
 	protected function ajaxResponse($data)
-	private function getResponseSource($requestData)
 	private function ajaxResponseByRespondent($respondentName, $data)
 
 * * *  6. Скрытое создание плагина  * * *
@@ -52,7 +52,10 @@ namespace lx;
 	public function getScripts()
 	public function getCss()
 */
-class Plugin extends ApplicationTool {
+class Plugin implements FusionInterface {
+	use ApplicationToolTrait;
+	use FusionTrait;
+
 	const CACHE_NONE = 'none';
 	const CACHE_ON = 'on';
 	const CACHE_STRICT = 'strict';
@@ -74,7 +77,6 @@ class Plugin extends ApplicationTool {
 	private
 		$_directory = null,  // Каталог, связанный с плагином
 		$_conductor = null,  // Проводник по структуре плагина
-		$_i18nMap = null,    // Карта переводов
 		$isMain = false,     // Главный плагин - который рендерился с ядром, при начальной загрузке страницы
 		$anchor,
 		$rootSnippetKey,
@@ -241,17 +243,13 @@ class Plugin extends ApplicationTool {
 		if ($field == 'prototype') return $this->_prototype;
 		if ($field == 'conductor') return $this->_conductor;
 		if ($field == 'directory') return $this->_directory;
-		if ($field == 'i18nMap') {
-			if ($this->_i18nMap === null) {
-				$config = ClassHelper::prepareConfig($this->getConfig('i18nMap'), I18nPluginMap::class);
-				$config['params']['plugin'] = $this;
-				$this->_i18nMap = new $config['class']($this->app, $config['params']);
-			}
 
-			return $this->_i18nMap;
+		$component = $this->getFusionComponent($field);
+		if ($component) {
+			return $component;
 		}
 
-		return parent::__get($field);
+		return $this->ApplicationToolTrait__get($field);
 	}
 	
 	public function getBuildData() {
@@ -322,6 +320,13 @@ class Plugin extends ApplicationTool {
 	 * */
 	public function findFile($name) {
 		return $this->_directory->find($name);
+	}
+
+	public function getFusionComponentsDefaultConfig()
+	{
+		return [
+			'i18nMap' => I18nPluginMap::class,
+		];
 	}
 
 	/**
@@ -412,6 +417,31 @@ class Plugin extends ApplicationTool {
 		return $this->app->getPlugin($this->prototype)->getRootPlugin()->getService();
 	}
 
+	/**
+	 * Формирование ответа для AJAX-запроса
+	 * */
+	public function getResponseSource($respondent, $data) {
+		if (!isset($data['params']) || !isset($data['data'])) {
+			//todo логировать?
+			return false;
+		}
+
+		$this->clientParams->setProperties($data['params']);
+		$requestData = $data['data'];
+
+		// Вопрошаем к конкретному респонденту
+		if ($respondent) {
+			return $this->ajaxResponseByRespondent($respondent, $requestData);
+		}
+
+		// Отсылаем на переопределяемый метод, где вручную должен разруливаться запрос
+		return new ResponseSource([
+			'object' => $this,
+			'method' => 'ajaxResponse',
+			'params' => [$requestData],
+		]);
+	}
+
 
 	//=========================================================================================================================
 	/* * *  4. Методы формирования ответов  * * */
@@ -432,34 +462,6 @@ class Plugin extends ApplicationTool {
 	}
 
 	/**
-	 * Формирование ответа для AJAX-запроса
-	 * */
-	private function getResponseSource($data) {
-		if (!isset($data['params']) || !isset($data['data'])) {
-			//todo логировать?
-			return false;
-		}
-
-		$this->clientParams->setProperties($data['params']);
-		$requestData = $data['data'];
-
-		// Вопрошаем к конкретному респонденту
-		if (isset($requestData['__respondent__'])) {
-			$respondentName = $requestData['__respondent__'];
-			$respondentParams = isset($requestData['data']) ? $requestData['data'] : null;
-
-			return $this->ajaxResponseByRespondent($respondentName, $respondentParams);
-		}
-
-		// Отсылаем на переопределяемый метод, где вручную должен разруливаться запрос
-		return new ResponseSource($this->app, [
-			'object' => $this,
-			'method' => 'ajaxResponse',
-			'params' => [$requestData],
-		]);
-	}
-
-	/**
 	 * Формирование ответа на Ajax-запрос с помощью класса-ответчика (фактически контроллер), алгоритм:
 	 * 1. Получаем $respondentName => 'RespondentName/methodName'
 	 * 2. Дополняем имя респондента нэймспэйсом (из конфига плагина)
@@ -468,7 +470,7 @@ class Plugin extends ApplicationTool {
 	 * */
 	private function ajaxResponseByRespondent($respondentName, $respondentParams) {
 		// Попробуем найти респондента
-		$respInfo = explode('/', $respondentName);
+		$respInfo = preg_split('/[^\w\d_]/', $respondentName);
 		$respondent = $this->conductor->findRespondent($respInfo[0]);
 
 		if (!$respondent) {
@@ -476,14 +478,15 @@ class Plugin extends ApplicationTool {
 			return false;
 		}
 
-		if (!method_exists($respondent, $respInfo[1])) {
-			//todo логировать? "Respondent method {$respInfo[1]} not found";
+		$methodName = $respInfo[1];
+		if (!method_exists($respondent, $methodName)) {
+			//todo логировать? "Respondent method {$methodName} not found";
 			return false;
 		}
 
-		return new ResponseSource($this->app, [
+		return new ResponseSource([
 			'object' => $respondent,
-			'method' => $respInfo[1],
+			'method' => $methodName,
 			'params' => $respondentParams,
 		]);
 	}
@@ -496,8 +499,6 @@ class Plugin extends ApplicationTool {
 	 * Защищенный конструктор - плагины создаются только фабричным методом
 	 * */
 	public function __construct($data) {
-		parent::__construct($data['service']->app);
-		
 		$this->service = $data['service'];
 
 		$this->_directory = $data['directory'];
@@ -524,6 +525,8 @@ class Plugin extends ApplicationTool {
 		ConfigHelper::pluginInject($this->name, $this->prototype, $injections, $config);
 
 		$this->config = $config;
+		$this->initFusionComponents($this->getConfig('components'));
+
 		$this->init();
 	}
 
@@ -533,7 +536,7 @@ class Plugin extends ApplicationTool {
 	 * Этот метод избавляет от необходимости переопределять конструктор
 	 * */
 	protected function init() {
-
+		// pass
 	}
 
 	/**

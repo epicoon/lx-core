@@ -2,7 +2,9 @@
 
 namespace lx;
 
-class Snippet extends ApplicationTool {
+class Snippet {
+	use ApplicationToolTrait;
+
 	public
 		$renderIndex = null,
 		$innerSnippetKeys = [],
@@ -20,8 +22,6 @@ class Snippet extends ApplicationTool {
 		$js = null;  // js-код сниппета для выполнения на стороне клиента
 
 	public function __construct($context, $data) {
-		parent::__construct($context->app);
-
 		$this->snippetBuildContext = $context;
 		$this->pluginBuildContext = $context->getPluginBuildContext();
 		$this->parent = false;

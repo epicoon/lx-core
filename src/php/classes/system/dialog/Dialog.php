@@ -2,17 +2,11 @@
 
 namespace lx;
 
-/**
- * Класс для работы с параметрами запроса и формирования ответа
- * */
-class Dialog extends ApplicationTool {
-	/**
-	 * URL
-	 * */
+class Dialog
+{
+	use ApplicationToolTrait;
+
 	private $_url = null;
-	/**
-	 * Путь
-	 * */
 	private $_route = null;
 	private $_headers = null;
 	private $_method = null;
@@ -23,9 +17,8 @@ class Dialog extends ApplicationTool {
 	private $_location = null;
 	private $_clientIp;
 
-	public function __construct($app) {
-		parent::__construct($app);
-		
+	public function __construct()
+	{
 		$this->_clientIp = $_SERVER['REMOTE_ADDR'];
 
 		if (isset($_SERVER['HTTP_X_REQUESTED_WITH'])
@@ -54,26 +47,20 @@ class Dialog extends ApplicationTool {
 		*/
 	}
 
-	/**
-	 *
-	 * */
-	public function url() {
+	public function url()
+	{
 		if ($this->_url === null) $this->retrieveUrl();
 		return $this->_url;
 	}
 
-	/**
-	 *
-	 * */
-	public function route() {
+	public function route()
+	{
 		if ($this->_route === null) $this->retrieveRoute();
 		return $this->_route;
 	}
 
-	/**
-	 *
-	 * */
-	public function clientIP() {
+	public function clientIP()
+	{
 		$ip = (isset($_SERVER['REMOTE_ADDR']))
 			? $_SERVER['REMOTE_ADDR']
 			: 'unknown';
@@ -112,18 +99,14 @@ class Dialog extends ApplicationTool {
 	// 	return $ip;
 	// }
 
-	/**
-	 *
-	 * */
-	public function headers() {
+	public function headers()
+	{
 		if ($this->_headers === null) $this->retrieveHeaders();
 		return $this->_headers;
 	}
 
-	/**
-	 *
-	 * */
-	public function header($name) {
+	public function header($name)
+	{
 		$name = strtoupper($name);
 		$name = str_replace('-', '_', $name);
 		$headers = $this->headers();
@@ -131,39 +114,35 @@ class Dialog extends ApplicationTool {
 		return null;
 	}
 
-	/**
-	 *
-	 * */
-	public function method() {
+	public function method()
+	{
 		if ($this->_method === null) $this->retrieveMethod();
 		return $this->_method;
 	}
 
-	/**
-	 *
-	 * */
-	public function isAjax() {
+	public function isAjax()
+	{
 		return $this->_ajax;
 	}
 
 	/**
 	 * //todo
 	 * */
-	public function isBrowserRequest() {
+	public function isBrowserRequest()
+	{
 		return true;
 	}
 
 	/**
 	 * Является ли текущий запрос - запросом на загрузку страницы
 	 * */
-	public function isPageLoad() {
+	public function isPageLoad()
+	{
 		return !$this->isAjax() && $this->isBrowserRequest();
 	}
 
-	/**
-	 *
-	 * */
-	public function get($name=null) {
+	public function get($name=null)
+	{
 		if ($this->_get === null) $this->retrieveGet();
 
 		if ($name === null) {
@@ -174,10 +153,8 @@ class Dialog extends ApplicationTool {
 		return null;
 	}
 
-	/**
-	 *
-	 * */
-	public function post($name=null) {
+	public function post($name=null)
+	{
 		if ($this->_post === null) $this->retrievePost();
 
 		if ($name === null) {
@@ -188,10 +165,8 @@ class Dialog extends ApplicationTool {
 		return null;
 	}
 
-	/**
-	 *
-	 * */
-	public function cookie($data = null) {
+	public function cookie($data = null)
+	{
 		if ($this->_cookie === null) $this->retrieveCookie();
 
 		if ($data === null) {
@@ -207,10 +182,8 @@ class Dialog extends ApplicationTool {
 		}
 	}
 
-	/**
-	 *
-	 * */
-	public function params($name=null) {
+	public function params($name=null)
+	{
 		if ($this->method() == 'get') return $this->get($name);
 		if ($this->method() == 'post') return $this->post($name);
 		return [];
@@ -230,7 +203,8 @@ class Dialog extends ApplicationTool {
 	 *		protocol:"http:"
 	 * В дополнение имеет еще поле 'searchArray' - тот же 'search', но уже распаршенный в массив
 	 * */
-	public function location() {
+	public function location()
+	{
 		if ($this->_location === null) {
 			$this->retrieveLocation(
 				$_SERVER['REQUEST_SCHEME'] . '://'
@@ -248,7 +222,8 @@ class Dialog extends ApplicationTool {
 	 * //todo - сейчас частично парсится, доделать все поля!
 	 * //todo - hash сюда все равно не передается, нафиг его видимо
 	 * */
-	public function urlToLocation($url) {
+	public function urlToLocation($url)
+	{
 		$result = ['href' => $url];
 
 		$parts = explode('#', $url);
@@ -266,10 +241,8 @@ class Dialog extends ApplicationTool {
 		return DataObject::create($result);
 	}
 
-	/**
-	 *
-	 * */
-	public function translateGetParams($text) {
+	public function translateGetParams($text)
+	{
 		$result = [];
 
 		$temp = urldecode($text);
@@ -282,10 +255,8 @@ class Dialog extends ApplicationTool {
 		return $result;
 	}
 
-	/**
-	 *
-	 * */
-	public function send($data = null) {
+	public function send($data = null)
+	{
 		if ($data === null) {
 			$type = 'html';
 			$content = ob_get_contents();
@@ -297,14 +268,15 @@ class Dialog extends ApplicationTool {
 			$content = $data;
 		}
 
-		if (\lx::$dump != '') {
+		$dump = \lx::getDump();
+		if ($dump != '') {
 			if (is_array($content)) {
-				$content['lxdump'] = \lx::$dump;
+				$content['lxdump'] = $dump;
 			} else {
 				if ($this->isAjax()) {
-					$content .= '<lx-var-dump>' . \lx::$dump . '</lx-var-dump>';
+					$content .= '<lx-var-dump>' . $dump . '</lx-var-dump>';
 				} else {
-					$content = '<pre class="lx-var-dump">' . \lx::$dump . '</pre>' . $content;
+					$content = '<pre class="lx-var-dump">' . $dump . '</pre>' . $content;
 				}
 			}
 		}
@@ -317,7 +289,23 @@ class Dialog extends ApplicationTool {
 		$this->echo($content);
 	}
 
-	private function echo($data) {
+	public function retrieveAll()
+	{
+		$this->url();
+		$this->route();
+		$this->headers();
+		$this->method();
+		$this->params();
+		$this->location();
+	}
+
+
+	/*******************************************************************************************************************
+	 * PRIVATE
+	 ******************************************************************************************************************/
+
+	private function echo($data)
+	{
 		// https://stackoverflow.com/questions/15273570/continue-processing-php-after-sending-http-response
 		ignore_user_abort(true);
 		set_time_limit(0);
@@ -332,29 +320,13 @@ class Dialog extends ApplicationTool {
 		fastcgi_finish_request();
 	}
 
-	/**
-	 *
-	 * */
-	public function retrieveAll() {
-		$this->url();
-		$this->route();
-		$this->headers();
-		$this->method();
-		$this->params();
-		$this->location();
-	}
-
-	/**
-	 *
-	 * */
-	private function retrieveLocation($url) {
+	private function retrieveLocation($url)
+	{
 		$this->_location = $this->urlToLocation($url);
 	}
 
-	/**
-	 *
-	 * */
-	private function retrieveUrl() {
+	private function retrieveUrl()
+	{
 		$requestUri = '';
 		if (isset($_SERVER['REQUEST_URI'])) {
 			$requestUri = $_SERVER['REQUEST_URI'];
@@ -372,10 +344,8 @@ class Dialog extends ApplicationTool {
 		$this->_url = $requestUri;
 	}
 
-	/**
-	 *
-	 * */
-	private function retrieveRoute() {
+	private function retrieveRoute()
+	{
 		$url = $this->url();
 		if (($pos = strpos($url, '?')) !== false)
 			$url = substr($url, 0, $pos);
@@ -385,10 +355,8 @@ class Dialog extends ApplicationTool {
 		$this->_route = $url;
 	}
 
-	/**
-	 *
-	 * */
-	private function retrieveHeaders() {
+	private function retrieveHeaders()
+	{
 		$this->_headers = [];
 		foreach ($_SERVER as $key => $value) {
 			if (strpos($key, 'HTTP_') !== 0) continue;
@@ -397,17 +365,13 @@ class Dialog extends ApplicationTool {
 		}
 	}
 
-	/**
-	 *
-	 * */
-	private function retrieveMethod() {
+	private function retrieveMethod()
+	{
 		$this->_method = strtolower($_SERVER['REQUEST_METHOD']);
 	}
 
-	/**
-	 *
-	 * */
-	private function retrieveGet() {
+	private function retrieveGet()
+	{
 		$get = [];
 		if (empty($_GET)) {
 			$url = $this->url();
@@ -426,10 +390,8 @@ class Dialog extends ApplicationTool {
 		*/
 	}
 
-	/**
-	 *
-	 * */
-	private function retrievePost() {
+	private function retrievePost()
+	{
 		$post = $_POST;
 		if (empty($post)) {
 			$input = file_get_contents('php://input');
@@ -438,23 +400,8 @@ class Dialog extends ApplicationTool {
 		$this->_post = $post;
 	}
 
-	/**
-	 *
-	 * */
-	private function retrieveCookie() {
+	private function retrieveCookie()
+	{
 		$this->_cookie = Cookie::create($_COOKIE);
-	}
-}
-
-
-class Cookie extends DataObject {
-	public function __set($prop, $val) {
-		setcookie($prop, $val);
-		parent::__set($prop, $val);
-	}
-
-	public function drop($name) {
-		$this->extract($name);
-		setcookie($name, '', time() - 1);
 	}
 }

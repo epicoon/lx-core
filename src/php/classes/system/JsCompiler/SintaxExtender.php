@@ -2,7 +2,9 @@
 
 namespace lx;
 
-class SintaxExtender extends ApplicationTool {
+class SintaxExtender {
+	use ApplicationToolTrait;
+
 	/** @var JsCompiler */
 	private $compiler;
 	private $currentPath;
@@ -13,7 +15,6 @@ class SintaxExtender extends ApplicationTool {
 	 * @param $compiler JsCompiler
 	 */
 	public function __construct($compiler) {
-		parent::__construct($compiler->app);
 		$this->compiler = $compiler;
 
 		$this->currentPath = null;
@@ -25,7 +26,8 @@ class SintaxExtender extends ApplicationTool {
 	 * */
 	public function applyExtendedSintax($code, $path) {
 		// #lx:php(php-code) => mixed
-		$code = preg_replace_callback('/#lx:php(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/', function($match) {
+		$reg = '/#lx:php(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/';
+		$code = preg_replace_callback($reg, function($match) {
 			$phpCode = 'return ' . $match[1] . ';';
 			$result = eval($phpCode);
 
@@ -102,160 +104,55 @@ class SintaxExtender extends ApplicationTool {
 			return $matches[1] . '.neighbor(\'' . $matches[2] . '\')';
 		}, $code);
 
-		// someClass.someField = ^Resp.method(arg1, arg2); => Plugin.callToRespondent('Resp/method', [arg1, arg2], (_result_)=>{someClass.someField=_result_;});
-		$regexp = '/(\b[\w_\d.\(\)]+)\s*=\s*\^([\w_][\w\d_]*?)\.([\w_][\w\d_]*?)\(([^)]*?)\)(;?)/';
-		preg_match_all($regexp, $code, $matches);
-		for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
-			$field = $matches[1][$i];
-			$respondent = $matches[2][$i];
-			$method = $matches[3][$i];
-			$args = $matches[4][$i];
-			$end = $matches[5][$i];
-			$text = "Plugin.callToRespondent('$respondent/$method',[$args],(_result_)=>{".$field."=_result_;})$end";
-			$code = str_replace($matches[0][$i], $text, $code);
-		}
+		//==============================================================================================================
+		//==============================================================================================================
+		//==============================================================================================================
 
-		//=====================================================================================================================
-		//=====================================================================================================================
-		//=====================================================================================================================
-
-		// ^self::method(arg1, arg2) : (res)=> { someCode... }; => self.ajax('method', [arg1, arg2], (res)=> { someCode... });
-		// С учетом, что 'self::' уже декодирован в 'this.constructor.'
+		// ^self::method(arg1, arg2) => self::ajax('method', [arg1, arg2]).send()
 		/*
 		Рекурсивная подмаска регулярного выражения:
 		(?P<name>{ ( (?>[^{}]+)|(?P>name) )* })
 		(?P<name>reg) - задает имя группе
 		(?P>name) - рекурсивно вызывает группу. Без именования рекурсия замыкается на все выражение, обозначается (?R)
 		*/
-		$regexp = '/\^this\.constructor\.([\w_][\w\d_]*?)(?P<therec0>\(((?>[^()]+)|(?P>therec0))*\))\s*:\s*\((.*?)\)\s*=>\s*(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
-		preg_match_all($regexp, $code, $matches);
-		while (!empty($matches[0])) {
-			for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
-				$method = $matches[1][$i];
-
-				$args = $matches[2][$i];
-				/*
-				Аргументы тоже ищутся рекурсивной подмаской - т.к. может быть и так ^Resp.method(f(), f2())...
-				При этом может быть и так ^Resp.method()... а пустые скобки нам не нужны, заменяем их на пустую строку
-				//todo - в остальных вариантах тоже самое надо сделать
-				*/
-				$args = preg_replace('/^\(/', '', $args);
-				$args = preg_replace('/\)$/', '', $args);
-
-				$res = $matches[4][$i];
-				$func = $matches[5][$i];
-				$text = "this.constructor.ajax('$method',[$args],($res)=>$func)";
-				$code = str_replace($matches[0][$i], $text, $code);
-			}
-			preg_match_all($regexp, $code, $matches);
-		}
-
-		//---------------------------------------------------------------------------------------------------------------------
-
-		// ^Resp.method(arg1, arg2); => Plugin.callToRespondent('Resp/method', [arg1, arg2]);
-		$regexp = '/\^([\w_][\w\d_]*?)\.([\w_][\w\d_]*?)\(([^)]*?)\);/';
+		$regexp = '/\^this\.constructor\.([\w_][\w\d_]*?)(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/';
 		preg_match_all($regexp, $code, $matches);
 		for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
-			$respondent = $matches[1][$i];
-			$method = $matches[2][$i];
-			$args = $matches[3][$i];
-			$text = "Plugin.callToRespondent('$respondent/$method',[$args]);";
-			$code = str_replace($matches[0][$i], $text, $code);
-		}
+			$method = $matches[1][$i];
 
-		// ^Resp.method(arg1, arg2) : (res)=> { someCode... }; => Plugin.callToRespondent('Resp/method', [arg1, arg2], (res)=> { someCode... });
-		/*
-		Рекурсивная подмаска регулярного выражения:
-		(?P<name>{ ( (?>[^{}]+)|(?P>name) )* })
-		(?P<name>reg) - задает имя группе
-		(?P>name) - рекурсивно вызывает группу. Без именования рекурсия замыкается на все выражение, обозначается (?R)
-		*/
-		$regexp = '/\^([\w_][\w\d_]*?)\.([\w_][\w\d_]*?)(?P<therec0>\(((?>[^()]+)|(?P>therec0))*\))\s*:\s*\((.*?)\)\s*=>\s*(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
-		preg_match_all($regexp, $code, $matches);
-		//todo - оптимизировать
-		while (!empty($matches[0])) {
-			for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
-				$respondent = $matches[1][$i];
-				$method = $matches[2][$i];
-
-				$args = $matches[3][$i];
-				/*
-				Аргументы тоже ищутся рекурсивной подмаской - т.к. может быть и так ^Resp.method(f(), f2())...
-				При этом может быть и так ^Resp.method()... а пустые скобки нам не нужны, заменяем их на пустую строку
-				//todo - в остальных вариантах тоже самое надо сделать
-				*/
-				$args = preg_replace('/^\(/', '', $args);
-				$args = preg_replace('/\)$/', '', $args);
-
-				$res = $matches[5][$i];
-				$func = $matches[6][$i];
-				$text = "Plugin.callToRespondent('$respondent/$method',[$args],($res)=>$func)";
-				$code = str_replace($matches[0][$i], $text, $code);
-			}
-			preg_match_all($regexp, $code, $matches);
-		}
-
-		// ^Resp.method(arg1, arg2) : (res)=>someCode; => Plugin.callToRespondent('Resp/method', [arg1, arg2], (res)=> { someCode... });
-		$regexp = '/\^([\w_][\w\d_]*?)\.([\w_][\w\d_]*?)(?P<therec0>\(((?>[^()]+)|(?P>therec0))*\))\s*:\s*\((.*?)\)\s*=>\s*([^;]*?);/';
-		preg_match_all($regexp, $code, $matches);
-		for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
-			$respondent = $matches[1][$i];
-			$method = $matches[2][$i];
-			$args = $matches[3][$i];
+			$args = $matches[2][$i];
 			/*
 			Аргументы тоже ищутся рекурсивной подмаской - т.к. может быть и так ^Resp.method(f(), f2())...
 			При этом может быть и так ^Resp.method()... а пустые скобки нам не нужны, заменяем их на пустую строку
-			//todo - в остальных вариантах тоже самое надо сделать
 			*/
 			$args = preg_replace('/^\(/', '', $args);
 			$args = preg_replace('/\)$/', '', $args);
 
-			$res = $matches[5][$i];
-			$func = $matches[6][$i];
-			$text = "Plugin.callToRespondent('$respondent/$method',[$args],($res)=>$func)";
+			$text = "this.constructor.ajax('$method',[$args]).send()";
 			$code = str_replace($matches[0][$i], $text, $code);
 		}
 
-		// ^Resp.method(arg1, arg2) : someFunction; => Plugin.callToRespondent('Resp/method', [arg1, arg2], someFunction);
-		$regexp = '/\^([\w_][\w\d_]*?)\.([\w_][\w\d_]*?)\((.*?)\)\s*:\s*([\w_][\w\d_]*?\.?[\w\d_]+?);/';
+		// ^Resp.method(arg1, arg2) => Plugin.ajax('Resp.method', [arg1, arg2]).send()
+		$regexp = '/\^([\w_][\w\d_]*?\.[\w_][\w\d_]*?)(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/';
 		preg_match_all($regexp, $code, $matches);
 		for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
-			$respondent = $matches[1][$i];
-			$method = $matches[2][$i];
-			$args = $matches[3][$i];
-			$func = $matches[4][$i];
-			$text = "Plugin.callToRespondent('$respondent/$method',[$args],$func);";
+			$method = $matches[1][$i];
+
+			$args = $matches[2][$i];
+			/*
+			Аргументы тоже ищутся рекурсивной подмаской - т.к. может быть и так ^Resp.method(f(), f2())...
+			При этом может быть и так ^Resp.method()... а пустые скобки нам не нужны, заменяем их на пустую строку
+			*/
+			$args = preg_replace('/^\(/', '', $args);
+			$args = preg_replace('/\)$/', '', $args);
+
+			$text = "Plugin.ajax('$method',[$args]).send()";
 			$code = str_replace($matches[0][$i], $text, $code);
 		}
 
-		// ^Resp.method(arg1, arg2) ? onLoad : onError; => Plugin.callToRespondent('Resp/method', [arg1, arg2], {success: onLoad, error: onError});
-		$regexp = '/\^([\w_][\w\d_]*?)\.([\w_][\w\d_]*?)\((.*?)\)\s*\?\s*([\w_][\w\d_]*?\.?[\w\d_]+?)\s*:\s*([\w_][\w\d_]*?\.?[\w\d_]+?);/';
-		preg_match_all($regexp, $code, $matches);
-		for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
-			$respondent = $matches[1][$i];
-			$method = $matches[2][$i];
-			$args = $matches[3][$i];
-			$onLoad = $matches[4][$i];
-			$onError = $matches[5][$i];
-			$text = "Plugin.callToRespondent('$respondent/$method',[$args],{success:$onLoad,error:$onError});";
-			$code = str_replace($matches[0][$i], $text, $code);
-		}
-
-		//---------------------------------------------------------------------------------------------------------------------
-
-		/*
-		//todo
-		^url(param1, param2) ? onSuccessHandler : onErrorHandler; => Plugin.ajax('url', [param1, param2], {success: onSuccessHandler, error: onErrorHandler});
-		То же самое, но с фигурными скобками - чтобы не оборачивать в кавычки
-		^{url}
-
-		// Придумать что-то для активных запросов - чтобы отличать это от предыдущей ситуации
-		^url({param0:value0, param1:value1}); => Plugin.activeRequest('url', {param0:value0, param1:value1});
-		*/
-
-		//=====================================================================================================================
-		//=====================================================================================================================
-		//=====================================================================================================================
+		//==============================================================================================================
+		//==============================================================================================================
+		//==============================================================================================================
 
 		// #lx:model e = { a, b, sum }; => const e = (function(){ class _am_ extends lx.BindableModel { field a, b, sum; } return new _am_; })();
 		// #lx:model e = ModelName; => const e = (function(){ class _am_ extends lx.BindableModel { #lx:modelName ModelName; } return new _am_; })();
@@ -318,7 +215,8 @@ class SintaxExtender extends ApplicationTool {
 		//=====================================================================================================================
 
 
-		$code = preg_replace_callback('/#lx:i18n(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/', function($match) {
+		$reg = '/#lx:i18n(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/';
+		$code = preg_replace_callback($reg, function($match) {
 			return '\'#lx:i18n' . $match[2] . 'i18n:lx#\'';
 		}, $code);
 

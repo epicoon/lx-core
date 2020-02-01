@@ -22,7 +22,7 @@ class ConsoleApplication extends AbstractApplication {
 	 	$command = array_pop($this->argv);
 	 	switch ($command) {
 	 		case 'cli':
-	 			(new Cli($this))->run();
+	 			(new Cli())->run();
 	 			break;
 
 	 		default:

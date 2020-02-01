@@ -87,48 +87,25 @@ lx.Plugin = function(info, snippet) {
 		/**
 		 * AJAX-запрос в пределах модуля
 		 * */
-		ajax: function(url, data={}, handlers=null) {
-			var config = lx.Dialog.handlersToConfig(handlers);
-			config.data = {params:this.clientParams, data};
-			config.url = url;
-
-			var headers = [];
-			headers['lx-type'] = 'plugin';
-			headers['lx-plugin'] = this.name;
-			config.headers = headers;
-
-			lx.Dialog.post(config);
-		},
-
-		/**
-		 * Запрос ajax - post, без пути, с указанием отвечающего, в формате:
-		 * {
-		 *	plugin: pluginName,
-		 *	respondent: string,
-		 *	data: Object
-	 	 * }
-		 * */
-		callToRespondent: function(__respondent__, data, handlers) {
-			this.ajax('', {__respondent__, data}, handlers);
+		ajax: function(respondent, data=[]) {
+			return new lx.PluginRequest(this, respondent, data);
 		},
 
 		/**
 		 * Регистрация активного GET AJAX-запроса, который будет актуализировать состояние url
 		 * */
-		registerActiveRequest: function(url, handlers, useServer=true) {
+		registerActiveRequest: function(key, respondent, handlers, useServer=true) {
 			if (!this.activeRequestList)
 				this.activeRequestList = new AjaxGet(this);
-			this.activeRequestList.registerActiveUrl(url, handlers, useServer);
+			this.activeRequestList.registerActiveUrl(key, respondent, handlers, useServer);
 		},
 
 		/**
 		 * Вызов активного GET AJAX-запроса, если он был зарегистрирован
 		 * */
-		activeRequest: function(url, data={}) {
+		activeRequest: function(key, data={}) {
 			if (this.activeRequestList)
-				//todo params не срастается с ними логика - при перезагрузке страницы
-				// параметры не сохраняются, а data в хэше остается
-				this.activeRequestList.request(url, {params:this.clientParams, data});
+				this.activeRequestList.request(key, data);
 		},
 
 		// todo селекторы

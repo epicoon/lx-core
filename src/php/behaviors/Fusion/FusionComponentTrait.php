@@ -9,10 +9,9 @@ trait FusionComponentTrait
 	public function __construct($owner, $config = [])
 	{
 		$this->constructFusionComponent($owner, $config);
-		$this->init($config);
 	}
 
-	public function init($config = [])
+	public function initAsFusionComponent($config = [])
 	{
 		// pass
 	}
@@ -28,6 +27,8 @@ trait FusionComponentTrait
 				$this->$key = $value;
 			}
 		}
+
+		$this->initAsFusionComponent($config);
 	}
 
 	public function getFusionComponentProperty($name)

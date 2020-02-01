@@ -2,8 +2,14 @@
 
 namespace lx;
 
-class Response extends ApplicationTool
+/**
+ * Class Response
+ * @package lx
+ */
+class Response
 {
+	use ApplicationToolTrait;
+
 	const CODE_OK = 200;
 	const CODE_ERROR = 400;
 	const CODE_FORBIDDEN = 403;
@@ -14,6 +20,12 @@ class Response extends ApplicationTool
 	/** @var ResponseSource */
 	private $source;
 
+	/**
+	 * - определяется запрашиваемый ресурс
+	 * - аутентифицируется запрашивающий пользователь
+	 * - проверяются права пользователя на ресурс
+	 * - устанавливается основной код ответа (200, 403, 404)
+	 */
 	public function run()
 	{
 		if (!$this->getSource()) {
@@ -29,6 +41,9 @@ class Response extends ApplicationTool
 		$this->code = self::CODE_OK;
 	}
 
+	/**
+	 * Отправка ресурса в зависимости от основного кода ответа
+	 */
 	public function send()
 	{
 		if ($this->code == self::CODE_OK) {
@@ -38,13 +53,18 @@ class Response extends ApplicationTool
 		}
 	}
 
+
+	/*******************************************************************************************************************
+	 * PRIVATE
+	 ******************************************************************************************************************/
+
 	/**
 	 * @return bool
 	 */
 	private function getSource()
 	{
 		if ($this->app->dialog->isAjax()) {
-			$ajaxRouter = new AjaxRouter($this->app);
+			$ajaxRouter = new AjaxRouter();
 
 			$source = $ajaxRouter->route();
 			if ($source !== false) {
@@ -175,7 +195,7 @@ class Response extends ApplicationTool
 		$pluginData = $context->build();
 		if (!empty($pluginData['modules'])) {
 			$pluginData['pluginInfo'] .= '<modules>'
-				. ModuleHelper::getModulesCode($this->app, $pluginData['modules'])
+				. ModuleHelper::getModulesCode($pluginData['modules'])
 				. '</modules>';
 		}
 		$pluginInfo = addcslashes($pluginData['pluginInfo'], '\\');
@@ -189,7 +209,7 @@ class Response extends ApplicationTool
 			. $settings . ',' . $data
 			. ',`' . $jsBootstrap . '`,`' . $pluginInfo . '`,`' . $jsMain
 			. '`);';
-		$head = new HtmlHead($this->app, $pluginData);
+		$head = new HtmlHead($pluginData);
 		$this->renderStandartResponse(self::CODE_OK, ['head' => $head, 'js' => $js]);
 	}
 

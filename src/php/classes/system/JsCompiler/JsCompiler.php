@@ -18,7 +18,9 @@ require_once(__DIR__ . '/Minimizer.php');
 Отрицательное lookbehind-условие '(?<!re)'
 Соответствует, только если перед ним не следует регулярное выражение re.
 */
-class JsCompiler extends ApplicationTool {
+class JsCompiler {
+	use ApplicationToolTrait;
+
 	const CONTEXT_CLIENT = 'client';
 	const CONTEXT_SERVER = 'server';
 
@@ -33,12 +35,10 @@ class JsCompiler extends ApplicationTool {
 
 	/**
 	 * JsCompiler constructor.
-	 * @param $app Application
 	 * @param null $conductor
 	 */
-	public function __construct($app, $conductor = null) {
-		parent::__construct($app);
-		$this->conductor = $conductor ?? $app->conductor;
+	public function __construct($conductor = null) {
+		$this->conductor = $conductor ?? $this->app->conductor;
 		$this->sintaxExtender = new SintaxExtender($this);
 		
 		$this->context = self::CONTEXT_CLIENT;
@@ -275,19 +275,19 @@ class JsCompiler extends ApplicationTool {
 			return $code;
 		}
 
-		$modelMap = (new JsModuleMap($this->app))->getMap();
+		$moduleMap = (new JsModuleMap())->getMap();
 		$sitePath = $this->app->sitePath;
 		$filePathes = [];
 		foreach ($moduleNames as $moduleName) {
-			if (!array_key_exists($moduleName, $modelMap)) {
+			if (!array_key_exists($moduleName, $moduleMap)) {
 				continue;
 			}
 
-			$filePath = $modelMap[$moduleName]['path'];
+			$filePath = $moduleMap[$moduleName]['path'];
 			$filePathes[] = $sitePath . '/' . $filePath;
 
-			if (isset($modelMap[$moduleName]['data'])) {
-				$this->applyModuleData($modelMap[$moduleName]['data'], $filePath);
+			if (isset($moduleMap[$moduleName]['data'])) {
+				$this->applyModuleData($moduleMap[$moduleName]['data'], $filePath);
 			}
 		}
 

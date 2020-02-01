@@ -6,30 +6,46 @@ namespace lx;
  * Class AbstractApplication
  * @package lx
  *
- * @property $sitePath string
- * @property $directory Directory
- * @property $conductor ApplicationConductor
- * @property $services ServicesMap
- * @property $logger LoggerInterface
+ * @property string $sitePath
+ * @property Directory $directory
+ * @property ApplicationConductor $conductor
+ * @property ServicesMap $services
+ * @property LoggerInterface $logger
  */
-abstract class AbstractApplication {
-	private $_sitePath;
-	private $_config;
-	private $_conductor;
-	private $_logger;
+abstract class AbstractApplication
+{
+	private $id;
 
-	private $_services;
+	/** @var string */
+	private $_sitePath;
+	/** @var array */
+	private $_config;
+	/** @var array */
 	private $defaultServiceConfig;
+	/** @var array */
 	private $defaultPluginConfig;
 
-	public function __construct() {
+	/** @var ApplicationConductor */
+	private $_conductor;
+	/** @var ServicesMap */
+	private $_services;
+	/** @var LoggerInterface */
+	private $_logger;
+
+	/**
+	 * AbstractApplication constructor.
+	 */
+	public function __construct()
+	{
+		$this->id = Math::randHash();
+
 		$this->_sitePath = \lx::$conductor->sitePath;
-		$this->_conductor = new ApplicationConductor($this);
+		$this->_conductor = new ApplicationConductor();
 		$aliases = $this->getConfig('aliases');
 		if (!$aliases) $aliases = [];
 		$this->_conductor->setAliases($aliases);
 
-		$this->_services = new ServicesMap($this);
+		$this->_services = new ServicesMap();
 
 		$loggerConfig = ClassHelper::prepareConfig($this->getConfig('logger'), ApplicationLogger::class);
 		$this->_logger = new $loggerConfig['class']($this, $loggerConfig['params']);
@@ -37,7 +53,12 @@ abstract class AbstractApplication {
 		\lx::$app = $this;
 	}
 
-	public function __get($name) {
+	/**
+	 * @param $name string
+	 * @return mixed
+	 */
+	public function __get($name)
+	{
 		switch ($name) {
 			case 'sitePath': return $this->_sitePath;
 			case 'directory': return new Directory($this->_sitePath);
@@ -48,15 +69,32 @@ abstract class AbstractApplication {
 
 		return null;
 	}
-	
-	public function log($data, $locationInfo = null) {
+
+	/**
+	 * @param $data string|array
+	 * @param $locationInfo string|null
+	 */
+	public function log($data, $locationInfo = null)
+	{
 		$this->logger->log($data, $locationInfo);
 	}
 
 	/**
-	 * Получить конфиги приложения, или конкретный конфиг
+	 * @return string
 	 */
-	public function getConfig($param = null) {
+	public function getId()
+	{
+		return $this->id;
+	}
+
+	/**
+	 * Получить конфиги приложения, или конкретный конфиг
+	 *
+	 * @param $param string|null
+	 * @return mixed
+	 */
+	public function getConfig($param = null)
+	{
 		if ($this->_config === null) {
 			$this->loadConfig();
 		}
@@ -73,9 +111,10 @@ abstract class AbstractApplication {
 	}
 
 	/**
-	 *
-	 * */
-	public function getDefaultServiceConfig() {
+	 * @return array
+	 */
+	public function getDefaultServiceConfig()
+	{
 		if ($this->defaultServiceConfig === null) {
 			$this->defaultServiceConfig =
 				(new File($this->conductor->getSystemPath('defaultServiceConfig')))->load();
@@ -85,9 +124,10 @@ abstract class AbstractApplication {
 	}
 
 	/**
-	 *
-	 * */
-	public function getDefaultPluginConfig() {
+	 * @return array
+	 */
+	public function getDefaultPluginConfig()
+	{
 		if ($this->defaultPluginConfig === null) {
 			$this->defaultPluginConfig =
 				(new File($this->conductor->getSystemPath('defaultPluginConfig')))->load();
@@ -99,8 +139,12 @@ abstract class AbstractApplication {
 	/**
 	 * Проверяет текущий режим работы приложения
 	 * Если режим не установлен - разрешен любой
+	 *
+	 * @param $mode string
+	 * @return bool
 	 */
-	public function isMode($mode) {
+	public function isMode($mode)
+	{
 		$currentMode = $this->getConfig('mode');
 		if (!$currentMode) return true;
 
@@ -117,9 +161,11 @@ abstract class AbstractApplication {
 	}
 
 	/**
-	 * //todo - надо добавить псевдонимы для сервисов?
-	 * */
-	public function getService($name) {
+	 * @param $name string
+	 * @return Service|null
+	 */
+	public function getService($name)
+	{
 		if (Service::exists($name)) {
 			return $this->services->get($name);
 		}
@@ -131,7 +177,8 @@ abstract class AbstractApplication {
 	 * @param $file string|File
 	 * @return Service|null
 	 */
-	public function getServiceByFile($file) {
+	public function getServiceByFile($file)
+	{
 		if (is_string($file)) {
 			$filePath = $this->conductor->getFullPath($file);
 		} elseif ($file instanceof File) {
@@ -152,9 +199,11 @@ abstract class AbstractApplication {
 	}
 
 	/**
-	 *
-	 * */
-	public function getPackagePath($name) {
+	 * @param $name string
+	 * @return string|false
+	 */
+	public function getPackagePath($name)
+	{
 		$map = Autoloader::getInstance()->map;
 		if (!array_key_exists($name, $map->packages)) {
 			return false;
@@ -165,9 +214,15 @@ abstract class AbstractApplication {
 	}
 
 	/**
-	 * Получение плагина из сервиса
-	 * */
-	public function getPlugin($fullPluginName, $renderParams = [], $clientParams = []) {
+	 * Получение плагина
+	 *
+	 * @param $fullPluginName string
+	 * @param $renderParams array
+	 * @param $clientParams array
+	 * @return Plugin|null
+	 */
+	public function getPlugin($fullPluginName, $renderParams = [], $clientParams = [])
+	{
 		if (is_array($fullPluginName)) {
 			return $this->getPlugin(
 				$fullPluginName['name'] ?? $fullPluginName['plugin'] ?? '',
@@ -196,8 +251,13 @@ abstract class AbstractApplication {
 
 	/**
 	 * Получение пути к модулю
-	 * */
-	public function getPluginPath($serviceName, $pluginName = null) {
+	 *
+	 * @param $serviceName string
+	 * @param $pluginName string|null
+	 * @return string
+	 */
+	public function getPluginPath($serviceName, $pluginName = null)
+	{
 		if ($pluginName === null) {
 			$arr = explode(':', $serviceName);
 			$serviceName = $arr[0];
@@ -209,8 +269,13 @@ abstract class AbstractApplication {
 
 	/**
 	 * Получение менеджера модели из сервиса
-	 * */
-	public function getModelManager($serviceName, $modelName = null) {
+	 *
+	 * @param $serviceName string
+	 * @param $modelName string|null
+	 * @return mixed|null  TODO mixed - временно, нужен интерфейс
+	 */
+	public function getModelManager($serviceName, $modelName = null)
+	{
 		if ($modelName === null) {
 			$arr = explode('.', $serviceName);
 			if (count($arr) != 2) {
@@ -231,7 +296,11 @@ abstract class AbstractApplication {
 
 	abstract public function run();
 
-	public function renewConfig() {
+	/**
+	 * Перезагрузка основных конфигов приложения
+	 */
+	public function renewConfig()
+	{
 		$path = $this->_conductor->appConfig;
 		if (!$path) {
 			$this->_config = [];
@@ -243,7 +312,8 @@ abstract class AbstractApplication {
 	/**
 	 * Загрузка основных конфигов приложения
 	 */
-	private function loadConfig() {
+	private function loadConfig()
+	{
 		$path = $this->_conductor->appConfig;
 		if (!$path) {
 			$this->_config = [];

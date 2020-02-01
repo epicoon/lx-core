@@ -5,7 +5,9 @@ namespace lx;
 /**
  * @group {i18n:widgets}
  * */
-class Rect extends ApplicationTool {
+class Rect {
+	use ApplicationToolTrait;
+
 	/**
 	 * Возвращает массив имен методов, к которым можно напрямую обращаться по ajax
 	 * @return array

@@ -2,26 +2,25 @@
 
 namespace lx;
 
-class SnippetBuildContext extends ApplicationTool implements ContextTreeInterface
+/**
+ * Class SnippetBuildContext
+ * @package lx
+ */
+class SnippetBuildContext implements ContextTreeInterface
 {
+	use ApplicationToolTrait;
 	use ContextTreeTrait;
 
 	/** @var PluginBuildContext */
 	private $pluginBuildContext;
+	/** @var Snippet */
 	private $snippet;
-	private $tempFile;
 	/** @var SnippetCacheData */
 	private $cacheData;
-	private $idCounter;
-	private $autoParentStack;
 
 	public function __construct($pluginBuildContext, $snippetData = [], $contextConfig = null)
 	{
-		parent::__construct($pluginBuildContext->app);
-
 		$this->pluginBuildContext = $pluginBuildContext;
-		$this->idCounter = 0;
-		$this->autoParentStack = new Vector();
 		$this->ContextTreeTrait($contextConfig);
 		if ($this->isHead()) {
 			$this->cacheData = new SnippetCacheData($this);
@@ -32,20 +31,6 @@ class SnippetBuildContext extends ApplicationTool implements ContextTreeInterfac
 		} else {
 			$this->createSnippet($snippetData);
 		}
-	}
-
-	public function __set($name, $val)
-	{
-		if ($name == 'autoParent') {
-			if ($val === null) $this->resetAutoParent();
-			else $this->setAutoParent($val);
-		}
-	}
-
-	public function __get($name)
-	{
-		if ($name == 'autoParent') return $this->getAutoParent();
-		return parent::__get($name);
 	}
 
 	public function build()
@@ -93,39 +78,6 @@ class SnippetBuildContext extends ApplicationTool implements ContextTreeInterfac
 	public function getSnippet()
 	{
 		return $this->snippet;
-	}
-
-	/**
-	 * Установить на вершину стека дефолтный родительский элемент
-	 * */
-	public function setAutoParent($el)
-	{
-		$this->autoParentStack->push($el);
-	}
-
-	/**
-	 * Получить дефолтный родительский элемент
-	 * */
-	public function getAutoParent()
-	{
-		return $this->autoParentStack->last();
-	}
-
-	/**
-	 * Отменить дефолтный родительский элемент, находящийся на вершине стека
-	 * */
-	public function popAutoParent()
-	{
-		return $this->autoParentStack->pop();
-	}
-
-	/**
-	 * Сбросить весь стек дефолтных родительских элементов и установить переданный
-	 * */
-	public function resetAutoParent($elem = null)
-	{
-		$this->autoParentStack->reset();
-		if ($elem !== null) $this->setAutoParent($elem);
 	}
 
 
@@ -272,9 +224,9 @@ class SnippetBuildContext extends ApplicationTool implements ContextTreeInterfac
 				.lxMerge(Snippet.getDependencies())
 		};';
 
-		$compiler = new JsCompiler($this->app, $plugin->conductor);
+		$compiler = new JsCompiler($plugin->conductor);
 		$compiler->setBuildModules(true);
-		$executor = new NodeJsExecutor($this->app, $compiler);
+		$executor = new NodeJsExecutor($compiler);
 		$res = $executor->run([
 			'file' => $snippet->getFile(),
 			'requires' => $requires,

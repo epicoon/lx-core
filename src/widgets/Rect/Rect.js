@@ -1712,17 +1712,9 @@ class Rect #lx:namespace lx {
         /**
          * @param key - ключ вызываемого метода
          * @param params - параметры, с которыми нужно вызвать метод
-         * @param handlers - обработчики ответа
          * */
-        static ajax(key, params = [], handlers = null) {
-            var config = lx.Dialog.handlersToConfig(handlers);
-            config.data = {key, params};
-
-            config.headers = [];
-            config.headers['lx-type'] = 'widget';
-            config.headers['lx-widget'] = this.lxFullName;
-
-            lx.Dialog.post(config);
+        static ajax(key, params = []) {
+            return new lx.WidgetRequest(this.lxFullName, key, params);
         }
     }
     /* 8. Load */

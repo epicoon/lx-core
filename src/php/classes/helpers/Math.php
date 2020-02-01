@@ -2,17 +2,33 @@
 
 namespace lx;
 
-class Math {
+/**
+ * Class Math
+ * @package lx
+ */
+class Math
+{
+	/** @var int */
 	private static $counter = 0;
 
-	public static function randHash() {
+	/**
+	 * @return string
+	 */
+	public static function randHash()
+	{
 		return md5('' . (self::$counter++) . time() . rand(0, PHP_INT_MAX));
 	}
 
 	/**
 	 * Сгенерировать случайное число
-	 * */
-	public static function rand($min, $max) {
+	 *
+	 * @param $min int
+	 * @param $max int
+	 * @return int
+	 * @throws \Exception
+	 */
+	public static function rand($min, $max)
+	{
 		if (function_exists('\random_int'))
 			return \random_int($min, $max);
 
@@ -20,10 +36,12 @@ class Math {
 	}
 
 	/**
-	 * @var $probability float - в интервале [0; 1]
+	 * @param $probability float - в интервале [0; 1]
 	 * @return bool
-	 * */
-	public static function gamble($probability) {
+	 * @throws \Exception
+	 */
+	public static function gamble($probability)
+	{
 		$param = $probability * 1000;
 		$rand = self::rand(1, 1000);
 		return $rand <= $param;
@@ -32,8 +50,13 @@ class Math {
 	/**
 	 * Смена системы счисления с десятичной на заданную
 	 * Можно задать базис до 62-ричной системы счисления
-	 * */
-	public static function decChangeNotation($n, $basis) {
+	 *
+	 * @param $n int
+	 * @param $basis int
+	 * @return string
+	 */
+	public static function decChangeNotation($n, $basis)
+	{
 		$str = '';
 		$q = floor($n / $basis);
 		while ($q) {
@@ -51,7 +74,12 @@ class Math {
 		return $str;
 	}
 
-	public static function roundToZero($val) {
+	/**
+	 * @param $val float
+	 * @return int
+	 */
+	public static function roundToZero($val)
+	{
 		if ($val > 0) return floor($val);
 		if ($val < 0) return ceil($val);
 		return 0;
@@ -59,8 +87,12 @@ class Math {
 
 	/**
 	 * Вычислить значение из строки, н-р '(11 + 44) * 3'
-	 * */
-	public static function calculate($str) {
+	 *
+	 * @param $str
+	 * @return float|false
+	 */
+	public static function calculate($str)
+	{
 		if ($str == '') return 0;
 		if (is_numeric($str)) return $str;
 		$str = preg_replace('/^=/', '', $str);
@@ -115,5 +147,4 @@ class Math {
 		$result = $simpleCalc($simp[0]);
 		return $result;
 	}
-
 }

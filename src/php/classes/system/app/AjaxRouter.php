@@ -5,7 +5,9 @@ namespace lx;
 /**
  * Класс для определения ресурса, запрошенного ajax-запросом
  * */
-class AjaxRouter extends ApplicationTool {
+class AjaxRouter {
+	use ApplicationToolTrait;
+
 	/**
 	 * Определить запрошенный ресурс
 	 * @return lx\ResponseSource | null
@@ -34,11 +36,11 @@ class AjaxRouter extends ApplicationTool {
 		// Ajax-запрос на дозагрузку виджетов
 		if ($type == 'get-modules') {
 			$data = $this->app->dialog->params();
-			return new ResponseSource($this->app, [
+			return new ResponseSource([
 				'isStatic' => true,
 				'class' => ModuleHelper::class,
 				'method' => 'getModulesCode',
-				'params' => [$this->app, $data],
+				'params' => [$data],
 			]);
 		}
 	}
@@ -47,27 +49,34 @@ class AjaxRouter extends ApplicationTool {
 	 * Формирование ajax-ответа для плагина
 	 * */
 	private function pluginAjaxResponse() {
-		$pluginName = $this->app->dialog->header('lx-plugin');
-		if ($pluginName === null) {
+		$meta = $this->app->dialog->header('lx-plugin');
+		if ($meta === null) {
 			//todo логирование? 'Plugin-ajax-request without plugin!'
 			return false;
 		}
 
+		$arr = explode(' ', $meta);
+		$pluginName = $arr[0];
 		$plugin = $this->app->getPlugin($pluginName);
 		if ($plugin === null) {
 			//todo логирование? "Plugin '$pluginName' not found"
 			return false;
 		}
 
-		return ClassHelper::call($plugin, 'getResponseSource', [$this->app->dialog->params()]);
+		$respondentName = $arr[1] ?? null;
+		return $plugin->getResponseSource($respondentName, $this->app->dialog->params());
 	}
 
 	/**
 	 * Формирование ajax-ответа для виджета
 	 * */
 	private function widgetAjaxResponse() {
-		$widgetName = $this->app->dialog->header('lx-widget');
-		$widgetName = str_replace('.', '\\', $widgetName);
+		$meta = $this->app->dialog->header('lx-widget');
+
+		$arr = explode(':', $meta);
+		$moduleName = $arr[0];
+		$info = (new JsModuleMap())->getModuleInfo($moduleName);
+		$widgetName = $info['data']['backend'] ?? '';
 
 		if (!ClassHelper::exists($widgetName) ) {
 			return false;
@@ -78,13 +87,12 @@ class AjaxRouter extends ApplicationTool {
 			return false;
 		}
 
-		$data = $this->app->dialog->params();
-		$methodKey = $data['key'];
-		$params = $data['params'];
+		$methodKey = $arr[1];
+		$params = $this->app->dialog->params();
 
 		$methodName = $widgetName::ajaxRoute($methodKey);
 
-		return new ResponseSource($this->app, [
+		return new ResponseSource([
 			'isWidget' => true,
 			'class' => $widgetName,
 			'method' => $methodName,

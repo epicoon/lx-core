@@ -139,9 +139,7 @@ function loadAssets(callback) {
 	// Запрос на догрузку виджетов регистрируется в синхронайзере
 	var modulesRequest = null;
 	if (loadData.necessaryModules && !loadData.necessaryModules.lxEmpty) {
-		modulesRequest = new lx.Request('', loadData.necessaryModules);
-		modulesRequest.setHeader('lx-type', 'service');
-		modulesRequest.setHeader('lx-service', 'get-modules');
+		modulesRequest = new lx.ServiceRequest('get-modules', loadData.necessaryModules);
 		modulesRequest.success = function(result) {
 			if (result) lx.createAndCallFunction('', result);
 		};

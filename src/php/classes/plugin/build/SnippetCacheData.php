@@ -6,8 +6,10 @@ namespace lx;
  * Class SnippetCacheData
  * @package lx
  */
-class SnippetCacheData extends ApplicationTool
+class SnippetCacheData
 {
+	use ApplicationToolTrait;
+
 	private $snippetBuildContext;
 	private $buildType;
 	private $dir;
@@ -21,8 +23,6 @@ class SnippetCacheData extends ApplicationTool
 	 */
 	public function __construct($snippetBuildContext)
 	{
-		parent::__construct($snippetBuildContext->app);
-
 		$this->snippetBuildContext = $snippetBuildContext;
 		$this->mainFile = false;
 		$this->mapFile = false;

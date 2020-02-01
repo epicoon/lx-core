@@ -462,10 +462,10 @@
     ```
   * Использование респондента в js-коде плагина
     ```js
-    ^Respondent.test() : (result) => {
+    ^Respondent.test().then((result) => {
       // result содержит строку 'Hello from server'
       console.log(result);
-    };
+    });
     ```
 
 

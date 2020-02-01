@@ -246,14 +246,13 @@ function __bindMatrix(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 	c.each((a)=>newBox(widget, a));
 	widget.startPositioning();
 
-	//todo поведение может быть навешено в связи с чем-то другим, тогда тут логика навешивания уже не сработает
-	if (!c.hasBehavior(lx.MethodListenerBehavior)) {
+	if (!c.hasBehavior(lx.MethodListenerBehavior))
 		c.addBehavior(lx.MethodListenerBehavior);
-		c.afterMethod('add',       function()      {onAdd.call(this);        });
-		c.beforeMethod('removeAt', function(i)     {onRemove.call(this, i);  });
-		c.beforeMethod('clear',    function(i)     {onClear.call(this);      });
-		c.afterMethod('set',       function(i, obj){onSet.call(this, i, obj);});
-	}
+
+	c.afterMethod('add',       function()      {onAdd.call(this);        });
+	c.beforeMethod('removeAt', function(i)     {onRemove.call(this, i);  });
+	c.beforeMethod('clear',    function(i)     {onClear.call(this);      });
+	c.afterMethod('set',       function(i, obj){onSet.call(this, i, obj);});
 }
 
 function __unbindMatrix(widget) {

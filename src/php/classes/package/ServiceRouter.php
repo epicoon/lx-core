@@ -102,7 +102,7 @@ class ServiceRouter {
 			}
 		}
 
-		return new ResponseSource($this->service->app, $source);
+		return new ResponseSource($source);
 	}
 
 	/**

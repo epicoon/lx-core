@@ -32,7 +32,7 @@ class Application extends AbstractApplication implements FusionInterface {
 			'unpackType' => \lx::POSTUNPACK_TYPE_FIRST_DISPLAY,
 		];
 
-		$this->_dialog = new Dialog($this);
+		$this->_dialog = new Dialog();
 		$this->retrieveRouter();
 
 		$this->initFusionComponents($this->getConfig('components'), [
@@ -50,7 +50,7 @@ class Application extends AbstractApplication implements FusionInterface {
 			case 'router': return $this->_router;
 			case 'i18nMap': {
 				if (!$this->_i18nMap) {
-					$this->_i18nMap = new I18nApplicationMap($this);
+					$this->_i18nMap = new I18nApplicationMap();
 				}
 
 				return $this->_i18nMap;
@@ -140,13 +140,13 @@ class Application extends AbstractApplication implements FusionInterface {
 
 	public function run() {
 		ob_start();
-		$this->response = new Response($this);
+		$this->response = new Response();
 		$this->response->run();
 		$this->response->send();
 	}
 
 	public function getCommonJs() {
-		$compiler = new JsCompiler($this);
+		$compiler = new JsCompiler();
 
 		//todo - добавить кэширование
 		$jsCore = $this->compileJsCore($compiler);
@@ -196,13 +196,13 @@ class Application extends AbstractApplication implements FusionInterface {
 						$data = $routerData['routes'];
 					}
 					if ($data) {
-						$router = new Router($this);
+						$router = new Router();
 						$router->setMap($data);
 					}
 					break;
 				case 'class':
 					if (isset($routerData['name']) && ClassHelper::exists($routerData['name'])) {
-						$router = new $routerData['name']($this);
+						$router = new $routerData['name']();
 					}
 					break;
 			}

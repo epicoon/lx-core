@@ -11,15 +11,11 @@ lx.Alert = function(msg) {
 
 	if (lx.ActiveBox) __print(msg);
 	else {
-		request = new lx.Request('', ['lx.ActiveBox']);
-		request.setHeader('lx-type', 'service');
-		request.setHeader('lx-service', 'get-modules');
-		request.success = function(result) {
+		(new lx.ServiceRequest('get-modules', ['lx.ActiveBox'])).send().then((result)=>{
 			if (!result) return;
 			lx.createAndCallFunction('', result);
 			__print(msg);
-		};
-		request.send();
+		});
 	}
 };
 

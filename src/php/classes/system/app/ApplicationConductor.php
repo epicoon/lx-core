@@ -5,14 +5,16 @@ namespace lx;
 /**
  * Указывает на важные пути в архитектуре приложения
  * */
-class ApplicationConductor extends ApplicationTool {
+class ApplicationConductor {
+	use ApplicationToolTrait;
+
 	private $aliases = [];
 
 	/**
 	 * Геттер предоставляет доступ к полям, начинающимся с '_'
 	 * */
 	public function __get($name) {
-		$result = parent::__get($name);
+		$result = $this->ApplicationToolTrait__get($name);
 		if ($result !== null) {
 			return $result;
 		}

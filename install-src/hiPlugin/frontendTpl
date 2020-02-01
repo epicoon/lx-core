@@ -33,7 +33,7 @@ list.each((item, key)=>{
 			lx.WidgetHelper.bringToFront(item.box);
 			return;
 		}
-		^Respondent.loadPlugin(key): (res)=>loadPlugin(item.service, item.title, key, res);
+		^Respondent.loadPlugin(key).then((res)=>loadPlugin(item.service, item.title, key, res));
 	});
 });
 

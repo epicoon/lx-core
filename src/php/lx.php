@@ -2,7 +2,8 @@
 
 require_once(__DIR__ . '/PlatformConductor.php');
 
-class lx {
+class lx
+{
 	const MODE_PROD = 'prod';
 	const MODE_DEV = 'dev';
 	const MODE_TEST = 'test';
@@ -23,22 +24,29 @@ class lx {
 	const POSTUNPACK_TYPE_FIRST_DISPLAY = 2;
 	const POSTUNPACK_TYPE_ALL_DISPLAY = 3;
 
+	/** @var \lx\Autoloader */
+	public static $autoloader;
 	/** @var lx\PlatformConductor */
 	public static $conductor;
+	/** @var \lx\AbstractApplication */
 	public static $app;
 
-	public static $dump;
+	/** @var string */
+	private static $dump;
 
-	public static function init() {
+	public static function init()
+	{
 		self::$conductor = new lx\PlatformConductor();
+
 		require_once(__DIR__ . '/classes/system/autoload/Autoloader.php');
-		$autoloader = lx\Autoloader::getInstance();
-		$autoloader->init(self::$conductor->sitePath);
+		self::$autoloader = lx\Autoloader::getInstance();
+		self::$autoloader->init(self::$conductor->sitePath);
 
 		self::$dump = '';
 	}
 
-	public static function echo($data) {
+	public static function echo($data)
+	{
 		if (self::$app->isMode(self::MODE_PROD)) {
 			return;
 		}
@@ -50,7 +58,8 @@ class lx {
 		self::$dump .= $data;
 	}
 
-	public static function dump($data) {
+	public static function dump($data)
+	{
 		if (self::$app->isMode(self::MODE_PROD)) {
 			return;
 		}
@@ -59,5 +68,10 @@ class lx {
 		var_dump($data);
 		$out = ob_get_clean();
 		self::echo($out);
+	}
+
+	public static function getDump()
+	{
+		return self::$dump;
 	}
 }

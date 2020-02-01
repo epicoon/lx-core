@@ -2,12 +2,12 @@
 
 namespace lx;
 
-class ServicesMap extends ApplicationTool {
+class ServicesMap {
 	private $map = [];
 
 	public function exists($serviceName) {
 		try {
-			Service::create($this->app, $serviceName);
+			Service::create($serviceName);
 			return true;
 		} catch (\Exception $e) {
 			return false;
@@ -20,7 +20,7 @@ class ServicesMap extends ApplicationTool {
 
 	public function get($serviceName) {
 		if (!$this->has($serviceName)) {
-			Service::create($this->app, $serviceName);
+			Service::create($serviceName);
 		}
 		return $this->map[$serviceName];
 	}

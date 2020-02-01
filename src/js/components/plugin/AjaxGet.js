@@ -7,32 +7,33 @@ class AjaxGet {
 		this.urlDelimiter = '||';
 	}
 
-	registerActiveUrl(url, handlers, useServer=true) {
-		this.activeUrl[url] = {
-			state: false,
-			useServer: useServer,
-			handlers: handlers
-		}
+	registerActiveUrl(key, respondent, handlers, useServer=true) {
+		if ( ! this.plugin.isMainContext()) return;
 
-		if (this.plugin.isMainContext()) checkUrlInAction(this, url);
+		this.activeUrl[key] = {
+			state: false,
+			useServer,
+			respondent,
+			handlers
+		};
+
+		__checkUrlInAction(this, key);
 	}
 
-	request(url, data={}) {
-		if (!(url in this.activeUrl)) return;
-		requestProcess(this, url, data);
-		if (this.plugin.isMainContext()) renewLocationHash(this);
+	request(key, data={}) {
+		if (!(key in this.activeUrl)) return;
+		__requestProcess(this, key, data);
+		if (this.plugin.isMainContext()) __renewLocationHash(this);
 	}
 }
 
 
-function requestProcess(ctx, url, data={}) {
-	var activeUrl = ctx.activeUrl[url];
+function __requestProcess(self, key, data={}) {
+	var activeUrl = self.activeUrl[key];
 	activeUrl.state = data;
 
 	if (activeUrl.useServer) {
-		var request = new lx.Request(url, data);
-		// request.setMethod('get');
-		request.setPlugin(ctx.plugin);
+		var request = new lx.PluginRequest(self.plugin, activeUrl.respondent, data);
 		request.setHandlers(activeUrl.handlers);
 		request.send();
 	} else {
@@ -40,37 +41,36 @@ function requestProcess(ctx, url, data={}) {
 	}
 }
 
-function renewLocationHash(ctx) {
+function __renewLocationHash(self) {
 	var arr = [];
 
-	for (let url in ctx.activeUrl) {
-		let activeUrl = ctx.activeUrl[url];
+	for (let key in self.activeUrl) {
+		let activeUrl = self.activeUrl[key];
 		if (activeUrl.state === false) continue;
-
-		let params = lx.Dialog.requestParamsToString(activeUrl.state.data);
-		let fullUrl = params == '' ? url : url + '?' + params;
+		let params = lx.Dialog.requestParamsToString(activeUrl.state);
+		let fullUrl = params == '' ? key : key + '?' + params;
 		arr.push(fullUrl);
 	}
 
-	var hash = arr.join(ctx.urlDelimiter);
+	var hash = arr.join(self.urlDelimiter);
 	if (hash != '') window.location.hash = hash;
 }
 
-function checkUrlInAction(ctx, url) {
+function __checkUrlInAction(self, key) {
 	var hash = window.location.hash;
 	if (hash == '') return;
 
 	hash = hash.substr(1);
-	var fullUrls = hash.split(ctx.urlDelimiter);
+	var fullUrls = hash.split(self.urlDelimiter);
 
 	for (var i=0, l=fullUrls.len; i<l; i++) {
 		var fullUrl = fullUrls[i],
 			urlInfo = fullUrl.split('?'),
 			currentUrl = urlInfo[0];
 
-		if (currentUrl != url) continue;
+		if (currentUrl != key) continue;
 
 		var data = lx.Dialog.requestParamsFromString(urlInfo[1]);
-		requestProcess(ctx, url, {params:{}, data});
+		__requestProcess(self, key, data);
 	}
 }

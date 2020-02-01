@@ -2,7 +2,9 @@
 
 namespace lx;
 
-class Cli extends ApplicationTool {
+class Cli {
+	use ApplicationToolTrait;
+
 	private $service = null;
 	private $plugin = null;
 
@@ -14,9 +16,8 @@ class Cli extends ApplicationTool {
 	private $commandsHistory = [];
 	private $commandsHistoryIndex = 0;
 
-	public function __construct($app) {
-		parent::__construct($app);
-		$this->processor = new CliProcessor($app);
+	public function __construct() {
+		$this->processor = new CliProcessor();
 	}
 
 	/**

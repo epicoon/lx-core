@@ -2,8 +2,16 @@
 
 namespace lx;
 
-class JsModuleMap extends ApplicationTool {
+class JsModuleMap {
+	use ApplicationToolTrait;
+
 	private static $map;
+
+	public function getModuleInfo($moduleName)
+	{
+		$map = $this->getMap();
+		return $map[$moduleName] ?? null;
+	}
 
 	public function getMap() {
 		if (!self::$map) {

@@ -9,7 +9,9 @@ namespace lx;
  * 2. Экшен - должен быть возвращен результат выполнения метода. Объект знает имя сервиса, класса и метода
  *	$this->data == ['service' => 'serviceName', 'class' => 'className', 'method' => 'methodName']
  * */
-class ResponseSource extends ApplicationTool {
+class ResponseSource {
+	use ApplicationToolTrait;
+
 	const RESTRICTION_FORBIDDEN_FOR_ALL = 5;
 	const RESTRICTION_INSUFFICIENT_RIGHTS = 10;
 
@@ -20,10 +22,8 @@ class ResponseSource extends ApplicationTool {
 	/**
 	 *
 	 * */
-	public function __construct($app, $data) {
-		parent::__construct($app);
-
-		$this->data = $data;
+	public function __construct($data = []) {
+		$this->setData($data);
 		$this->restrictions = [];
 	}
 
@@ -143,29 +143,29 @@ class ResponseSource extends ApplicationTool {
 	 *
 	 * */
 	public function getPlugin() {
-		if ($this->isPlugin()) {
-			if (!$this->plugin) {
-				$plugin = $this->getService()->getPlugin($this->data['plugin']);
-
-				if (isset($this->data['renderParams'])) {
-					$plugin->addRenderParams($this->data['renderParams']);
-				}
-
-				if (isset($this->data['clientParams'])) {
-					$plugin->clientParams->setProperties($this->data['clientParams']);
-				}
-
-				if (isset($this->data['dependencies'])) {
-					$plugin->setDependencies($this->data['dependencies']);
-				}
-
-				$this->plugin = $plugin;
-			}
-
-			return $this->plugin;
+		if ( ! $this->isPlugin()) {
+			return null;
 		}
 
-		return null;
+		if ( ! $this->plugin) {
+			$plugin = $this->getService()->getPlugin($this->data['plugin']);
+
+			if (isset($this->data['renderParams'])) {
+				$plugin->addRenderParams($this->data['renderParams']);
+			}
+
+			if (isset($this->data['clientParams'])) {
+				$plugin->clientParams->setProperties($this->data['clientParams']);
+			}
+
+			if (isset($this->data['dependencies'])) {
+				$plugin->setDependencies($this->data['dependencies']);
+			}
+
+			$this->plugin = $plugin;
+		}
+
+		return $this->plugin;
 	}
 
 

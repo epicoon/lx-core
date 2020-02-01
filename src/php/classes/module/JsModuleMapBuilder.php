@@ -2,7 +2,9 @@
 
 namespace lx;
 
-class JsModuleMapBuilder extends ApplicationTool {
+class JsModuleMapBuilder {
+	use ApplicationToolTrait;
+
 	public function renewHead() {
 		$list = PackageBrowser::getServiceNamesList();
 		$names = [];
@@ -60,6 +62,11 @@ class JsModuleMapBuilder extends ApplicationTool {
 			$this->delService($service->name);
 		}
 	}
+
+
+	/*******************************************************************************************************************
+	 * PRIVATE
+	 ******************************************************************************************************************/
 
 	/**
 	 * @param $service

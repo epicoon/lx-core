@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class ComponentList {
+class FusionComponentList {
 	private $fusion;
 	private $config = [];
 	private $list = [];
@@ -24,7 +24,7 @@ class ComponentList {
 			return $this->list[$name];
 		}
 
-		return parent::__get($name);
+		return null;
 	}
 
 	public function has($name) {

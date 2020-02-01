@@ -462,10 +462,10 @@ Of all the elements of the architecture a service and a plugin are configurable 
     ```
   * Using respondent in the JS code
     ```js
-    ^Respondent.test() : (result) => {
+    ^Respondent.test().then((result) => {
       // result contains string 'Hello from server'
       console.log(result);
-    };
+    });
     ```
 
 

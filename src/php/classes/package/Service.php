@@ -2,7 +2,8 @@
 
 namespace lx;
 
-class Service extends ApplicationTool implements FusionInterface {
+class Service implements FusionInterface {
+	use ApplicationToolTrait;
 	use FusionTrait;
 
 	/** @var $_name string - уникальное имя сервиса */
@@ -22,15 +23,14 @@ class Service extends ApplicationTool implements FusionInterface {
 	/**
 	 * Не использовать для создания экземпляров сервисов
 	 * */
-	public function __construct($app, $name, $config, $params = []) {
-		parent::__construct($app);
+	public function __construct($name, $config, $params = []) {
 		$this->setName($name);
 		$this->setConfig($config);
-		$this->construct($params);
+		$this->init($params);
 	}
 
-	protected function construct($params) {
-
+	protected function init($params) {
+		// pass
 	}
 
 	/**
@@ -73,10 +73,12 @@ class Service extends ApplicationTool implements FusionInterface {
 	 * Создание нового сервиса приведет к записи в карту сервисов
 	 * Сервис создается с учетом класса, установленного основным для данного сервиса
 	 * */
-	public static function create($app, $name) {
+	public static function create($name) {
 		if (!$name) {
 			throw new \Exception("Service name is missed", 400);
 		}
+
+		$app = \lx::$app;
 
 		if ($app->services->has($name)) {
 			return $app->services->get($name);
@@ -113,7 +115,7 @@ class Service extends ApplicationTool implements FusionInterface {
 			throw new \Exception("Class '$className' for service '$name' does not exist", 400);			
 		}
 
-		$service = new $className($app, $name, $config, $params);
+		$service = new $className($name, $config, $params);
 		$app->services->register($name, $service);
 		return $service;
 	}
@@ -147,7 +149,7 @@ class Service extends ApplicationTool implements FusionInterface {
 			return $component;
 		}
 
-		return parent::__get($name);
+		return $this->ApplicationToolTrait__get($name);
 	}
 
 	public function getFusionComponentsDefaultConfig()

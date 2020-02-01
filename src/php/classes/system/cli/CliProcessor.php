@@ -2,7 +2,9 @@
 
 namespace lx;
 
-class CliProcessor extends ApplicationTool {
+class CliProcessor {
+	use ApplicationToolTrait;
+
 	const COMMAND_TYPE_COMMON = 5;
 	const COMMAND_TYPE_CONSOLE_ONLY = 10;
 	const COMMAND_TYPE_WEB_ONLY = 15;
@@ -379,7 +381,7 @@ class CliProcessor extends ApplicationTool {
 	private function resetJsAutoloadMap() {
 		if ($this->getArg(0) == 'core') {
 			$this->outln('Creating core map...');
-			(new JsModuleMapBuilder($this->app))->renewCore();
+			(new JsModuleMapBuilder())->renewCore();
 			$this->outln('Done');
 			return;
 		}
@@ -403,13 +405,13 @@ class CliProcessor extends ApplicationTool {
 
 		if ($service === null) {
 			$this->outln('Creating full map...');
-			(new JsModuleMapBuilder($this->app))->renewAllServices();
+			(new JsModuleMapBuilder())->renewAllServices();
 			$this->outln('Done');
 			return;
 		}
 
 		$this->outln('Creating map for service "'. $service->name .'"...');
-		(new JsModuleMapBuilder($this->app))->renewService($service);
+		(new JsModuleMapBuilder())->renewService($service);
 		$this->outln('Done');
 	}
 
