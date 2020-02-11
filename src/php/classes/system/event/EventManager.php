@@ -2,13 +2,16 @@
 
 namespace lx;
 
-class EventManager extends ApplicationComponent
+class EventManager extends Object implements FusionComponentInterface
 {
+	use ApplicationToolTrait;
+	use FusionComponentTrait;
+
 	private $list;
 
-	public	function __construct($owner, $config = [])
+	public	function __construct($config = [])
 	{
-		parent::__construct($owner, $config);
+		parent::__construct($config);
 		$this->list = [];
 	}
 

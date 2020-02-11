@@ -6,7 +6,7 @@ namespace lx;
  * Class Response
  * @package lx
  */
-class Response
+class Response extends Object
 {
 	use ApplicationToolTrait;
 

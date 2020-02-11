@@ -109,6 +109,30 @@ class ClassHelper {
 	}
 
 	/**
+	 * @param string $className
+	 * @param bool $all
+	 * @return array
+	 * @throws \ReflectionException
+	 */
+	public static function getTraitNames($className, $all = false)
+	{
+		$re = new \ReflectionClass($className);
+		if ( ! $all) {
+			return $re->getTraitNames();
+		}
+
+		$traitNames = [];
+		$recursiveClasses = function ($re, &$traitNames) use(&$recursiveClasses) {
+			$traitNames = array_merge($traitNames, $re->getTraitNames());
+			if ($re->getParentClass() != false) {
+				$recursiveClasses($re->getParentClass(), $traitNames);
+			}
+		};
+		$recursiveClasses($re, $traitNames);
+		return $traitNames;
+	}
+
+	/**
 	 * Определение имени класса и параметров для его создания из базовой конфигурации
 	 * Варианты конфигурации:
 	 * 1. 'className' строка, определяющая имя класса

@@ -4,21 +4,20 @@ namespace lx;
 
 trait FusionComponentTrait
 {
-	protected $owner;
-
-	public function __construct($owner, $config = [])
-	{
-		$this->constructFusionComponent($owner, $config);
-	}
+	private $_owner;
 
 	public function initAsFusionComponent($config = [])
 	{
 		// pass
 	}
 
-	public function constructFusionComponent($owner, $config = [])
+	/**
+	 * @magic __construct
+	 * @param array $config
+	 */
+	public function constructFusionComponent($config = [])
 	{
-		$this->owner = $owner;
+		$this->_owner = $config['__fusion__'] ?? null;
 
 		foreach ($config as $key => $value) {
 			if (ClassHelper::publicPropertyExists($this, $key)
@@ -31,10 +30,15 @@ trait FusionComponentTrait
 		$this->initAsFusionComponent($config);
 	}
 
+	/**
+	 * @magic __get
+	 * @param $name
+	 * @return |null
+	 */
 	public function getFusionComponentProperty($name)
 	{
 		if ($name == 'owner') {
-			return $this->owner;
+			return $this->_owner;
 		}
 
 		if (ClassHelper::publicPropertyExists($this, $name)) {

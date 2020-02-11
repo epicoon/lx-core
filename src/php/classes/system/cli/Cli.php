@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class Cli {
+class Cli extends Object {
 	use ApplicationToolTrait;
 
 	private $service = null;

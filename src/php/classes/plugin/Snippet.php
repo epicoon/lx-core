@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class Snippet {
+class Snippet extends Object {
 	use ApplicationToolTrait;
 
 	public

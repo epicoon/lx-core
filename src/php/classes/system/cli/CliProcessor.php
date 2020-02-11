@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class CliProcessor {
+class CliProcessor extends Object {
 	use ApplicationToolTrait;
 
 	const COMMAND_TYPE_COMMON = 5;
@@ -269,7 +269,7 @@ class CliProcessor {
 				return;
 			}
 
-			// Удалось определить нужный сервис, модуль скидываем если был
+			// Удалось определить нужный сервис, плагин скидываем если был
 			$temp = array_slice($services, $index - 1, 1);
 			$service = end($temp);
 			$name = $service['name'];
@@ -292,10 +292,10 @@ class CliProcessor {
 
 		// Если находимся в сервисе - надо совершить проверки
 		if ($this->service !== null) {
-			// Если введенное имя - имя сервиса - скидываем модуль, если был
+			// Если введенное имя - имя сервиса - скидываем плагин, если был
 			if (array_key_exists($name, $this->getServicesList())) {
 				$this->plugin = null;
-			// Иначе попробуем войти в модуль
+			// Иначе попробуем войти в плагин
 			} else {
 				$list = PluginBrowser::getPluginsMap($this->service);
 				if (array_search($name, $list['dynamic']) !== false) {
@@ -608,7 +608,7 @@ class CliProcessor {
 			return;
 		}
 
-		// Если у сервиса только один каталог для модулей - сразу создаем там новый модуль
+		// Если у сервиса только один каталог для плагинов - сразу создаем там новый плагин
 		if (count($pluginDirs) == 1) {
 			$path = $pluginDirs[0];
 			$this->createPluginProcess($this->service, $name, $path);

@@ -10,7 +10,7 @@ lx.Plugin = function(info, snippet) {
 		root: snippet,
 
 		/**
-		 * Проверяет является ли данный модуль основым по отношению к формированию страницы (соответствие текущему url)
+		 * Проверяет является ли данный плагин основым по отношению к формированию страницы (соответствие текущему url)
 		 * */
 		isMainContext: function() {
 			return this.isMain;
@@ -73,7 +73,7 @@ lx.Plugin = function(info, snippet) {
 		},
 
 		/**
-		 * Проверяет есть ли переданный модуль в иерархии родительских
+		 * Проверяет есть ли переданный плагин в иерархии родительских
 		 * */
 		haveAncestor: function(plugin) {
 			var parent = this.parent;
@@ -170,7 +170,7 @@ lx.Plugin = function(info, snippet) {
 
 		plugin.screenModes = modes;
 		plugin.screenMode = '';
-		// Модуль определяет по ширине экрана режим отображения
+		// Плагин определяет по ширине экрана режим отображения
 		plugin.idenfifyScreenMode = function() {
 			var w = this.root.width('px'),
 				mode;

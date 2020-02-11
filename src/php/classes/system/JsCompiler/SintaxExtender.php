@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class SintaxExtender {
+class SintaxExtender extends Object {
 	use ApplicationToolTrait;
 
 	/** @var JsCompiler */

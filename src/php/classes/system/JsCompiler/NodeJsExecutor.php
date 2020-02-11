@@ -6,7 +6,7 @@ namespace lx;
  * Class NodeJsExecutor
  * @package lx
  */
-class NodeJsExecutor {
+class NodeJsExecutor extends Object {
 	use ApplicationToolTrait;
 
     private $filePath = null;

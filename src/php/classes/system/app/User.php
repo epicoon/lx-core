@@ -2,8 +2,11 @@
 
 namespace lx;
 
-class User extends ApplicationComponent
+class User extends Object implements FusionComponentInterface
 {
+	use ApplicationToolTrait;
+	use FusionComponentTrait;
+
 	/** @var null|string */
 	private static $userModelClass = null;
 
@@ -12,9 +15,9 @@ class User extends ApplicationComponent
 	/** @var null|ModelInterface */
 	private $userModel = null;
 
-	public function __construct($owner, $config = [])
+	public function __construct($config = [])
 	{
-		parent::__construct($owner, $config);
+		parent::__construct($config);
 
 		if (self::$userModelClass === null) {
 			self::$userModelClass = $config['userModelClass'] ?? null;

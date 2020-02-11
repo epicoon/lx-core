@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class JsModuleMap {
+class JsModuleMap extends Object {
 	use ApplicationToolTrait;
 
 	private static $map;

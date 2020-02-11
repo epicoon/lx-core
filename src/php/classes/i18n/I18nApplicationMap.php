@@ -1,21 +1,23 @@
 <?php
 
-
 namespace lx;
 
-
-class I18nApplicationMap extends I18nMap {
+class I18nApplicationMap extends I18nMap
+{
 	private $used = [];
 
-	public function inUse($name) {
+	public function inUse($name)
+	{
 		return array_search($name, $this->used) !== false;
 	}
 
-	public function noteUse($name) {
+	public function noteUse($name)
+	{
 		$this->used[] = $name;
 	}
 
-	protected function loadMap() {
+	protected function loadMap()
+	{
 		if ($this->map !== null) {
 			return $this->map;
 		}

@@ -6,7 +6,7 @@ namespace lx;
  * Class SnippetCacheData
  * @package lx
  */
-class SnippetCacheData
+class SnippetCacheData extends Object
 {
 	use ApplicationToolTrait;
 

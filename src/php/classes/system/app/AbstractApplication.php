@@ -48,7 +48,7 @@ abstract class AbstractApplication
 		$this->_services = new ServicesMap();
 
 		$loggerConfig = ClassHelper::prepareConfig($this->getConfig('logger'), ApplicationLogger::class);
-		$this->_logger = new $loggerConfig['class']($this, $loggerConfig['params']);
+		$this->_logger = new $loggerConfig['class']($loggerConfig['params']);
 
 		\lx::$app = $this;
 	}

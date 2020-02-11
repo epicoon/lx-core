@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class Service implements FusionInterface {
+class Service extends Object implements FusionInterface {
 	use ApplicationToolTrait;
 	use FusionTrait;
 
@@ -24,6 +24,8 @@ class Service implements FusionInterface {
 	 * Не использовать для создания экземпляров сервисов
 	 * */
 	public function __construct($name, $config, $params = []) {
+		parent::__construct($params);
+
 		$this->setName($name);
 		$this->setConfig($config);
 		$this->init($params);
@@ -145,11 +147,11 @@ class Service implements FusionInterface {
 		}
 
 		$component = $this->getFusionComponent($name);
-		if ($component) {
+		if ($component !== null) {
 			return $component;
 		}
 
-		return $this->ApplicationToolTrait__get($name);
+		return parent::__get($name);
 	}
 
 	public function getFusionComponentsDefaultConfig()
@@ -302,7 +304,7 @@ class Service implements FusionInterface {
 		/*
 		dynamicPlugins:
 		  pluginName1:
-		    method: someMethod  #Метод сервиса, возвращающий этот модуль
+		    method: someMethod  #Метод сервиса, возвращающий этот плагин
 		  pluginName2:
 		    plugin: outer/service:pluginName
 		    renderParams:

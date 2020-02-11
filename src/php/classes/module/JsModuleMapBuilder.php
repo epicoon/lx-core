@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class JsModuleMapBuilder {
+class JsModuleMapBuilder extends Object {
 	use ApplicationToolTrait;
 
 	public function renewHead() {

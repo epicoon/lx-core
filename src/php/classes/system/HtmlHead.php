@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class HtmlHead {
+class HtmlHead extends Object {
 	use ApplicationToolTrait;
 
 	private $title = 'lx';

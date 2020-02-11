@@ -6,7 +6,7 @@ namespace lx;
  * Class SnippetBuildContext
  * @package lx
  */
-class SnippetBuildContext implements ContextTreeInterface
+class SnippetBuildContext extends Object implements ContextTreeInterface
 {
 	use ApplicationToolTrait;
 	use ContextTreeTrait;
@@ -20,8 +20,9 @@ class SnippetBuildContext implements ContextTreeInterface
 
 	public function __construct($pluginBuildContext, $snippetData = [], $contextConfig = null)
 	{
+		parent::__construct($contextConfig);
+
 		$this->pluginBuildContext = $pluginBuildContext;
-		$this->ContextTreeTrait($contextConfig);
 		if ($this->isHead()) {
 			$this->cacheData = new SnippetCacheData($this);
 		}

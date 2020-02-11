@@ -7,11 +7,6 @@ class I18nPluginMap extends I18nMap implements FusionComponentInterface {
 
 	protected $fullMap;
 
-	public function __construct($plugin, $config = []) {
-		parent::__construct();
-		$this->constructFusionComponent($plugin, $config);
-	}
-
 	public function getPlugin() {
 		return $this->owner;
 	}

@@ -6,9 +6,17 @@ trait EventListenerTrait
 {
 	private $eventManager;
 
-	public function constructEventListener($eventManager)
+	/**
+	 * @magic __construct
+	 * @param EventManager $eventManager
+	 */
+	public function constructEventListener($eventManager = null)
 	{
-		$this->eventManager = $eventManager;
+		if ($eventManager instanceof EventManager) {
+			$this->eventManager = $eventManager;
+		} else {
+			$this->eventManager = \lx::$app->events;
+		}
 		$map = self::getEventHandlersMap();
 		foreach (array_keys($map) as $eventName) {
 			$this->subscribe($eventName);

@@ -5,7 +5,7 @@ namespace lx;
 /**
  * @group {i18n:widgets}
  * */
-class Rect {
+class Rect extends Object {
 	use ApplicationToolTrait;
 
 	/**

@@ -2,7 +2,10 @@
 
 namespace lx;
 
-class Language extends ApplicationComponent {
+class Language extends Object implements FusionComponentInterface {
+	use ApplicationToolTrait;
+	use FusionComponentTrait;
+
 	protected $_list = [];
 
 	private $_current;
@@ -10,8 +13,8 @@ class Language extends ApplicationComponent {
 	/**
 	 *
 	 * */
-	public function __construct($app, $config = []) {
-		parent::__construct($app, $config);
+	public function __construct($config = []) {
+		parent::__construct($config);
 
 		$filePath = $this->app->conductor->getSystemPath('lxData') . '/languages';
 		$file = new ConfigFile($filePath);

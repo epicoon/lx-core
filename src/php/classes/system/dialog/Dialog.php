@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class Dialog
+class Dialog extends Object
 {
 	use ApplicationToolTrait;
 

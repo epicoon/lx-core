@@ -10,7 +10,11 @@ trait ContextTreeTrait {
 	protected static $keyPrefix = null;
 	protected static $keyCounter = 1;
 
-	public function ContextTreeTrait($config = null) {
+	/**
+	 * @magic __construct
+	 * @param null $config
+	 */
+	public function constructContextTree($config = null) {
 		$this->nestedContexts = [];
 
 		if (is_array($config)) {

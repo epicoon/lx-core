@@ -18,7 +18,7 @@ require_once(__DIR__ . '/Minimizer.php');
 Отрицательное lookbehind-условие '(?<!re)'
 Соответствует, только если перед ним не следует регулярное выражение re.
 */
-class JsCompiler {
+class JsCompiler extends Object {
 	use ApplicationToolTrait;
 
 	const CONTEXT_CLIENT = 'client';

@@ -4,12 +4,13 @@ return [
 	'AutoloadMapBuilder' => 'classes/system/autoload',
 	'AutoloadMap' => 'classes/system/autoload',
 
+	'Object' => 'classes/system/object',
+
 	'AbstractApplication' => 'classes/system/app',
 	'Application' => 'classes/system/app',
 	'ConsoleApplication' => 'classes/system/app',
 
 	'ApplicationConductor' => 'classes/system/app',
-	'ApplicationComponent' => 'classes/system/app',
 	'ApplicationLogger' => 'classes/system/app',
 	'Router' => 'classes/system/app',
 	'AjaxRouter' => 'classes/system/app',

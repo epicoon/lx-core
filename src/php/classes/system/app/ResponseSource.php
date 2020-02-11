@@ -4,12 +4,12 @@ namespace lx;
 
 /**
  * Запрашиваемый ресурс может представлять собой либо плагин, либо экшен:
- * 1. Модуль - должен быть возвращен результат рендеригна плагина. Объект знает имя сервиса и имя плагина
+ * 1. Плагин - должен быть возвращен результат рендеригна плагина. Объект знает имя сервиса и имя плагина
  *	$this->data == ['service' => 'serviceName', 'plugin' => 'pluginName']
  * 2. Экшен - должен быть возвращен результат выполнения метода. Объект знает имя сервиса, класса и метода
  *	$this->data == ['service' => 'serviceName', 'class' => 'className', 'method' => 'methodName']
  * */
-class ResponseSource {
+class ResponseSource extends Object {
 	use ApplicationToolTrait;
 
 	const RESTRICTION_FORBIDDEN_FOR_ALL = 5;

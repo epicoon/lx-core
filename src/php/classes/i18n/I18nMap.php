@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class I18nMap {
+class I18nMap extends Object {
 	use ApplicationToolTrait;
 
 	const DEFAULT_FILE_NAME = 'i18n';
@@ -11,6 +11,8 @@ class I18nMap {
 	protected $tags;
 
 	public function __construct($config = []) {
+		parent::__construct($config);
+
 		foreach ($config as $key => $value) {
 			if (property_exists($this, $key)) {
 				$this->$key = $value;

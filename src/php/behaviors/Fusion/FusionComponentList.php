@@ -20,7 +20,9 @@ class FusionComponentList {
 		if (array_key_exists($name, $this->config)) {
 			$data = $this->config[$name];
 			unset($this->config[$name]);
-			$this->list[$name] = new $data['class']($this->fusion, $data['params']);
+			$params = $data['params'];
+			$params['__fusion__'] = $this->fusion;
+			$this->list[$name] = new $data['class']($params);
 			return $this->list[$name];
 		}
 

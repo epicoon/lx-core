@@ -5,7 +5,7 @@ namespace lx;
 /**
  * Класс для определения ресурса, запрошенного ajax-запросом
  * */
-class AjaxRouter {
+class AjaxRouter extends Object {
 	use ApplicationToolTrait;
 
 	/**

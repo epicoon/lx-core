@@ -2,7 +2,10 @@
 
 namespace lx;
 
-class ApplicationLogger extends ApplicationComponent implements LoggerInterface {
+class ApplicationLogger extends Object implements LoggerInterface, FusionComponentInterface {
+	use ApplicationToolTrait;
+	use FusionComponentTrait;
+
 	const DEFAULT_CATEGORY = 'common';
 	const DEFAULT_LOG_PATH = '@site/log';
 	

@@ -4,7 +4,7 @@ namespace lx;
 
 interface FusionComponentInterface
 {
-	public function constructFusionComponent($owner, $config = []);
+	public function constructFusionComponent($config = []);
 	public function initAsFusionComponent($config = []);
 	public function getFusionComponentProperty($name);
 }

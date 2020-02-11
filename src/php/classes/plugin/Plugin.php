@@ -52,7 +52,7 @@ namespace lx;
 	public function getScripts()
 	public function getCss()
 */
-class Plugin implements FusionInterface {
+class Plugin extends Object implements FusionInterface {
 	use ApplicationToolTrait;
 	use FusionTrait;
 
@@ -245,11 +245,11 @@ class Plugin implements FusionInterface {
 		if ($field == 'directory') return $this->_directory;
 
 		$component = $this->getFusionComponent($field);
-		if ($component) {
+		if ($component !== null) {
 			return $component;
 		}
 
-		return $this->ApplicationToolTrait__get($field);
+		return parent::__get($field);
 	}
 	
 	public function getBuildData() {

@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class Router {
+class Router extends Object {
 	use ApplicationToolTrait;
 
 	protected $map;

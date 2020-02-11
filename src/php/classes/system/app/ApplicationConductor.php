@@ -5,7 +5,7 @@ namespace lx;
 /**
  * Указывает на важные пути в архитектуре приложения
  * */
-class ApplicationConductor {
+class ApplicationConductor extends Object {
 	use ApplicationToolTrait;
 
 	private $aliases = [];
@@ -14,7 +14,7 @@ class ApplicationConductor {
 	 * Геттер предоставляет доступ к полям, начинающимся с '_'
 	 * */
 	public function __get($name) {
-		$result = $this->ApplicationToolTrait__get($name);
+		$result = parent::__get($name);
 		if ($result !== null) {
 			return $result;
 		}
