@@ -2,8 +2,9 @@
 
 namespace lx;
 
-class ModuleHelper {
-	public static function getModulesCode($list) {
+class JsModuleProvider extends Source
+{
+	public function getModulesCode($list) {
 		$modulesCode = '';
 		foreach ($list as $moduleName) {
 			$modulesCode .= '#lx:use ' . $moduleName . ';';
@@ -11,8 +12,8 @@ class ModuleHelper {
 		$compiler = new JsCompiler();
 		$compiler->setBuildModules(true);
 		$modulesCode = $compiler->compileCode($modulesCode);
-		$modulesCode = I18nHelper::localize($modulesCode, \lx::$app->i18nMap->getMap());
-		
+		$modulesCode = I18nHelper::localize($modulesCode, $this->app->i18nMap->getMap());
+
 		return $modulesCode;
 	}
 }

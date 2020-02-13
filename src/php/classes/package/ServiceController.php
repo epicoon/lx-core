@@ -2,28 +2,49 @@
 
 namespace lx;
 
-class ServiceController {
-	protected $service;
+/**
+ * Class ServiceController
+ * @package lx
+ */
+class ServiceController extends Source
+{
+	/** @var Source */
+	private $_service;
 
-	public function __construct($service) {
-		$this->service = $service;
+	/**
+	 * ServiceController constructor.
+	 * @param array $config
+	 */
+	public function __construct($config)
+	{
+		parent::__construct($config);
+
+		$this->_service = $config['service'];
 	}
 
 	/**
-	 *
-	 * */
-	public function run($params) {
-		return false;
-	}
-
-	/**
-	 *
-	 * */
-	public function renderPlugin($plugin) {
-		if (is_string($plugin)) {
-			$plugin = $this->service->getPlugin($plugin);
+	 * @param string $name
+	 * @return mixed
+	 */
+	public function __get($name)
+	{
+		if ($name == 'service') {
+			return $this->_service;
 		}
 
-		return ServiceResponse::renderPlugin($plugin);
+		return parent::__get($name);
+	}
+
+	/**
+	 * @return array
+	 */
+	public static function getConfigProtocol()
+	{
+		$protocol = parent::getConfigProtocol();
+		$protocol['service'] = [
+			'require' => true,
+			'instance' => Service::class,
+		];
+		return $protocol;
 	}
 }

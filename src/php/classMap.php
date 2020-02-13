@@ -12,15 +12,19 @@ return [
 
 	'ApplicationConductor' => 'classes/system/app',
 	'ApplicationLogger' => 'classes/system/app',
-	'Router' => 'classes/system/app',
-	'AjaxRouter' => 'classes/system/app',
-	'Response' => 'classes/system/app',
-	'ResponseSource' => 'classes/system/app',
 	'User' => 'classes/system/app',
 	'UserEventsEnum' => 'classes/system/app',
+	'DependencyProcessor' => 'classes/system/app',
 
 	'Dialog' => 'classes/system/dialog',
 	'Cookie' => 'classes/system/dialog',
+	'ResponseCodeEnum' => 'classes/system/dialog',
+	'Router' => 'classes/system/dialog',
+	'SpecialAjaxRouter' => 'classes/system/dialog',
+	'RequestHandler' => 'classes/system/dialog',
+	'Source' => 'classes/system/dialog',
+	'SourceContext' => 'classes/system/dialog',
+	'SourceError' => 'classes/system/dialog',
 
 	'EventManager' => 'classes/system/event',
 	'EventLestenerInterface' => 'classes/system/event',
@@ -60,6 +64,7 @@ return [
 
 	'JsModuleMapBuilder' => 'classes/module',
 	'JsModuleMap' => 'classes/module',
+	'JsModuleProvider' => 'classes/module',
 
 	'DataObject' => 'classes/dataClasses',
 
@@ -99,7 +104,6 @@ return [
 
 	'ConfigHelper' => 'classes/helpers',
 	'ClassHelper' => 'classes/helpers',
-	'ModuleHelper' => 'classes/helpers',
 	'Math' => 'classes/helpers',
 	'ArrayHelper' => 'classes/helpers',
 	'StringHelper' => 'classes/helpers',
@@ -142,6 +146,7 @@ return [
 	'ServiceCliExecutorInterface' => 'interfaces',
 	'ModelInterface' => 'interfaces',
 	'ToStringConvertableInterface' => 'interfaces',
+	'SourceVoterInterface' => 'interfaces',
 
 	'ApplicationToolTrait' => 'traits',
 ];

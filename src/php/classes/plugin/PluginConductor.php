@@ -160,7 +160,9 @@ class PluginConductor {
 			return false;
 		}
 
-		return new $className($plugin);
+		return new $className([
+			'plugin' => $plugin
+		]);
 	}
 
 	/**

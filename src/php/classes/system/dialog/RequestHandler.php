@@ -3,21 +3,16 @@
 namespace lx;
 
 /**
- * Class Response
+ * Class RequestHandler
  * @package lx
  */
-class Response extends Object
+class RequestHandler extends Object
 {
 	use ApplicationToolTrait;
 
-	const CODE_OK = 200;
-	const CODE_ERROR = 400;
-	const CODE_FORBIDDEN = 403;
-	const CODE_NOT_FOUND = 404;
-
 	/** @var int */
 	private $code;
-	/** @var ResponseSource */
+	/** @var SourceContext */
 	private $source;
 
 	/**
@@ -29,16 +24,16 @@ class Response extends Object
 	public function run()
 	{
 		if (!$this->getSource()) {
-			$this->code = self::CODE_NOT_FOUND;
+			$this->code = ResponseCodeEnum::NOT_FOUND;
 			return;
 		}
 
 		if (!$this->checkAccess()) {
-			$this->code = self::CODE_FORBIDDEN;
+			$this->code = ResponseCodeEnum::FORBIDDEN;
 			return;
 		}
 		
-		$this->code = self::CODE_OK;
+		$this->code = ResponseCodeEnum::OK;
 	}
 
 	/**
@@ -46,7 +41,7 @@ class Response extends Object
 	 */
 	public function send()
 	{
-		if ($this->code == self::CODE_OK) {
+		if ($this->code == ResponseCodeEnum::OK) {
 			$this->trySend();
 		} else {
 			$this->sendNotOk();
@@ -63,26 +58,23 @@ class Response extends Object
 	 */
 	private function getSource()
 	{
-		if ($this->app->dialog->isAjax()) {
-			$ajaxRouter = new AjaxRouter();
-
+		if (SpecialAjaxRouter::checkDialog()) {
+			$ajaxRouter = new SpecialAjaxRouter();
 			$source = $ajaxRouter->route();
 			if ($source !== false) {
 				$this->source = $source;
-				return true;
+			}
+		} else {
+			$router = $this->app->router;
+			if ($router !== null) {
+				$source = $router->route();
+				if ($source !== false) {
+					$this->source = $source;
+				}
 			}
 		}
 
-		$router = $this->app->router;
-		if ($router !== null) {
-			$source = $router->route();
-			if ($source !== false) {
-				$this->source = $source;
-				return true;
-			}
-		}
-
-		return false;
+		return $this->source !== null;
 	}
 
 	/**
@@ -110,7 +102,7 @@ class Response extends Object
 
 		// Если при авторизации было наложено ограничение
 		if ($this->source->hasRestriction()) {
-			if ($this->source->getRestriction() == ResponseSource::RESTRICTION_INSUFFICIENT_RIGHTS
+			if ($this->source->getRestriction() == SourceContext::RESTRICTION_INSUFFICIENT_RIGHTS
 				&& $this->app->user->isGuest()
 				&& $this->app->dialog->isPageLoad()
 			) {
@@ -144,6 +136,10 @@ class Response extends Object
 			}
 		} else {
 			$result = $this->source->invoke();
+			if ($result instanceof SourceError) {
+				$this->code = $result->getCode();
+				$result = false;
+			}
 		}
 
 		if ($result === false) {
@@ -182,7 +178,7 @@ class Response extends Object
 	private function renderPlugin($plugin)
 	{
 		if (!$plugin) {
-			$this->renderStandartResponse(self::CODE_NOT_FOUND);
+			$this->renderStandartResponse(ResponseCodeEnum::NOT_FOUND);
 			return;
 		}
 
@@ -194,8 +190,9 @@ class Response extends Object
 
 		$pluginData = $context->build();
 		if (!empty($pluginData['modules'])) {
+			$moduleProvider = new JsModuleProvider();
 			$pluginData['pluginInfo'] .= '<modules>'
-				. ModuleHelper::getModulesCode($pluginData['modules'])
+				. $moduleProvider->getModulesCode($pluginData['modules'])
 				. '</modules>';
 		}
 		$pluginInfo = addcslashes($pluginData['pluginInfo'], '\\');
@@ -210,7 +207,7 @@ class Response extends Object
 			. ',`' . $jsBootstrap . '`,`' . $pluginInfo . '`,`' . $jsMain
 			. '`);';
 		$head = new HtmlHead($pluginData);
-		$this->renderStandartResponse(self::CODE_OK, ['head' => $head, 'js' => $js]);
+		$this->renderStandartResponse(ResponseCodeEnum::OK, ['head' => $head, 'js' => $js]);
 	}
 
 	private function renderStandartResponse($code, $params = [])

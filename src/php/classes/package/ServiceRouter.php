@@ -65,27 +65,21 @@ class ServiceRouter {
 			}
 
 			$data = $map[$route];
-			if (is_string($data)) {
-				$source['controller'] = $data;
-			} elseif (is_array($data)) {
-				if (!$this->validateConditions($data)) {
-					return false;
-				}
+			if (!$this->validateConditions($data)) {
+				return false;
+			}
 
-				if (isset($data['controller'])) {
-					$arr = $this->getControllerData($data['controller']);
+			if (is_string($data)) {
+				$data = ['controller' => $data];
+			}
+
+			if (is_array($data)) {
+				$info = $data['controller'] ?? $data['action'] ?? null;
+				if ($info) {
+					$arr = $this->getControllerData($info);
 					if (!$arr) {
 						return false;
 					}
-					$source['action'] = true;
-					$source['class'] = $arr[0];
-					$source['method'] = $arr[1];
-				} elseif (isset($data['action'])) {
-					$arr = $this->getActionData($data['action']);
-					if (!$arr) {
-						return false;
-					}
-					$source['action'] = true;
 					$source['class'] = $arr[0];
 					$source['method'] = $arr[1];
 				} elseif (isset($data['plugin'])) {
@@ -93,16 +87,11 @@ class ServiceRouter {
 						return false;
 					}
 					$source['plugin'] = $data['plugin'];
-				} elseif (isset($data['static'])) {
-					$arr = explode('::', $data['static']);
-					$source['isStatic'] = true;
-					$source['class'] = $arr[0];
-					$source['method'] = $arr[1];
 				}
 			}
 		}
 
-		return new ResponseSource($source);
+		return new SourceContext($source);
 	}
 
 	/**
@@ -111,30 +100,23 @@ class ServiceRouter {
 	protected function getControllerData($nameWithAction) {
 		$arr = explode('::', $nameWithAction);
 		$className = $arr[0];
-		$actionMethod = isset($arr[1]) ? $arr[1] : 'run';
+		$actionMethod = $arr[1] ?? 'run';
 
-		if (!ClassHelper::exists($className) || !method_exists($controller, $actionMethod)) {
-			return false;
+		if (ClassHelper::exists($className) && method_exists($className, $actionMethod)) {
+			return [$className, $actionMethod];
 		}
 
-		return [$className, $actionMethod];
-	}
-
-	/**
-	 *
-	 * */
-	protected function getActionData($className) {
-		if (!ClassHelper::exists($className) || !method_exists($className, 'run')) {
-			return false;
-		}
-
-		return [$className, 'run'];
+		return false;
 	}
 
 	/**
 	 * Проверка общих условий доступа
 	 * */
 	private function validateConditions($data) {
+		if ( ! is_array($data)) {
+			return true;
+		}
+
 		// Проверка мода приложения
 		if (isset($data['on-mode'])) {
 			if (!$this->service->app->isMode($data['on-mode'])) {

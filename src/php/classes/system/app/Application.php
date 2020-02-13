@@ -6,11 +6,17 @@ namespace lx;
  * Class Application
  * @package lx
  *
- * @property $sitePath string
- * @property $autoloader Autoloader
- * @property $dialog Dialog
- * @property $conductor Conductor
- * @property $router Router
+ * @property string $sitePath
+ * @property Autoloader $autoloader
+ * @property Dialog $dialog
+ * @property ApplicationConductor $conductor
+ * @property Router $router
+ * @property I18nApplicationMap $i18nMap
+ *
+ * @property Language $language
+ * @property User $user
+ * @property EventManager $events
+ * @property DependencyProcessor $diProcessor
  */
 class Application extends AbstractApplication implements FusionInterface {
 	use FusionTrait;
@@ -39,6 +45,7 @@ class Application extends AbstractApplication implements FusionInterface {
 			'language' => Language::class,
 			'user' => User::class,
 			'events' => EventManager::class,
+			'diProcessor' => DependencyProcessor::class,
 		]);
 
 		$this->data = new DataObject();
@@ -140,9 +147,9 @@ class Application extends AbstractApplication implements FusionInterface {
 
 	public function run() {
 		ob_start();
-		$this->response = new Response();
-		$this->response->run();
-		$this->response->send();
+		$requestHandler = new RequestHandler();
+		$requestHandler->run();
+		$requestHandler->send();
 	}
 
 	public function getCommonJs() {

@@ -52,8 +52,7 @@ namespace lx;
 	public function getScripts()
 	public function getCss()
 */
-class Plugin extends Object implements FusionInterface {
-	use ApplicationToolTrait;
+class Plugin extends Source implements FusionInterface {
 	use FusionTrait;
 
 	const CACHE_NONE = 'none';
@@ -96,6 +95,40 @@ class Plugin extends Object implements FusionInterface {
 
 	//=========================================================================================================================
 	/* * *  1. Основные  * * */
+
+	public function __construct($data) {
+		parent::__construct($data);
+
+		$this->service = $data['service'];
+
+		$this->_directory = $data['directory'];
+		$this->_conductor = new PluginConductor($this);
+
+		$this->_name = $this->service->getID() . ':' . $data['name'];
+		$this->clientParams = new DataObject();
+		$this->renderParams = new DataObject();
+		$this->anchor = '_root_';
+
+		if (isset($data['prototype'])) {
+			$this->_prototype = $data['prototype'];
+		}
+
+		// Конфиги
+		$config = $data['config'];
+
+		// Общие настройки
+		$commonConfig = $this->app->getDefaultPluginConfig();
+		ConfigHelper::preparePluginConfig($commonConfig, $config);
+
+		// Инъекция конфигов
+		$injections = $this->app->getConfig('configInjection');
+		ConfigHelper::pluginInject($this->name, $this->prototype, $injections, $config);
+
+		$this->config = $config;
+		$this->initFusionComponents($this->getConfig('components'));
+
+		$this->init();
+	}
 
 	/**
 	 * Можно собрать плагин для сервиса по пути
@@ -435,7 +468,7 @@ class Plugin extends Object implements FusionInterface {
 		}
 
 		// Отсылаем на переопределяемый метод, где вручную должен разруливаться запрос
-		return new ResponseSource([
+		return new SourceContext([
 			'object' => $this,
 			'method' => 'ajaxResponse',
 			'params' => [$requestData],
@@ -484,7 +517,7 @@ class Plugin extends Object implements FusionInterface {
 			return false;
 		}
 
-		return new ResponseSource([
+		return new SourceContext([
 			'object' => $respondent,
 			'method' => $methodName,
 			'params' => $respondentParams,
@@ -494,41 +527,6 @@ class Plugin extends Object implements FusionInterface {
 
 	//=========================================================================================================================
 	/* * *  6. Скрытое создание плагина  * * */
-
-	/**
-	 * Защищенный конструктор - плагины создаются только фабричным методом
-	 * */
-	public function __construct($data) {
-		$this->service = $data['service'];
-
-		$this->_directory = $data['directory'];
-		$this->_conductor = new PluginConductor($this);
-
-		$this->_name = $this->service->getID() . ':' . $data['name'];
-		$this->clientParams = new DataObject();
-		$this->renderParams = new DataObject();
-		$this->anchor = '_root_';
-
-		if (isset($data['prototype'])) {
-			$this->_prototype = $data['prototype'];
-		}
-
-		// Конфиги
-		$config = $data['config'];
-
-		// Общие настройки
-		$commonConfig = $this->app->getDefaultPluginConfig();
-		ConfigHelper::preparePluginConfig($commonConfig, $config);
-
-		// Инъекция конфигов
-		$injections = $this->app->getConfig('configInjection');
-		ConfigHelper::pluginInject($this->name, $this->prototype, $injections, $config);
-
-		$this->config = $config;
-		$this->initFusionComponents($this->getConfig('components'));
-
-		$this->init();
-	}
 
 	/**
 	 * Метод для переопределения у потомков - инициализация необходимых полей при создании плагина

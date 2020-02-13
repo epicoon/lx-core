@@ -9,6 +9,8 @@ class Object
 
 	public function __construct($config = [])
 	{
+		$this->validateConfig($config);
+
 		$traits = self::getTraitMap();
 		foreach ($traits as $traitName) {
 			$trait = self::getTraitInfo($traitName);
@@ -35,6 +37,46 @@ class Object
 			return $this->$name;
 		}
 		return null;
+	}
+
+	public static function getConfigProtocol()
+	{
+		return [];
+	}
+
+	protected function validateConfig($config)
+	{
+		$protocol = self::getConfigProtocol();
+		if (empty($protocol)) {
+			return true;
+		}
+
+		foreach ($protocol as $paramName => $paramDescr) {
+			$required = $paramDescr['required'] ?? false;
+			$instance = is_string($paramDescr)
+				? $paramDescr
+				: ($paramDescr['instance'] ?? null);
+
+			if ( ! array_key_exists($paramName, $config)) {
+				if ($required) {
+					$className = static::class;
+					throw new \Exception("Class '$className' require '$paramName' parameter");
+				}
+
+				continue;
+			}
+
+			if ($instance) {
+				$param = $config[$paramName];
+				if (!($param instanceof $instance)) {
+					throw new \Exception(
+						"Class '$className' has gotten wrong parameter instance for '$paramName'"
+					);
+				}
+			}
+		}
+
+		return true;
 	}
 
 	private static function getTraitMap()

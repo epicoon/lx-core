@@ -5,12 +5,20 @@ namespace lx;
 /**
  * Класс для определения ресурса, запрошенного ajax-запросом
  * */
-class AjaxRouter extends Object {
+class SpecialAjaxRouter extends Object {
 	use ApplicationToolTrait;
+
+	public static function checkDialog()
+	{
+		$dialog = \lx::$app->dialog;
+		return (
+			$dialog->isAjax() && $dialog->header('lx-type')
+		);
+	}
 
 	/**
 	 * Определить запрошенный ресурс
-	 * @return lx\ResponseSource | null
+	 * @return lx\SourceContext | null
 	 * */
 	public function route() {
 		switch ($this->app->dialog->header('lx-type')) {
@@ -36,9 +44,8 @@ class AjaxRouter extends Object {
 		// Ajax-запрос на дозагрузку виджетов
 		if ($type == 'get-modules') {
 			$data = $this->app->dialog->params();
-			return new ResponseSource([
-				'isStatic' => true,
-				'class' => ModuleHelper::class,
+			return new SourceContext([
+				'class' => JsModuleProvider::class,
 				'method' => 'getModulesCode',
 				'params' => [$data],
 			]);
@@ -87,13 +94,10 @@ class AjaxRouter extends Object {
 			return false;
 		}
 
-		$methodKey = $arr[1];
+		$methodName = $arr[1];
 		$params = $this->app->dialog->params();
 
-		$methodName = $widgetName::ajaxRoute($methodKey);
-
-		return new ResponseSource([
-			'isWidget' => true,
+		return new SourceContext([
 			'class' => $widgetName,
 			'method' => $methodName,
 			'params' => $params,

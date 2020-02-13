@@ -20,12 +20,12 @@ class Router extends Object {
 				continue;
 			}
 
-			$route = $this->determineRoute($routeKey, $this->app->dialog->route());
-			if (!$route) {
+			$serviceRoute = $this->determineServiceRoute($routeKey, $this->app->dialog->route());
+			if (!$serviceRoute) {
 				continue;
 			}
 
-			$serviceRouteData = $this->determineServiceRouteData($routeData, $route);
+			$serviceRouteData = $this->determineServiceRouteData($routeData, $serviceRoute);
 			if (!isset($serviceRouteData['service'])) {
 				return false;
 			}
@@ -133,7 +133,7 @@ class Router extends Object {
 	/**
 	 *
 	 * */
-	private function determineRoute($routeKey, $route) {
+	private function determineServiceRoute($routeKey, $route) {
 		if (!$this->validateRouteKey($routeKey, $route)) {
 			return false;
 		}
