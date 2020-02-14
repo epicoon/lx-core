@@ -46,7 +46,7 @@ class Object
 
 	protected function validateConfig($config)
 	{
-		$protocol = self::getConfigProtocol();
+		$protocol = static::getConfigProtocol();
 		if (empty($protocol)) {
 			return true;
 		}

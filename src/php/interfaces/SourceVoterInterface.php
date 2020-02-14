@@ -18,7 +18,7 @@ interface SourceVoterInterface
 	 * @param User $user
 	 * @param string $actionName
 	 * @param array $params
-	 * @return mixed
+	 * @return bool
 	 */
 	public function run(User $user, $actionName, $params);
 

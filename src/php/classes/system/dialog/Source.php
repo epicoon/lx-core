@@ -6,7 +6,7 @@ namespace lx;
  * Class Source
  * @package lx
  */
-class Source extends Object
+class Source extends Object  //TODO SourceInterface
 {
 	use ApplicationToolTrait;
 

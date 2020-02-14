@@ -120,7 +120,7 @@ class RequestHandler extends Object
 	private function trySend()
 	{
 		if ($this->source === false) {
-			$this->sendNotOk(403);
+			$this->sendNotOk(ResponseCodeEnum::FORBIDDEN);
 			return;
 		}
 
