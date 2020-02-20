@@ -8,8 +8,6 @@ class AjaxGet {
 	}
 
 	registerActiveUrl(key, respondent, handlers, useServer=true) {
-		if ( ! this.plugin.isMainContext()) return;
-
 		this.activeUrl[key] = {
 			state: false,
 			useServer,
@@ -17,7 +15,7 @@ class AjaxGet {
 			handlers
 		};
 
-		__checkUrlInAction(this, key);
+		if (this.plugin.isMainContext()) __checkUrlInAction(this, key);
 	}
 
 	request(key, data={}) {

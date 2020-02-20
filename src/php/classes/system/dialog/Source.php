@@ -69,6 +69,8 @@ class Source extends Object  //TODO SourceInterface
 			$params = $this->voter->processActionParams($user, $actionName, $params);
 		}
 
-		return call_user_func_array([$this, $actionName], $params);
+		return $params
+			? call_user_func_array([$this, $actionName], $params)
+			: $this->$actionName();
 	}
 }

@@ -12,7 +12,7 @@ class PluginEditor {
 	/**
 	 *
 	 * */
-	public function createPlugin($name, $path) {
+	public function createPlugin($name, $path, $config = []) {
 		$servicePath = $this->service->getPath();
 		$pluginRootPath = $path == ''
 			? $servicePath
@@ -66,7 +66,7 @@ class PluginEditor {
 		$pluginCode = str_replace('namespace ', 'namespace ' . $namespace, $pluginCode);
 		$plugin->put($pluginCode);
 
-		$config = $d->makeFile('lx-config.yaml');
+		$configFile = $d->makeFile('lx-config.yaml');
 		$text = 'class: ' . $namespace . '\\Plugin' . PHP_EOL . PHP_EOL;
 
 		$text .= 'rootSnippet: ' . $pluginConfig['rootSnippet'] . PHP_EOL;
@@ -79,7 +79,8 @@ class PluginEditor {
 		$text .= 'css: ' . $pluginConfig['css'] . PHP_EOL;
 		$text .= 'bundles: ' . $pluginConfig['bundles'] . PHP_EOL . PHP_EOL;
 
-		$text .= 'cacheType: ' . ($pluginConfig['cacheType'] ?? lx\Plugin::CACHE_NONE) . PHP_EOL . PHP_EOL;
+		$text .= 'cacheType: ' . ($config['cacheType'] ?? $pluginConfig['cacheType'] ?? lx\Plugin::CACHE_NONE)
+			. PHP_EOL . PHP_EOL;
 
 		if (is_array($pluginConfig['respondents'])) {
 			if (empty($pluginConfig['respondents'])) {
@@ -90,7 +91,7 @@ class PluginEditor {
 		} else {
 			$text .= 'respondents: ' . $pluginConfig['respondents'] . chr(10);
 		}
-		$config->put($text);
+		$configFile->put($text);
 
 		return Plugin::create($this->service, $name, $fullPath);
 	}

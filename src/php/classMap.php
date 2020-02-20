@@ -25,6 +25,7 @@ return [
 	'Source' => 'classes/system/dialog',
 	'SourceContext' => 'classes/system/dialog',
 	'SourceError' => 'classes/system/dialog',
+	'CorsProcessor' => 'classes/system/dialog',
 
 	'EventManager' => 'classes/system/event',
 	'EventLestenerInterface' => 'classes/system/event',

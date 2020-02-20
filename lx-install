@@ -94,7 +94,9 @@ if (!$app->services->exists('lx/lx-hello')) {
 
 	$service = (new lx\ServiceEditor())->createService('lx/lx-hello', '@site/vendor');
 	$pluginEditor = new lx\PluginEditor($service);
-	$plugin = $pluginEditor->createPlugin('world', 'plugin');
+	$plugin = $pluginEditor->createPlugin('world', 'plugin', [
+        'cacheType' => lx\Plugin::CACHE_SMART
+    ]);
 
 	$dir = $plugin->directory;
 	$i18n = $dir->makeFile('i18n.yaml');

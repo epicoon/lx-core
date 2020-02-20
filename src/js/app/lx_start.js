@@ -13,9 +13,8 @@ lx.checkDisplay = function(event) {
 }
 
 
-lx.start = function(settings, data, jsBootstrap, plugin, jsMain) {
+lx.start = function(settings, modules, jsBootstrap, plugin, jsMain) {
 	this.setSettings(settings);
-	this.data = data;
 
 	this.setWatchForKeypress(true);
 	this.useElementMoving();
@@ -23,13 +22,16 @@ lx.start = function(settings, data, jsBootstrap, plugin, jsMain) {
 	this.Event.add(window, 'resize', __windowOnresize);
 	__resetInit();
 
-	// Глобальный js-код, выполняемый ДО загрузки корневого модуля
+	// Js-модули
+	if (modules && modules != '') lx.createAndCallFunction('', modules);
+
+	// Глобальный js-код, выполняемый ДО загрузки корневого плагина
 	if (jsBootstrap && jsBootstrap != '') lx.createAndCallFunction('', jsBootstrap, this);
 
 	// Запуск загрузчика
 	if (plugin) lx.Loader.run(plugin, lx.body);
 
-	// Глобальный js-код, выполняемый ПОСЛЕ загрузки корневого модуля
+	// Глобальный js-код, выполняемый ПОСЛЕ загрузки корневого плагина
 	if (jsMain && jsMain != '') lx.createAndCallFunction('', jsMain, this);
 
 	//TODO - ограничить код режимом НЕ-ПРОДА

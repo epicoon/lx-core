@@ -74,12 +74,14 @@ class PluginBuildContext extends Object implements ContextTreeInterface {
 		$title = $plugin->title ? $plugin->title : self::DEFAULT_MODULE_TITLE;
 		$title = I18nHelper::localizePlugin($plugin, $title);
 		$result = [
-			'title' => $title,
-			'icon' => $plugin->icon,
 			'pluginInfo' => '',
 			'modules' => $this->commonModuleDependencies,
-			'scripts' => [],
-			'css' => []
+			'page' => [
+				'title' => $title,
+				'icon' => $plugin->icon,
+				'scripts' => [],
+				'css' => []
+			]
 		];
 
 		$this->eachContext(function($context) use (&$result) {
@@ -87,11 +89,11 @@ class PluginBuildContext extends Object implements ContextTreeInterface {
 			$result['pluginInfo'] .= "<plugin $key>{$context->commonData}</plugin $key>";
 
 			if (!empty($context->scripts)) {
-				$result['scripts'][$key] = $context->scripts;
+				$result['page']['scripts'][$key] = $context->scripts;
 			}
 
 			if (!empty($context->css)) {
-				$result['css'][$key] = $context->css;
+				$result['page']['css'][$key] = $context->css;
 			}
 		});
 

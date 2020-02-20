@@ -87,6 +87,7 @@ class ServiceRouter {
 						return false;
 					}
 					$source['plugin'] = $data['plugin'];
+					$source['method'] = 'build';
 				}
 			}
 		}

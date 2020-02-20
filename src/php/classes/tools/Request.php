@@ -2,52 +2,47 @@
 
 namespace lx;
 
-Class Request {
+Class Request
+{
 	private $returnAsString;
 	private $url = null;
 	private $method = 'post';
 	private $headers = [];
 	private $options = [];
 	private $params = [];
+	private $response = null;
 	private $info = null;
 	private $error = null;
 
-	/**
-	 *
-	 * */
-	public function __construct($url = null, $params = []) {
+	public function __construct($url = null, $params = [])
+	{
 		if ($url) {
 			$tempUrl = explode('?', $url);
 			if (count($tempUrl) > 1) {
 				$urlParams = \lx::$app->dialog->translateGetParams($tempUrl[1]);
+				$params = array_merge($urlParams, $params);
 			} else {
 				$urlParams = [];
 			}
-			if ($params) $this->params = array_merge($urlParams, $params);
+			$this->params = $params;
 			$this->url = $tempUrl[0];
 		}
 
 		$this->returnAsString = true;
 	}
 
-	/**
-	 *
-	 * */
-	public function setMethod($method) {
+	public function setMethod($method)
+	{
 		$this->method = strtolower($method);
 	}
 
-	/**
-	 *
-	 * */
-	public function checkMethod($method) {
+	public function checkMethod($method)
+	{
 		return $this->method == strtolower($method);
 	}
 
-	/**
-	 *
-	 * */
-	public function setHeaders($headers) {
+	public function setHeaders($headers)
+	{
 		foreach ($headers as $key => $value) {
 			if (is_numeric($key)) {
 				$header = preg_split('/\s*:\s*/', $value);
@@ -58,38 +53,60 @@ Class Request {
 		}
 	}
 
-	/**
-	 *
-	 * */
-	public function setHeader($header, $value) {
+	public function setHeader($header, $value)
+	{
 		$this->headers[$header] = $value;
 	}
 
-	/**
-	 *
-	 * */
-	public function setOptions($options) {
+	public function setOptions($options)
+	{
 		$this->options = $options;
 	}
 
-	/**
-	 *
-	 * */
-	public function setParams($params) {
+	public function setOption($key, $value)
+	{
+		$this->options[$key] = $value;
+	}
+
+	public function addOptions($options, $rewrite = false)
+	{
+		foreach ($options as $key => $value) {
+			if (!$rewrite && array_key_exists($key, $this->options)) {
+				continue;
+			}
+
+			$this->options[$key] = $value;
+		}
+	}
+
+	public function setParams($params)
+	{
 		$this->params = $params;
 	}
 
-	/**
-	 *
-	 * */
-	public function setParam($name, $value) {
+	public function setParam($name, $value)
+	{
 		$this->params[$name] = $value;
 	}
 
-	/**
-	 *
-	 * */
-	public function getInfo($key = null) {
+	public function addParams($params, $rewrite = false)
+	{
+		foreach ($params as $key => $param) {
+			if (!$rewrite && array_key_exists($key, $this->params)) {
+				continue;
+			}
+
+			$this->params[$key] = $param;
+		}
+	}
+
+	public function getResponse()
+	{
+		return $this->response;
+	}
+
+	public function getInfo($key = null)
+	{
 		if ($key === null) {
 			return $this->info;
 		}
@@ -101,36 +118,37 @@ Class Request {
 		return null;
 	}
 
-	/**
-	 *
-	 * */
-	public function getError() {
+	public function getError()
+	{
 		return $this->error;
 	}
 
-	/**
-	 *
-	 * */
-	public function send($params = []) {
+	public function send($params = [])
+	{
 		// Разбираемся с урлом
 		$url = null;
 		if ($this->url) $url = $this->url;
-		if (!empty($params)) {
-			$params = array_merge( $this->params, $params );
+		if ( ! empty($params)) {
+			$params = array_merge($this->params, $params);
 		} else {
 			$params = $this->params;
 		}
 		if ($url) {
-			if (!empty($params) && $this->checkMethod('get')) {
+			if ( ! empty($params) && $this->checkMethod('get')) {
 				$url .= '?' . http_build_query($params);
 			}
+		}
+
+		if ( ! $url) {
+			//todo $this->error = ???
+			return false;
 		}
 
 		// Пошла жара
 		$ch = $url ? curl_init($url) : curl_init();
 
 		// Заголовки
-		if (!empty($this->headers)) {
+		if ( ! empty($this->headers)) {
 			$headers = [];
 			foreach ($this->headers as $key => $value) {
 				$headers[] = "$key:$value";
@@ -147,22 +165,25 @@ Class Request {
 		}
 		if ($this->checkMethod('post')) {
 			curl_setopt($ch, CURLOPT_POST, true);
-			if (!empty($params)) {
+			if ( ! empty($params)) {
 				curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
 			}
 		}
 
 		// Выполняем
-		$result = curl_exec($ch);
-		if ($result === false) {
+		$this->response = curl_exec($ch);
+		if ($this->response === false) {
 			$this->error = curl_error($ch);
 		}
 
 		$this->info = curl_getinfo($ch);
 
 		curl_close($ch);
-		return $result;
+		return $this->response;
 	}
+
+
+
 
 	/**
 	 * //todo убрать отсюда

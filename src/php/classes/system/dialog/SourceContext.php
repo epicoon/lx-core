@@ -17,12 +17,8 @@ class SourceContext extends Object
 {
 	use ApplicationToolTrait;
 
-	const RESTRICTION_FORBIDDEN_FOR_ALL = 5;
-	const RESTRICTION_INSUFFICIENT_RIGHTS = 10;
-
 	private $data;
 	private $plugin;
-	private $restrictions;
 
 	/**
 	 * SourceContext constructor.
@@ -31,7 +27,6 @@ class SourceContext extends Object
 	public function __construct($data = [])
 	{
 		$this->setData($data);
-		$this->restrictions = [];
 	}
 
 	/**
@@ -40,51 +35,6 @@ class SourceContext extends Object
 	public function setData($data)
 	{
 		$this->data = $data;
-	}
-
-	/**
-	 * @param $restriction
-	 */
-	public function addRestriction($restriction)
-	{
-		$this->restrictions[] = $restriction;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function hasRestriction()
-	{
-		return !empty($this->restrictions);
-	}
-
-	/**
-	 * @return mixed
-	 */
-	public function getRestriction()
-	{
-		return $this->restrictions[0];
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getSourceName()
-	{
-		if ($this->isPlugin()) {
-			return $this->data['service'] . ':' . $this->data['plugin'];
-		}
-
-		if (isset($this->data['class'])) {
-			return $this->data['class'] . '::' . $this->data['method'];
-		}
-
-		if (isset($this->data['object'])) {
-			$class = get_class($this->data['object']);
-			return $class . '::' . $this->data['method'];
-		}
-
-		return '';
 	}
 
 	/**
@@ -203,13 +153,12 @@ class SourceContext extends Object
 	private function invokePlugin($methodName, $params)
 	{
 		$plugin = $this->getPlugin();
+		$methodName = $methodName ?? $this->data['method'] ?? null;
 		if (!$plugin || !$methodName || !method_exists($plugin, $methodName)) {
 			return false;
 		}
 
-		return $params
-			? \call_user_func_array([$plugin, $methodName], $params)
-			: $plugin->$methodName();
+		return $plugin->runAction($methodName, $params);
 	}
 
 	/**

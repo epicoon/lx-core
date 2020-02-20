@@ -12,7 +12,6 @@ let loadData = {
 	snippetsInfo: {},
 	snippetTrees: {},
 	rootKey: '',
-	modulesCode: null,
 
 	necessaryModules: null,
 	necessaryScripts: null,
@@ -24,7 +23,6 @@ let loadData = {
 		this.snippetsInfo = {};
 		this.snippetTrees = {};
 		this.rootKey = '';
-		this.modulesCode = null;
 		this.necessaryModules = null;
 		this.necessaryScripts = null;
 		this.necessaryCss = null;
@@ -51,26 +49,23 @@ function parseInfo(info) {
 		loadData.isAjax = false;
 		pluginsInfo = info;
 
-		// Достаем код пришедших виджетов
-		var matches = pluginsInfo.match(/<modules>([\w\W]*?)<\/modules>/);
-		if (matches) loadData.modulesCode = matches[1];
-
 	// Это ajax - если ресурсы пришли, их надо собирать здесь
 	} else {
 		loadData.isAjax = true;
 		pluginsInfo = info.pluginInfo;
 
 		// Определяем какие ресурсы потребуют отдельной дозагрузки
-		if (info.scripts) loadData.necessaryScripts = info.scripts;
-		if (info.css) loadData.necessaryCss = info.css;
 		if (info.modules) loadData.necessaryModules = lx.modules.defineNecessary(info.modules);
+		if (info.page) {
+			if (info.page.scripts) loadData.necessaryScripts = info.page.scripts;
+			if (info.page.css) loadData.necessaryCss = info.page.css;
+		}
 	}
 
 	// Парсим инфу по модулям
 	var reg = /<plugin (.+?)>/g,
 		match;
 
-	var mainKey = null;
 	while (match = reg.exec(pluginsInfo)) {
 		var key = match[1],
 			pluginString = pluginsInfo.match(new RegExp('<plugin '+key+'>([\\w\\W]*?)</plugin '+key+'>'))[1];
@@ -81,6 +76,7 @@ function parseInfo(info) {
 			snippets: lx.Json.parse(pluginString.match(new RegExp('<bl '+key+'>([\\w\\W]*?)</bl '+key+'>'))[1]),
 			mainJs: pluginString.match(new RegExp('<mj '+key+'>([\\w\\W]*?)</mj '+key+'>'))[1]
 		};
+		if (!loadData.isAjax && info.info.anchor == '_root_') info.isMain = 1;
 		loadData.plugins[info.info.anchor] = info;
 	}
 	loadData.rootKey = '_root_';
@@ -125,8 +121,6 @@ function createScriptTag(src, key) {
 function loadAssets(callback) {
 	// Если нет необходимости в загрузке ресурсов
 	if (!loadData.hasAssets()) {
-		if (loadData.modulesCode)
-			lx.createAndCallFunction('', loadData.modulesCode);
 		callback();
 		return;
 	}
@@ -200,7 +194,7 @@ function loadAssets(callback) {
 
 
 function createPlugin(pluginInfo, el, parent, clientCallback) {
-	// Создадим экземпляр модуля
+	// Создадим экземпляр плагина
 	if (!el) {
 		lx.body = lx.Box.rise(lx.WidgetHelper.getBodyElement());
 		lx.body.key = 'body';
@@ -211,16 +205,17 @@ function createPlugin(pluginInfo, el, parent, clientCallback) {
 	if (parent) info.parent = parent;
 	info.key = pluginInfo.key;
 	var m = lx.Plugin(info, el);
+	if (pluginInfo.isMain) m.isMain = 1;
 
 	var bootstrapJs = pluginInfo.bootstrapJs,
 		snippets = pluginInfo.snippets,
 		mainJs = pluginInfo.mainJs;
 
-	// js-код загрузки модуля
+	// js-код загрузки плагина
 	if (bootstrapJs != '')
 		lx.createAndCallFunction('', 'const Plugin=lx.plugins["'+m.key+'"];' + bootstrapJs);
 
-	// Сборка блоков
+	// Сборка сниппетов
 	loadData.snippetsInfo[m.key] = snippets;
 	(new SnippetBuilder(m, null, el, info.rsk)).unpack();
 	

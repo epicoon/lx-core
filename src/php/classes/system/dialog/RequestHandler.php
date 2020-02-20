@@ -13,7 +13,7 @@ class RequestHandler extends Object
 	/** @var int */
 	private $code;
 	/** @var SourceContext */
-	private $source;
+	private $sourceContext;
 
 	/**
 	 * - определяется запрашиваемый ресурс
@@ -28,11 +28,6 @@ class RequestHandler extends Object
 			return;
 		}
 
-		if (!$this->checkAccess()) {
-			$this->code = ResponseCodeEnum::FORBIDDEN;
-			return;
-		}
-		
 		$this->code = ResponseCodeEnum::OK;
 	}
 
@@ -60,91 +55,40 @@ class RequestHandler extends Object
 	{
 		if (SpecialAjaxRouter::checkDialog()) {
 			$ajaxRouter = new SpecialAjaxRouter();
-			$source = $ajaxRouter->route();
-			if ($source !== false) {
-				$this->source = $source;
+			$sourceContext = $ajaxRouter->route();
+			if ($sourceContext !== false) {
+				$this->sourceContext = $sourceContext;
 			}
 		} else {
 			$router = $this->app->router;
 			if ($router !== null) {
-				$source = $router->route();
-				if ($source !== false) {
-					$this->source = $source;
+				$sourceContext = $router->route();
+				if ($sourceContext !== false) {
+					$this->sourceContext = $sourceContext;
 				}
 			}
 		}
 
-		return $this->source !== null;
-	}
-
-	/**
-	 * @return bool
-	 */
-	private function checkAccess()
-	{
-		// Если нет компонента "пользователь"
-		if (!$this->app->user) {
-			return true;
-		}
-
-		// Если есть компонент аутентификации, получим пользователя
-		if ($this->app->authenticationGate) {
-			$this->app->authenticationGate->authenticateUser();
-		}
-
-		// Если есть компонент авторизации, проверим права пользователя
-		if ($this->app->authorizationGate) {
-			$this->source = $this->app->authorizationGate->checkAccess(
-				$this->app->user,
-				$this->source
-			);
-		}
-
-		// Если при авторизации было наложено ограничение
-		if ($this->source->hasRestriction()) {
-			if ($this->source->getRestriction() == SourceContext::RESTRICTION_INSUFFICIENT_RIGHTS
-				&& $this->app->user->isGuest()
-				&& $this->app->dialog->isPageLoad()
-			) {
-				$this->source = $this->app
-					->authenticationGate
-					->responseToAuthenticate($this->source);
-			} else {
-				return false;
-			}
-		}
-
-		return true;
+		return $this->sourceContext !== null;
 	}
 
 	private function trySend()
 	{
-		if ($this->source === false) {
+		if ( ! $this->sourceContext) {
 			$this->sendNotOk(ResponseCodeEnum::FORBIDDEN);
 			return;
 		}
 
-		$result = false;
-		if ($this->source->isPlugin()) {
-			$plugin = $this->source->getPlugin();
-			if ($this->app->dialog->isPageLoad()) {
-				$this->renderPlugin($plugin);
-				$result = null;
-			} else {
-				$builder = new PluginBuildContext($plugin);
-				$result = $builder->build();
-			}
-		} else {
-			$result = $this->source->invoke();
-			if ($result instanceof SourceError) {
-				$this->code = $result->getCode();
-				$result = false;
-			}
-		}
-
-		if ($result === false) {
+		$result = $this->sourceContext->invoke();
+		if ($result instanceof SourceError) {
+			$this->code = $result->getCode();
 			$this->sendNotOk();
 			return;
+		}
+
+		if ($this->sourceContext->isPlugin() && $this->app->dialog->isPageLoad()) {
+			$this->renderPlugin($result);
+			$result = null;
 		}
 
 		$this->beforeSuccessfulSending();
@@ -154,11 +98,22 @@ class RequestHandler extends Object
 
 	private function sendNotOk($code = null)
 	{
-		$this->beforeFailedSending();
-
 		if ($code) {
 			$this->code = $code;
 		}
+
+		if ($this->code == ResponseCodeEnum::FORBIDDEN
+			&& $this->app->dialog->isPageLoad()
+			&& $this->app->user->isGuest()
+		) {
+			$sourceContext = $this->app->authenticationGate->responseToAuthenticate() ?? null;
+			if ($sourceContext) {
+				$this->renderPlugin($sourceContext->invoke());
+				return;
+			}
+		}
+
+		$this->beforeFailedSending();
 
 		if ($this->app->dialog->isPageLoad()) {
 			$this->renderStandartResponse($this->code);
@@ -175,38 +130,25 @@ class RequestHandler extends Object
 	/**
 	 * @param $plugin Plugin
 	 */
-	private function renderPlugin($plugin)
+	private function renderPlugin($pluginData)
 	{
-		if (!$plugin) {
-			$this->renderStandartResponse(ResponseCodeEnum::NOT_FOUND);
-			return;
-		}
-
-		// Помечаем плагин как собирающийся при загрузке страницы
-		$plugin->setMain(true);
-
-		$context = new PluginBuildContext($plugin);
-		list($jsCore, $jsBootstrap, $jsMain) = $this->app->getCommonJs();
-
-		$pluginData = $context->build();
-		if (!empty($pluginData['modules'])) {
-			$moduleProvider = new JsModuleProvider();
-			$pluginData['pluginInfo'] .= '<modules>'
-				. $moduleProvider->getModulesCode($pluginData['modules'])
-				. '</modules>';
-		}
+		// Информация о самом плагине
 		$pluginInfo = addcslashes($pluginData['pluginInfo'], '\\');
 
-		// Глобальные настройки
-		$settings = ArrayHelper::arrayToJsCode( $this->app->getSettings() );
-		// Набор глобальных произвольных данных
-		$data = ArrayHelper::arrayToJsCode( $this->app->data->getProperties() );
+		// Собираем код модулей
+		$modules = '';
+		if (!empty($pluginData['modules'])) {
+			$moduleProvider = new JsModuleProvider();
+			$modules = $moduleProvider->getModulesCode($pluginData['modules']);
+			$modules = addcslashes($modules, '\\');
+		}
 
-		$js = $jsCore . 'lx.start('
-			. $settings . ',' . $data
-			. ',`' . $jsBootstrap . '`,`' . $pluginInfo . '`,`' . $jsMain
-			. '`);';
-		$head = new HtmlHead($pluginData);
+		// Глобальный код, глобальные настройки
+		list($jsCore, $jsBootstrap, $jsMain) = $this->app->getCommonJs();
+		$settings = ArrayHelper::arrayToJsCode( $this->app->getSettings() );
+		$js = $jsCore . "lx.start($settings, `$modules`, `$jsBootstrap`, `$pluginInfo`, `$jsMain`);";
+
+		$head = new HtmlHead($pluginData['page']);
 		$this->renderStandartResponse(ResponseCodeEnum::OK, ['head' => $head, 'js' => $js]);
 	}
 
@@ -223,32 +165,32 @@ class RequestHandler extends Object
 
 	private function beforeSuccessfulSending()
 	{
-		if ($this->source) {
-			$this->source->invoke('beforeSending');
-			$this->source->invoke('beforeSuccessfulSending');
+		if ($this->sourceContext) {
+			$this->sourceContext->invoke('beforeSending');
+			$this->sourceContext->invoke('beforeSuccessfulSending');
 		}
 	}
 
 	private function beforeFailedSending()
 	{
-		if ($this->source) {
-			$this->source->invoke('beforeSending');
-			$this->source->invoke('beforeFailedSending');
+		if ($this->sourceContext) {
+			$this->sourceContext->invoke('beforeSending');
+			$this->sourceContext->invoke('beforeFailedSending');
 		}
 	}
 	private function afterSuccessfulSending()
 	{
-		if ($this->source) {
-			$this->source->invoke('afterSuccessfulSending');
-			$this->source->invoke('afterSending');
+		if ($this->sourceContext) {
+			$this->sourceContext->invoke('afterSuccessfulSending');
+			$this->sourceContext->invoke('afterSending');
 		}
 	}
 	
 	private function afterFailedSending()
 	{
-		if ($this->source) {
-			$this->source->invoke('afterFailedSending');
-			$this->source->invoke('afterSending');
+		if ($this->sourceContext) {
+			$this->sourceContext->invoke('afterFailedSending');
+			$this->sourceContext->invoke('afterSending');
 		}
 	}
 }

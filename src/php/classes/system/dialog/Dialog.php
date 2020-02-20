@@ -6,6 +6,16 @@ class Dialog extends Object
 {
 	use ApplicationToolTrait;
 
+	const REQUEST_TYPE_COMMON = 'common';
+	const REQUEST_TYPE_PAGE_LOAD = 'page_load';
+	const REQUEST_TYPE_AJAX = 'ajax';
+	const REQUEST_TYPE_CORS = 'cors';
+
+	private $_serverName;
+	private $_type;
+	private $_clientIp;
+	private $_clientIpFromProxy;
+
 	private $_url = null;
 	private $_route = null;
 	private $_headers = null;
@@ -13,38 +23,13 @@ class Dialog extends Object
 	private $_get = null;
 	private $_post = null;
 	private $_cookie = null;
-	private $_ajax = false;
 	private $_location = null;
-	private $_clientIp;
 
 	public function __construct()
 	{
-		$this->_clientIp = $_SERVER['REMOTE_ADDR'];
-
-		if (isset($_SERVER['HTTP_X_REQUESTED_WITH'])
-			&& !empty($_SERVER['HTTP_X_REQUESTED_WITH'])
-			&& strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'
-		) {
-			// сюда попадаем в случае AJAX-запроса
-			$this->_ajax = true;
-		}
-
-
-		// var_dump($this->headers());
-
-		/*
-		Из браузера прилетает такое:
-		<b>array</b> <i>(size=9)</i>
-		'COOKIE' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'y-scroll=0; treeState=0%2C4%2C8%2C22; lang=en-EN'</font> <i>(length=48)</i>
-		'ACCEPT_LANGUAGE' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'</font> <i>(length=35)</i>
-		'ACCEPT_ENCODING' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'gzip, deflate'</font> <i>(length=13)</i>
-		'ACCEPT' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,* / *;q=0.8'</font> <i>(length=85)</i>
-		'USER_AGENT' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'</font> <i>(length=105)</i>
-		'UPGRADE_INSECURE_REQUESTS' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'1'</font> <i>(length=1)</i>
-		'CACHE_CONTROL' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'max-age=0'</font> <i>(length=9)</i>
-		'CONNECTION' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'keep-alive'</font> <i>(length=10)</i>
-		'HOST' <font color='#888a85'>=&gt;</font> <small>string</small> <font color='#cc0000'>'lx_loc'</font> <i>(length=6)</i>
-		*/
+		$this->_serverName = $this->app->getConfig('serverName') ?? $_SERVER['SERVER_NAME'];
+		$this->defineType();
+		$this->defineClientIp();
 	}
 
 	public function url()
@@ -59,47 +44,7 @@ class Dialog extends Object
 		return $this->_route;
 	}
 
-	public function clientIP()
-	{
-		$ip = (isset($_SERVER['REMOTE_ADDR']))
-			? $_SERVER['REMOTE_ADDR']
-			: 'unknown';
-		return $ip;
-	}
-
-	//todo какая-то херня
-	// public function clientRealIP() {
-	// 	$ip = $this->clientIP();
-
-	// 	if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-	// 		$entries = split('[, ]', $_SERVER['HTTP_X_FORWARDED_FOR']);
-	// 		reset($entries);
-
-	// 		foreach ($entries as $entry) {
-	// 			$entry = trim($entry);
-	// 			if ( preg_match("/^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$)/", $entry, $ipList) ) {
-	// 				$privateIp = [
-	// 					'/^0\./',
-	// 					'/^127\.0\.0\.1/',
-	// 					'/^192\.168\..*/',
-	// 					'/^172\.((1[6-9])|(2[0-9])|(3[0-1]))\..*/',
-	// 					'/^10\..*/'
-	// 				];
-
-	// 				$foundIp = preg_replace($privateIp, $ip, $ipList[1]);
-
-	// 				if ($ip != $foundIp) {
-	// 					$ip = $foundIp;
-	// 					break;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-
-	// 	return $ip;
-	// }
-
-	public function headers()
+	public function getHeaders()
 	{
 		if ($this->_headers === null) $this->retrieveHeaders();
 		return $this->_headers;
@@ -109,7 +54,7 @@ class Dialog extends Object
 	{
 		$name = strtoupper($name);
 		$name = str_replace('-', '_', $name);
-		$headers = $this->headers();
+		$headers = $this->getHeaders();
 		if (array_key_exists($name, $headers)) return $headers[$name];
 		return null;
 	}
@@ -122,15 +67,12 @@ class Dialog extends Object
 
 	public function isAjax()
 	{
-		return $this->_ajax;
+		return $this->_type == self::REQUEST_TYPE_AJAX;
 	}
 
-	/**
-	 * //todo
-	 * */
-	public function isBrowserRequest()
+	public function isCors()
 	{
-		return true;
+		return $this->_type == self::REQUEST_TYPE_CORS;
 	}
 
 	/**
@@ -138,7 +80,7 @@ class Dialog extends Object
 	 * */
 	public function isPageLoad()
 	{
-		return !$this->isAjax() && $this->isBrowserRequest();
+		return $this->_type == self::REQUEST_TYPE_PAGE_LOAD;
 	}
 
 	public function get($name=null)
@@ -281,6 +223,10 @@ class Dialog extends Object
 			}
 		}
 
+		if ($this->isCors()) {
+			$this->addCorsHeaders();
+		}
+
 		if ($this->app->user && $this->app->user->isGuest()) {
 			header('lx-user-status: guest');
 		}
@@ -293,7 +239,7 @@ class Dialog extends Object
 	{
 		$this->url();
 		$this->route();
-		$this->headers();
+		$this->getHeaders();
 		$this->method();
 		$this->params();
 		$this->location();
@@ -309,7 +255,7 @@ class Dialog extends Object
 		// https://stackoverflow.com/questions/15273570/continue-processing-php-after-sending-http-response
 		ignore_user_abort(true);
 		set_time_limit(0);
-		ob_start();
+		ob_start(/*'ob_gzhandler'*/);
 		echo $data;
 		header('Connection: close');
 		header('Content-Length: ' . ob_get_length());
@@ -318,6 +264,60 @@ class Dialog extends Object
 		flush();
 		if (session_id()) session_write_close();
 		fastcgi_finish_request();
+	}
+
+	private function addCorsHeaders()
+	{
+		$corsProcessor = $this->app->corsProcessor;
+		if ( ! $corsProcessor) {
+			return;
+		}
+
+		$requestHeaders = [
+			'origin' => $this->header('ORIGIN'),
+			'method' => $this->header('Access-Control-Request-Method'),
+			'headers' => $this->header('Access-Control-Request-Headers'),
+		];
+
+		$headers = $corsProcessor->getHeaders($requestHeaders);
+		foreach ($headers as $header) {
+			header($header);
+		}
+	}
+
+	private function defineClientIp()
+	{
+		$this->_clientIp = $_SERVER['REMOTE_ADDR'];
+
+		$fromProxy = $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? null;
+		if (filter_var($fromProxy, FILTER_VALIDATE_IP)) {
+			$this->_clientIpFromProxy = $fromProxy;
+		}
+	}
+
+	private function defineType()
+	{
+		$userAgent = $this->header('USER_AGENT');
+		if ( ! $userAgent) {
+			$this->_type = self::REQUEST_TYPE_COMMON;
+			return;
+		}
+
+		$origin = $this->header('ORIGIN');
+		if ( ! $origin) {
+			$this->_type = self::REQUEST_TYPE_PAGE_LOAD;
+			return;
+		}
+
+		$serverName = $this->_serverName;
+		preg_match('/[^:]+?:\/\/(.+)/', $origin, $matches);
+		$originName = $matches[1] ?? null;
+
+		if ($serverName == $originName) {
+			$this->_type = self::REQUEST_TYPE_AJAX;
+		} else {
+			$this->_type = self::REQUEST_TYPE_CORS;
+		}
 	}
 
 	private function retrieveLocation($url)
@@ -347,20 +347,24 @@ class Dialog extends Object
 	private function retrieveRoute()
 	{
 		$url = $this->url();
-		if (($pos = strpos($url, '?')) !== false)
+		$pos = strpos($url, '?');
+		if ($pos !== false) {
 			$url = substr($url, 0, $pos);
+		}
 		$url = urldecode($url);
-		if (strlen($url) > 1 && $url{0} == '/')
+		if (strlen($url) > 1 && $url{0} == '/') {
 			$url = substr($url, 1);
+		}
 		$this->_route = $url;
 	}
 
 	private function retrieveHeaders()
 	{
 		$this->_headers = [];
-		foreach ($_SERVER as $key => $value) {
-			if (strpos($key, 'HTTP_') !== 0) continue;
-			$key = preg_replace('/^HTTP_/', '', $key);
+		$headers = getallheaders();
+		foreach ($headers as $key => $value) {
+			$key = strtoupper($key);
+			$key = str_replace('-', '_', $key);
 			$this->_headers[$key] = $value;
 		}
 	}
@@ -372,16 +376,15 @@ class Dialog extends Object
 
 	private function retrieveGet()
 	{
-		$get = [];
-		if (empty($_GET)) {
+		$get = $_GET;
+		if (empty($get)) {
 			$url = $this->url();
 			$temp = explode('?', $url);
 			if (count($temp) > 1) {
 				$get = $this->translateGetParams($temp[1]);
 			}
-		} else $get = $_GET;
-		$this->_get = $get;
-		if ($this->_get === null) $this->_get = [];
+		}
+		$this->_get = $get ?? [];
 		/*
 		//todo экранирование спецсимволов
 		urlencode
@@ -397,7 +400,7 @@ class Dialog extends Object
 			$input = file_get_contents('php://input');
 			$post = json_decode($input, true);
 		}
-		$this->_post = $post;
+		$this->_post = $post ?? [];
 	}
 
 	private function retrieveCookie()

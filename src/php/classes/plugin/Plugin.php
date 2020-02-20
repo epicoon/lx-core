@@ -9,7 +9,6 @@ namespace lx;
 	public function afterCompile()
 
 * * *  2. Сеттеры  * * *
-	public function setMain($bool)
 	public function setConfig($name, $value)
 	public function setScreenModes($arr)
 	public function addRenderParams($params)
@@ -76,7 +75,6 @@ class Plugin extends Source implements FusionInterface {
 	private
 		$_directory = null,  // Каталог, связанный с плагином
 		$_conductor = null,  // Проводник по структуре плагина
-		$isMain = false,     // Главный плагин - который рендерился с ядром, при начальной загрузке страницы
 		$anchor,
 		$rootSnippetKey,
 		
@@ -159,9 +157,15 @@ class Plugin extends Source implements FusionInterface {
 			$data['prototype'] = $prototype;
 		}
 
-		$plugin = new $pluginClass($data);
+		$plugin = \lx::$app->diProcessor->create($pluginClass, $data);
 
 		return $plugin;
+	}
+
+	public function build()
+	{
+		$builder = new PluginBuildContext($this);
+		return $builder->build();
 	}
 
 	public function beforeCompile() {}
@@ -176,13 +180,6 @@ class Plugin extends Source implements FusionInterface {
 
 	//=========================================================================================================================
 	/* * *  2. Сеттеры  * * */
-
-	/**
-	 * Главный плагин - который рендерился с ядром, при начальной загрузке страницы
-	 * */
-	public function setMain($bool) {
-		$this->isMain = $bool;
-	}
 
 	public function setConfig($name, $value) {
 		$this->config[$name] = $value;
@@ -570,9 +567,6 @@ class Plugin extends Source implements FusionInterface {
 			'name' => $this->_name,
 			'anchor' => $this->anchor,
 		];
-
-		// Если плагин собирался при загрузке страницы
-		if ($this->isMain) $info['main'] = 1;
 
 		// Набор произвольных данных
 		$params = $this->clientParams->getProperties();

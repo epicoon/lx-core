@@ -104,6 +104,7 @@ class Router extends Object {
 			$result = [
 				'service' => $matches[1][0],
 				'plugin' => $matches[2][0],
+				'method' => 'build',
 			];
 			if (isset($routeData['renderParams'])) {
 				$result['renderParams'] = $routeData['renderParams'];

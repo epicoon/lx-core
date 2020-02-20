@@ -21,8 +21,6 @@ namespace lx;
 class Application extends AbstractApplication implements FusionInterface {
 	use FusionTrait;
 
-	public $data;
-
 	private $_dialog;
 	private $_router;
 	private $_i18nMap;
@@ -47,8 +45,6 @@ class Application extends AbstractApplication implements FusionInterface {
 			'events' => EventManager::class,
 			'diProcessor' => DependencyProcessor::class,
 		]);
-
-		$this->data = new DataObject();
 	}
 
 	public function __get($name) {
@@ -147,6 +143,9 @@ class Application extends AbstractApplication implements FusionInterface {
 
 	public function run() {
 		ob_start();
+		
+		$this->determineUser();
+		
 		$requestHandler = new RequestHandler();
 		$requestHandler->run();
 		$requestHandler->send();
@@ -168,22 +167,6 @@ class Application extends AbstractApplication implements FusionInterface {
 		$jsMain = addcslashes($jsMain, '\\');
 
 		return [$jsCore, $jsBootstrap, $jsMain];
-
-
-		// Глобальные настройки
-		$settings = ArrayHelper::arrayToJsCode( $this->getSettings() );
-		// Набор глобальных произвольных данных
-		$data = ArrayHelper::arrayToJsCode( $this->data->getProperties() );
-
-		$pluginInfo = addcslashes($pluginInfo, '\\');
-
-		// Запуск ядра
-		$result .= 'lx.start('
-			. $settings . ',' . $data
-			. ',`' . $jsBootstrap . '`,`' . $pluginInfo . '`,`' . $jsMain
-			. '`);';
-
-		return $result;
 	}
 
 	private function retrieveRouter() {
@@ -216,6 +199,13 @@ class Application extends AbstractApplication implements FusionInterface {
 		}
 
 		$this->_router = $router;
+	}
+	
+	private function determineUser()
+	{
+		if ($this->user && $this->authenticationGate) {
+			$this->authenticationGate->authenticateUser();
+		}
 	}
 
 	/**
