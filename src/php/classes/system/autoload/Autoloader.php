@@ -2,44 +2,86 @@
 
 namespace lx;
 
-class Autoloader {
+/**
+ * Class Autoloader
+ * @package lx
+ *
+ * @property-read string $sitePath
+ * @property-read AutoloadMap $map
+ */
+class Autoloader
+{
 	const CLASS_MAIN_FILE = '_main';
 
+	/** @var string */
 	private $_sitePath;
+
+	/** @var string */
 	private $srcPath;
+
+	/** @var string */
 	private $phpPath;
 
-	/** @var lx\AutoloadMap */
+	/** @var AutoloadMap */
 	private $_map = null;
+
+	/** @var array */
 	private $_systemClassMap = null;
 
+	/** @var Autoloader */
 	private static $instance = null;
-	private function __construct() {}
-	private function __clone() {}
-	public static function getInstance() {
+
+	/**
+	 * Autoloader constructor is private
+	 */
+	private function __construct()
+	{
+	}
+
+	/**
+	 * Clone magic method is private
+	 */
+	private function __clone()
+	{
+	}
+
+	/**
+	 * @return Autoloader
+	 */
+	public static function getInstance()
+	{
 		if (self::$instance === null) {
 			self::$instance = new self();
 		}
-		
+
 		return self::$instance;
 	}
-	
-	public function init($sitePath) {
+
+	/**
+	 * @param string $sitePath
+	 * @param string $srcPath
+	 */
+	public function init($sitePath, $srcPath)
+	{
 		$this->_sitePath = $sitePath;
-		//TODO - возможно есть смысл вынести пути в приложение, передавать сюда приложение
-		$this->srcPath = $this->_sitePath . '/vendor/lx/lx-core/src';
+		$this->srcPath = $srcPath;
 		$this->phpPath = $this->srcPath . '/php';
 		$this->_systemClassMap = require($this->phpPath . '/classMap.php');
 		spl_autoload_register([$this, 'load']);
 
 		$this->_map = new AutoloadMap($this->_sitePath);
 	}
-	
-	public function __get($name) {
+
+	/**
+	 * @param string $name
+	 * @return AutoloadMap|string|null
+	 */
+	public function __get($name)
+	{
 		if ($name == 'sitePath') {
 			return $this->_sitePath;
 		}
-		
+
 		if ($name == 'map') {
 			return $this->_map;
 		}
@@ -48,11 +90,11 @@ class Autoloader {
 	}
 
 	/**
-	 * Попытка найти файл с кодом класса
-	 * @var $className - имя класса
-	 * @return string|bool - путь к файлу с кодом класса либо false
-	 * */
-	public function getClassPath($className) {
+	 * @param string $className
+	 * @return string|false
+	 */
+	public function getClassPath($className)
+	{
 		$path = $this->getSystemClassPath($className);
 		if ($path !== false) return $path;
 
@@ -69,53 +111,36 @@ class Autoloader {
 	}
 
 	/**
-	 * Формирует список с информацией по используемым пакетам
-	 * */
-	public function getPackagesList() {
-		$sitePath = $this->sitePath . '/';
-		$list = [];
-		foreach ($this->map->packages as $name => $path) {
-			$fullPath = $sitePath . $path;
-			$pack = new PackageDirectory($fullPath);
-
-			$config = $pack->getConfigFile();
-			if ($config === null) {
-				//todo возможно тут надо сообщение или исключение - пакет всегда должен иметь конфигурационный файл
-				continue;
-			}
-
-			$configData = DataObject::create($config->get());
-			$description = $configData->getFirstDefined('description', 'NONE');
-
-			$list[] = [
-				'name' => $name,
-				'description' => $description,
-			];
-		}
-		return $list;
-	}
-
-	/**
-	 * Метод-загрузчик классов
-	 * */
-	public function load($className) {
+	 * @param string $className
+	 * @return bool
+	 */
+	public function load($className)
+	{
 		$path = $this->getClassPath($className);
 
 		if ($path === false) {
-			// Autoload failed. Class '$className' not found
+			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+				'msg' => "Autoload failed. Class '$className' not found",
+			]);
 			return false;
 		}
 
 		require_once($path);
+		return true;
 	}
 
+
+	/*******************************************************************************************************************
+	 * PRIVATE
+	 ******************************************************************************************************************/
+
 	/**
-	 * Попытка найти файл с кодом системного класса
-	 * Все системные классы находятся в пространстве имен 'lx' и только в нем
-	 * @var $className - имя класса
-	 * @return string|bool - путь к файлу с кодом класса либо false
-	 * */
-	private function getSystemClassPath($className) {
+	 * @param string $className
+	 * @return string|false
+	 */
+	private function getSystemClassPath($className)
+	{
 		$arr = explode('\\', $className);
 		if (empty($arr) || count($arr) != 2 || $arr[0] != 'lx') {
 			return false;
@@ -124,32 +149,21 @@ class Autoloader {
 		$name = $arr[1];
 		$map = $this->_systemClassMap;
 		if (array_key_exists($name, $map)) {
-			// Стандартная логика автозагрузки - имя файла соответствует имени класса
 			$path = $this->phpPath . '/' . $map[$name] . '/' . $name . '.php';
 			if (file_exists($path)) {
 				return $path;
 			}
 		}
 
-		// Проверка на встроенный в платформу виджет
-		$path = \lx::$conductor->getSystemPath('lxWidgets') . '/' . $name . '/_main.php' ;
-		if (file_exists($path)) {
-			return $path;
-		}
-		$path = \lx::$conductor->getSystemPath('lxWidgets') . '/' . $name . '/' . (explode('\\', $className)[1]) . '.php' ;
-		if (file_exists($path)) {
-			return $path;
-		}
-
 		return false;
 	}
 
 	/**
-	 * Попытка найти файл с кодом клиентского класса уровня приложения
-	 * @var $className - имя класса
-	 * @return string|bool - путь к файлу с кодом класса либо false
-	 * */
-	private function getClientClassPath($className) {
+	 * @param string $className
+	 * @return string|false
+	 */
+	private function getClientClassPath($className)
+	{
 		$path = $this->sitePath . '/' . str_replace('\\', '/', $className) . '.php';
 		if (file_exists($path)) {
 			return $path;
@@ -158,11 +172,11 @@ class Autoloader {
 	}
 
 	/**
-	 * Попытка найти файл с кодом класса согласно PSR-карте пространств имен
-	 * @var $className - имя класса
-	 * @return string|bool - путь к файлу с кодом класса либо false
-	 * */
-	private function getClassPathWithNamespaceMap($className) {
+	 * @param string $className
+	 * @return string|false
+	 */
+	private function getClassPathWithNamespaceMap($className)
+	{
 		$namespaces = $this->map->namespaces;
 		foreach ($namespaces as $namespace => $data) {
 			$reg = '/^' . $namespace . '/';
@@ -173,10 +187,10 @@ class Autoloader {
 
 			$subName = explode($namespace, $className)[1];
 			$relativePath = str_replace('\\', '/', $subName);
-			$basePath = $this->sitePath . '/' . $this->map->packages[ $data['package'] ] . '/';
+			$basePath = $this->sitePath . '/' . $this->map->packages[$data['package']] . '/';
 			foreach ($data['pathes'] as $innerPath) {
 				$path = $basePath . $innerPath;
-				if (!preg_match('/\/$/', $path)) $path .= '/';
+				if ($path{-1} != '/') $path .= '/';
 
 				// Стандартная логика автозагрузки - имя файла соответствует имени класса
 				$fullPath = $path . $relativePath . '.php';
@@ -190,7 +204,7 @@ class Autoloader {
 					return $fullPath;
 				}
 
-				preg_match_all('/[^\\'.'\]+$/', $className, $matches);
+				preg_match_all('/[^\\' . '\]+$/', $className, $matches);
 				$propClassName = empty($matches[0]) ? '' : $matches[0][0];
 
 				$fullPath = $path . $relativePath . '/_' . $propClassName . '.php';
@@ -209,11 +223,11 @@ class Autoloader {
 	}
 
 	/**
-	 * Попытка найти файл с кодом класса, который объявлен не по PSR
-	 * @var $className - имя класса
-	 * @return string|bool - путь к файлу с кодом класса либо false
-	 * */
-	private function getClassPathWithClassMap($className) {
+	 * @param string $className
+	 * @return string|false
+	 */
+	private function getClassPathWithClassMap($className)
+	{
 		$classes = $this->map->classes;
 		if (array_key_exists($className, $classes)) {
 			$path = $this->sitePath . '/' . $classes[$className]['path'];

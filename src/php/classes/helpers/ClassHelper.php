@@ -2,32 +2,72 @@
 
 namespace lx;
 
-class ClassHelper {
+/**
+ * Class ClassHelper
+ * @package lx
+ */
+class ClassHelper
+{
 	/**
-	 * Для имени класса определить - является ли он наследником или непосредственно проверяемым классом
-	 * */
-	public static function checkInstance($currentClass, $baseClass) {
+	 * @param string $currentClass
+	 * @param string $baseClass
+	 * @return bool
+	 */
+	public static function checkInstance($currentClass, $baseClass)
+	{
 		return ($currentClass == $baseClass || is_subclass_of($currentClass, $baseClass));
 	}
 
-	public static function isWidget($className) {
-		return self::checkInstance($className, Rect::class);
-	}
-
 	/**
-	 * Проверяет существование класса в проекте
-	 * */
-	public static function exists($className) {
+	 * @param string $className
+	 * @return bool
+	 */
+	public static function exists($className)
+	{
 		$autoloader = Autoloader::getInstance();
 		try {
-			if (class_exists($className)) return true;
+			if (class_exists($className)) {
+				return true;
+			}
 			return $autoloader->getClassPath($className) !== false;
 		} catch (\Exception $e) {
 			return $autoloader->getClassPath($className) !== false;
 		}
 	}
 
-	public static function publicPropertyExists($class, $property) {
+	/**
+	 * @param string $className
+	 * @param array|string $interfaces
+	 * @return bool
+	 */
+	public function implements($className, $interfaces)
+	{
+		if (!self::exists($className)) {
+			return false;
+		}
+
+		try {
+			$reflected = new \ReflectionClass($className);
+		} catch (\Exception $e) {
+			return false;
+		}
+
+		foreach (array($interfaces) as $interface) {
+			if (!$reflected->implementsInterface($interface)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * @param string $class
+	 * @param string $property
+	 * @return bool
+	 */
+	public static function publicPropertyExists($class, $property)
+	{
 		if ( ! property_exists($class, $property)) {
 			return false;
 		}
@@ -37,7 +77,13 @@ class ClassHelper {
 		return $reflProperty->isPublic();
 	}
 
-	public static function protectedPropertyExists($class, $property) {
+	/**
+	 * @param string $class
+	 * @param string $property
+	 * @return bool
+	 */
+	public static function protectedPropertyExists($class, $property)
+	{
 		if ( ! property_exists($class, $property)) {
 			return false;
 		}
@@ -47,7 +93,13 @@ class ClassHelper {
 		return $reflProperty->isProtected();
 	}
 
-	public static function privatePropertyExists($class, $property) {
+	/**
+	 * @param string $class
+	 * @param string $property
+	 * @return bool
+	 */
+	public static function privatePropertyExists($class, $property)
+	{
 		if ( ! property_exists($class, $property)) {
 			return false;
 		}
@@ -57,7 +109,13 @@ class ClassHelper {
 		return $reflProperty->isPrivate();
 	}
 
-	public static function publicMethodExists($class, $method) {
+	/**
+	 * @param string $class
+	 * @param string $method
+	 * @return bool
+	 */
+	public static function publicMethodExists($class, $method)
+	{
 		if ( ! method_exists($class, $method)) {
 			return false;
 		}
@@ -67,7 +125,13 @@ class ClassHelper {
 		return $reflMethod->isPublic();
 	}
 
-	public static function protectedMethodExists($class, $method) {
+	/**
+	 * @param string $class
+	 * @param string $method
+	 * @return bool
+	 */
+	public static function protectedMethodExists($class, $method)
+	{
 		if ( ! method_exists($class, $method)) {
 			return false;
 		}
@@ -77,7 +141,13 @@ class ClassHelper {
 		return $reflMethod->isProtected();
 	}
 
-	public static function privateMethodExists($class, $method) {
+	/**
+	 * @param string $class
+	 * @param string $method
+	 * @return bool
+	 */
+	public static function privateMethodExists($class, $method)
+	{
 		if ( ! method_exists($class, $method)) {
 			return false;
 		}
@@ -88,9 +158,13 @@ class ClassHelper {
 	}
 
 	/**
-	 * Получить пространство имен для класса или объекта
-	 * */
-	public static function getNamespace($obj) {
+	 * Method returns namespace for class or object
+	 *
+	 * @param mixed $obj
+	 * @return string
+	 */
+	public static function getNamespace($obj)
+	{
 		$reflected = new \ReflectionClass($obj);
 		if (!$reflected->inNamespace()) {
 			return '';
@@ -100,11 +174,14 @@ class ClassHelper {
 	}
 
 	/**
-	 * Разделяет имя класса на пространство имен и собственное имя класса
-	 * */
-	public static function splitClassName($className) {
-		// Справится даже если класс не загружен
-		preg_match_all('/(.*)[.\\\]([^\\'.'\.]+)$/', $className, $matches);
+	 * Method splits name of the class for namespace and class own name
+	 *
+	 * @param string $className
+	 * @return array
+	 */
+	public static function splitClassName($className)
+	{
+		preg_match_all('/(.*)[.\\\]([^\\' . '\.]+)$/', $className, $matches);
 		return [$matches[1][0], $matches[2][0]];
 	}
 
@@ -112,7 +189,6 @@ class ClassHelper {
 	 * @param string $className
 	 * @param bool $all
 	 * @return array
-	 * @throws \ReflectionException
 	 */
 	public static function getTraitNames($className, $all = false)
 	{
@@ -122,7 +198,7 @@ class ClassHelper {
 		}
 
 		$traitNames = [];
-		$recursiveClasses = function ($re, &$traitNames) use(&$recursiveClasses) {
+		$recursiveClasses = function ($re, &$traitNames) use (&$recursiveClasses) {
 			$traitNames = array_merge($traitNames, $re->getTraitNames());
 			if ($re->getParentClass() != false) {
 				$recursiveClasses($re->getParentClass(), $traitNames);
@@ -133,16 +209,19 @@ class ClassHelper {
 	}
 
 	/**
-	 * Определение имени класса и параметров для его создания из базовой конфигурации
-	 * Варианты конфигурации:
-	 * 1. 'className' строка, определяющая имя класса
-	 * 2. [ 'class' => 'className', 'params' => [...] ] массив, определяющий имя класса и параметры
-	 * 3. [...] массив, определяющий параметры
-	 * @param $config конфигурация, определяющая класс
-	 * @param $defaultClass класс по умолчанию
-	 * @param $defaultParams ассоциативный массив параметров по умолчанию
-	 * */
-	public static function prepareConfig($config, $defaultClass = null, $defaultParams = []) {
+	 * Define class name and parameters for instance creation from basic configuration
+	 * Configuration variants:
+	 * 1. 'className'
+	 * 2. [ 'class' => 'className', 'params' => [...] ]
+	 * 3. [...] parameters array only if $defaultClass defined
+	 *
+	 * @param string|array $config
+	 * @param string $defaultClass
+	 * @param array $defaultParams
+	 * @return array
+	 */
+	public static function prepareConfig($config, $defaultClass = null, $defaultParams = [])
+	{
 		$class = $defaultClass;
 		$params = $defaultParams;
 
@@ -156,7 +235,7 @@ class ClassHelper {
 
 			if (isset($config['params'])) {
 				$params = $config['params'];
-			} else {
+			} elseif ( ! empty($config)) {
 				$params = $config;
 			}
 		}
@@ -172,11 +251,13 @@ class ClassHelper {
 	}
 
 	/**
-	 * @var $className - имя класса
-	 * @return string|null - имя пакета, в котором класс объявен,
-	 *                       либо null, если класс не находится в пакете
-	 * */
-	public static function defineServiceName($className) {
+	 * Method defines service name to which the class belongs
+	 *
+	 * @param string $className
+	 * @return string|null
+	 */
+	public static function defineServiceName($className)
+	{
 		$reflected = new \ReflectionClass($className);
 		if (!$reflected->inNamespace()) {
 			return null;
@@ -198,59 +279,19 @@ class ClassHelper {
 		return null;
 	}
 
+	/**
+	 * Method defines service to which the class belongs
+	 * 
+	 * @param string $className
+	 * @return Service|null
+	 */
 	public static function defineService($className)
 	{
 		$serviceName = self::defineServiceName($className);
-		if ( ! $serviceName) {
+		if (!$serviceName) {
 			return null;
 		}
 
 		return \lx::$app->getService($serviceName);
-	}
-
-	/**
-	 * Получение поля объекта
-	 * @param $object
-	 * @param $propertyName
-	 */
-	public static function get($object, $propertyName)
-	{
-		$rc = new \ReflectionClass($object);
-		if ( ! $rc->hasProperty($propertyName)) {
-			return null;
-		}
-
-		$property = $rc->getProperty($propertyName);
-		if ($property->isPublic()) {
-			return $property->getValue($object);
-		}
-
-		$property->setAccessible(true);
-		$result = $property->getValue($object);
-		$property->setAccessible(false);
-		return $result;
-	}
-
-	/**
-	 * Вызов защищенного или приватного метода
-	 * */
-	public static function call($object, $methodName, $args = []) {
-		$rc = new \ReflectionClass($object);
-		$method = $rc->getMethod($methodName);
-
-		$isPrivate = $method->isPrivate() || $method->isProtected();
-		if ($isPrivate) {
-			$method->setAccessible(true);
-		}
-		if (is_object($object)) {
-			$result = $method->invokeArgs($object, (array)$args);
-		} else {
-			$result = $method->invokeArgs(null, (array)$args);
-		}
-		if ($isPrivate) {
-			$method->setAccessible(false);
-		}
-
-		return $result;
 	}
 }

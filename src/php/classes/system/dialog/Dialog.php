@@ -2,29 +2,56 @@
 
 namespace lx;
 
-class Dialog extends Object
+/**
+ * Class Dialog
+ * @package lx
+ */
+class Dialog extends BaseObject
 {
 	use ApplicationToolTrait;
 
 	const REQUEST_TYPE_COMMON = 'common';
 	const REQUEST_TYPE_PAGE_LOAD = 'page_load';
+	const REQUEST_ASSET = 'asset';
 	const REQUEST_TYPE_AJAX = 'ajax';
 	const REQUEST_TYPE_CORS = 'cors';
 
+	/** @var string */
 	private $_serverName;
+
+	/** @var string */
 	private $_type;
+
+	/** @var string */
 	private $_clientIp;
+
+	/** @var string */
 	private $_clientIpFromProxy;
 
-	private $_url = null;
-	private $_route = null;
-	private $_headers = null;
-	private $_method = null;
-	private $_get = null;
-	private $_post = null;
-	private $_cookie = null;
-	private $_location = null;
+	/** @var string */
+	private $_url;
 
+	/** @var string */
+	private $_route;
+
+	/** @var array */
+	private $_headers;
+
+	/** @var string */
+	private $_method;
+
+	/** @var array */
+	private $_params;
+
+	/** @var Cookie */
+	private $_cookie;
+
+	/** @var DataObject */
+	private $_location;
+
+	/**
+	 * Dialog constructor.
+	 */
 	public function __construct()
 	{
 		$this->_serverName = $this->app->getConfig('serverName') ?? $_SERVER['SERVER_NAME'];
@@ -32,25 +59,38 @@ class Dialog extends Object
 		$this->defineClientIp();
 	}
 
-	public function url()
+	/**
+	 * @return string
+	 */
+	public function getUrl()
 	{
 		if ($this->_url === null) $this->retrieveUrl();
 		return $this->_url;
 	}
 
-	public function route()
+	/**
+	 * @return string
+	 */
+	public function getRoute()
 	{
 		if ($this->_route === null) $this->retrieveRoute();
 		return $this->_route;
 	}
 
+	/**
+	 * @return array
+	 */
 	public function getHeaders()
 	{
 		if ($this->_headers === null) $this->retrieveHeaders();
 		return $this->_headers;
 	}
 
-	public function header($name)
+	/**
+	 * @param string $name
+	 * @return string|null
+	 */
+	public function getHeader($name)
 	{
 		$name = strtoupper($name);
 		$name = str_replace('-', '_', $name);
@@ -59,55 +99,52 @@ class Dialog extends Object
 		return null;
 	}
 
-	public function method()
+	/**
+	 * @return string
+	 */
+	public function getMethod()
 	{
 		if ($this->_method === null) $this->retrieveMethod();
 		return $this->_method;
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function isAjax()
 	{
 		return $this->_type == self::REQUEST_TYPE_AJAX;
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function isCors()
 	{
 		return $this->_type == self::REQUEST_TYPE_CORS;
 	}
 
 	/**
-	 * Является ли текущий запрос - запросом на загрузку страницы
-	 * */
+	 * @return bool
+	 */
 	public function isPageLoad()
 	{
 		return $this->_type == self::REQUEST_TYPE_PAGE_LOAD;
 	}
 
-	public function get($name=null)
+	/**
+	 * @return bool
+	 */
+	public function isAssetLoad()
 	{
-		if ($this->_get === null) $this->retrieveGet();
-
-		if ($name === null) {
-			return $this->_get;
-		}
-
-		if (array_key_exists($name, $this->_get)) return $this->_get[$name];
-		return null;
+		return $this->_type == self::REQUEST_ASSET;
 	}
 
-	public function post($name=null)
-	{
-		if ($this->_post === null) $this->retrievePost();
-
-		if ($name === null) {
-			return $this->_post;
-		}
-
-		if (array_key_exists($name, $this->_post)) return $this->_post[$name];
-		return null;
-	}
-
-	public function cookie($data = null)
+	/**
+	 * @param string $data
+	 * @return Cookie|mixed
+	 */
+	public function getCookie($data = null)
 	{
 		if ($this->_cookie === null) $this->retrieveCookie();
 
@@ -117,38 +154,57 @@ class Dialog extends Object
 
 		if (is_string($data)) {
 			return $this->_cookie->$data;
-		} elseif (is_array($data)) {
-			foreach ($data as $key => $value) {
-				$this->_cookie->$key = $value;
-			}
 		}
-	}
 
-	public function params($name=null)
-	{
-		if ($this->method() == 'get') return $this->get($name);
-		if ($this->method() == 'post') return $this->post($name);
-		return [];
+		return null;
 	}
 
 	/**
-	 * Аналог клиентского window.location в js
-	 *	Location
-	 *		href:"http://main:80/subplugin?lang=en#sheet?caption=app-ajax"
-	 *		hash:"#sheet?caption=app-ajax"
-	 *		search:"?lang=en"
-	 *		pathname:"/subplugin"
-	 *		origin:"http://main:80"
-	 *		host:"main:80"
-	 *		hostname:"main"
-	 *		port:"80"
-	 *		protocol:"http:"
-	 * В дополнение имеет еще поле 'searchArray' - тот же 'search', но уже распаршенный в массив
-	 * */
-	public function location()
+	 * @param string $name
+	 * @return mixed
+	 */
+	public function getParam($name)
+	{
+		if ($this->_params === null) {
+			$this->retrieveParams();
+		}
+
+		if (array_key_exists($name, $this->_params)) {
+			return $this->_params[$name];
+		}
+
+		return null;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getParams()
+	{
+		if ($this->_params === null) {
+			$this->retrieveParams();
+		}
+
+		return $this->_params;
+	}
+
+	/**
+	 * @return DataObject with parameters: [
+	 *     'href' => "http://main:80/subplugin?lang=en",
+	 *     'origin' => "http://main:80",
+	 *     'protocol' => "http:",
+	 *     'host' => "main:80",
+	 *     'hostname' => "main",
+	 *     'port' => "80",
+	 *     'pathname' => "/subplugin",
+	 *     'search' => "?lang=en",
+	 *     'searchArray' => ['lang' => 'en']
+	 * ]
+	 */
+	public function getLocation()
 	{
 		if ($this->_location === null) {
-			$this->retrieveLocation(
+			$this->_location = $this->urlToLocation(
 				$_SERVER['REQUEST_SCHEME'] . '://'
 				. $_SERVER['SERVER_NAME']
 				. ':' . $_SERVER['SERVER_PORT']
@@ -160,18 +216,14 @@ class Dialog extends Object
 	}
 
 	/**
-	 * Метод для преобразования строки URL в массив по типу window.location в js
-	 * //todo - сейчас частично парсится, доделать все поля!
-	 * //todo - hash сюда все равно не передается, нафиг его видимо
-	 * */
+	 * @param string $url
+	 * @return DataObject
+	 */
 	public function urlToLocation($url)
 	{
 		$result = ['href' => $url];
 
-		$parts = explode('#', $url);
-		$result['hash'] = count($parts) > 1 ? '#' . $parts[1] : '';
-
-		$parts = explode('?', $parts[0]);
+		$parts = explode('?', $url);
 		if (count($parts) > 1) {
 			$result['search'] = '?' . $parts[1];
 			$result['searchArray'] = $this->translateGetParams($parts[1]);
@@ -180,9 +232,25 @@ class Dialog extends Object
 			$result['searchArray'] = [];
 		}
 
+		$str = $parts[0];
+		preg_match('/^([^:]+?:)\/\/([^\/]+?)(\/.+)$/', $str, $matches);
+
+		$result['protocol'] = $matches[1];
+		$result['host'] = $matches[2];
+		$result['pathname'] = $matches[3] ?? '';
+		$result['origin'] = $result['protocol'] . '//' . $result['host'];
+
+		$parts = explode(':', $result['host']);
+		$result['hostname'] = $parts[0];
+		$result['port'] = $parts[1] ?? '';
+
 		return DataObject::create($result);
 	}
 
+	/**
+	 * @param string $text
+	 * @return array
+	 */
 	public function translateGetParams($text)
 	{
 		$result = [];
@@ -197,6 +265,9 @@ class Dialog extends Object
 		return $result;
 	}
 
+	/**
+	 * @param array|string $data
+	 */
 	public function send($data = null)
 	{
 		if ($data === null) {
@@ -218,7 +289,12 @@ class Dialog extends Object
 				if ($this->isAjax()) {
 					$content .= '<lx-var-dump>' . $dump . '</lx-var-dump>';
 				} else {
-					$content = '<pre class="lx-var-dump">' . $dump . '</pre>' . $content;
+					$dumpStr = '<pre class="lx-var-dump">' . $dump . '</pre>';
+					if (preg_match('/<body>/', $content)) {
+						$content = preg_replace('/<body>/', '<body>' . $dumpStr, $content);
+					} else {
+						$content = "$dumpStr$content";
+					}
 				}
 			}
 		}
@@ -231,18 +307,21 @@ class Dialog extends Object
 			header('lx-user-status: guest');
 		}
 		header("Content-Type: text/$type; charset=utf-8");
-		$content = $type=='json' ? json_encode($content) : $content;
+		$content = $type == 'json' ? json_encode($content) : $content;
 		$this->echo($content);
 	}
 
+	/**
+	 * Retireve all dialog components
+	 */
 	public function retrieveAll()
 	{
-		$this->url();
-		$this->route();
+		$this->getUrl();
+		$this->getRoute();
 		$this->getHeaders();
-		$this->method();
-		$this->params();
-		$this->location();
+		$this->getMethod();
+		$this->getParams();
+		$this->getLocation();
 	}
 
 
@@ -250,9 +329,11 @@ class Dialog extends Object
 	 * PRIVATE
 	 ******************************************************************************************************************/
 
+	/**
+	 * @param $data
+	 */
 	private function echo($data)
 	{
-		// https://stackoverflow.com/questions/15273570/continue-processing-php-after-sending-http-response
 		ignore_user_abort(true);
 		set_time_limit(0);
 		ob_start(/*'ob_gzhandler'*/);
@@ -266,17 +347,20 @@ class Dialog extends Object
 		fastcgi_finish_request();
 	}
 
+	/**
+	 * Method adds all necessary headers for CORS protocol
+	 */
 	private function addCorsHeaders()
 	{
 		$corsProcessor = $this->app->corsProcessor;
-		if ( ! $corsProcessor) {
+		if (!$corsProcessor) {
 			return;
 		}
 
 		$requestHeaders = [
-			'origin' => $this->header('ORIGIN'),
-			'method' => $this->header('Access-Control-Request-Method'),
-			'headers' => $this->header('Access-Control-Request-Headers'),
+			'origin' => $this->getHeader('ORIGIN'),
+			'method' => $this->getHeader('Access-Control-Request-Method'),
+			'headers' => $this->getHeader('Access-Control-Request-Headers'),
 		];
 
 		$headers = $corsProcessor->getHeaders($requestHeaders);
@@ -285,6 +369,9 @@ class Dialog extends Object
 		}
 	}
 
+	/**
+	 * Trying to recieve client IP
+	 */
 	private function defineClientIp()
 	{
 		$this->_clientIp = $_SERVER['REMOTE_ADDR'];
@@ -295,17 +382,24 @@ class Dialog extends Object
 		}
 	}
 
+	/**
+	 * Definition of request type
+	 */
 	private function defineType()
 	{
-		$userAgent = $this->header('USER_AGENT');
-		if ( ! $userAgent) {
+		$userAgent = $this->getHeader('USER_AGENT');
+		if (!$userAgent) {
 			$this->_type = self::REQUEST_TYPE_COMMON;
 			return;
 		}
 
-		$origin = $this->header('ORIGIN');
-		if ( ! $origin) {
-			$this->_type = self::REQUEST_TYPE_PAGE_LOAD;
+		$origin = $this->getHeader('ORIGIN');
+		if (!$origin) {
+			if (preg_match('/\.(js|css)$/', $this->getUrl())) {
+				$this->_type = self::REQUEST_ASSET;
+			} else {
+				$this->_type = self::REQUEST_TYPE_PAGE_LOAD;
+			}
 			return;
 		}
 
@@ -318,11 +412,6 @@ class Dialog extends Object
 		} else {
 			$this->_type = self::REQUEST_TYPE_CORS;
 		}
-	}
-
-	private function retrieveLocation($url)
-	{
-		$this->_location = $this->urlToLocation($url);
 	}
 
 	private function retrieveUrl()
@@ -346,7 +435,7 @@ class Dialog extends Object
 
 	private function retrieveRoute()
 	{
-		$url = $this->url();
+		$url = $this->getUrl();
 		$pos = strpos($url, '?');
 		if ($pos !== false) {
 			$url = substr($url, 0, $pos);
@@ -374,37 +463,30 @@ class Dialog extends Object
 		$this->_method = strtolower($_SERVER['REQUEST_METHOD']);
 	}
 
-	private function retrieveGet()
+	private function retrieveParams()
 	{
-		$get = $_GET;
-		if (empty($get)) {
-			$url = $this->url();
-			$temp = explode('?', $url);
-			if (count($temp) > 1) {
-				$get = $this->translateGetParams($temp[1]);
+		$get = $_GET ?? [];
+		$url = $this->getUrl();
+		$temp = explode('?', $url);
+		if (count($temp) > 1) {
+			$get += $this->translateGetParams($temp[1]);
+		}
+
+		$method = $this->getMethod();
+		$post = [];
+		if ($method == 'post') {
+			$post = $_POST ?? [];
+			if (empty($post)) {
+				$input = file_get_contents('php://input');
+				$post = json_decode($input, true);
 			}
 		}
-		$this->_get = $get ?? [];
-		/*
-		//todo экранирование спецсимволов
-		urlencode
-		htmlentities
-		htmlspecialchars
-		*/
-	}
 
-	private function retrievePost()
-	{
-		$post = $_POST;
-		if (empty($post)) {
-			$input = file_get_contents('php://input');
-			$post = json_decode($input, true);
-		}
-		$this->_post = $post ?? [];
+		$this->_params = $post + $get;
 	}
 
 	private function retrieveCookie()
 	{
-		$this->_cookie = Cookie::create($_COOKIE);
+		$this->_cookie = new Cookie();
 	}
 }

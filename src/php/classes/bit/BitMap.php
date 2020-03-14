@@ -2,12 +2,31 @@
 
 namespace lx;
 
-class BitMap {
+/**
+ * Class BitMap
+ * @package lx
+ *
+ * @property-read int $x
+ * @property-read int $y
+ */
+class BitMap
+{
+	/** @var int */
 	private $_x;
+
+	/** @var int */
 	private $_y;
+
+	/** @var BitLine[] */
 	private $map;
 
-	public function __construct($x = 0, $y = 0) {
+	/**
+	 * BitMap constructor.
+	 * @param int $x
+	 * @param int $y
+	 */
+	public function __construct($x = 0, $y = 0)
+	{
 		$this->_x = $x;
 		$this->_y = $y;
 		if ($y) {
@@ -17,7 +36,12 @@ class BitMap {
 		}
 	}
 
-	public function __get($name) {
+	/**
+	 * @param string $name
+	 * @return int|null
+	 */
+	public function __get($name)
+	{
 		switch ($name) {
 			case 'x': return $this->_x;
 			case 'y': return $this->_y;
@@ -25,7 +49,12 @@ class BitMap {
 		return null;
 	}
 
-	public static function createFromString($str) {
+	/**
+	 * @param string $str
+	 * @return BitMap
+	 */
+	public static function createFromString($str)
+	{
 		$arr = preg_split('/\s+/', $str);
 		$x = strlen($arr[0]);
 		$y = count($arr);
@@ -39,7 +68,8 @@ class BitMap {
 		return $map;
 	}
 
-	public function reset() {
+	public function reset()
+	{
 		$this->map = array_fill(0, $this->_y, 0);
 		foreach ($this->map as &$item) {
 			$item = new BitLine($this->_x);
@@ -47,7 +77,11 @@ class BitMap {
 		unset($item);
 	}
 
-	public function setX($amt) {
+	/**
+	 * @param int $amt
+	 */
+	public function setX($amt)
+	{
 		if ($this->_x == $amt) return;
 		foreach ($this->map as $line) {
 			$line->setLen($amt);
@@ -55,15 +89,21 @@ class BitMap {
 		$this->_x = $amt;
 	}
 
-	public function addX() {
+	public function addX()
+	{
 		$this->setX($this->_x + 1);
 	}
 
-	public function dropX() {
+	public function dropX()
+	{
 		$this->setX($this->_x - 1);
 	}
 
-	public function setY($amt) {
+	/**
+	 * @param int $amt
+	 */
+	public function setY($amt)
+	{
 		if ($this->_y == $amt) return;
 		if ($this->_y > $amt) {
 			$this->map = array_slice($this->map, 0, $amt);
@@ -76,35 +116,64 @@ class BitMap {
 		$this->_y = $amt;
 	}
 
-	public function addY() {
+	public function addY()
+	{
 		$this->setY($this->_y + 1);
 	}
 
-	public function dropY() {
+	public function dropY()
+	{
 		$this->setY($this->_y - 1);
 	}
 
-	public function setBit($x, $y) {
+	/**
+	 * @param int $x
+	 * @param int $y
+	 */
+	public function setBit($x, $y)
+	{
 		if ($x >= $this->_x || $y >= $this->_y) return;
 		$this->map[$y]->setBit($x);
 	}
 
-	public function unsetBit($x, $y) {
+	/**
+	 * @param int $x
+	 * @param int $y
+	 */
+	public function unsetBit($x, $y)
+	{
 		if ($x >= $this->_x || $y >= $this->_y) return;
 		$this->map[$y]->unsetBit($x);
 	}
 
-	public function getBit($x, $y) {
+	/**
+	 * @param int $x
+	 * @param int $y
+	 * @return int
+	 */
+	public function getBit($x, $y)
+	{
 		if ($x >= $this->_x || $y >= $this->_y) return null;
 		return $this->map[$y]->getBit($x);
 	}
 
-	public function getLine($y) {
+	/**
+	 * @param int $y
+	 * @return BitLine|null
+	 */
+	public function getLine($y)
+	{
 		if ($y >= $this->_y) return null;
 		return $this->map[$y];
 	}
 
-	public function slice($shift, $amt) {
+	/**
+	 * @param int $shift
+	 * @param int $amt
+	 * @return BitMap|null
+	 */
+	public function slice($shift, $amt)
+	{
 		if (!$amt) return null;
 		if ($shift + $amt > $this->_y) {
 			$amt = $this->_y - $shift;
@@ -117,7 +186,13 @@ class BitMap {
 		return $result;
 	}
 
-	public function findSpace($w, $h) {
+	/**
+	 * @param int $w
+	 * @param int $h
+	 * @return array|false  [xShift:int, yShift:int]
+	 */
+	public function findSpace($w, $h)
+	{
 		if ($h > $this->_y || !$h) return false;
 
 		$rowIndex = 0;
@@ -132,7 +207,14 @@ class BitMap {
 		}
 	}
 
-	public function setSpace($x, $y=null, $w=null, $h=null) {
+	/**
+	 * @param int $x
+	 * @param int $y
+	 * @param int $w
+	 * @param int $h
+	 */
+	public function setSpace($x, $y=null, $w=null, $h=null)
+	{
 		if (is_array($x)) {
 			$this->setSpace($x[0], $x[1], $x[2], $x[3]);
 			return;
@@ -147,7 +229,14 @@ class BitMap {
 		}
 	}
 
-	public function unsetSpace($x, $y=null, $w=null, $h=null) {
+	/**
+	 * @param int $x
+	 * @param int $y
+	 * @param int $w
+	 * @param int $h
+	 */
+	public function unsetSpace($x, $y=null, $w=null, $h=null)
+	{
 		if (is_array($x)) {
 			$this->unsetSpace($x[0], $x[1], $x[2], $x[3]);
 			return;
@@ -162,7 +251,11 @@ class BitMap {
 		}
 	}
 
-	public function toString() {
+	/**
+	 * @return string
+	 */
+	public function toString()
+	{
 		$arr = [];
 		foreach ($this->map as $line) {
 			$arr[] = $line->toString();

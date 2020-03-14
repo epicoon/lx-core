@@ -8,7 +8,7 @@ namespace lx;
  */
 trait ErrorCollectorTrait
 {
-	/** @var null|ErrorCollectorList */
+	/** @var ErrorCollectorList */
 	private $errorCollectorList = null;
 
 	/**
@@ -24,7 +24,7 @@ trait ErrorCollectorTrait
 	}
 
 	/**
-	 * @param $errorInfo string|array
+	 * @param string|array $errorInfo
 	 */
 	public function addError($errorInfo)
 	{
@@ -32,7 +32,7 @@ trait ErrorCollectorTrait
 	}
 
 	/**
-	 * @param $errors array|ErrorCollectorInterface
+	 * @param array|ErrorCollectorInterface $errors
 	 */
 	public function addErrors($errors)
 	{

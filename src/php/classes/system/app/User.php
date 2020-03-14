@@ -2,19 +2,28 @@
 
 namespace lx;
 
-class User extends Object implements FusionComponentInterface
+/**
+ * Class User
+ * @package lx
+ */
+class User extends BaseObject implements FusionComponentInterface
 {
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
-	/** @var null|string */
+	/** @var string */
 	private static $userModelClass = null;
 
-	/** @var null|string */
+	/** @var string */
 	private $authFieldName = null;
-	/** @var null|ModelInterface */
+
+	/** @var ModelInterface */
 	private $userModel = null;
 
+	/**
+	 * User constructor.
+	 * @param array $config
+	 */
 	public function __construct($config = [])
 	{
 		parent::__construct($config);
@@ -26,8 +35,14 @@ class User extends Object implements FusionComponentInterface
 		if (self::$userModelClass) {
 			$this->userModel = new self::$userModelClass();
 		}
+
+		$this->delegateMethodsCall('userModel');
 	}
 
+	/**
+	 * @param string $name
+	 * @return mixed|null
+	 */
 	public function __get($name)
 	{
 		if ($this->userModel) {
@@ -39,6 +54,10 @@ class User extends Object implements FusionComponentInterface
 		return parent::__get($name);
 	}
 
+	/**
+	 * @param string $name
+	 * @param mixed $value
+	 */
 	public function __set($name, $value)
 	{
 		if ($this->userModel) {
@@ -48,19 +67,9 @@ class User extends Object implements FusionComponentInterface
 		}
 	}
 
-	public function __call($method, $args)
-	{
-		if (ClassHelper::publicMethodExists($this, $method)) {
-			return call_user_func_array([$this, $method], $args);
-		}
-
-		if ($this->userModel === null) {
-			return null;
-		}
-
-		return $this->userModel->__call($method, $args);
-	}
-
+	/**
+	 * @return bool
+	 */
 	public function isGuest()
 	{
 		if ($this->isAvailable() || $this->authFieldName) {
@@ -71,30 +80,46 @@ class User extends Object implements FusionComponentInterface
 		return true;
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function isAvailable()
 	{
 		return self::$userModelClass !== null && $this->userModel !== null;
 	}
 
+	/**
+	 * @todo - need some interface for $userData?
+	 * @param $userData
+	 */
 	public function set($userData)
 	{
-		if ( ! $this->isAvailable()) {
+		if (!$this->isAvailable()) {
 			return;
 		}
 
 		$this->userModel->setData($userData);
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getAuthField()
 	{
 		return $this->{$this->authFieldName};
 	}
 
+	/**
+	 * @param string $name
+	 */
 	public function setAuthFieldName($name)
 	{
 		$this->authFieldName = $name;
 	}
 
+	/**
+	 * @return string
+	 */
 	public function getAuthFieldName()
 	{
 		if ($this->isGuest()) {

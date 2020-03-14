@@ -2,69 +2,48 @@
 
 namespace lx;
 
-/*
-	public function __construct($plugin)
+/**
+ * Class PluginConductor
+ * @package lx
+ */
+class PluginConductor extends BaseObject implements ConductorInterface, FusionComponentInterface
+{
+	use ApplicationToolTrait;
+	use FusionComponentTrait;
+
+	/** @var array */
+	private $imageMap;
+
+	/** @var array */
+	private $cssMap;
+
+	/**
+	 * @return Plugin
+	 */
+	public function getPlugin()
+	{
+		return $this->owner;
+	}
+
+	/**
+	 * @return string
+	 */
 	public function getPath()
-	public function pluginContain($path)
-	public function getFullPath($fileName)
-	public function getPathInSite($fileName)
-	public function getSnippetPath($name = null)
-	public function getScriptPath($name)
-	public function getFile($name)
-	public function findRespondent($name)
-	public function getJsMain()
-	public function getJsBootstrap()
-	public function getCssAssets()
-	public function getImageRoute($name)
-	public function getConfigPath()
-	public function getImagePathInSite()
-
-	private function getRegFromPath($start, $path, $finish = '')
-	private function decodeAlias($path)
-	private function cutFullPathToSite($path)
-*/
-class PluginConductor {
-	private $app;
-	private $plugin;
-
-	/**
-	 *
-	 * */
-	public function __construct($plugin) {
-		$this->plugin = $plugin;
-		$this->app = $plugin->app;
-	}
-
-	public function getRootPath() {
-		return $this->getPath();
+	{
+		return $this->getPlugin()->directory->getPath();
 	}
 
 	/**
-	 *
-	 * */
-	public function getPath() {
-		return $this->plugin->directory->getPath();
-	}
-
-	public function getSystemPath() {
-		return $this->getPath() . '/.system';
-	}
-
-	/**
-	 *
-	 * */
-	public function pluginContain($path) {
-		return $this->plugin->directory->contains($path);
-	}
-
-	/**
-	 * Получить полное имя файла с учетом использования алиасов (плагина и приложения)
-	 * */
-	public function getFullPath($fileName, $relativePath = null) {
+	 * @param string $fileName
+	 * @param string $relativePath
+	 * @return string
+	 */
+	public function getFullPath($fileName, $relativePath = null)
+	{
 		if ($fileName{0} == '@') {
 			$fileName = $this->decodeAlias($fileName);
 		}
-		
+
 		if ($relativePath === null) {
 			$relativePath = $this->getPath();
 		}
@@ -72,186 +51,107 @@ class PluginConductor {
 		return $this->app->conductor->getFullPath($fileName, $relativePath);
 	}
 
-	public function getRelativePath($path, $defaultLocation = null) {
+	/**
+	 * @param string $path
+	 * @param string $defaultLocation
+	 * @return string
+	 */
+	public function getRelativePath($path, $defaultLocation = null)
+	{
 		$fullPath = $this->getFullPath($path, $defaultLocation);
 		return explode($this->getPath() . '/', $fullPath)[1];
 	}
 
 	/**
-	 *
-	 * */
-	public function getPathInSite($fileName) {
-		// Если начинается с '/' - это путь от корня сайта
-		if ($fileName{0} == '/') return $fileName;
+	 * @param string $name
+	 * @return BaseFile|null
+	 */
+	public function getFile($name)
+	{
+		$path = $this->getFullPath($name);
+		if (!$path) {
+			return null;
+		}
 
-		$result = $this->getFullPath($fileName);
-		$result = $this->cutFullPathToSite($result);
-		return $result;
+		return BaseFile::construct($path);
 	}
 
 	/**
-	 * Если имя блока явно не задано, будет возвращен путь к корневому блоку плагина
-	 * */
-	public function getSnippetPath($name = null) {
-		if ($name === null) {
-			return $this->getFullPath($this->plugin->getConfig('rootSnippet'));
+	 * @return string
+	 */
+	public function getImagePath($fileName)
+	{
+		$map = $this->getImagePathesInSite();
+		if ($fileName{0} == '@') {
+			preg_match('/^@([^\/]+?)(\/.+)$/', $fileName, $match);
+			if (empty($match)) {
+				return '';
+			}
+			$key = $match[1];
+			if (!array_key_exists($key, $map)) {
+				return '';
+			}
+			return \lx::$conductor->sitePath . $map[$key] . $match[2];
+		} else {
+			if (array_key_exists('default', $map)) {
+				return \lx::$conductor->sitePath . $map['default'] . '/' . $fileName;
+			}
+
+			return $this->getFullPath($fileName);
+		}
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getSystemPath($name = null)
+	{
+		$path = $this->getPath() . '/.system';
+		if ($name) {
+			return $path . '/' . $name;
 		}
 
-		$snippetDirs = $this->plugin->getConfig('snippets');
+		return $path;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getSnippetsCachePath()
+	{
+		return $this->getSystemPath() . '/snippet_cache';
+	}
+
+	/**
+	 * @param string $path
+	 * @return bool
+	 */
+	public function pluginContains($path)
+	{
+		return $this->getPlugin()->directory->contains($path);
+	}
+
+	/**
+	 * If $name isn't defined path to the root snippet will be returned
+	 *
+	 * @param string $name
+	 * @return string|null
+	 */
+	public function getSnippetPath($name = null)
+	{
+		if ($name === null) {
+			return $this->getFullPath($this->getPlugin()->getConfig('rootSnippet'));
+		}
+
+		$snippetDirs = $this->getPlugin()->getConfig('snippets');
 		if (!$snippetDirs) {
 			return null;
 		}
 
 		foreach ((array)$snippetDirs as $snippetDir) {
 			$path = $this->getFullPath($snippetDir . '/' . $name);
-
-			if (file_exists($path)) return $path;
-			if (file_exists("$path.js")) return "$path.js";
-			if (file_exists("$path/_main.js")) return "$path/_main.js";
-			if (file_exists("$path/main.js")) return "$path/main.js";
-
-			$arr = explode('/', $path);
-			$snippetName = end($arr);
-			if (file_exists("$path/_$snippetName.js")) return "$path/_$snippetName.js";
-			if (file_exists("$path/$snippetName.js")) return "$path/$snippetName.js";
-		}
-
-		return null;
-	}
-
-	/**
-	 *
-	 * */
-	public function getScriptPath($name) {
-		if (preg_match('/^http/', $name) || preg_match('/^\//', $name))
-			return $name;
-
-		return $this->getPathInSite($name);
-	}
-
-	/**
-	 * Получить файл с учетом использования алиасов (плагина и приложения)
-	 * */
-	public function getFile($name) {
-		$path = $this->getFullPath($name);
-		if (!$path) return null;
-		return BaseFile::getFileOrDir($path);
-	}
-
-	/**
-	 * Вернет респондента
-	 * */
-	public function findRespondent($name) {
-		$plugin = $this->plugin;
-
-		$respondents = (array)$plugin->getConfig('respondents');
-		if (!array_key_exists($name, $respondents)) {
-			return false;
-		}
-
-		$namespace = $plugin->getConfig('respondentsNamespace');
-		if (!$namespace) {
-			$namespace = ClassHelper::getNamespace($plugin);
-		}
-
-		$className = $namespace . '\\' . $respondents[$name];
-
-		if (!ClassHelper::exists($className)) {
-			return false;
-		}
-
-		return new $className([
-			'plugin' => $plugin
-		]);
-	}
-
-	/**
-	 *
-	 * */
-	public function getJsMain() {
-		$jsMain = $this->plugin->getConfig('jsMain');
-		if (!$jsMain) return null;
-		return $this->getFile($jsMain);
-	}
-
-	/**
-	 *
-	 * */
-	public function getJsBootstrap() {
-		$jsBootstrap = $this->plugin->getConfig('jsBootstrap');
-		if (!$jsBootstrap) return null;
-		return $this->getFile($jsBootstrap);
-	}
-
-	/**
-	 *
-	 * */
-	public function getCssAssets() {
-		$result = [];
-
-		$css = (array)$this->plugin->getConfig('css');
-		foreach ($css as $value) {
-			$path = $this->getFullPath($value);
-			$d = new Directory($path);
-			if (!$d->exists()) continue;
-
-			$files = $d->getFiles('*.(css|css.js)');
-			$pares = [];
-			$files->each(function($file) use (&$pares) {
-				$ext = $file->getExtension();
-				$key = $ext == 'css'
-					? $file->getName()
-					: $file->getCleanName();
-				if (!array_key_exists($key, $pares)) {
-					$pares[$key] = [
-						'js' => null,
-						'css' => null,
-					];
-				}
-				if ($ext == 'css') {
-					$pares[$key]['css'] = $file;
-				} else {
-					$pares[$key]['js'] = $file;
-				}
-			});
-
-			$cssPath = $this->cutFullPathToSite($path);
-			foreach ($pares as $key => $pare) {
-				if ($pare['js']
-					&& (!$pare['css'] || $pare['js']->isNewer($pare['css']))
-				) {
-					if (!$pare['css']) {
-						$pare['css'] = $d->makeFile($key);
-					}
-					$exec = new NodeJsExecutor();
-					$cssCode = $exec->runFile($pare['js'], ['@core/js/classes/css/CssContext']);
-					$pare['css']->put($cssCode);
-				}
-
-				$result[] = $cssPath . '/' . $pare['css']->getName();
-			}
-		}
-
-		return $result;
-	}
-
-	/**
-	 *
-	 * */
-	public function getImageRoute($name) {
-		return $this->getImagePathInSite() . '/' . $name;
-	}
-
-	/**
-	 *
-	 * */
-	public function getConfigPath() {
-		$pathes = $this->app->conductor->pluginConfig;
-
-		// Получение собственных настроек
-		foreach ($pathes as $path) {
-			$fullPath = $this->getPath() . '/' . $path;
-			if (file_exists($fullPath)) {
+			$fullPath = Snippet::defineSnippetPath($path);
+			if ($fullPath) {
 				return $fullPath;
 			}
 		}
@@ -260,62 +160,172 @@ class PluginConductor {
 	}
 
 	/**
-	 * Путь к изображениям плагина относительно самого плагина
-	 * Рендерер отсюда берет путь к изображениям
-	 * Можно использовать @, / и {}
-	 * */
-	public function getImagePathInSite() {
-		$images = $this->plugin->getConfig('images');
-		if ($images === null) return false;
+	 * @param string $name
+	 * @return Respondent|null
+	 */
+	public function getRespondent($name)
+	{
+		$plugin = $this->getPlugin();
 
-		return $this->getPathInSite($images);
+		$respondents = (array)$plugin->getConfig('respondents');
+		if (!array_key_exists($name, $respondents)) {
+			return null;
+		}
+
+		$respondentClassName = $respondents[$name];
+		if (!ClassHelper::exists($respondentClassName)) {
+			$respondentClassName = ClassHelper::getNamespace($plugin) . '\\' . $respondentClassName;
+			if (!ClassHelper::exists($respondentClassName)) {
+				return null;
+			}
+		}
+
+		$respondent = $this->app->diProcessor->create($respondentClassName, [
+			'plugin' => $plugin
+		]);
+		return $respondent;
 	}
 
 	/**
-	 *
-	 * */
-	public function getImagePath() {
-		$images = $this->plugin->getConfig('images');
-		if ($images === null) return false;
+	 * @return File|null
+	 */
+	public function getJsMain()
+	{
+		$jsMain = $this->getPlugin()->getConfig('jsMain');
+		if (!$jsMain) {
+			return null;
+		}
 
-		return $this->getFullPath($images);
+		$result = $this->getFile($jsMain);
+		if ($result instanceof File) {
+			return $result;
+		}
+
+		return null;
 	}
 
 	/**
-	 *
-	 * */
-	private function getRegFromPath($start, $path, $finish = '') {
-		$modified = str_replace('/', '\/', $path);
-		return "/$start$modified$finish/";
+	 * @return File|null
+	 */
+	public function getJsBootstrap()
+	{
+		$jsBootstrap = $this->getPlugin()->getConfig('jsBootstrap');
+		if (!$jsBootstrap) {
+			return null;
+		}
+
+		$result = $this->getFile($jsBootstrap);
+		if ($result instanceof File) {
+			return $result;
+		}
+
+		return null;
 	}
 
 	/**
-	 *
-	 * */
-	private function decodeAlias($path) {
-		$aliases = $this->plugin->getConfig('aliases');
+	 * @param string $name
+	 * @return string
+	 */
+	public function getAssetPath($name)
+	{
+		if (preg_match('/^http/', $name) || preg_match('/^\//', $name)) {
+			return $name;
+		}
+
+		return '/' . $this->app->conductor->getRelativePath($this->getFullPath($name));
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getCssAssets()
+	{
+		$appCycler = $this->app->lifeCycle;
+		if ($appCycler) {
+			$appCycler->beforeGetPluginCssAssets($this->getPlugin());
+		}
+
+		$plugin = $this->getPlugin();
+		$css = $plugin->getConfig('css');
+		if (!$css) {
+			return [];
+		}
+
+		$css = (array)$css;
+		$result = [];
+		foreach ($css as $value) {
+			$path = $plugin->conductor->getFullPath($value);
+			$d = new Directory($path);
+			if (!$d->exists()) {
+				return [];
+			}
+
+			$relativePath = \lx::$app->conductor->getRelativePath($path);
+			$files = $d->getFiles('*.css');
+			$list = [];
+			foreach ($files as $file) {
+				$list[] = '/' . $relativePath . '/' . $file->getName();
+			}
+
+			$result = array_merge($result, $list);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getImagePathesInSite()
+	{
+		$images = $this->getPlugin()->getConfig('images');
+		if ($images === null) {
+			return [];
+		}
+
+		if (is_string($images)) {
+			$images = ['default' => $images];
+		}
+
+		foreach ($images as $key => $path) {
+			$relPath = '/' . $this->app->conductor->getRelativePath($this->getFullPath($path));
+			$images[$key] = $relPath;
+		}
+
+		return $images;
+	}
+
+
+	/*******************************************************************************************************************
+	 * PRIVATE
+	 ******************************************************************************************************************/
+
+	/**
+	 * @param string $path
+	 * @return string
+	 */
+	private function decodeAlias($path)
+	{
+		$aliases = $this->getPlugin()->getConfig('aliases');
 		if (!$aliases) {
-			return $this->plugin->getService()->getFilePath($path);
+			return $this->getPlugin()->getService()->getFilePath($path);
 		}
 
 		$result = $path;
 		while (true) {
 			preg_match_all('/^@([_\w][_\-\w\d]*?)(\/|$)/', $result, $arr);
-			if (empty($arr) || empty($arr[0])) return $result;
+			if (empty($arr) || empty($arr[0])) {
+				return $result;
+			}
 
 			$mask = $arr[0][0];
 			$alias = $arr[1][0];
-			if (!array_key_exists($alias, $aliases)) return $result;
+			if (!array_key_exists($alias, $aliases)) {
+				return $result;
+			}
 
 			$alias = $aliases[$alias] . $arr[2][0];
 			$result = str_replace($mask, $alias, $result);
 		}
-	}
-
-	/**
-	 *
-	 * */
-	private function cutFullPathToSite($path) {
-		return explode($this->app->sitePath, $path)[1];
 	}
 }

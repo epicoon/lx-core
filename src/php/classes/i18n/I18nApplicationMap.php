@@ -2,37 +2,46 @@
 
 namespace lx;
 
+/**
+ * Class I18nApplicationMap
+ * @package lx
+ */
 class I18nApplicationMap extends I18nMap
 {
+	/** @var array */
 	private $used = [];
 
+	/**
+	 * @param string $name
+	 * @return bool
+	 */
 	public function inUse($name)
 	{
 		return array_search($name, $this->used) !== false;
 	}
 
+	/**
+	 * @param string $name
+	 */
 	public function noteUse($name)
 	{
 		$this->used[] = $name;
 	}
 
-	protected function loadMap()
+	/**
+	 * @param string $fileName
+	 * @return string
+	 */
+	protected function getFilePath($fileName)
 	{
-		if ($this->map !== null) {
-			return $this->map;
-		}
+		return $this->app->conductor->getFullPath($fileName);
+	}
 
-		/*
-		TODO
-		сделать возможность указывать в конфиге несколько файлов и даже каталогов с картами
-		*/
-		$fileName = $this->app->getConfig('i18nFile');
-		if (!$fileName) {
-			$fileName = self::DEFAULT_FILE_NAME;
-		}
-
-		$fullPath = $this->app->conductor->getFullPath($fileName);
-		$file = new ConfigFile($fullPath);
-		$this->map = $file->exists() ? $file->get() : [];
+	/**
+	 * @return array|string
+	 */
+	protected function getFilesFromConfig()
+	{
+		return $this->app->getConfig('i18nFile');
 	}
 }

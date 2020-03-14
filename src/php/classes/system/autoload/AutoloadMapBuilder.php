@@ -2,24 +2,35 @@
 
 namespace lx;
 
-/*
-Дока по настройкам композера
-https://getcomposer.org/doc/04-schema.md
-*/
-class AutoloadMapBuilder {
+/**
+ * Class AutoloadMapBuilder
+ * @package lx
+ */
+class AutoloadMapBuilder
+{
+	/** @var array */
 	private $packagesMap = [];
+
+	/** @var array */
 	private $bootstrapFiles = [];
+
+	/** @var array */
 	private $namespacesMap = [];
+
+	/** @var array */
 	private $classes = [];
+
+	/** @var array */
 	private $directories = [];
 
 	/**
-	 * Формирование файла 'autoload.json'
-	 * Проходит по карте директорий с пакетами (из конфига приложения по ключу 'packagesMap')
-	 * Рекурсивно в директориях ищет пакеты
-	 * Пакетом считается каталог, в котором удалось найти конфигурационный файл
-	 * */
-	public function createCommonAutoloadMap() {
+	 * Makes file 'autoload.json'
+	 * Crowls all package directories (from application configuration with key 'packagesMap')
+	 * Finds recursively in these directories for packages
+	 * Package is a directory with special configuration file
+	 */
+	public function createCommonAutoloadMap()
+	{
 		$map = \lx::$app->getConfig('packagesMap');
 
 		foreach ($map as $dirPath) {
@@ -34,10 +45,16 @@ class AutoloadMapBuilder {
 		$this->save();
 	}
 
+
+	/*******************************************************************************************************************
+	 * PRIVATE
+	 ******************************************************************************************************************/
+
 	/**
-	 * Сохранение в файл всех собранных карт
-	 * */
-	private function save() {
+	 * Save all maps to file
+	 */
+	private function save()
+	{
 		$data = [
 			'packages' => $this->packagesMap,
 			'files' => $this->bootstrapFiles,
@@ -46,24 +63,21 @@ class AutoloadMapBuilder {
 			'directories' => $this->directories,
 		];
 		$data = json_encode($data);
-		$file = new File(\lx::$conductor->getSystemPath('systemPath') . '/autoload.json');
+		$file = new File(\lx::$conductor->getSystemPath('autoload.json'));
 		$file->put($data);
 	}
 
 	/**
-	 * Проверяем - по данному пути находится пакет или нет
-	 * Если пакет - строятся карты
-	 * Если не пакет - рекурсия по подкаталогам
-	 * Пакетом признается директория, у которой есть конфигурационный файл:
-	 * - (lx-config|lx-config/main).(yaml|php) || composer.json
-	 * */
-	private function analizeDirectory($path) {
+	 * @param string $path
+	 */
+	private function analizeDirectory($path)
+	{
 		$config = $this->tryGetPackageConfig($path);
 
 		if ($config === null) {
 			$dir = new Directory($path);
 			$subDirs = $dir->getDirs(Directory::FIND_NAME);
-			$subDirs = $subDirs->getData();
+			$subDirs = $subDirs->toArray();
 			foreach ($subDirs as $subDir) {
 				$this->analizeDirectory($path . '/' . $subDir);
 			}
@@ -74,22 +88,21 @@ class AutoloadMapBuilder {
 	}
 
 	/**
-	 * Анализ конфига пакета - строятся карты
-	 * */
-	private function analizePackage($packagePath, $config) {
-		// Карта пакетов
+	 * @param string $packagePath
+	 * @param array $config
+	 */
+	private function analizePackage($packagePath, $config)
+	{
 		$packageName = $config['name'];
 		$relativePackagePath = explode(\lx::$app->sitePath . '/', $packagePath)[1];
 
 		$this->packagesMap[$packageName] = $relativePackagePath;
 
-		// Автозагрузка
 		if (!isset($config['autoload'])) {
 			return;
 		}
 		$autoload = $config['autoload'];
 
-		// Файлы для подключения сразу и всегда
 		if (isset($autoload['files'])) {
 			$files = (array)$autoload['files'];
 			foreach ($files as &$file) {
@@ -99,7 +112,6 @@ class AutoloadMapBuilder {
 			$this->bootstrapFiles = array_merge($this->bootstrapFiles, $files);
 		}
 
-		// PSR-4 и PSR-0
 		if (isset($autoload['psr-4'])) {
 			foreach ($autoload['psr-4'] as $namespace => $pathes) {
 				$this->namespacesMap[$namespace] = [
@@ -117,7 +129,6 @@ class AutoloadMapBuilder {
 			}
 		}
 
-		// Карта каталогов для финального поиска
 		if (isset($autoload['classmap'])) {
 			$classmap = (array)$autoload['classmap'];
 			foreach ($classmap as $item) {
@@ -138,9 +149,11 @@ class AutoloadMapBuilder {
 	}
 
 	/**
-	 * Пытается извлечь конфиг пакета из директории. Если не извлекает - вернет null, значит это не пакет
-	 * */
-	private function tryGetPackageConfig($path) {
+	 * @param string $path
+	 * @return DataFileInterface|null
+	 */
+	private function tryGetPackageConfig($path)
+	{
 		return (new PackageDirectory($path))->getConfigFile();
 	}
 }

@@ -3,17 +3,22 @@
 namespace lx;
 
 /**
- * Указывает на важные пути в архитектуре приложения
- * */
-class ApplicationConductor extends Object {
+ * Class ApplicationConductor
+ * @package lx
+ */
+class ApplicationConductor extends BaseObject implements ConductorInterface
+{
 	use ApplicationToolTrait;
 
+	/** @var array */
 	private $aliases = [];
 
 	/**
-	 * Геттер предоставляет доступ к полям, начинающимся с '_'
-	 * */
-	public function __get($name) {
+	 * @param string $name
+	 * @return string|array|null
+	 */
+	public function __get($name)
+	{
 		$result = parent::__get($name);
 		if ($result !== null) {
 			return $result;
@@ -36,56 +41,33 @@ class ApplicationConductor extends Object {
 		return $alias;
 	}
 
-	public function getRootPath() {
-		return \lx::$conductor->site;
+	/**
+	 * @return string
+	 */
+	public function getPath()
+	{
+		return \lx::$conductor->sitePath;
 	}
 
 	/**
-	 * Перезаписать список алиасов переданным массивом
-	 * */
-	public function setAliases($arr) {
-		$this->aliases = [];
-		$this->addAliases($arr);
-	}
-
-	/**
-	 * Добавить к списку алиасов переданные в массиве
-	 * */
-	public function addAliases($arr) {
-		foreach ($arr as $name => $path) {
-			$this->addAlias($name, $path);
-		}
-	}
-
-	/**
-	 * Добавить алиас
-	 * */
-	public function addAlias($name, $path) {
-		if (array_key_exists($name, $this->aliases) || property_exists($this, '_' . $name)) {
-			throw new \Exception("Can not add alias '$name'. Alias with same name already exists", 400);
-			
-		}
-
-		$this->aliases[$name] = $path;
-	}
-
-	public function getRelativePath($path, $defaultLocation = null) {
-		$fullPath = $this->getFullPath($path, $defaultLocation);
-		return explode($this->sitePath . '/', $fullPath)[1];
-	}
-
-	/**
-	 * Если путь начинается с '/' - он будет достроен путем от корня сайта
-	 * Если путь начинается с '@' - он будет достроен расшифровкой алиаса
-	 * Если путь начинается с '{package:package-name}' - он будет достроен относительно пакета
-	 * Если путь начинается с '{service:service-name}' - он будет достроен относительно сервиса
-	 * Если путь начинается с '{plugin:plugin-name}' - он будет достроен относительно плагина
-	 * Если путь относительный - он достроится путем $defaultLocation
-	 * Если $defaultLocation не задан - путь достроится от корня сайта
-	 * */
-	public function getFullPath($path, $defaultLocation = null) {
+	 * If the path begins with '/' it will be completed with site path
+	 * If the path begins with '@' it will be completed by alias definition
+	 * If the path begins with '{package:package-name}' it will be completed relative to package
+	 * If the path begins with '{service:service-name}' it will be completed relative to service
+	 * If the path begins with '{plugin:plugin-name}' it will be completed relative to plugin
+	 * If the path is relative it will be completed with $defaultLocation
+	 * If the $defaultLocation is not defined the path will be completed with site path
+	 *
+	 * @param string $path
+	 * @param string $defaultLocation
+	 * @return string|false
+	 */
+	public function getFullPath($path, $defaultLocation = null)
+	{
 		if ($path{0} == '/') {
-			if (preg_match('/^'. str_replace('/', '\/', $this->sitePath) .'/', $path)) return $path;
+			if (preg_match('/^' . str_replace('/', '\/', $this->sitePath) . '/', $path)) {
+				return $path;
+			}
 			return $this->sitePath . $path;
 		}
 
@@ -98,60 +80,134 @@ class ApplicationConductor extends Object {
 		}
 
 		if ($defaultLocation === null) $defaultLocation = $this->sitePath;
-		if ($defaultLocation[-1] != '/') $defaultLocation .= '/';
+		if ($defaultLocation{-1} != '/') $defaultLocation .= '/';
 		return $defaultLocation . $path;
 	}
 
 	/**
-	 *
-	 * */
-	public function getSystemPath($name) {
+	 * @param string $path
+	 * @param string $defaultLocation
+	 * @return string|false
+	 */
+	public function getRelativePath($path, $defaultLocation = null)
+	{
+		$fullPath = $this->getFullPath($path, $defaultLocation);
+		if (!$fullPath) {
+			return false;
+		}
+
+		return explode($this->sitePath . '/', $fullPath)[1];
+	}
+
+	/**
+	 * @param string $name
+	 * @return BaseFile|null
+	 */
+	public function getFile($name)
+	{
+		$path = $this->getFullPath($name);
+		if (!$path) {
+			return null;
+		}
+
+		return BaseFile::construct($path);
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getSystemPath($name = null)
+	{
 		return \lx::$conductor->getSystemPath($name);
 	}
 
-	// /**
-	//  * Получить путь по алиасу
-	//  * */
-	// private function getAlias($name) {
-	// 	$name = preg_replace('/^@/', '', $name);
-	// 	if (array_key_exists($name, $this->aliases)) return $this->aliases[$name];
-	// 	$name = '_' . $name;
-	// 	if (property_exists($this, $name)) return $this->$name;
-	// 	return null;
-	// }
+	/**
+	 * @param array $arr
+	 */
+	public function setAliases($arr)
+	{
+		$this->aliases = [];
+		$this->addAliases($arr);
+	}
 
 	/**
-	 * Расшифровывает алиас в пути, согласно своему списку алиасов
-	 * Если в списке алиас не найден - проверит свои поля, н-р для алиаса '@lx' подставит значение $this->_lx
-	 * */
-	private function decodeAlias($path) {
+	 * @param array $arr
+	 */
+	public function addAliases($arr)
+	{
+		foreach ($arr as $name => $path) {
+			$this->addAlias($name, $path);
+		}
+	}
+
+	/**
+	 * @param string $name
+	 * @param string $path
+	 * @param bool $rewrite
+	 */
+	public function addAlias($name, $path, $rewrite = false)
+	{
+		if (array_key_exists($name, $this->aliases) && !$rewrite) {
+			return;
+		}
+
+		$this->aliases[$name] = $path;
+	}
+
+
+	/*******************************************************************************************************************
+	 * PRIVATE
+	 ******************************************************************************************************************/
+
+	/**
+	 * @param string $path
+	 * @return string|false
+	 */
+	private function decodeAlias($path)
+	{
 		preg_match_all('/^@([_\w][_\-\w\d]*?)(\/|$)/', $path, $arr);
-		if (empty($arr[0])) return $path;
+		if (empty($arr[0])) {
+			return $path;
+		}
 
 		$mask = $arr[0][0];
 		$alias = $arr[1][0];
 
-		// Если алиас не задан в массиве - будет проверено поле самого кондуктора
-		if (array_key_exists($alias, $this->aliases)) $alias = $this->aliases[$alias];
-		else $alias = $this->$alias;
+		if (array_key_exists($alias, $this->aliases)) {
+			$alias = $this->aliases[$alias];
+		} else {
+			$alias = $this->$alias;
+		}
 
-		//todo возможно надо логировать проблему, или выбросить исключение
-		if (!$alias) return false;
+		if (!$alias) {
+			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+				'msg' => "Can't decode alias '$path'",
+			]);
+			return false;
+		}
 
-		// Вторая группа может содержать слэш
 		$alias .= $arr[2][0];
 		$path = str_replace($mask, $alias, $path);
 
-		if ($path{0} == '@') return $this->decodeAlias($path);
+		if ($path{0} == '@') {
+			return $this->decodeAlias($path);
+		}
 		return $path;
 	}
 
 	/**
-	 *
-	 * */
-	private function getStuffPath($path) {
+	 * @param string $path
+	 * @return string|false
+	 */
+	private function getStuffPath($path)
+	{
 		preg_match_all('/^{([^:]+?):([^}]+?)}\/?(.+?)$/', $path, $matches);
 		if (empty($matches[1])) {
+			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+				'msg' => "Wrong stuff path '$path'",
+			]);
 			return false;
 		}
 
@@ -161,6 +217,10 @@ class ApplicationConductor extends Object {
 		if ($key == 'package') {
 			$packagePath = $this->app->getPackagePath($name);
 			if (!$packagePath) {
+				\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+					'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+					'msg' => "Package '$name' is not found for '$path'",
+				]);
 				return false;
 			}
 
@@ -170,6 +230,10 @@ class ApplicationConductor extends Object {
 		if ($key == 'service') {
 			$service = $this->app->getService($name);
 			if (!$service) {
+				\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+					'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+					'msg' => "Service '$name' is not found for '$path'",
+				]);
 				return false;
 			}
 
@@ -179,6 +243,10 @@ class ApplicationConductor extends Object {
 		if ($key == 'plugin') {
 			$plugin = $this->app->getPlugin($name);
 			if (!$plugin) {
+				\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+					'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+					'msg' => "Plugin '$name' is not found for '$path'",
+				]);
 				return false;
 			}
 

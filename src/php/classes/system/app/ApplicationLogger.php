@@ -2,17 +2,30 @@
 
 namespace lx;
 
-class ApplicationLogger extends Object implements LoggerInterface, FusionComponentInterface {
+/**
+ * Class ApplicationLogger
+ * @package lx
+ */
+class ApplicationLogger extends BaseObject implements LoggerInterface, FusionComponentInterface
+{
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
 	const DEFAULT_CATEGORY = 'common';
 	const DEFAULT_LOG_PATH = '@site/log';
-	
+
+	/** @var string */
 	protected $logPath;
+
+	/** @var int */
 	protected $messagesCountForFile = 10000;
-	
-	public function log($data, $category = null) {
+
+	/**
+	 * @param array|string $data
+	 * @param string $category
+	 */
+	public function log($data, $category = null)
+	{
 		if ($category === null) {
 			$category = self::DEFAULT_CATEGORY;
 		}
@@ -23,7 +36,7 @@ class ApplicationLogger extends Object implements LoggerInterface, FusionCompone
 		$date = new \DateTime();
 		$date = $date->format('Y-m-d');
 
-		$ff = $dir->getFiles($date . '*.log', Directory::FIND_NAME)->getData();
+		$ff = $dir->getFiles($date . '*.log', Directory::FIND_NAME)->toArray();
 		$lastFileIndex = -1;
 		$lastFileName = '';
 		foreach ($ff as $name) {
@@ -57,30 +70,35 @@ class ApplicationLogger extends Object implements LoggerInterface, FusionCompone
 
 		$file->put($msg, FILE_APPEND);
 	}
-	
-	public function getLogDirectory() {
+
+	/**
+	 * @return Directory
+	 */
+	protected function getLogDirectory()
+	{
 		$dir = new Directory($this->getLogPath());
 		$dir->make();
 		return $dir;
 	}
-	
-	public function getLogPath() {
+
+	/**
+	 * @return string
+	 */
+	protected function getLogPath()
+	{
 		$path = $this->logPath ?? self::DEFAULT_LOG_PATH;
 		return $this->app->conductor->getFullPath($path);
 	}
 
-	protected function prepareData($data, $index) {
+	/**
+	 * @param array|string $data
+	 * @param int $index
+	 * @return string
+	 */
+	protected function prepareData($data, $index)
+	{
 		$result = '[[MSG_BEGIN #' . $index . ']]' . PHP_EOL;
 
-		/*
-		TODO
-		Доп.инфа, как минимум время записи 
-		Нормально упаковывать инфу в зависимости от типа данных
-		число
-		строка
-		массив
-		объект
-		*/
 		if (!is_string($data)) {
 			$data = json_encode($data);
 		}

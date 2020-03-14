@@ -4,14 +4,16 @@ return [
 	'AutoloadMapBuilder' => 'classes/system/autoload',
 	'AutoloadMap' => 'classes/system/autoload',
 
-	'Object' => 'classes/system/object',
+	'BaseObject' => 'classes/system/object',
 
 	'AbstractApplication' => 'classes/system/app',
 	'Application' => 'classes/system/app',
 	'ConsoleApplication' => 'classes/system/app',
 
+	'DevApplicationLifeCycleManager' => 'classes/system/app',
 	'ApplicationConductor' => 'classes/system/app',
 	'ApplicationLogger' => 'classes/system/app',
+	'DevLogger' => 'classes/system/app',
 	'User' => 'classes/system/app',
 	'UserEventsEnum' => 'classes/system/app',
 	'DependencyProcessor' => 'classes/system/app',
@@ -23,19 +25,28 @@ return [
 	'SpecialAjaxRouter' => 'classes/system/dialog',
 	'RequestHandler' => 'classes/system/dialog',
 	'Source' => 'classes/system/dialog',
+	'Rect' => 'classes/system/dialog',
 	'SourceContext' => 'classes/system/dialog',
 	'SourceError' => 'classes/system/dialog',
+	'AbstractSourceVoter' => 'classes/system/dialog',
 	'CorsProcessor' => 'classes/system/dialog',
 
 	'EventManager' => 'classes/system/event',
-	'EventLestenerInterface' => 'classes/system/event',
+	'EventListenerInterface' => 'classes/system/event',
 	'EventListenerTrait' => 'classes/system/event',
 
-	'Console' => 'classes/system',
-	'HtmlHead' => 'classes/system',
-	'JsCompiler' => 'classes/system/JsCompiler',
-	'JsCompileDependencies' => 'classes/system/JsCompiler',
-	'NodeJsExecutor' => 'classes/system/JsCompiler',
+	'Console' => 'classes/system/console',
+	'ConsoleInputContext' => 'classes/system/console',
+	'Cli' => 'classes/system/console',
+	'CliProcessor' => 'classes/system/console',
+	'ServiceCliExecutor' => 'classes/system/console',
+	'JsCompiler' => 'classes/system/compiler',
+	'JsCompileDependencies' => 'classes/system/compiler',
+	'AssetCompiler' => 'classes/system/compiler',
+	'NodeJsExecutor' => 'classes/system/compiler',
+	'HtmlHead' => 'classes/system/html',
+	'HtmlBody' => 'classes/system/html',
+	'HtmlHelper' => 'classes/system/html',
 	'PluginEditor' => 'classes/system/editor',
 	'ServiceEditor' => 'classes/system/editor',
 
@@ -62,6 +73,7 @@ return [
 	'PluginBuildContext' => 'classes/plugin/build',
 	'SnippetBuildContext' => 'classes/plugin/build',
 	'SnippetCacheData' => 'classes/plugin/build',
+	'JsScriptAsset' => 'classes/plugin',
 
 	'JsModuleMapBuilder' => 'classes/module',
 	'JsModuleMap' => 'classes/module',
@@ -75,25 +87,24 @@ return [
 	'DbTable' => 'classes/db',
 	'DbRecord' => 'classes/db',
 	'DbConnectionList' => 'classes/db',
+	'DbConnector' => 'classes/db',
 	'DB' => 'classes/db',
 	'DBpostgres' => 'classes/db',
 	'DBmysql' => 'classes/db',
 
 	'Request' => 'classes/tools',
 	'Vector' => 'classes/tools',
-	'Collection' => 'classes/tools',
-	'Tree' => 'classes/tools',
-	'Iterator' => 'classes/tools',
 
 	'BaseFile' => 'classes/file',
 	'File' => 'classes/file',
 	'Directory' => 'classes/file',
+	'FileLink' => 'classes/file',
 	'YamlFile' => 'classes/file',
-	'HtmpFile' => 'classes/file',
-	'ConfigFile' => 'classes/file',
-
-	'Cli' => 'classes/system/cli',
-	'CliProcessor' => 'classes/system/cli',
+	'DataFile' => 'classes/file',
+	'DataFileAdapter' => 'classes/file/dataFileAdapter',
+	'PhpDataFileAdapter' => 'classes/file/dataFileAdapter',
+	'JsonDataFileAdapter' => 'classes/file/dataFileAdapter',
+	'YamlDataFileAdapter' => 'classes/file/dataFileAdapter',
 
 	'BitLine' => 'classes/bit',
 	'BitMap' => 'classes/bit',
@@ -108,9 +119,7 @@ return [
 	'Math' => 'classes/helpers',
 	'ArrayHelper' => 'classes/helpers',
 	'StringHelper' => 'classes/helpers',
-	'Geom' => 'classes/helpers',
 	'Yaml' => 'classes/helpers',
-	'Htmp' => 'classes/helpers',
 	'WidgetHelper' => 'classes/helpers',
 	'I18nHelper' => 'classes/helpers',
 
@@ -118,6 +127,10 @@ return [
 	/*******************************************************************************************************************
 	 * Behaviors
 	 ******************************************************************************************************************/
+	'ArrayInterface' => 'behaviors/Array',
+	'ArrayTrait' => 'behaviors/Array',
+	'Iterator' => 'behaviors/Array',
+
 	'ClassOfServiceInterface' => 'behaviors/ClassOfService',
 	'ClassOfServiceTrait' => 'behaviors/ClassOfService',
 
@@ -139,15 +152,22 @@ return [
 	/*******************************************************************************************************************
 	 * Interfaces
 	 ******************************************************************************************************************/
+	'ApplicationLifeCycleManagerInterface' => 'interfaces',
+	'ConductorInterface' => 'interfaces',
+	'DataFileInterface' => 'interfaces',
 	'UserProcessorInterface' => 'interfaces',
 	'AuthenticationInterface' => 'interfaces',
 	'AuthorizationInterface' => 'interfaces',
 	'LoggerInterface' => 'interfaces',
 	'ServiceCliInterface' => 'interfaces',
 	'ServiceCliExecutorInterface' => 'interfaces',
-	'ModelInterface' => 'interfaces',
 	'ToStringConvertableInterface' => 'interfaces',
+	'SourceInterface' => 'interfaces',
 	'SourceVoterInterface' => 'interfaces',
+	'SourceAccessDataInterface' => 'interfaces',
+	'ModelInterface' => 'interfaces/model',
+	'ModelManagerInterface' => 'interfaces/model',
+	'ModelRelationInterface' => 'interfaces/model',
 
 	'ApplicationToolTrait' => 'traits',
 ];

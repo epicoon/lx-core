@@ -11,6 +11,19 @@ class WidgetHelper {
 		LXID_TOSTS = lx\WidgetHelper::LXID_TOSTS,
 		LXID_BODY = lx\WidgetHelper::LXID_BODY;
 
+	set autoParent(val) {
+		if (val === null) this.resetAutoParent();
+		autoParentStack.push(val);
+	}
+
+	get autoParent() {
+		if (!autoParentStack.length) {
+			#lx:server{ return Snippet.widget; }
+			#lx:client{ return null; }
+		}
+		return autoParentStack.last();
+	}
+
 	popAutoParent() {
 		return autoParentStack.pop();
 	}
@@ -23,6 +36,15 @@ class WidgetHelper {
 	 * CLIENT ONLY
 	 ******************************************************************************************************************/
 	#lx:client {
+		getElementByAttrs(attrs, parent = null) {
+			var selector = '';
+			for (var name in attrs)
+				selector += "[" + name + "^='" + attrs[name] + "']"
+			var elem = parent ? parent.getDomElem() : null;
+			if (elem) return elem.querySelector(selector);
+			return document.querySelector(selector);
+		}
+
 		/**
 		 * Возвращает html для элемента, который мог бы быть создан при помощи переданного конфига
 		 * */
@@ -136,18 +158,3 @@ class WidgetHelper {
 }
 
 lx.WidgetHelper = new WidgetHelper();
-
-Object.defineProperty(lx.WidgetHelper, "autoParent", {
-	set: function(val) {
-		if (val === null) this.resetAutoParent();
-		if (autoParentStack.last() === val) return;
-		autoParentStack.push(val);
-	},
-	get: function() {
-		if (!autoParentStack.length) {
-			#lx:server{ return Snippet.widget; }
-			#lx:client{ return null; }
-		}
-		return autoParentStack.last();
-	}
-});

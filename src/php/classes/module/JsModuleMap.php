@@ -2,25 +2,39 @@
 
 namespace lx;
 
-class JsModuleMap extends Object {
+/**
+ * Class JsModuleMap
+ * @package lx
+ */
+class JsModuleMap extends BaseObject
+{
 	use ApplicationToolTrait;
 
+	/** @var array */
 	private static $map;
 
+	/**
+	 * @param string $moduleName
+	 * @return array|null
+	 */
 	public function getModuleInfo($moduleName)
 	{
 		$map = $this->getMap();
 		return $map[$moduleName] ?? null;
 	}
 
-	public function getMap() {
+	/**
+	 * @return array
+	 */
+	public function getMap()
+	{
 		if (!self::$map) {
 			$path = $this->app->conductor->getFullPath('@core/jsModulesMap.json');
-			$file = new ConfigFile($path);
+			$file = $this->app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
 			$result = $file->get();
 
-			$path = \lx::$conductor->getSystemPath('systemPath') . '/jsModulesMap.json';
-			$file = new ConfigFile($path);
+			$path = \lx::$conductor->getSystemPath('jsModulesMap.json');
+			$file = $this->app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
 			$list = $file->get();
 			foreach ($list as $serviceName) {
 				$service = $this->app->getService($serviceName);
@@ -28,10 +42,8 @@ class JsModuleMap extends Object {
 					continue;
 				}
 
-				$serviceFile = new ConfigFile(
-					$service->conductor->getModuleMapDirectory()->getPath()
-					. '/jsModulesMap.json'
-				);
+				$name = $service->conductor->getModuleMapDirectory()->getPath() . '/jsModulesMap.json';
+				$serviceFile = $this->app->diProcessor->createByInterface(DataFileInterface::class, [$name]);
 				if (!$serviceFile) {
 					continue;
 				}

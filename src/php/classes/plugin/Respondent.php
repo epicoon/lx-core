@@ -2,21 +2,35 @@
 
 namespace lx;
 
-class Respondent extends Source {
-	private
-		$_plugin,
+/**
+ * Class Respondent
+ * @package lx
+ *
+ * @property-read Service $service
+ * @property-read Plugin $plugin
+ */
+class Respondent extends Source
+{
+	/** @var Plugin */
+	private $_plugin;
 
-		//TODO ?????????????????????????????????????????
-		$_db;
-
-	public function __construct($config) {
+	/**
+	 * Respondent constructor.
+	 * @param array $config
+	 */
+	public function __construct($config)
+	{
 		parent::__construct($config);
 
 		$this->_plugin = $config['plugin'];
-		$this->_db = null;
 	}
 
-	public function __get($name) {
+	/**
+	 * @param string $name
+	 * @return Plugin|Service|mixed
+	 */
+	public function __get($name)
+	{
 		if ($name == 'plugin') return $this->getPlugin();
 		if ($name == 'service') return $this->getService();
 
@@ -36,30 +50,58 @@ class Respondent extends Source {
 		return $protocol;
 	}
 
-	//TODO ?????????????????????????
-	public function getDb() {
-		if ($this->_db === null)
-			$this->_db = $this->plugin->getService()->db();
-		return $this->_db;
+	/**
+	 * @return array
+	 */
+	protected static function getOwnMethodsList()
+	{
+		return array_merge(parent::getOwnMethodsList(), [
+			'getPlugin',
+			'getService',
+			'getRootPlugin',
+			'getRootService',
+			'getModelManager',
+		]);
 	}
 
-	public function getPlugin() {
+	/**
+	 * @return Plugin
+	 */
+	public function getPlugin()
+	{
 		return $this->_plugin;
 	}
 
-	public function getService() {
+	/**
+	 * @return Service
+	 */
+	public function getService()
+	{
 		return $this->getPlugin()->getService();
 	}
 
-	public function getRootPlugin() {
+	/**
+	 * @return Plugin
+	 */
+	public function getRootPlugin()
+	{
 		return $this->getPlugin()->getRootPlugin();
 	}
 
-	public function getRootService() {
+	/**
+	 * @return Service
+	 */
+	public function getRootService()
+	{
 		return $this->getPlugin()->getRootService();
 	}
 
-	public function getModelManager($name) {
+	/**
+	 * @param string $name
+	 * @return ModelManagerInterface
+	 */
+	public function getModelManager($name)
+	{
 		return $this->getService()->getModelManager($name);
 	}
 }

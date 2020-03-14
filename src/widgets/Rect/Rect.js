@@ -234,8 +234,18 @@ class Rect #lx:namespace lx {
      * Путь для запроса изображений (идея единого хранилища изображений в рамках модуля)
      * */
     imagePath(name) {
+        if (name[0] == '/') return name;
+
         var plugin = this.getPlugin();
-        return plugin.images + '/' + name;
+        if (name[0] != '@') {
+            if (!plugin.images['default']) return name;
+            return plugin.images['default'] + '/' + name;
+        }
+
+        var arr = name.match(/^@([^\/]+?)(\/.+)$/);
+        if (!arr || !plugin.images[arr[1]]) return '';
+
+        return plugin.images[arr[1]] + arr[2];
     }
 
     /**
@@ -429,19 +439,17 @@ class Rect #lx:namespace lx {
     }
 
     picture(pic) {
-        if (pic === '' || pic === null) {
-            this.domElem.style('backgroundImage', 'url()');
-        } else if (pic) {
-            if (pic.isString) pic = this.getPlugin().images + '/' + pic;
-            else if (pic.isObject && pic.src) {
-                pic = pic.src;
-            } else return false;
-            this.domElem.style('backgroundImage', 'url(' + pic + ')');
+        if (pic === undefined)
+            return this.domElem.style.backgroundImage.split('"')[1];
+
+        if (pic === '' || !pic) this.domElem.style('backgroundImage', 'url()');
+        else {
+            var path = this.imagePath(pic);
+            this.domElem.style('backgroundImage', 'url(' + path + ')');
             this.domElem.style('backgroundRepeat', 'no-repeat');
             this.domElem.style('backgroundSize', '100% 100%');
-            return this;
         }
-        return this.domElem.style.backgroundImage.split('"')[1];
+        return this;
     }
 
     border( info ) {  // info = {width, color, style, side}
@@ -1186,8 +1194,10 @@ class Rect #lx:namespace lx {
 
         var parent = null,
             next = null;
-        if (config instanceof lx.Rect) parent = config;
-        else {
+        if (config instanceof lx.Rect) {
+            parent = config;
+            config = {};
+        } else {
             if (config.parent === null) return null;
 
             if (config.before && config.before.parent) {
@@ -1208,7 +1218,8 @@ class Rect #lx:namespace lx {
     }
 
     dropParent() {
-        if (this.parent) this.parent.del(this);
+        if (this.parent) this.parent.remove(this);
+        this.parent = null;
         return this;
     }
 
@@ -1439,17 +1450,23 @@ class Rect #lx:namespace lx {
     }
 
     move(config={}) {
+        if (config === false) {
+            this.off('mousedown', lx.move);
+            return;
+        }
+
         if (config.parentMove && config.parentResize) delete config.parentMove;
+        if (this.moveParams === undefined) this.moveParams = {};
         this.moveParams = {
-            xMove        : (config.xMove        !== undefined) ? config.xMove : true,
-            yMove        : (config.yMove        !== undefined) ? config.yMove : true,
-            parentMove   : (config.parentMove   !== undefined) ? config.parentMove : false,
-            parentResize : (config.parentResize !== undefined) ? config.parentResize : false,
-            xLimit       : (config.xLimit       !== undefined) ? config.xLimit : true,
-            yLimit       : (config.yLimit       !== undefined) ? config.yLimit : true,
-            moveStep     : (config.moveStep     !== undefined) ? config.moveStep : 1
+            xMove        : lx.getFirstDefined(this.moveParams.xMove, config.xMove, true),
+            yMove        : lx.getFirstDefined(this.moveParams.yMove, config.yMove, true),
+            parentMove   : lx.getFirstDefined(this.moveParams.parentMove, config.parentMove, false),
+            parentResize : lx.getFirstDefined(this.moveParams.parentResize, config.parentResize, false),
+            xLimit       : lx.getFirstDefined(this.moveParams.xLimit, config.xLimit, true),
+            yLimit       : lx.getFirstDefined(this.moveParams.yLimit, config.yLimit, true),
+            moveStep     : lx.getFirstDefined(this.moveParams.moveStep, config.moveStep, 1)
         };
-        #lx:client{ this.on('mousedown', lx.move); }
+        #lx:client{ if (!this.hasTrigger('mousedown', lx.move)) this.on('mousedown', lx.move); }
         #lx:server{ this.onload('()=>this.on(\'mousedown\', lx.move);'); }
         return this;
     }
@@ -1577,18 +1594,6 @@ class Rect #lx:namespace lx {
 
     #lx:client {
         /**
-         * Актуализация при изменении режима отображения
-         * Навешивается на обработчик, так что this - это конкретный объект
-         * */
-        static actualizeScreenMode() {
-            var plugin = this.getPlugin();
-            if (this.screenMode == plugin.screenMode || plugin.screenMode == '') return;
-
-            this.screenMode = plugin.screenMode;
-            this.screenDependencies[plugin.screenMode].call(this);
-        }
-
-        /**
          * Если при распаковке хэндлеры обработчиков событий перенаправляют на реальные функции
          * Варианты аргументов:
          * - ('.funcName')     // будет искать функцию 'funcName' среди своих методов
@@ -1663,30 +1668,12 @@ class Rect #lx:namespace lx {
         }
 
         /**
-         * Распаковка зависимостей от режимов отображения
-         * */
-        unpackScreenDependencies() {
-            for (var name in this.screenDependencies) {
-                var f = this.unpackFunction(this.screenDependencies[name]);
-                if (f) this.screenDependencies[name] = f;
-            }
-
-            this.on('resize', self::actualizeScreenMode);
-        }
-
-        /**
          * Распаковка расширенных свойств
          * */
-        unpackProperties(loaderContext) {
+        unpackProperties() {
             if (!this.inLoad) return;
 
             if (this.geom && this.geom.isString) this.unpackGeom();
-
-            // Зависимости от режимов отображения
-            if (this.screenDependencies) {
-                this.unpackScreenDependencies();
-                loaderContext.screenDependend.push(this);
-            }
 
             // Стратегии позиционирования
             if (this.__ps) {

@@ -16,33 +16,49 @@ class DomElementDefinition #lx:namespace lx {
 		this.next = null;
 	}
 
-	#lx:client createElement() {
-		if (this.elem) return;
+	#lx:client {
+		applyParent() {
+			if (!this.elem) {
+				this.createElement();
+				return;
+			}
 
-		this.elem = document.createElement(this.tag);
+			this.applyParentProcess();
+			delete this.next;
+		}
 
-		if (this.parent) {
-			var pElem = this.parent.getDomElem();
-			if (pElem) {
-				if (this.next) pElem.insertBefore( this.elem, this.next.getDomElem() );
-				else pElem.appendChild( this.elem );
+		createElement() {
+			if (this.elem) return;
+
+			this.elem = document.createElement(this.tag);
+
+			this.applyParentProcess();
+
+			if (this.classList.len) this.elem.className = this.classList.join(' ');
+
+			for (var name in this.attributes) {
+				this.elem.setAttribute(name, this.attributes[name]);
+			}
+
+			for (var name in this.styleList) {
+				this.elem.style[name] = this.styleList[name];
+			}
+
+			if (this.content != '') this.elem.innerHTML = this.content;
+
+			this.setElem(this.elem);
+			this.applyElemFeatures();
+		}
+
+		applyParentProcess() {
+			if (this.parent) {
+				var pElem = this.parent.getDomElem();
+				if (pElem) {
+					if (this.next) pElem.insertBefore( this.elem, this.next.getDomElem() );
+					else pElem.appendChild( this.elem );
+				}
 			}
 		}
-
-		if (this.classList.len) this.elem.className = this.classList.join(' ');
-
-		for (var name in this.attributes) {
-			this.elem.setAttribute(name, this.attributes[name]);
-		}
-
-		for (var name in this.styleList) {
-			this.elem.style[name] = this.styleList[name];
-		}
-
-		if (this.content != '') this.elem.innerHTML = this.content;
-
-		this.setElem(this.elem);
-		this.applyElemFeatures();
 	}
 
 	setParent(parent, next) {
@@ -197,7 +213,7 @@ class DomElementDefinition #lx:namespace lx {
 	}
 
 	hasEvent(eventName, func) {
-		if (this.elem) return lx.Event.has(this.elem, type, func);
+		if (this.elem) return lx.Event.has(this.elem, eventName, func);
 		if (func === undefined) return (eventName in this.events);
 		return ((eventName in this.events) && this.events[eventName].contains(func));
 	}

@@ -10,16 +10,19 @@ class ErrorCollectorError implements ToStringConvertableInterface
 {
 	/** @var string */
 	private $title;
+
 	/** @var string */
 	private $description;
+
 	/** @var array */
 	private $data;
-	/** @var \Exception|null */
+
+	/** @var \Exception */
 	private $exception;
 
 	/**
 	 * ErrorCollectorError constructor.
-	 * @param $config string|array
+	 * @param string|array $config
 	 */
 	public function __construct($config)
 	{
@@ -63,7 +66,7 @@ class ErrorCollectorError implements ToStringConvertableInterface
 	}
 
 	/**
-	 * @param $callback null|callable
+	 * @param callable $callback
 	 * @return string
 	 */
 	public function toString($callback = null)
@@ -121,8 +124,8 @@ class ErrorCollectorError implements ToStringConvertableInterface
 	}
 
 	/**
-	 * @param $value mixed
-	 * @return string|false
+	 * @param mixed $value
+	 * @return string
 	 */
 	private function dataValueToString($value)
 	{
@@ -131,6 +134,6 @@ class ErrorCollectorError implements ToStringConvertableInterface
 		}
 
 		//TODO array, object...
-		return false;
+		return '';
 	}
 }

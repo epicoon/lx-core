@@ -2,6 +2,10 @@
 
 namespace lx;
 
+/**
+ * Class ResponseCodeEnum
+ * @package lx
+ */
 class ResponseCodeEnum
 {
 	const OK = 200;

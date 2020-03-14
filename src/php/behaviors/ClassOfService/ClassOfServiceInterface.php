@@ -3,20 +3,24 @@
 namespace lx;
 
 /**
- * Для классов, объявленных в сервисах описание набора методов доступа к возможностям сервиса
- * */
-interface ClassOfServiceInterface {
+ * Can be applied to classes declared in services
+ * 
+ * Interface ClassOfServiceInterface
+ * @package lx
+ */
+interface ClassOfServiceInterface
+{
 	/**
-	 * Получить имя сервиса для текущего класса
+	 * Get service name for current class
 	 *
 	 * @return string|null
-	 * */
+	 */
 	public function getServiceName();
 
 	/**
-	 * Получить сервис для текущего класса
+	 * Get service for current class
 	 *
 	 * @return lx\Service|null
-	 * */
+	 */
 	public function getService();
 }

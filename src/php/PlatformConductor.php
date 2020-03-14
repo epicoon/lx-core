@@ -2,109 +2,214 @@
 
 namespace lx;
 
-class PlatformConductor {
-	private
-		// массив псевдонимов путей
-		$publicFields = [],
+/**
+ * Conductor classes can find different pathes in application
+ * This is the most common conductor for platform
+ * 
+ * Class PlatformConductor
+ * @package lx
+ *
+ * @property-read string $site
+ * @property-read string $sitePath
+ * @property-read string $web
+ * @property-read string $lxAssets
+ * @property-read string $webCss
+ * @property-read string $core
+ * @property-read string $jsCore
+ * @property-read string $jsNode
+ * @property-read string $lxData
+ * @property-read string $stdResponses
+ * @property-read string $devLog
+ */
+class PlatformConductor
+{
+	/** @var string */
+	private $_sitePath;
 
-		// ключевые соглашения в путях
-		$_sitePath,
-		$_systemPath,
-		$_autoloadMap,
+	/** @var string */
+	private $_web;
 
-		$_clientConfig,
-		$_lxFiles,
-		$_system,
-		$_systemTemp,
-		$_lxData,
+	/** @var string */
+	private $_lxAssets;
 
-		$_lx,
-		$_core,
-		$_phpCore,
-		$_jsCore,
-		$_lxWidgets,
-		$_stdResponses,
+	/** @var string */
+	private $_webCss;
 
-		$_packageLxConfig,
-		$_packageConfig,
+	/** @var string */
+	private $_core;
 
-		$_defaultServiceConfig,
-		$_defaultPluginConfig;
+	/** @var string */
+	private $_jsCore;
 
-	public function __construct() {
+	/** @var string */
+	private $_jsNode;
+
+	/** @var string */
+	private $_stdResponses;
+
+	/** @var string */
+	private $_lxFiles;
+
+	/** @var string */
+	private $_system;
+
+	/** @var string */
+	private $_lxData;
+
+	/** @var string */
+	private $_clientConfig;
+
+	/** @var string */
+	private $_devLog;
+
+	/** @var string */
+	private $_defaultServiceConfig;
+
+	/** @var string */
+	private $_defaultPluginConfig;
+
+	/** @var array */
+	private $_lxPackageConfig;
+
+	/** @var array */
+	private $_packageConfig;
+
+	/** @var array */
+	private $publicFields;
+
+	/**
+	 * PlatformConductor constructor.
+	 */
+	public function __construct()
+	{
 		$this->_sitePath = dirname(__DIR__, 5);
-		$this->_systemPath = $this->_sitePath . '/lx/.system';
+		$this->_web = $this->_sitePath . '/web';
+		$this->_lxAssets = $this->_web . '/lx';
+		$this->_webCss = $this->_web . '/css';
 
-		$this->_clientConfig = $this->_sitePath . '/lx/config';
-		$this->_lxFiles = $this->_sitePath . '/lx';
-		$this->_system = $this->_lxFiles . '/.system';
-		$this->_systemTemp = $this->_system . '/temp';
-		$this->_lxData = $this->_lxFiles . '/data';
-
-		$this->_lx = $this->_sitePath . '/vendor/lx/lx-core';
-		$this->_core = $this->_lx . '/src';
-		$this->_phpCore = $this->_core . '/php';
+		$this->_core = $this->_sitePath . '/vendor/lx/lx-core/src';
 		$this->_jsCore = $this->_core . '/js/app.js';
-		$this->_lxWidgets = $this->_core . '/widgets';
+		$this->_jsNode = $this->_core . '/js/exec.js';
 		$this->_stdResponses = $this->_core . '/php/stdResponses';
 
-		$this->_packageLxConfig = ['lx-config.php', 'lx-config/main.php', 'lx-config.yaml', 'lx-config/main.yaml'];
-		$this->_packageConfig = array_merge($this->_packageLxConfig, ['composer.json']);
+		$this->_lxFiles = $this->_sitePath . '/lx';
+		$this->_system = $this->_lxFiles . '/.system';
+		$this->_lxData = $this->_lxFiles . '/data';
+		$this->_clientConfig = $this->_lxFiles . '/config';
+
+		$this->_devLog = $this->_system . '/dev_log';
 
 		$this->_defaultServiceConfig = $this->_clientConfig . '/service.php';
 		$this->_defaultPluginConfig = $this->_clientConfig . '/plugin.php';
 
+		$this->_lxPackageConfig = ['lx-config', 'lx-config/main'];
+		$this->_packageConfig = array_merge($this->_lxPackageConfig, ['composer.json']);
 		$this->publicFields = [
+			'web',
+			'lxAssets',
+			'webCss',
 			'core',
-			'sitePath',
-			'lxFiles',
+			'jsCore',
+			'jsNode',
 			'lxData',
+			'stdResponses',
+			'devLog',
 		];
 	}
 
 	/**
-	 * Геттер предоставляет доступ к полям, начинающимся с '_'
+	 * @param string $name
+	 * @return string|array
 	 */
-	public function __get($name) {
-		if ($name == 'site') {
+	public function __get($name)
+	{
+		if ($name == 'site' || $name == 'sitePath') {
 			return $this->_sitePath;
 		}
 
 		if (in_array($name, $this->publicFields)) {
 			return $this->{'_' . $name};
-		} elseif ($name == 'pluginConfig') {
-			return $this->_packageLxConfig;
-		} elseif ($name == 'appConfig') {
-			$config = $this->_clientConfig;
-			if (file_exists($config . '/main.php')) {
-				return $config . '/main.php';
-			}
-			if (file_exists($config . '/main.yaml')) {
-				return $config . '/main.yaml';
-			}
-			return null;
 		}
 
 		return false;
 	}
 
-	public function getRootPath() {
+	/**
+	 * @return string
+	 */
+	public function getPath()
+	{
 		return $this->_sitePath;
 	}
 
 	/**
-	 *
-	 * */
-	public function getSystemPath($name) {
-		if (property_exists($this, '_' . $name)) {
-			return $this->{'_' . $name};
+	 * @param $name
+	 * @return string|array|bool
+	 */
+	public function getSystemPath($name = null)
+	{
+		if ($name) {
+			return $this->_system . '/' . $name;
 		}
 
-		return false;
+		return $this->_system;
 	}
 
-	public function getTempFile($extension = null) {
-        $tempPath = \lx::$conductor->getSystemPath('systemTemp')
+	/**
+	 * @return string|null
+	 */
+	public function getAppConfig()
+	{
+		$config = $this->_clientConfig;
+		if (file_exists($config . '/main.php')) {
+			return $config . '/main.php';
+		}
+		if (file_exists($config . '/main.yaml')) {
+			return $config . '/main.yaml';
+		}
+
+		return null;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getDefaultServiceConfig()
+	{
+		return $this->_defaultServiceConfig;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getDefaultPluginConfig()
+	{
+		return $this->_defaultPluginConfig;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getPackageConfigNames()
+	{
+		return $this->_packageConfig;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getLxPackageConfigNames()
+	{
+		return $this->_lxPackageConfig;
+	}
+
+	/**
+	 * @param string|null $extension
+	 * @return File
+	 */
+	public function getTempFile($extension = null)
+	{
+        $tempPath = $this->getSystemPath('temp')
             . '/'
             . Math::randHash()
             . ($extension ? ('.' . $extension) : '');

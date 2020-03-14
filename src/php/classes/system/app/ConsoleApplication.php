@@ -2,36 +2,48 @@
 
 namespace lx;
 
-class ConsoleApplication extends AbstractApplication {
+/**
+ * Class ConsoleApplication
+ * @package lx
+ */
+class ConsoleApplication extends AbstractApplication implements FusionInterface
+{
+	use FusionTrait;
+
+	/** @var array */
 	protected $argv;
 
-	public function __construct($argv = null) {
+	/**
+	 * ConsoleApplication constructor.
+	 * @param array $argv
+	 */
+	public function __construct($argv = [])
+	{
 		parent::__construct();
 
 		$this->argv = $argv;
+
+		$this->initFusionComponents([], [
+			'events' => EventManager::class,
+			'diProcessor' => DependencyProcessor::class,
+		]);
 	}
 
-	 /**
-	  * Запуск консольного приложения
-	  * */
-	public function run() {
-		if (!$this->argv) {
+	public function run()
+	{
+		if (empty($this->argv)) {
 			return;
 		}
 
-	 	$command = array_pop($this->argv);
-	 	switch ($command) {
-	 		case 'cli':
-	 			(new Cli())->run();
-	 			break;
+		$command = array_pop($this->argv);
+		switch ($command) {
+			case 'cli':
+				(new Cli())->run();
+				break;
 
-	 		default:
-	 			/*
-	 			//todo - надо ли вообще делать на таком уровне обработку запросов?
-	 			Можно сделать так, чтобы консольные команды для сервисов работали только из-под CLI
-	 			Зашел в CLI, зашел в плагин, работаешь с ним через его команды
-	 			*/
-	 			break;
-	 	}
+			default:
+				//TODO можно реализовать какие-то команды безоболочечные
+				break;
+		}
 	}
 }

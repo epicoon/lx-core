@@ -3,53 +3,88 @@
 namespace lx;
 
 /**
- * Карта для поиска модулей и классов
- * */
-class AutoloadMap {
+ * Class AutoloadMap
+ * @package lx
+ *
+ * @property-read array $packages
+ * @property-read array $files
+ * @property-read array $namespaces
+ * @property-read array $classes
+ */
+class AutoloadMap
+{
+	/** @var string */
 	private $sitePath;
+
+	/** @var string */
 	private $autoloadMapPath;
+
+	/** @var string */
 	private $autoloadMapCachePath;
-	
+
+	/** @var array */
 	private $_packages = [];
+
+	/** @var array */
 	private $_files = [];
+
+	/** @var array */
 	private $_namespaces = [];
+
+	/** @var array */
 	private $_classes = [];
 
-	public function __construct($sitePath) {
+	/**
+	 * AutoloadMap constructor.
+	 * @param string $sitePath
+	 */
+	public function __construct($sitePath)
+	{
 		$this->sitePath = $sitePath;
-		$systemPath = \lx::$conductor->getSystemPath('systemPath');
+		$systemPath = \lx::$conductor->getSystemPath();
 		$this->autoloadMapPath = $systemPath . '/autoload.json';
 		$this->autoloadMapCachePath = $systemPath . '/autoloadCache.json';
-		
+
 		$this->load();
 	}
 
 	/**
-	 * Поля, доступные только для чтения
-	 * */
-	public function __get($name) {
+	 * @param string $name
+	 * @return array|null
+	 */
+	public function __get($name)
+	{
 		switch ($name) {
-			case 'packages'   : return $this->_packages;
-			case 'files'     : return $this->_files;
-			case 'namespaces': return $this->_namespaces;
-			case 'classes'   : return $this->_classes;
-			default: return null;
+			case 'packages'   :
+				return $this->_packages;
+			case 'files'     :
+				return $this->_files;
+			case 'namespaces':
+				return $this->_namespaces;
+			case 'classes'   :
+				return $this->_classes;
+			default:
+				return null;
 		}
 	}
 
 	/**
-	 *
-	 * */
-	public function reset() {
+	 * Renew map and rebuild cache
+	 */
+	public function reset()
+	{
 		if ($this->loadForce()) {
 			$this->makeCache();
 		}
 	}
 
-	/**
-	 * Загрузка карт, при необходимости - актуализация кэша
-	 * */
-	private function load() {
+
+	/*******************************************************************************************************************
+	 * PRIVATE
+	 ******************************************************************************************************************/
+
+	private function load()
+	{
 		if (!file_exists($this->autoloadMapCachePath)
 			|| filemtime($this->autoloadMapPath) > filemtime($this->autoloadMapCachePath)
 		) {
@@ -60,10 +95,12 @@ class AutoloadMap {
 	}
 
 	/**
-	 * Согласно своим картам формирует файл 'autoloadCache.json'
-	 * Этот файл отличается уже собранным блоком classes - классы, именование которых не соответствует PSR-0 и PSR-4 (из 'classmap')
-	 * */
-	private function makeCache() {
+	 * Makes cache file 'autoloadCache.json'
+	 * Cache file as opposite to 'autoload.json' has already built block 'classes'
+	 * according to 'classmap' autoload configurations
+	 */
+	private function makeCache()
+	{
 		$data = json_encode([
 			'packages' => $this->_packages,
 			'files' => $this->_files,
@@ -75,9 +112,10 @@ class AutoloadMap {
 	}
 
 	/**
-	 * Строит карты из 'autoloadCache.json'
-	 * */
-	private function loadCache() {
+	 * Load map from 'autoloadCache.json'
+	 */
+	private function loadCache()
+	{
 		$file = new File($this->autoloadMapCachePath);
 		$data = $file->get();
 		$data = json_decode($data, true);
@@ -89,9 +127,10 @@ class AutoloadMap {
 	}
 
 	/**
-	 * Строит карты непосредственно из 'autoload.json'
-	 * */
-	private function loadForce() {
+	 * Load map from 'autoload.json'
+	 */
+	private function loadForce()
+	{
 		$file = new File($this->autoloadMapPath);
 		if (!$file->exists()) {
 			return false;
@@ -115,9 +154,10 @@ class AutoloadMap {
 	}
 
 	/**
-	 * Парсим 'classes' и 'directories'
-	 * */
-	private function parseClasses($data) {
+	 * @param array $data
+	 */
+	private function parseClasses($data)
+	{
 		$sitePath = $this->sitePath . '/';
 
 		$classes = [];
@@ -132,7 +172,7 @@ class AutoloadMap {
 					continue;
 				}
 				$ff = $d->getAllFiles('*.php', Directory::FIND_NAME);
-				$ff = $ff->getData();
+				$ff = $ff->toArray();
 
 				foreach ($ff as $f) {
 					$classes[] = [

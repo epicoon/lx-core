@@ -2,11 +2,12 @@
 
 #lx:require app/lx;
 #lx:require app/lx_start;
+#lx:require app/lx_queue;
 #lx:require app/lx_storage;
 #lx:require app/lx_keyboard;
 #lx:require app/lx_movement;
 #lx:require app/lx_animation;
-#lx:require app/lx_modules;
+#lx:require app/lx_dependencies;
 #lx:require app/lx_alerts;
 #lx:require app/lx_tost;
 

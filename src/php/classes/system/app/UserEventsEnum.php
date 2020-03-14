@@ -2,6 +2,10 @@
 
 namespace lx;
 
+/**
+ * Class UserEventsEnum
+ * @package lx
+ */
 class UserEventsEnum
 {
 	const NEW_USER = 'newUser';

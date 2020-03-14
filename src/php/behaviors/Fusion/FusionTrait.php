@@ -2,10 +2,21 @@
 
 namespace lx;
 
+/**
+ * Implementation for \lx\FusionInterface
+ *
+ * Trait FusionTrait
+ * @package lx
+ */
 trait FusionTrait
 {
+	/** @var FusionComponentList */
 	protected $fusionComponentList;
 
+	/**
+	 * @param array $list
+	 * @param array $defaults
+	 */
 	public function initFusionComponents($list, $defaults = [])
 	{
 		$allDefaults = ArrayHelper::mergeRecursiveDistinct(
@@ -17,6 +28,11 @@ trait FusionTrait
 		$this->fusionComponentList->load($list ?? [], $allDefaults);
 	}
 
+	/**
+	 * @magic __get
+	 * @param string $name
+	 * @return FusionComponentInterface|null
+	 */
 	public function getFusionComponent($name)
 	{
 		if ($this->fusionComponentList && $this->fusionComponentList->has($name)) {
@@ -26,6 +42,9 @@ trait FusionTrait
 		return null;
 	}
 
+	/**
+	 * @return array
+	 */
 	public function getFusionComponentsDefaultConfig()
 	{
 		return [];

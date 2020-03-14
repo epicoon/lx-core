@@ -6,20 +6,18 @@ namespace lx;
  * Class RequestHandler
  * @package lx
  */
-class RequestHandler extends Object
+class RequestHandler extends BaseObject
 {
 	use ApplicationToolTrait;
 
 	/** @var int */
 	private $code;
+
 	/** @var SourceContext */
 	private $sourceContext;
 
 	/**
-	 * - определяется запрашиваемый ресурс
-	 * - аутентифицируется запрашивающий пользователь
-	 * - проверяются права пользователя на ресурс
-	 * - устанавливается основной код ответа (200, 403, 404)
+	 * Launch of the response preparing
 	 */
 	public function run()
 	{
@@ -32,7 +30,7 @@ class RequestHandler extends Object
 	}
 
 	/**
-	 * Отправка ресурса в зависимости от основного кода ответа
+	 * Send the response
 	 */
 	public function send()
 	{
@@ -72,9 +70,12 @@ class RequestHandler extends Object
 		return $this->sourceContext !== null;
 	}
 
+	/**
+	 * Try to send OK-response or will be sent error response
+	 */
 	private function trySend()
 	{
-		if ( ! $this->sourceContext) {
+		if (!$this->sourceContext) {
 			$this->sendNotOk(ResponseCodeEnum::FORBIDDEN);
 			return;
 		}
@@ -96,6 +97,9 @@ class RequestHandler extends Object
 		$this->afterSuccessfulSending();
 	}
 
+	/**
+	 * @param int $code
+	 */
 	private function sendNotOk($code = null)
 	{
 		if ($code) {
@@ -107,7 +111,7 @@ class RequestHandler extends Object
 			&& $this->app->user->isGuest()
 		) {
 			$sourceContext = $this->app->authenticationGate->responseToAuthenticate() ?? null;
-			if ($sourceContext) {
+			if ($sourceContext && $sourceContext->isPlugin()) {
 				$this->renderPlugin($sourceContext->invoke());
 				return;
 			}
@@ -117,6 +121,16 @@ class RequestHandler extends Object
 
 		if ($this->app->dialog->isPageLoad()) {
 			$this->renderStandartResponse($this->code);
+			$this->app->dialog->send();
+		} elseif ($this->app->dialog->isAssetLoad()) {
+			$url = $this->app->dialog->getUrl();
+			$assetName = 'unknown';
+			switch (true) {
+				case preg_match('/\.js$/', $url):
+					$assetName = 'javascript file';
+			}
+			$msg = "Asset ($assetName) \"$url\" not found";
+			$this->app->dialog->send('console.error(\'' . $msg . '\');');
 		} else {
 			$this->app->dialog->send([
 				'success' => false,
@@ -128,14 +142,12 @@ class RequestHandler extends Object
 	}
 
 	/**
-	 * @param $plugin Plugin
+	 * @param array $pluginData
 	 */
 	private function renderPlugin($pluginData)
 	{
-		// Информация о самом плагине
 		$pluginInfo = addcslashes($pluginData['pluginInfo'], '\\');
 
-		// Собираем код модулей
 		$modules = '';
 		if (!empty($pluginData['modules'])) {
 			$moduleProvider = new JsModuleProvider();
@@ -143,23 +155,29 @@ class RequestHandler extends Object
 			$modules = addcslashes($modules, '\\');
 		}
 
-		// Глобальный код, глобальные настройки
-		list($jsCore, $jsBootstrap, $jsMain) = $this->app->getCommonJs();
-		$settings = ArrayHelper::arrayToJsCode( $this->app->getSettings() );
-		$js = $jsCore . "lx.start($settings, `$modules`, `$jsBootstrap`, `$pluginInfo`, `$jsMain`);";
+		list($jsBootstrap, $jsMain) = $this->app->getCommonJs();
+		$settings = ArrayHelper::arrayToJsCode($this->app->getSettings());
+		$js = "lx.start($settings, `$modules`, `$jsBootstrap`, `$pluginInfo`, `$jsMain`);";
 
-		$head = new HtmlHead($pluginData['page']);
-		$this->renderStandartResponse(ResponseCodeEnum::OK, ['head' => $head, 'js' => $js]);
+		$this->renderStandartResponse(ResponseCodeEnum::OK, [
+			'head' => new HtmlHead($pluginData['page']),
+			'body' => new HtmlBody($pluginData['page'], $js),
+		]);
 	}
 
+	/**
+	 * @param int $code
+	 * @param array $params
+	 */
 	private function renderStandartResponse($code, $params = [])
 	{
-		$path = \lx::$conductor->getSystemPath('stdResponses') . '/' . $code . '.php';
+		$path = \lx::$conductor->stdResponses . '/' . $code . '.php';
 		if (!file_exists($path)) {
-			$path = \lx::$conductor->getSystemPath('stdResponses') . '/404.php';
+			$path = \lx::$conductor->stdResponses . '/404.php';
 		}
 
 		extract($params);
+		ob_start();
 		require_once($path);
 	}
 
@@ -178,6 +196,7 @@ class RequestHandler extends Object
 			$this->sourceContext->invoke('beforeFailedSending');
 		}
 	}
+
 	private function afterSuccessfulSending()
 	{
 		if ($this->sourceContext) {
@@ -185,7 +204,7 @@ class RequestHandler extends Object
 			$this->sourceContext->invoke('afterSending');
 		}
 	}
-	
+
 	private function afterFailedSending()
 	{
 		if ($this->sourceContext) {

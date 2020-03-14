@@ -8,9 +8,8 @@ namespace lx;
  */
 interface LoggerInterface {
 	/**
-	 * @param $data
-	 * @param null $category
-	 * @return mixed
+	 * @param mixed $data
+	 * @param string $category
 	 */
 	public function log($data, $category = null);
 }

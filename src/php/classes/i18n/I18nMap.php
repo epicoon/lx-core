@@ -2,72 +2,90 @@
 
 namespace lx;
 
-class I18nMap extends Object {
+/**
+ * Class I18nMap
+ * @package lx
+ */
+abstract class I18nMap extends BaseObject implements FusionComponentInterface
+{
 	use ApplicationToolTrait;
+	use FusionComponentTrait;
 
 	const DEFAULT_FILE_NAME = 'i18n';
 
+	/** @var array */
 	protected $map = null;
+	
+	/** @var array */
 	protected $tags;
 
-	public function __construct($config = []) {
-		parent::__construct($config);
-
-		foreach ($config as $key => $value) {
-			if (property_exists($this, $key)) {
-				$this->$key = $value;
-			}
-		}
-
-		$this->init($config);
-	}
-
-	protected function init($config) {
-		// pass
-	}
-
-	public function getMap() {
+	/**
+	 * @return array
+	 */
+	public function getMap()
+	{
 		if ($this->map === null) {
 			$this->loadMap();
 		}
-		
+
 		return $this->map;
 	}
 
-	public function getFullMap() {
+	/**
+	 * @return array
+	 */
+	public function getFullMap()
+	{
 		return $this->getMap();
 	}
 
-	public function add($map, $rewrite = false) {
+	/**
+	 * @param array|ArrayInterface $map
+	 * @param bool $rewrite
+	 */
+	public function add($map, $rewrite = false)
+	{
 		if (!is_array($map) && is_object($map) && method_exists($map, 'toArray')) {
 			$map = $map->toArray();
 		}
-		
+
 		if (!is_array($map)) {
 			return;
 		}
-		
+
 		$this->loadMap();
 		$this->map = $this->mapMerge($this->map, $map, $rewrite);
 	}
 
 	/**
-	 * Метод для переопределения, чтобы подключать файлы не через конфигурацию, а через код
+	 * This method helps to use files with code (not with configuration)
+	 *
 	 * @return array
 	 */
-	protected function files() {
+	protected function files()
+	{
 		return [];
 	}
 
-	protected function loadMap() {
-		if ($this->map !== null) {
-			return;
-		}
+	/**
+	 * @param string $fileName
+	 * @return string
+	 */
+	abstract protected function getFilePath($fileName);
 
-		$this->map = [];
-	}
+	/**
+	 * @return string|array
+	 */
+	abstract protected function getFilesFromConfig();
 
-	protected function mapMerge($map1, $map2, $rewrite = false) {
+	/**
+	 * @param array $map1
+	 * @param array $map2
+	 * @param bool $rewrite
+	 * @return array
+	 */
+	protected function mapMerge($map1, $map2, $rewrite = false)
+	{
 		$codes = $this->app->language->codes;
 
 		foreach ($map2 as $key => $value) {
@@ -95,20 +113,83 @@ class I18nMap extends Object {
 		return $map1;
 	}
 
+	/**
+	 * Method loads all files with translations
+	 */
+	private function loadMap()
+	{
+		if ($this->map !== null) {
+			return;
+		}
 
-	// // Остаток от старой логики. Может сгодится для TODO про ::files()
-	// protected function loadFromMapFiles() {
-	// 	$result = [];
+		$map = $this->getMapFromFiles();
 
-	// 	$fileNames = $this->mapFiles();
-	// 	foreach ($fileNames as $fileName) {
-	// 		$path = $this->app->conductor->getFullPath($fileName);
-	// 		$file = new ConfigFile($path);
-	// 		if ($file->exists()) {
-	// 			$result += $file->get();
-	// 		}
-	// 	}
+		$filesFromConfig = $this->getFilesFromConfig();
+		$mapFromConfig = $this->getMapFromConfigFiles($filesFromConfig);
 
-	// 	return $result;
-	// }
+		$this->map = $this->mapMerge($mapFromConfig, $map);
+	}
+
+	/**
+	 * @return array
+	 */
+	private function getMapFromFiles()
+	{
+		$fileNames = $this->files();
+		$result = [];
+		foreach ($fileNames as $fileName) {
+			$result = $this->mapMerge($result, $this->loadFromFile($fileName), true);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * @param array|string $filesFromConfig
+	 * @return array
+	 */
+	private function getMapFromConfigFiles($filesFromConfig)
+	{
+		if ( ! $filesFromConfig) {
+			$filesFromConfig = static::DEFAULT_FILE_NAME;
+		}
+
+		if ( ! is_array($filesFromConfig)) {
+			$filesFromConfig = [$filesFromConfig];
+		}
+
+		$result = [];
+		foreach ($filesFromConfig as $fileName) {
+			$result = $this->mapMerge($result, $this->loadFromFile($fileName), true);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * @param string $fileName
+	 * @return array
+	 */
+	private function loadFromFile($fileName)
+	{
+		$path = $this->getFilePath($fileName);
+
+		if ($fileName{-1} == '/') {
+			$result = [];
+			$dir = new Directory($path);
+			$ff = $dir->getFiles('*.*', Directory::FIND_NAME);
+			foreach ($ff as $f) {
+				$fPath = "$path$f";
+				/** @var DataFileInterface $file */
+				$file = $this->app->diProcessor->createByInterface(DataFileInterface::class, [$fPath]);
+				if ($file->exists()) {
+					$result = $this->mapMerge($result, $file->get(), true);
+				}
+			}
+		} else {
+			/** @var DataFileInterface $file */
+			$file = $this->app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
+			return $file->exists() ? $file->get() : [];
+		}
+	}
 }

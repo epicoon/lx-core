@@ -2,28 +2,41 @@
 
 namespace lx;
 
-class Service extends Object implements FusionInterface {
+/**
+ * Class Service
+ * @package lx
+ *
+ * @property-read  string $name
+ * @property-read string $relativePath
+ * @property-read PackageDirectory $directory
+ * @property-read ServiceConductor $conductor
+ * @property-read ServiceRouter $router
+ * @property-read I18nServiceMap $i18nMap
+ */
+class Service extends BaseObject implements FusionInterface
+{
 	use ApplicationToolTrait;
 	use FusionTrait;
 
-	/** @var $_name string - уникальное имя сервиса */
+	/** @var string $_name - unique service name */
 	protected $_name;
-	/** @var $_path string - путь к каталогу сервиса относительно корня приложения */
-	protected $_path;
-	/** @var $_config array - массив настроек сервиса */
-	protected $_config = null;
-	/** @var $_dir lx\PackageDirectory - объект, воплощающий директорию сервиса */
-	protected $_dir = null;
-	/** @var $_conductor lx\Conductor - проводник по структуре сервиса */
-	protected $_conductor = null;
 
-	/** @var $dbConnections array - соединения с базами банных */
-	private $dbConnections = [];
+	/** @var string $_path - path to the service directory relative to the application root */
+	protected $_path;
+
+	/** @var $_config array */
+	protected $_config = null;
 
 	/**
-	 * Не использовать для создания экземпляров сервисов
-	 * */
-	public function __construct($name, $config, $params = []) {
+	 * Don't use for service creation. Use Service::create() instead
+	 * 
+	 * Service constructor.
+	 * @param string $name
+	 * @param array $config
+	 * @param array $params
+	 */
+	public function __construct($name, $config, $params = [])
+	{
 		parent::__construct($params);
 
 		$this->setName($name);
@@ -31,53 +44,37 @@ class Service extends Object implements FusionInterface {
 		$this->init($params);
 	}
 
-	protected function init($params) {
+	/**
+	 * @param array $params
+	 */
+	protected function init($params)
+	{
 		// pass
 	}
 
 	/**
-	 * 
-	 * */
-	private function setName($name) {
-		$this->_name = $name;
-		$this->_path = Autoloader::getInstance()->map->packages[$this->_name];
-	}
-
-	/**
-	 * 
-	 * */
-	private function setConfig($config) {
-		// Общие настройки
-		$commonConfig = $this->app->getDefaultServiceConfig();
-		ConfigHelper::prepareServiceConfig($commonConfig, $config);
-
-		// Инъекция настроек
-		$injections = $this->app->getConfig('configInjection');
-		ConfigHelper::serviceInject($this->_name, $injections, $config);
-
-		$config['service']['dbList'] = $this->getDbConfig($config);
-		unset($config['service']['db']);
-
-		$this->_config = $config;
-		$this->initFusionComponents($this->getConfig('service.components'));
-	}
-
-	/**
-	 * @param $name
+	 * @param string $name
 	 * @return bool
 	 */
-	public static function exists($name) {
+	public static function exists($name)
+	{
 		return array_key_exists($name, Autoloader::getInstance()->map->packages);
 	}
 
 	/**
-	 * Проверяет карту сервисов - если такой сервис уже создавался, он будет взят оттуда
-	 * Создание нового сервиса приведет к записи в карту сервисов
-	 * Сервис создается с учетом класса, установленного основным для данного сервиса
-	 * */
-	public static function create($name) {
+	 * If service already was created if will be returned
+	 *
+	 * @param string $name
+	 * @return Service|null
+	 */
+	public static function create($name)
+	{
 		if (!$name) {
-			throw new \Exception("Service name is missed", 400);
+			\lx::devLog(['_' => [__FILE__, __CLASS__, __METHOD__, __LINE__],
+				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT & DEBUG_BACKTRACE_IGNORE_ARGS),
+				'msg' => "Service name is missed",
+			]);
+			return null;
 		}
 
 		$app = \lx::$app;
@@ -86,8 +83,12 @@ class Service extends Object implements FusionInterface {
 			return $app->services->get($name);
 		}
 
-		if (!array_key_exists($name, Autoloader::getInstance()->map->packages)) {
-			throw new \Exception("Package '$name' not found. Try to reset autoload map", 400);
+		if (!self::exists($name)) {
+			\lx::devLog(['_' => [__FILE__, __CLASS__, __METHOD__, __LINE__],
+				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT & DEBUG_BACKTRACE_IGNORE_ARGS),
+				'msg' => "Package '$name' not found. Try to reset autoload map",
+			]);
+			return null;
 		}
 
 		$path = $app->sitePath . '/' . Autoloader::getInstance()->map->packages[$name];
@@ -95,17 +96,25 @@ class Service extends Object implements FusionInterface {
 
 		$configFile = $dir->getConfigFile();
 		if (!$configFile) {
-			throw new \Exception("Config file not found for package '$name'", 400);
+			\lx::devLog(['_' => [__FILE__, __CLASS__, __METHOD__, __LINE__],
+				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT & DEBUG_BACKTRACE_IGNORE_ARGS),
+				'msg' => "Config file not found for package '$name'",
+			]);
+			return null;
 		}
 
 		$config = $configFile->get();
 
 		if (!isset($config['service'])) {
-			throw new \Exception("Package '$name' is not a service", 400);
+			\lx::devLog(['_' => [__FILE__, __CLASS__, __METHOD__, __LINE__],
+				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT & DEBUG_BACKTRACE_IGNORE_ARGS),
+				'msg' => "Package '$name' is not a service",
+			]);
+			return null;
 		}
 
 		if (isset($config['service']['class'])) {
-			$data = ClassHelper::prepareConfig($config['service']['class'], self::class);	
+			$data = ClassHelper::prepareConfig($config['service']['class'], self::class);
 			$className = $data['class'];
 			$params = $data['params'];
 		} else {
@@ -114,7 +123,11 @@ class Service extends Object implements FusionInterface {
 		}
 
 		if (!ClassHelper::exists($className)) {
-			throw new \Exception("Class '$className' for service '$name' does not exist", 400);			
+			\lx::devLog(['_' => [__FILE__, __CLASS__, __METHOD__, __LINE__],
+				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT & DEBUG_BACKTRACE_IGNORE_ARGS),
+				'msg' => "Class '$className' for service '$name' does not exist",
+			]);
+			return null;
 		}
 
 		$service = new $className($name, $config, $params);
@@ -123,57 +136,47 @@ class Service extends Object implements FusionInterface {
 	}
 
 	/**
-	 *
-	 * */
-	public function __get($name) {
+	 * @param string $name
+	 * @return mixed
+	 */
+	public function __get($name)
+	{
 		switch ($name) {
-			case 'name': return $this->_name;
+			case 'name':
+				return $this->_name;
 
-			case 'relativePath': return $this->_path;
-
-			case 'directory':
-				if ($this->_dir === null) {
-					$this->_dir = new PackageDirectory($this->app->sitePath . '/' . $this->_path);
-				}
-
-				return $this->_dir;
-
-			case 'conductor':
-				if ($this->_conductor === null) {
-					$this->_conductor = new ServiceConductor($this);
-				}
-
-				return $this->_conductor;
-		}
-
-		$component = $this->getFusionComponent($name);
-		if ($component !== null) {
-			return $component;
+			case 'relativePath':
+				return $this->_path;
 		}
 
 		return parent::__get($name);
 	}
 
+	/**
+	 * @return array
+	 */
 	public function getFusionComponentsDefaultConfig()
 	{
 		return [
+			'directory' => PackageDirectory::class,
+			'conductor' => ServiceConductor::class,
+			'router' => ServiceRouter::class,
 			'i18nMap' => I18nServiceMap::class,
 		];
 	}
 
 	/**
-	 * Получить конфигурацию сервиса
-	 * @param $key - можно получить конкретную конфигурацию по ключу, необязательный параметр
+	 * @param string $key
 	 * @return mixed|null
-	 * */
-	public function getConfig($key = null) {
+	 */
+	public function getConfig($key = null)
+	{
 		if ($key === null) {
 			return $this->_config;
 		}
 
 		$keyArr = explode('.', $key);
 		$data = $this->_config;
-		$result;
 		foreach ($keyArr as $value) {
 			if (array_key_exists($value, $data)) {
 				$data = $data[$value];
@@ -186,71 +189,69 @@ class Service extends Object implements FusionInterface {
 	}
 
 	/**
-	 *
-	 * */
-	public function getPath() {
+	 * @return string
+	 */
+	public function getPath()
+	{
 		return $this->directory->getPath();
 	}
 
 	/**
-	 *
-	 * */
-	public function getFilePath($name) {
+	 * @param string $name
+	 * @return string
+	 */
+	public function getFilePath($name)
+	{
 		return $this->conductor->getFullPath($name);
 	}
 
 	/**
-	 *
-	 * */
-	public function getFile($name) {
+	 * @param string $name
+	 * @return BaseFile|null
+	 */
+	public function getFile($name)
+	{
 		$path = $this->getFullPath($name);
-		return new BaseFile($path);
+		return BaseFile::construct($path);
 	}
 
 	/**
-	 *
-	 * */
-	public function router() {
-		$routerData = $this->getConfig('service.router');
-
-		$className = ($routerData !== null && isset($routerData['type']) && $routerData['type'] == 'class' && isset($routerData['name']))
-			? $routerData['name']
-			: ServiceRouter::class;
-
-		$router = new $className($this);
-
-		return $router;
-	}
-
-	/**
-	 *
-	 * */
-	public function getModelManager($modelName) {
-		if ( ! $this->modelProvider) {
+	 * @param string $modelName
+	 * @return ModelManagerInterface
+	 */
+	public function getModelManager($modelName)
+	{
+		if (!$this->modelProvider) {
 			return null;
 		}
 
 		return $this->modelProvider->getManager($modelName);
 	}
 
-	public function getJsCoreExtension() {
+	/**
+	 * @return string
+	 */
+	public function getJsCoreExtension()
+	{
 		return '';
 	}
 
 	/**
-	 *
-	 * */
-	public function getMode() {
+	 * @return string
+	 */
+	public function getMode()
+	{
 		return $this->getConfig('service.mode');
 	}
 
 	/**
- 	 * Проверяет текущий режим работы сервиса
- 	 * Если режим не установлен - разрешен любой
-	 * */
-	public function isMode($mode) {
-		$currentMode = self::getConfig('mode');
-		if (!$currentMode) return true;		
+	 * @param string $mode
+	 * @return bool
+	 */
+	public function isMode($mode)
+	{
+		$currentMode = $this->getConfig('mode');
+		if (!$currentMode) return true;
 
 		if (is_array($mode)) {
 			foreach ($mode as $value) {
@@ -265,169 +266,225 @@ class Service extends Object implements FusionInterface {
 	}
 
 	/**
-	 * Уникальный идентификатор сервиса - по умолчанию это его имя
-	 * */
-	public function getID() {
-		//todo добавить возможность делать сервисам псевдонимы
+	 * @todo alias for service name (for frontend masking)
+	 *
+	 * @return string
+	 */
+	public function getID()
+	{
 		return $this->_name;
 	}
 
 	/**
-	 *
-	 * */
-	public function pluginExists($pluginName) {
+	 * @param string $pluginName
+	 * @return bool
+	 */
+	public function pluginExists($pluginName)
+	{
+		// Dynamic plugins
 		$dynamicPlugins = $this->getConfig('service.dynamicPlugins');
 		if ($dynamicPlugins && array_key_exists($pluginName, $dynamicPlugins)) {
 			$info = $dynamicPlugins[$pluginName];
+			if (is_string($info)) {
+				$path = $this->app->getPluginPath($info);
+				return ($path !== null);
+			}
+
 			if (is_array($info)) {
 				if (isset($info['method'])) {
 					return method_exists($this, $info['method']);
 				}
 
-				return isset($info['prototype']);
-			} else {
-				//todo - если не массив?
-				return false;
+				$path = $this->app->getPluginPath($info['prototype'] ?? null);
+				return ($path !== null);
 			}
+
+			return false;
 		}
 
-		// Поиск статических модулей
+		// Static plugins
 		$pluginPath = $this->conductor->getPluginPath($pluginName);
 		return $pluginPath !== null;
 	}
 
 	/**
+	 * Dynamic plugins map configuration example:
+	 * dynamicPlugins:
+	 *   pluginName1:
+	 *     method: someMethod  #This service method have to return a plugin
+	 *   pluginName2:
+	 *     prototype: outer/service:pluginName
+	 *     params:
+	 *       paramA: value1
+	 *       paramB: value2
 	 *
-	 * */
-	public function getPlugin($pluginName, $argRenderParams = []) {
-		// Карта динамических модулей
-		/*
-		dynamicPlugins:
-		  pluginName1:
-		    method: someMethod  #Метод сервиса, возвращающий этот плагин
-		  pluginName2:
-		    plugin: outer/service:pluginName
-		    renderParams:
-		      method: someMethodForParams  #Метод сервиса, возвращающий массив параметров для модуля
-		      paramA: value
-		      paramB: ()=>$this->someField1 . ';' . $this->someField2;
-		*/
+	 * @param string $pluginName
+	 * @param array $argParams
+	 * @return Plugin|null
+	 */
+	public function getPlugin($pluginName, $argParams = [])
+	{
+		// Dynamic plugins
 		$dynamicPlugins = $this->getConfig('service.dynamicPlugins');
 		if ($dynamicPlugins && array_key_exists($pluginName, $dynamicPlugins)) {
 			$info = $dynamicPlugins[$pluginName];
-			if (is_array($info)) {
-				if (isset($info['method'])) {
-					if (!method_exists($this, $info['method'])) {
-						return null;
-					}
-					return $this->{$info['method']}();
-				}
-
-				if (!isset($info['prototype'])) {
-					return null;
-				}
-				$path = $this->app->getPluginPath($info['prototype']);
-				$plugin = Plugin::create($this, $pluginName, $path, $info['prototype']);
-				if (isset($info['renderParams'])) {
-					$renderParams = $info['renderParams'];
-					if (isset($renderParams['method'])) {
-						if (method_exists($this, $renderParams['method'])) {
-							$renderParams = $this->{$renderParams['method']}();
-						}
-					}
-					foreach ($renderParams as $key => $value) {
-						if (preg_match('/^\(\)=>/', $value)) {
-							$renderParams[$key] = eval(preg_replace('/^\(\)=>/', 'return ', $value));
-						}
-					}
-					$plugin->addRenderParams($renderParams);
-				}
-				$plugin->addRenderParams($argRenderParams);
-				return $plugin;
-			} else {
-				//todo - если не массив?
+			if (is_string($info)) {
+				$info = ['prototype' => $info];
+			}
+			if (!is_array($info)) {
 				return null;
 			}
+
+			if (isset($info['method'])) {
+				if (!method_exists($this, $info['method'])) {
+					return null;
+				}
+				$result = $this->{$info['method']}();
+				if (!($result instanceof Plugin)) {
+					return null;
+				}
+				return $result;
+			}
+
+			if (!isset($info['prototype'])) {
+				return null;
+			}
+			$path = $this->app->getPluginPath($info['prototype']);
+			if (!$path) {
+				return null;
+			}
+
+			$plugin = Plugin::create($this, $pluginName, $path, $info['prototype']);
+			if (isset($info['params'])) {
+				$plugin->addParams($info['params']);
+			}
+			$plugin->addParams($argParams);
+			return $plugin;
 		}
 
-		// Поиск статических модулей
+		// Static plugins
 		$pluginPath = $this->conductor->getPluginPath($pluginName);
 		if ($pluginPath === null) {
 			return null;
 		}
 		$plugin = Plugin::create($this, $pluginName, $pluginPath);
-		$plugin->addRenderParams($argRenderParams);
+		$plugin->addParams($argParams);
 		return $plugin;
 	}
 
 	/**
-	 *
-	 * */
-	public function includePlugin($outerPluginName, $selfPluginName) {
+	 * @param string $outerPluginName
+	 * @param string $selfPluginName
+	 * @return Plugin|null
+	 */
+	public function includePlugin($outerPluginName, $selfPluginName)
+	{
 		$path = $this->app->getPluginPath($outerPluginName);
 		return Plugin::create($this, $selfPluginName, $path);
 	}
 
 	/**
-	 *
-	 * */
-	public function db($db = 'db') {
-		if (!array_key_exists($db, $this->dbConnections)) {
-			$dbList = $this->getConfig('service.dbList');
-
-			if (!isset($dbList[$db])) {
-				throw new \Exception("There is no settings for connection service '{$this->name}' with DB '$db'", 400);
-			}
-
-			$dbConfig = $dbList[$db];
-			$connection = DB::create($dbConfig);
-			if ( ! $connection) {
-				return null;
-			}
-
-			$connection->connect();
-			$this->dbConnections[$db] = $connection;
-		}
-		return $this->dbConnections[$db];
-	}
-
-	/**
-	 *
-	 * */
-	public function closeDbConnection($db = 'db') {
-		if (isset($this->dbConnections[$db])) {
-			$this->dbConnections[$db]->close();
-			unset($this->dbConnections[$db]);
+	 * Renew cache in all static plugins
+	 */
+	public function renewPluginsCache()
+	{
+		$plugins = $this->getStaticPlugins();
+		foreach ($plugins as $plugin) {
+			$plugin->renewCache();
 		}
 	}
 
 	/**
-	 * В конфиге может быть dbList - это ассоциативный массив настроек для подключений, ключи используются для выбора нужного подключения
-	 * В конфиге может быть db - это настройки для одного подключения (ключ 'db' используется по умочанию)
-	 * */
-	protected function getDbConfig($config) {
-		$dbList = [];
-		if (isset($config['service']['db'])) {
-			$dbList['db'] = $config['service']['db'];
+	 * Drop cache in all static plugins
+	 */
+	public function dropPluginsCache()
+	{
+		$plugins = $this->getStaticPlugins();
+		foreach ($plugins as $plugin) {
+			$plugin->dropCache();
 		}
-		if (isset($config['service']['dbList'])) {
-			$dbList += $config['service']['dbList'];
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getStaticPluginsDataList()
+	{
+		$plugins = (array)$this->getConfig('service.plugins');
+
+		$result = [];
+		foreach ($plugins as $dirName) {
+			$dir = $this->directory->get($dirName);
+			if (!$dir) {
+				continue;
+			}
+
+			$dirs = $dir->getDirs()->toArray();
+			foreach ($dirs as $subdir) {
+				if (PluginBrowser::checkDirectoryIsPlugin($subdir->getPath())) {
+					$result[$subdir->getName()] = $this->conductor->getRelativePath($subdir->getPath());
+				}
+			}
 		}
 
+		return $result;
+	}
+
+	/**
+	 * @return Plugin[]
+	 */
+	public function getStaticPlugins()
+	{
+		$list = $this->getStaticPluginsDataList();
+		$result = [];
+		foreach ($list as $name => $path) {
+			$plugin = Plugin::create($this, $name, $this->getPath() . '/' . $path);
+			if ($plugin) {
+				$result[$name] = $plugin;
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getDynamicPluginsDataList()
+	{
+		$dynamicPlugins = $this->getConfig('service.dynamicPlugins') ?? [];
+		$result = [];
+		foreach ($dynamicPlugins as $name => $data) {
+			$result[$name] = $data;
+		}
+		return $result;
+	}
+
+
+	/*******************************************************************************************************************
+	 * PRIVATE
+	 ******************************************************************************************************************/
+
+	/**
+	 * @param string $name
+	 */
+	private function setName($name)
+	{
+		$this->_name = $name;
+		$this->_path = Autoloader::getInstance()->map->packages[$this->_name];
+	}
+
+	/**
+	 * @param array $config
+	 */
+	private function setConfig($config)
+	{
 		$commonConfig = $this->app->getDefaultServiceConfig();
-		$commonDbList = [];
-		if (isset($commonConfig['db'])) {
-			$commonDbList['db'] = $commonConfig['db'];
-		}
-		if (isset($commonConfig['dbList'])) {
-			$commonDbList += $commonConfig['dbList'];
-		}
+		ConfigHelper::prepareServiceConfig($commonConfig, $config);
 
-		if (empty($commonDbList)) {
-			return $dbList;
-		}
+		$injections = $this->app->getConfig('configInjection');
+		ConfigHelper::serviceInject($this->_name, $injections, $config);
 
-		$dbList += $commonDbList;
-		return $dbList;
+		$this->_config = $config;
+		$this->initFusionComponents($this->getConfig('service.components'));
 	}
 }

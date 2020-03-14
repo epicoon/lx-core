@@ -14,26 +14,29 @@ EOT;
 
 $bootstrapJsCode = <<<EOT
 /**
- * @const lx.Plugin Plugin
- * */
+ * @const {lx.Plugin} Plugin
+ */
 
 EOT;
 
 
 $mainJsCode = <<<EOT
 /**
- * @const lx.Plugin Plugin
- * */
+ * @const {lx.Plugin} Plugin
+ * @const {lx.Snippet} Snippet
+ */
 
 EOT;
 
 
-$viewCode =
-'/**' . PHP_EOL .
-' * @const lx.Application App' . PHP_EOL .
-' * @const lx.Plugin Plugin' . PHP_EOL .
-' * @const lx.Snippet Snippet' . PHP_EOL .
-' * */' . PHP_EOL;
+$viewCode = <<<EOT
+/**
+ * @const {lx.Application} App
+ * @const {lx.Plugin} Plugin
+ * @const {lx.Snippet} Snippet
+ */
+
+EOT;
 
 
 $pluginCode = <<<EOT

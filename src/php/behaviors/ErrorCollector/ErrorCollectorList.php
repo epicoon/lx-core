@@ -20,7 +20,7 @@ class ErrorCollectorList
 	}
 
 	/**
-	 * @param $errorInfo string|array
+	 * @param string|array $errorInfo
 	 */
 	public function addError($errorInfo)
 	{

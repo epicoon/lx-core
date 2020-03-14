@@ -2,17 +2,36 @@
 
 namespace lx;
 
-class FusionComponentList {
+/**
+ * Class FusionComponentList
+ * @package lx
+ */
+class FusionComponentList
+{
+	/** @var FusionInterface */
 	private $fusion;
+
+	/** @var array */
 	private $config = [];
+
+	/** @var array */
 	private $list = [];
 
+	/**
+	 * FusionComponentList constructor.
+	 * @param FusionInterface $fusion
+	 */
 	public function __construct($fusion)
 	{
 		$this->fusion = $fusion;
 	}
 
-	public function __get($name) {
+	/**
+	 * @param string $name
+	 * @return FusionComponentInterface|null
+	 */
+	public function __get($name)
+	{
 		if (array_key_exists($name, $this->list)) {
 			return $this->list[$name];
 		}
@@ -29,20 +48,38 @@ class FusionComponentList {
 		return null;
 	}
 
-	public function has($name) {
+	/**
+	 * @param string $name
+	 * @return bool
+	 */
+	public function has($name)
+	{
 		return array_key_exists($name, $this->list) || array_key_exists($name, $this->config);
 	}
 
-	public function load($list, $defaults = []) {
+	/**
+	 * @param array $list
+	 * @param array $defaults
+	 */
+	public function load($list, $defaults = [])
+	{
 		$fullList = $list + $defaults;
 		foreach ($fullList as $name => $config) {
-			if (!$config) {
+			if ( ! $config) {
+				\lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
+					'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+					'msg' => "Wrong component config for $name",
+				]);
 				continue;
 			}
 
 			$data = ClassHelper::prepareConfig($config);
 			if ( ! $data) {
-				throw new \Exception("Component $name not found", 400);
+				\lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
+					'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+					'msg' => "Component $name not found",
+				]);
+				continue;
 			}
 
 			$this->config[$name] = $data;

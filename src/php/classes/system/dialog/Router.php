@@ -2,17 +2,22 @@
 
 namespace lx;
 
-class Router extends Object {
+/**
+ * Class Router
+ * @package lx
+ */
+class Router extends BaseObject
+{
 	use ApplicationToolTrait;
 
+	/** @var array */
 	protected $map;
 
 	/**
-	 * Роутер уровня приложения определяет на какой сервис перенаправить запрос
-	 * передает управление запросом на роутер сервиса
-	 * возвращает информацию о запрашиваемом ресурсе
-	 * */
-	public function route() {
+	 * @return SourceContext|false
+	 */
+	public function route()
+	{
 		$map = $this->getMap();
 		foreach ($map as $routeKey => $data) {
 			$routeData = $this->determineRouteData($data);
@@ -20,7 +25,7 @@ class Router extends Object {
 				continue;
 			}
 
-			$serviceRoute = $this->determineServiceRoute($routeKey, $this->app->dialog->route());
+			$serviceRoute = $this->determineServiceRoute($routeKey, $this->app->dialog->getRoute());
 			if (!$serviceRoute) {
 				continue;
 			}
@@ -34,12 +39,12 @@ class Router extends Object {
 			if (!$service) {
 				return false;
 			}
-			
-			$serviceRouter = $service->router();
+
+			$serviceRouter = $service->router;
 			if (!$serviceRouter) {
 				return false;
 			}
-			
+
 			return $serviceRouter->route($serviceRouteData);
 		}
 
@@ -47,27 +52,33 @@ class Router extends Object {
 	}
 
 	/**
-	 *
-	 * */
-	public function setMap($map) {
+	 * @param array $map
+	 */
+	public function setMap($map)
+	{
 		$this->map = $map;
 	}
 
 	/**
-	 *
-	 * */
-	public function getMap() {
+	 * @return array
+	 */
+	public function getMap()
+	{
 		return $this->map;
 	}
+
 
 	/**************************************************************************************************************************
 	 * PRIVATE
 	 *************************************************************************************************************************/
 
 	/**
-	 *
-	 * */
-	private function determineServiceRouteData($routeData, $route) {
+	 * @param array $routeData
+	 * @param string $route
+	 * @return array
+	 */
+	private function determineServiceRouteData($routeData, $route)
+	{
 		if (isset($routeData['service'])) {
 			return [
 				'service' => $routeData['service'],
@@ -104,13 +115,9 @@ class Router extends Object {
 			$result = [
 				'service' => $matches[1][0],
 				'plugin' => $matches[2][0],
-				'method' => 'build',
 			];
-			if (isset($routeData['renderParams'])) {
-				$result['renderParams'] = $routeData['renderParams'];
-			}
-			if (isset($routeData['clientParams'])) {
-				$result['clientParams'] = $routeData['clientParams'];
+			if (isset($routeData['params'])) {
+				$result['params'] = $routeData['params'];
 			}
 			if (isset($routeData['dependencies'])) {
 				$result['dependencies'] = $routeData['dependencies'];
@@ -121,9 +128,11 @@ class Router extends Object {
 	}
 
 	/**
-	 *
-	 * */
-	private function determineRouteData($data) {
+	 * @param array|string $data
+	 * @return array
+	 */
+	private function determineRouteData($data)
+	{
 		if (is_string($data)) {
 			return ['service' => $data];
 		}
@@ -132,9 +141,12 @@ class Router extends Object {
 	}
 
 	/**
-	 *
-	 * */
-	private function determineServiceRoute($routeKey, $route) {
+	 * @param string $routeKey
+	 * @param string $route
+	 * @return string|false
+	 */
+	private function determineServiceRoute($routeKey, $route)
+	{
 		if (!$this->validateRouteKey($routeKey, $route)) {
 			return false;
 		}
@@ -155,9 +167,12 @@ class Router extends Object {
 	}
 
 	/**
-	 *
-	 * */
-	private function validateRouteKey($routeKey, $route) {
+	 * @param string $routeKey
+	 * @param string $route
+	 * @return bool
+	 */
+	private function validateRouteKey($routeKey, $route)
+	{
 		if ($routeKey{0} == '~') {
 			$reg = preg_replace('/^~/', '/', str_replace('/', '\/', $routeKey)) . '/';
 			return preg_match($reg, $route);
@@ -172,10 +187,11 @@ class Router extends Object {
 	}
 
 	/**
-	 * Проверка общих условий доступа
-	 * */
-	private function validateRouteData($routeData) {
-		// Проверка мода
+	 * @param array $routeData
+	 * @return bool
+	 */
+	private function validateRouteData($routeData)
+	{
 		if (isset($routeData['on-mode']) && !$this->app->isMode($routeData['on-mode'])) {
 			return false;
 		}

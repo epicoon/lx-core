@@ -40,7 +40,5 @@ editElem(demo, #lx:i18n(demo));
 var body = new lx.Box({top: height, key: 'work'});
 var fon = body.add(lx.Box, {geom:true});
 fon.slot({indent:'10px', cols:1, rows:1});
-fon.child(0).picture({
-	src: #lx:php(explode(\lx::$app->sitePath, \lx::$conductor->getSystemPath('core'))[1]) + '/img/icon.png'
-});
+fon.child(0).picture('/web/lx/img/icon.png');
 fon.child(0).opacity(0.3);

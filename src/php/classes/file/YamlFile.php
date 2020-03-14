@@ -2,9 +2,20 @@
 
 namespace lx;
 
-class YamlFile extends File {
-	public function get() {
-		if (!$this->exists()) return null;
+/**
+ * Class YamlFile
+ * @package lx
+ */
+class YamlFile extends File
+{
+	/**
+	 * @return array|false|null
+	 */
+	public function get()
+	{
+		if ( ! $this->exists()) {
+			return null;
+		}
 
 		$text = parent::get();
 		return (new Yaml($text, $this->getParentDirPath()))->parse();

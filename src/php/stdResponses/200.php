@@ -6,12 +6,6 @@
 		<?=$head->render()?>
 	</head>
 	<body>
-		<div lxid="<?=lx\WidgetHelper::LXID_ALERTS?>" class="lxbody"></div>
-		<div lxid="<?=lx\WidgetHelper::LXID_TOSTS?>" class="lxbody"></div>
-		<div lxid="<?=lx\WidgetHelper::LXID_BODY?>" class="lxbody"></div>
-		<script id=__js>
-			document.body.removeChild(document.getElementById('__js'));
-			<?=$js?>
-		</script>
+        <?=$body->render()?>    
 	</body>
 </html>

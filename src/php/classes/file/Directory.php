@@ -2,47 +2,37 @@
 
 namespace lx;
 
-/*
-	public function scan()
-	public function contains($name)
-	public function makeDirectory($name, $mode=0777, $recursive=false)
-	public function makeFile($name, $type=null)
-	public function getContent($rule = [])
-	public function get($name, $cond=self::FIND_OBJECT)
-	public function getFiles($pattern=null, $cond=self::FIND_OBJECT)
-	public function getDirs($cond=self::FIND_OBJECT)
-	public function find($filename, $flag = Directory::FIND_OBJECT)
-	public function getAllFilesByPattern($pattern, $flag = Directory::FIND_OBJECT)
-	public function getAllFiles($pattern, $flag = Directory::FIND_OBJECT)
-	public function replaceInFiles($fileMask, $pattern, $replacement)
-	public function getFilesByCallback($fileMask, $func, $flag = Directory::FIND_OBJECT)
-	public function loadFile($name)
-	public function fileContent($name)
-
-	protected function parseMask($mask)
-
-	private static function staticFind($dir, $tosearch)
-*/
-class Directory extends BaseFile {
-	const
-		FIND_NAME = 1,
-		FIND_OBJECT = 2;
+/**
+ * Class Directory
+ * @package lx
+ */
+class Directory extends BaseFile
+{
+	const FIND_NAME = 1;
+	const FIND_OBJECT = 2;
 
 	/**
-	 *
-	 * */
-	public function scan() {
+	 * @return Vector
+	 */
+	public function scan()
+	{
 		return new Vector(scandir($this->path));
 	}
 
 	/**
-	 * Проверяет, содержит ли данный файл/каталог
-	 * */
-	public function contains($name) {
+	 * @param string $name
+	 * @return bool
+	 */
+	public function contains($name)
+	{
 		return file_exists($this->path . '/' . $name);
 	}
-	
-	public function make($mode=0777) {
+
+	/**
+	 * @param int $mode
+	 */
+	public function make($mode = 0777)
+	{
 		if ($this->exists()) {
 			return;
 		}
@@ -51,18 +41,71 @@ class Directory extends BaseFile {
 	}
 
 	/**
-	 *
-	 * */
-	public function makeDirectory($name, $mode=0777, $recursive=false) {
+	 * @param string $name
+	 * @param int $mode
+	 * @param bool $recursive
+	 * @return Directory
+	 */
+	public function makeDirectory($name, $mode = 0777, $recursive = false)
+	{
 		$path = $this->getPath() . '/' . $name;
 		mkdir($path, $mode, $recursive);
 		return new self($path);
 	}
 
 	/**
-	 *
-	 * */
-	public function getOrMakeDirectory($name, $mode=0777, $recursive=false) {
+	 * @param Directory $dir
+	 * @param bool $rewrite
+	 * @return bool
+	 */
+	public function copy($dir, $rewrite = false)
+	{
+		if ($this->exists()) {
+			if (!$rewrite) {
+				return false;
+			}
+
+			$this->remove();
+			$this->make();
+		}
+
+		$dirPath = $dir->getPath();
+		$selfPath = $this->getPath();
+		if ($selfPath{-1} != '/') {
+			$selfPath .= '/';
+		}
+		$files = $dir->getAllFiles();
+		foreach ($files as $file) {
+			$path = $selfPath . $file->getRelativePath($dirPath);
+			$file->clone($path);
+		}
+
+		return true;
+	}
+
+	/**
+	 * @param string $path
+	 * @param bool $rewrite
+	 * @return Directory|false
+	 */
+	public function clone($path, $rewrite = false)
+	{
+		$dir = new Directory($path);
+		if (!$dir->copy($this, $rewrite)) {
+			return false;
+		}
+
+		return $dir;
+	}
+
+	/**
+	 * @param string $name
+	 * @param int $mode
+	 * @param bool $recursive
+	 * @return Directory
+	 */
+	public function getOrMakeDirectory($name, $mode = 0777, $recursive = false)
+	{
 		if ($this->contains($name)) {
 			return $this->get($name);
 		}
@@ -70,18 +113,26 @@ class Directory extends BaseFile {
 	}
 
 	/**
-	 *
-	 * */
-	public function makeFile($name, $type=null) {
-		if ($type === null) $type = File::class;
-		return new $type($this->getPath() . '/' . $name);
+	 * @param string $name
+	 * @param string $type - File class name or interface name
+	 * @return File
+	 */
+	public function makeFile($name, $type = null)
+	{
+		return \lx::$app->diProcessor->createByInterface(
+			$type,
+			[$this->getPath() . '/' . $name],
+			[],
+			File::class
+		);
 	}
 
 	/**
-	 *
-	 * */
-	public function remove() {
-		if (!$this->exists()) {
+	 * Recursive removing directory with content
+	 */
+	public function remove()
+	{
+		if ( ! $this->exists()) {
 			return;
 		}
 
@@ -91,7 +142,7 @@ class Directory extends BaseFile {
 				if ($entry != '.' && $entry != '..') {
 					$path = "$dir/$entry";
 					if (is_dir($path)) {
-						dirDel($path);
+						$dirDel($path);
 					} else {
 						unlink ($path);
 					}
@@ -104,40 +155,42 @@ class Directory extends BaseFile {
 	}
 
 	/**
-	 * Все файлы и(или) директории, непосредственно лежащие в директории
+	 * Files and/or directories wich are located in this directory
+	 *
+	 * @param array $rules
+	 * @return Vector
+	 *
 	 * $rules = [
-	 *	'findType' : Directory::FIND_NAME | Directory::FIND_OBJECT - вернуть объекты или имена, по умолчанию - объекты
-	 *	'sort'     : SCANDIR_SORT_DESCENDING | SCANDIR_SORT_NONE, если не установлен - сортировка в алфавитном порядке
-	 *	'mask'     : string - различные маски для файлов, н-р '*.(php|js)'
-	 * 	'all'      : boolean - пройти рекурсивно по подкаталогам
-	 *	'files'    : boolean - вернуть только файлы, исключает 'dirs'
-	 *	'dirs'     : boolean - вернуть только каталоги - не должно быть указано 'files'
-	 *	'ext'      : boolean - только для возвращаемых имен - с расширениями / без расширений
-	 *	'fullname' : boolean - только для возвращаемых имен - полные пути / неполные пути
+	 *	'findType' : Directory::FIND_OBJECT | Directory::FIND_NAME - return objects or names
+	 *	'sort'     : SCANDIR_SORT_DESCENDING | SCANDIR_SORT_NONE - sort type
+	 *	'mask'     : string - example '*.(php|js)'
+	 * 	'all'      : boolean - recursuve search
+	 *	'files'    : boolean - return only files
+	 *	'dirs'     : boolean - return only directories
+	 *	'ext'      : boolean - return names with/without extensions (for name returning only)
+	 *	'fullname' : boolean - return full/self file names (for name returning only)
 	 * ]
-	 * */
-	public function getContent($rules = []) {
+	 */
+	public function getContent($rules = [])
+	{
 		$rules = DataObject::create($rules);
 		$files = new Vector();
 		$this->getContentRe($this->path, $rules, $files);
 
-		// Правила только для FIND_NAME!
 		if ($rules->findType != self::FIND_OBJECT) {
-			// Правило - вернуть имена файлов без расширений
 			if ($rules->ext === false) {
 				$files->each(function($a, $i, $t) {
 					$a = preg_replace('/\.[^.]*$/', '', $a);
-					$t->set($i, $a);
+					$t[$i] = $a;
 				});
 			}
 
-			// Правило - вернуть полный путь к файлам
 			$dirPath = $this->path;
-			if ($dirPath[-1] != '/') $dirPath .= '/';
+			if ($dirPath{-1} != '/') $dirPath .= '/';
 			if ($rules->fullname) {
 				$files->each(function($file, $i, $t) use ($dirPath) {
 					$file = $dirPath . $file;
-					$t->set($i, $file);
+					$t[$i] = $file;
 				});
 			}
 		}
@@ -146,26 +199,35 @@ class Directory extends BaseFile {
 	}
 
 	/**
-	 * Вернет содержащийся файл/каталог
-	 * */
-	public function get($name, $cond=self::FIND_OBJECT) {
+	 * @param string $name
+	 * @param int $cond
+	 * @return BaseFile|string|null
+	 */
+	public function get($name, $cond=self::FIND_OBJECT)
+	{
 		if ($name == '') {
 			return $this;
 		}
 
-		if (!$this->contains($name)) {
-			return false;
+		if ( ! $this->contains($name)) {
+			return null;
 		}
 
 		$path = $this->path . '/' . $name;
-		if ($cond == self::FIND_NAME) return $path;
-		return (new BaseFile($path))->toFileOrDir();
+		if ($cond == self::FIND_NAME) {
+			return $path;
+		}
+
+		return BaseFile::construct($path);
 	}
 
 	/**
-	 * Все файлы, непосредственно лежащие в директории, по регулярке + маска имени файла типа *.(php|js)
-	 * */
-	public function getFiles($pattern = null, $condition = self::FIND_OBJECT) {
+	 * @param string $pattern
+	 * @param array|int $condition
+	 * @return Vector
+	 */
+	public function getFiles($pattern = null, $condition = self::FIND_OBJECT)
+	{
 		$rules = is_array($condition) ? $condition : ['findType' => $condition];
 		$rules['mask'] = $pattern;
 		$rules['files'] = true;
@@ -173,9 +235,12 @@ class Directory extends BaseFile {
 	}
 
 	/**
-	 * Все файлы, лежащие во всех вложенных директориях, по регулярке + маска имени файла типа *.(php|js)
-	 * */
-	public function getAllFiles($pattern = null, $condition = Directory::FIND_OBJECT) {
+	 * @param string $pattern
+	 * @param array|int $condition
+	 * @return Vector
+	 */
+	public function getAllFiles($pattern = null, $condition = Directory::FIND_OBJECT)
+	{
 		$rules = is_array($condition) ? $condition : ['findType' => $condition];
 		$rules['mask'] = $pattern;
 		$rules['files'] = true;
@@ -184,18 +249,25 @@ class Directory extends BaseFile {
 	}
 
 	/**
-	 * Все директории, непосредственно лежащие в директории
-	 * */
-	public function getDirs($condition = self::FIND_OBJECT) {
+	 * @param array|int $condition
+	 * @return Vector
+	 */
+	public function getDirs($condition = self::FIND_OBJECT)
+	{
 		$rules = is_array($condition) ? $condition : ['findType' => $condition];
 		$rules['dirs'] = true;
 		return $this->getContent($rules);
 	}
 
 	/**
-	 * Рекурсивный поиск файла, включая вложенные директории
-	 * */
-	public function find($filename, $flag = Directory::FIND_OBJECT) {
+	 * Recursive search
+	 *
+	 * @param string $filename
+	 * @param int $flag
+	 * @return BaseFile|string|null
+	 */
+	public function find($filename, $flag = Directory::FIND_OBJECT)
+	{
 		$arr = explode('/', $filename);
 
 		if (count($arr) == 1) {
@@ -206,15 +278,24 @@ class Directory extends BaseFile {
 			$f = self::staticFindExt($this->path, $medName, $fn);
 		}
 
-		if (!$f) return false;
-		if ($flag == self::FIND_NAME) return $f;
-		return (new BaseFile($f))->toFileOrDir();
+		if (!$f) {
+			return null;
+		}
+
+		if ($flag == self::FIND_NAME) {
+			return $f;
+		}
+
+		return BaseFile::construct($f);
 	}
 
 	/**
-	 *
-	 * */
-	public function replaceInFiles($fileMask, $pattern, $replacement) {
+	 * @param string $fileMask
+	 * @param string $pattern
+	 * @param string $replacement
+	 */
+	public function replaceInFiles($fileMask, $pattern, $replacement)
+	{
 		$arr = $this->getAllFiles($fileMask);
 		$arr->each(function($file) use ($pattern, $replacement) {
 			$file->replace($pattern, $replacement);
@@ -222,9 +303,13 @@ class Directory extends BaseFile {
 	}
 
 	/**
-	 *
-	 * */
-	public function getFilesByCallback($fileMask, $func, $flag = Directory::FIND_OBJECT) {
+	 * @param string $fileMask
+	 * @param callable $func
+	 * @param int $flag
+	 * @return Vector
+	 */
+	public function getFilesByCallback($fileMask, $func, $flag = Directory::FIND_OBJECT)
+	{
 		$arr = $this->getAllFiles($fileMask);
 		$v = new Vector();
 		$arr->each(function($file) use (&$v, $func, $flag) {
@@ -236,9 +321,11 @@ class Directory extends BaseFile {
 	}
 
 	/**
-	 *
-	 * */
-	public function loadFile($name) {
+	 * @param string $name
+	 * @return mixed|null
+	 */
+	public function loadFile($name)
+	{
 		$file = $this->get($name);
 		if (!$file) $file = $this->find($name);
 		if ($file instanceof File) return $file->load();
@@ -246,19 +333,30 @@ class Directory extends BaseFile {
 	}
 
 	/**
-	 *
-	 * */
-	public function fileContent($name) {
+	 * @param string $name
+	 * @return mixed|null
+	 */
+	public function fileContent($name)
+	{
 		$file = $this->get($name);
 		if (!$file) $file = $this->find($name);
 		if ($file instanceof File) return $file->get();
 		return null;
 	}
 
+
+	/*******************************************************************************************************************
+	 * PRIVATE
+	 ******************************************************************************************************************/
+
 	/**
-	 * Парсит маску имени файла, н-р '*.(php|js)', приводя к массиву ['*.php', '*.js']
-	 * */
-	protected function parseMask($mask) {
+	 * Example: '*.(php|js)' ==> ['*.php', '*.js']
+	 *
+	 * @param string $mask
+	 * @return array
+	 */
+	private function parseMask($mask)
+	{
 		$temp = explode('.(', $mask);
 		if (count($temp) < 2) $masks = [$mask];
 		else {
@@ -274,12 +372,18 @@ class Directory extends BaseFile {
 	}
 
 	/**
-	 * Рекурсивный поиск файла, включая вложенные директории
-	 * */
-	private static function staticFind($dirName, $fileName) {
-		if (!file_exists($dirName)) return false;
+	 * @param string $dirName
+	 * @param string $fileName
+	 * @return string|false
+	 */
+	private static function staticFind($dirName, $fileName)
+	{
+		if ( ! file_exists($dirName)) {
+			return false;
+		}
+
 		$files = array_diff(scandir($dirName), ['.', '..']);
-		if ($dirName[strlen($dirName) - 1] != '/') $dirName .= '/';
+		if ($dirName{-1} != '/') $dirName .= '/';
 		foreach ($files as $f) {
 			$path = $dirName . $f;
 			if ($f == $fileName) return $path;
@@ -291,11 +395,18 @@ class Directory extends BaseFile {
 		return false;
 	}
 
-	private static function staticFindExt($dirName, $medDirName, $fileName) {
+	/**
+	 * @param string $dirName
+	 * @param string $medDirName
+	 * @param string $fileName
+	 * @return string|false
+	 */
+	private static function staticFindExt($dirName, $medDirName, $fileName)
+	{
 		if (!file_exists($dirName)) return false;
 		$files = array_diff(scandir($dirName), ['.', '..']);
-		if ($dirName[strlen($dirName) - 1] != '/') $dirName .= '/';
-		if ($medDirName[strlen($medDirName) - 1] != '/') $medDirName .= '/';
+		if ($dirName{-1} != '/') $dirName .= '/';
+		if ($medDirName{-1} != '/') $medDirName .= '/';
 		foreach ($files as $f) {
 			$path = $dirName . $f;
 			if ($f == $medDirName) {
@@ -313,21 +424,23 @@ class Directory extends BaseFile {
 	}
 
 	/**
-	 * @param $dirPath
-	 * @param $rules
-	 * @param $list
+	 * @param string $dirPath
+	 * @param DataObject $rules
+	 * @param Vector $list
 	 */
-	private function getContentRe($dirPath, $rules, &$list) {
-		// Тип возвращаемых данных - объекты или текстовые имена
+	private function getContentRe($dirPath, $rules, &$list)
+	{
 		$findType = $rules->findType ?? self::FIND_OBJECT;
 
-		// Правило сортировки
 		$sort = $rules->sort ?? null;
 		$arr = $sort
 			? scandir($dirPath, $sort)
 			: scandir($dirPath);
 
-		if ($dirPath[-1] != '/') $dirPath .= '/';
+		if ($dirPath{-1} != '/') {
+			$dirPath .= '/';
+		}
+		
 		$masks = $rules->mask ? $this->parseMask($rules->mask) : null;
 		$files = new Vector();
 		foreach ($arr as $value) {
@@ -352,29 +465,31 @@ class Directory extends BaseFile {
 	}
 
 	/**
-	 * @param $name
-	 * @param $fullPath
-	 * @param $type
-	 * @return Directory|File|mixed|null
+	 * @param string $name
+	 * @param string $fullPath
+	 * @param int $type
+	 * @return BaseFile|string|null
 	 */
-	private function getItem($name, $fullPath, $type) {
+	private function getItem($name, $fullPath, $type)
+	{
 		if ($type == self::FIND_OBJECT) {
-			return BaseFile::getFileOrDir($fullPath);
+			return BaseFile::construct($fullPath);
 		}
 
 		$thisPath = $this->path;
-		if ($thisPath[-1] != '/') $thisPath .= '/';
+		if ($thisPath{-1} != '/') $thisPath .= '/';
 		$path = str_replace($thisPath, '', $fullPath);
 		return $path;
 	}
 
 	/**
-	 * @param $fileName
-	 * @param $masks
+	 * @param string $fileName
+	 * @param array $masks
 	 * @return bool
 	 */
-	private function checkMasks($fileName, $masks) {
-		if (!$masks) {
+	private function checkMasks($fileName, $masks)
+	{
+		if ( ! $masks) {
 			return true;
 		}
 

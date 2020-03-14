@@ -57,21 +57,26 @@ lx.functionToString = function(func) {
  * 'function (arg1, arg2) { ...function code }'
  * */
 lx.stringToFunction = function(str) {
+	var arr = lx.parseFunctionString(str);
+	return lx.createFunction(arr[0], arr[1]);
+};
+
+lx.parseFunctionString = function(str) {
 	if (str[0] == '(') {
 		var reg = /^\(\s*([\w\W]*?)\s*\)\s*=>\s*{?([\w\W]*?)}?\s*$/,
 			arr = reg.exec(str);
 		if (!arr.len) return null;
-		return lx.createFunction(arr[1], arr[2]);
+		return [arr[1], arr[2]];
 	}
 
 	if (str.match(/^function/)) {
 		var reg = /^function[^(]*\(\s*([\w\W]*?)\s*\)\s*{\s*([\w\W]*)\s*}\s*$/,
 			arr = reg.exec(str);
 		if (!arr.len) return null;
-		return lx.createFunction(arr[1], arr[2]);
+		return [arr[1], arr[2]];
 	}
 
-	return lx.createFunction(null, str);
+	return [null, str];	
 };
 
 /**

@@ -2,16 +2,28 @@
 
 namespace lx;
 
-class I18nPluginMap extends I18nMap implements FusionComponentInterface {
-	use FusionComponentTrait;
-
+/**
+ * Class I18nPluginMap
+ * @package lx
+ */
+class I18nPluginMap extends I18nMap
+{
+	/** @var array */
 	protected $fullMap;
 
-	public function getPlugin() {
+	/**
+	 * @return Plugin
+	 */
+	public function getPlugin()
+	{
 		return $this->owner;
 	}
 
-	public function getFullMap() {
+	/**
+	 * @return array
+	 */
+	public function getFullMap()
+	{
 		if (!$this->fullMap) {
 			$selfMap = $this->getMap();
 
@@ -30,30 +42,20 @@ class I18nPluginMap extends I18nMap implements FusionComponentInterface {
 		return $this->fullMap;
 	}
 
-	protected function loadMap() {
-		if ($this->map !== null) {
-			return;
-		}
-		
-		/*
-		TODO
-		сделать возможность указывать в конфиге несколько файлов и даже каталогов с картами
-		*/
-		$fileName = $this->getPlugin()->getConfig('i18nFile');
-		if (!$fileName) {
-			$fileName = self::DEFAULT_FILE_NAME;
-		}
+	/**
+	 * @param string $fileName
+	 * @return string
+	 */
+	protected function getFilePath($fileName)
+	{
+		return $this->getPlugin()->conductor->getFullPath($fileName);
+	}
 
-		$fullPath = $this->getPlugin()->conductor->getFullPath($fileName);
-		$file = new ConfigFile($fullPath);
-		$this->map = $file->exists() ? $file->get() : [];
-
-		foreach ($this->files() as $fileName) {
-			$fullPath = $this->getPlugin()->conductor->getFullPath($fileName);
-			$file = new ConfigFile($fullPath);
-			if ($file->exists()) {
-				$this->map = $this->mapMerge($this->map, $file->get());
-			}
-		}
+	/**
+	 * @return array|string
+	 */
+	protected function getFilesFromConfig()
+	{
+		return $this->getPlugin()->getConfig('i18nFile');
 	}
 }

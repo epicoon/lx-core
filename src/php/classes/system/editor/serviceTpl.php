@@ -10,10 +10,8 @@ autoload:
 service:
   class: <service>
 
-  router:
-    type: map
-    routes:
-      <route>: '' #TODO: must be defined
+  routes:
+    /: '' #TODO: must be defined
 
   plugins: <plugin>
   models: <model>

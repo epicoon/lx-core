@@ -2,18 +2,24 @@
 
 namespace lx;
 
-class DbConnectionList {
+/**
+ * Class DbConnectionList
+ * @package lx
+ */
+class DbConnectionList
+{
+	/** @var array */
 	private $list = [];
 
 	/**
-	 *
-	 * */
-	public function add($settings) {
+	 * @param array $settings
+	 * @return array|false - [string{type}, resource{connection}]
+	 */
+	public function add($settings)
+	{
 		$key = $settings['hostname'] . '_' . $settings['username'] . '_' . $settings['dbName'];
 		if (array_key_exists($key, $this->list)) {
 			$this->list[$key]['count']++;
-
-			//todo если был 0 и было отключено - надо снова установить соединение. Но пока не отключаю
 		} else {
 			$connect = $this->tryConnect($settings);
 
@@ -32,42 +38,54 @@ class DbConnectionList {
 	}
 
 	/**
-	 *
-	 * */
-	public function drop($settings) {
+	 * @param array $settings
+	 */
+	public function drop($settings)
+	{
 		$key = $settings['hostname'] . '_' . $settings['username'] . '_' . $settings['dbName'];
 		if (array_key_exists($key, $this->list)) {
 			$this->list[$key]['count']--;
 
-			//todo при достижении 0 надо ли отключать
+			if ($this->list[$key]['count'] == 0) {
+				$this->closeConnection($key);
+				unset($this->list[$key]);
+			}
 		}
 	}
 
+
+	/*******************************************************************************************************************
+	 * PRIVATE
+	 ******************************************************************************************************************/
+
 	/**
-	 *
-	 * */
-	private function closeConnection($key) {
+	 * @param string $key
+	 */
+	private function closeConnection($key)
+	{
 		if (!array_key_exists($key, $this->list) || $this->list[$key]['count'] > 0) {
 			return;
 		}
 
 		switch ($this->list[$key]['type']) {
-			case 'pg':
+			case DB::POSTGRESQL:
 				pg_close($this->list[$key]['connection']);
 				break;
-			case 'mysql':
+			case DB::MYSQL:
 				mysqli_close($this->list[$key]['connection']);
-				break;			
+				break;
 		}
 	}
 
 	/**
-	 *
-	 * */
-	private function tryConnect($settings) {
+	 * @param array $settings
+	 * @return array|false - ['type' => string, 'connection' => resource]
+	 */
+	private function tryConnect($settings)
+	{
 		$arr = isset($settings['db'])
 			? [$settings['db']]
-			: ['pg', 'mysql'];
+			: [DB::POSTGRESQL, DB::MYSQL];
 		foreach ($arr as $value) {
 			$method = 'try_' . $value;
 
@@ -84,9 +102,11 @@ class DbConnectionList {
 	}
 
 	/**
-	 *
-	 * */
-	private function try_mysql($settings) {
+	 * @param array $settings
+	 * @return \mysqli|false
+	 */
+	private function try_mysql($settings)
+	{
 		$connection = false;
 		try {
 			$connection = mysqli_connect($settings['hostname'], $settings['username'], $settings['password']);
@@ -104,14 +124,22 @@ class DbConnectionList {
 	}
 
 	/**
-	 *
-	 * */
-	private function try_pg($settings) {
-		if (!function_exists('\pg_connect')) return false;
+	 * @param array $settings
+	 * @return resource|false
+	 */
+	private function try_pg($settings)
+	{
+		if (!function_exists('\pg_connect')) {
+			return false;
+		}
 
 		$connection = false;
 		try {
-			$connection = \pg_connect("host={$settings['hostname']} dbname={$settings['dbName']} user={$settings['username']} password={$settings['password']}");
+			$str = "host={$settings['hostname']}"
+				. " dbname={$settings['dbName']}"
+				. " user={$settings['username']}"
+				. " password={$settings['password']}";
+			$connection = \pg_connect($str);
 		} catch (\Exception $e) {
 			return false;
 		}

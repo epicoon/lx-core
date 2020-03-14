@@ -2,17 +2,32 @@
 
 namespace lx;
 
-class PluginEditor {
+/**
+ * Class PluginEditor
+ * @package lx
+ */
+class PluginEditor
+{
+	/** @var Service */
 	private $service;
 
-	public function __construct($service) {
+	/**
+	 * PluginEditor constructor.
+	 * @param Service $service
+	 */
+	public function __construct($service)
+	{
 		$this->service = $service;
 	}
 
 	/**
-	 *
-	 * */
-	public function createPlugin($name, $path, $config = []) {
+	 * @param string $name
+	 * @param string $path
+	 * @param array $config
+	 * @return Plugin|null
+	 */
+	public function createPlugin($name, $path, $config = [])
+	{
 		$servicePath = $this->service->getPath();
 		$pluginRootPath = $path == ''
 			? $servicePath
@@ -20,20 +35,22 @@ class PluginEditor {
 		$fullPath = $pluginRootPath . '/' . $name;
 
 		if (file_exists($fullPath)) {
-			throw new \Exception("Directory '$fullPath' already exists", 400);
-			return;
+			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+				'msg' => "Directory '$fullPath' already exists",
+			]);
+			return null;
 		}
 
-		require( __DIR__ . '/pluginTpl.php' );
+		require(__DIR__ . '/pluginTpl.php');
 		/**
 		 * @var string $respondentCode
 		 * @var string $bootstrapJsCode
 		 * @var string $mainJsCode
 		 * @var string $viewCode
 		 * @var string $pluginCode
-		 * */
+		 */
 
-		// Определим пространство имен
 		$namespace = '';
 		$psr = $this->service->getConfig('autoload.psr-4');
 		if (!$psr) {
@@ -76,8 +93,7 @@ class PluginEditor {
 		$text .= 'jsBootstrap: ' . $pluginConfig['jsBootstrap'] . PHP_EOL . PHP_EOL;
 
 		$text .= 'images: ' . $pluginConfig['images'] . PHP_EOL;
-		$text .= 'css: ' . $pluginConfig['css'] . PHP_EOL;
-		$text .= 'bundles: ' . $pluginConfig['bundles'] . PHP_EOL . PHP_EOL;
+		$text .= 'css: ' . $pluginConfig['css'] . PHP_EOL . PHP_EOL;
 
 		$text .= 'cacheType: ' . ($config['cacheType'] ?? $pluginConfig['cacheType'] ?? lx\Plugin::CACHE_NONE)
 			. PHP_EOL . PHP_EOL;
@@ -97,9 +113,14 @@ class PluginEditor {
 	}
 
 	/**
-	 *
-	 * */
-	private function createRespondents($respondents, $pluginDir, $pluginNamespace, $code) {
+	 * @param array $respondents
+	 * @param Directory $pluginDir
+	 * @param string $pluginNamespace
+	 * @param string $code
+	 * @return string
+	 */
+	private function createRespondents($respondents, $pluginDir, $pluginNamespace, $code)
+	{
 		$text = 'respondents:';
 
 		foreach ($respondents as $key => $respondent) {

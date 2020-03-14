@@ -6,29 +6,35 @@ namespace lx;
  * Class AbstractApplication
  * @package lx
  *
- * @property string $sitePath
- * @property Directory $directory
- * @property ApplicationConductor $conductor
- * @property ServicesMap $services
- * @property LoggerInterface $logger
+ * @property-read string $sitePath
+ * @property-read Directory $directory
+ * @property-read ApplicationConductor $conductor
+ * @property-read ServicesMap $services
+ * @property-read LoggerInterface $logger
  */
-abstract class AbstractApplication
+abstract class AbstractApplication extends BaseObject
 {
+	/** @var string */
 	private $id;
 
 	/** @var string */
 	private $_sitePath;
+
 	/** @var array */
 	private $_config;
+
 	/** @var array */
 	private $defaultServiceConfig;
+
 	/** @var array */
 	private $defaultPluginConfig;
 
 	/** @var ApplicationConductor */
 	private $_conductor;
+
 	/** @var ServicesMap */
 	private $_services;
+
 	/** @var LoggerInterface */
 	private $_logger;
 
@@ -60,19 +66,33 @@ abstract class AbstractApplication
 	public function __get($name)
 	{
 		switch ($name) {
-			case 'sitePath': return $this->_sitePath;
-			case 'directory': return new Directory($this->_sitePath);
-			case 'conductor': return $this->_conductor;
-			case 'services': return $this->_services;
-			case 'logger': return $this->_logger;
+			case 'sitePath':
+				return $this->_sitePath;
+			case 'directory':
+				return new Directory($this->_sitePath);
+			case 'conductor':
+				return $this->_conductor;
+			case 'services':
+				return $this->_services;
+			case 'logger':
+				return $this->_logger;
 		}
 
-		return null;
+		return parent::__get($name);
 	}
 
 	/**
-	 * @param $data string|array
-	 * @param $locationInfo string|null
+	 * @param string $alias
+	 * @return string
+	 */
+	public function getFullPath($alias)
+	{
+		return $this->conductor->getFullPath($alias);
+	}
+
+	/**
+	 * @param string|array $data
+	 * @param string $locationInfo
 	 */
 	public function log($data, $locationInfo = null)
 	{
@@ -88,15 +108,13 @@ abstract class AbstractApplication
 	}
 
 	/**
-	 * Получить конфиги приложения, или конкретный конфиг
-	 *
-	 * @param $param string|null
+	 * @param string|null $param
 	 * @return mixed
 	 */
 	public function getConfig($param = null)
 	{
 		if ($this->_config === null) {
-			$this->loadConfig();
+			$this->renewConfig();
 		}
 
 		if ($param === null) {
@@ -117,7 +135,7 @@ abstract class AbstractApplication
 	{
 		if ($this->defaultServiceConfig === null) {
 			$this->defaultServiceConfig =
-				(new File($this->conductor->getSystemPath('defaultServiceConfig')))->load();
+				(new File(\lx::$conductor->getDefaultServiceConfig()))->load();
 		}
 
 		return $this->defaultServiceConfig;
@@ -130,22 +148,27 @@ abstract class AbstractApplication
 	{
 		if ($this->defaultPluginConfig === null) {
 			$this->defaultPluginConfig =
-				(new File($this->conductor->getSystemPath('defaultPluginConfig')))->load();
+				(new File(\lx::$conductor->getDefaultPluginConfig()))->load();
 		}
 
 		return $this->defaultPluginConfig;
 	}
 
 	/**
-	 * Проверяет текущий режим работы приложения
-	 * Если режим не установлен - разрешен любой
-	 *
-	 * @param $mode string
+	 * @return string
+	 */
+	public function getMode()
+	{
+		return $this->getConfig('mode');
+	}
+
+	/**
+	 * @param string|array $mode
 	 * @return bool
 	 */
 	public function isMode($mode)
 	{
-		$currentMode = $this->getConfig('mode');
+		$currentMode = $this->getMode();
 		if (!$currentMode) return true;
 
 		if (is_array($mode)) {
@@ -161,7 +184,23 @@ abstract class AbstractApplication
 	}
 
 	/**
-	 * @param $name string
+	 * @return bool
+	 */
+	public function isProd()
+	{
+		return $this->isMode(\lx::MODE_PROD);
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isNotProd()
+	{
+		return !$this->isMode(\lx::MODE_PROD);
+	}
+
+	/**
+	 * @param string $name
 	 * @return Service|null
 	 */
 	public function getService($name)
@@ -174,7 +213,7 @@ abstract class AbstractApplication
 	}
 
 	/**
-	 * @param $file string|File
+	 * @param string|File $file
 	 * @return Service|null
 	 */
 	public function getServiceByFile($file)
@@ -199,7 +238,7 @@ abstract class AbstractApplication
 	}
 
 	/**
-	 * @param $name string
+	 * @param string $name
 	 * @return string|false
 	 */
 	public function getPackagePath($name)
@@ -214,20 +253,18 @@ abstract class AbstractApplication
 	}
 
 	/**
-	 * Получение плагина
-	 *
-	 * @param $fullPluginName string
-	 * @param $renderParams array
-	 * @param $clientParams array
+	 * @param string $fullPluginName
+	 * @param array $params
+	 * @param string $onload
 	 * @return Plugin|null
 	 */
-	public function getPlugin($fullPluginName, $renderParams = [], $clientParams = [])
+	public function getPlugin($fullPluginName, $params = [], $onload = '')
 	{
 		if (is_array($fullPluginName)) {
 			return $this->getPlugin(
 				$fullPluginName['name'] ?? $fullPluginName['plugin'] ?? '',
-				$fullPluginName['renderParams'] ?? [],
-				$fullPluginName['clientParams'] ?? []
+				$fullPluginName['params'] ?? [],
+				$fullPluginName['onload'] ?? ''
 			);
 		}
 
@@ -240,24 +277,27 @@ abstract class AbstractApplication
 		if (!$service) return null;
 
 		$plugin = $service->getPlugin($pluginName);
-		if (!empty($renderParams)) {
-			$plugin->addRenderParams($renderParams);
+		if (!empty($params)) {
+			$plugin->addParams($params);
 		}
-		if (!empty($clientParams)) {
-			$plugin->clientParams->setProperties($clientParams);
+
+		if ($onload != '') {
+			$plugin->onload($onload);
 		}
 		return $plugin;
 	}
 
 	/**
-	 * Получение пути к модулю
-	 *
-	 * @param $serviceName string
-	 * @param $pluginName string|null
-	 * @return string
+	 * @param string $serviceName
+	 * @param string $pluginName
+	 * @return string|null
 	 */
 	public function getPluginPath($serviceName, $pluginName = null)
 	{
+		if (!$serviceName) {
+			return null;
+		}
+
 		if ($pluginName === null) {
 			$arr = explode(':', $serviceName);
 			$serviceName = $arr[0];
@@ -268,11 +308,9 @@ abstract class AbstractApplication
 	}
 
 	/**
-	 * Получение менеджера модели из сервиса
-	 *
-	 * @param $serviceName string
-	 * @param $modelName string|null
-	 * @return mixed|null  TODO mixed - временно, нужен интерфейс
+	 * @param string $serviceName
+	 * @param string $modelName
+	 * @return ModelManagerInterface|null
 	 */
 	public function getModelManager($serviceName, $modelName = null)
 	{
@@ -287,34 +325,24 @@ abstract class AbstractApplication
 		}
 
 		$service = $this->getService($serviceName);
-		if ( ! $service) {
+		if (!$service) {
 			return null;
 		}
 
 		return $service->getModelManager($modelName);
 	}
 
+	/**
+	 * @return void
+	 */
 	abstract public function run();
 
 	/**
-	 * Перезагрузка основных конфигов приложения
+	 * Reload application configuration
 	 */
 	public function renewConfig()
 	{
-		$path = $this->_conductor->appConfig;
-		if (!$path) {
-			$this->_config = [];
-		} else {
-			$this->_config = require($path);
-		}
-	}
-
-	/**
-	 * Загрузка основных конфигов приложения
-	 */
-	private function loadConfig()
-	{
-		$path = $this->_conductor->appConfig;
+		$path = \lx::$conductor->getAppConfig();
 		if (!$path) {
 			$this->_config = [];
 		} else {

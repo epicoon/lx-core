@@ -5,10 +5,12 @@ namespace lx;
 /**
  * Class ServiceController
  * @package lx
+ * 
+ * @property-read Service $service
  */
 class ServiceController extends Source
 {
-	/** @var Source */
+	/** @var Service */
 	private $_service;
 
 	/**
@@ -34,7 +36,7 @@ class ServiceController extends Source
 
 		return parent::__get($name);
 	}
-
+	
 	/**
 	 * @return array
 	 */

@@ -1,6 +1,7 @@
 /**
- * @const lx.Plugin Plugin
- * */
+ * @const {lx.Plugin} Plugin
+ * @const {lx.Snippet} Snippet
+ */
 
 #lx:use lx.ActiveBox;
 
@@ -46,6 +47,6 @@ function loadPlugin(name, title, boxName, data) {
 	list[boxName].box = new lx.ActiveBox({ parent: body, header: title, geom:true });
 	var elem = list[boxName].box;
 	elem->body.fill('white');
-	elem->body.injectPlugin(data);
+	elem->body.setPlugin(data);
 	elem->body.style('overflow', 'auto');
 }

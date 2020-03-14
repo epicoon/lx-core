@@ -290,10 +290,10 @@
   Сниппет может иметь свой JS-код, выполняющийся на стороне клиента. Для этого в коде сниппета нужно определить функцию и передать ее в метод `Snipept.onload()`:
   ```js
   /**
-   * @const lx.Application App
-   * @const lx.Plugin Plugin
-   * @const lx.Snippet Snippet
-   * */
+   * @const {lx.Application} App
+   * @const {lx.Plugin} Plugin
+   * @const {lx.Snippet} Snippet
+   */
 
    Snippet.onload(()=>{
       console.log('This code has executed on the client side!');

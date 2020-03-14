@@ -2,13 +2,22 @@
 
 namespace lx;
 
-class CorsProcessor extends Object implements FusionComponentInterface
+/**
+ * Class CorsProcessor
+ * @package lx
+ */
+class CorsProcessor extends BaseObject implements FusionComponentInterface
 {
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
+	/** @var array - can be redefined by application components configuration */
 	protected $originMap = [];
 
+	/**
+	 * CorsProcessor constructor.
+	 * @param array $config
+	 */
 	public function __construct($config = [])
 	{
 		parent::__construct($config);
@@ -24,14 +33,18 @@ class CorsProcessor extends Object implements FusionComponentInterface
 		$this->originMap = $originMap;
 	}
 
+	/**
+	 * @param array $requestHeaders
+	 * @return array
+	 */
 	public function getHeaders($requestHeaders)
 	{
-		if ( ! isset($requestHeaders['origin'])) {
+		if (!isset($requestHeaders['origin'])) {
 			return [];
 		}
 
 		$origin = $requestHeaders['origin'];
-		if ( ! array_key_exists($origin, $this->originMap)) {
+		if (!array_key_exists($origin, $this->originMap)) {
 			return [];
 		}
 

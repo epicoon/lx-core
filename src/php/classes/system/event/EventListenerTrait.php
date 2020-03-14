@@ -2,8 +2,13 @@
 
 namespace lx;
 
+/**
+ * Trait EventListenerTrait
+ * @package lx
+ */
 trait EventListenerTrait
 {
+	/** @var EventManager */
 	private $eventManager;
 
 	/**
@@ -14,44 +19,59 @@ trait EventListenerTrait
 	{
 		if ($eventManager instanceof EventManager) {
 			$this->eventManager = $eventManager;
+		} elseif (
+			is_array($eventManager)
+			&& array_key_exists('eventManager', $eventManager)
+			&& $eventManager['eventManager'] instanceof EventManager) {
+			$this->eventManager = $eventManager['eventManager'];
 		} else {
 			$this->eventManager = \lx::$app->events;
 		}
-		$map = self::getEventHandlersMap();
+		$map = static::getEventHandlersMap();
 		foreach (array_keys($map) as $eventName) {
 			$this->subscribe($eventName);
 		}
 	}
 
+	/**
+	 * @return array
+	 */
+	public static function getEventHandlersMap()
+	{
+		return [];
+	}
+
+	/**
+	 * @param string $eventName
+	 */
 	public function subscribe($eventName)
 	{
-		if ( ! $this->eventManager) {
+		if (!$this->eventManager) {
 			return;
 		}
 
 		$this->eventManager->subscribe($eventName, $this);
 	}
 
+	/**
+	 * @param string $eventName
+	 * @param array $params
+	 */
 	public function trigger($eventName, $params = [])
 	{
-		$map = self::getEventHandlersMap();
+		$map = static::getEventHandlersMap();
 
 		$methodName = array_key_exists($eventName, $map)
 			? $map[$eventName]
 			: $eventName;
 
-		if ( ! method_exists($this, $methodName)) {
+		if (!method_exists($this, $methodName)) {
 			return;
 		}
 
-		if ( ! is_array($params)) {
+		if (!is_array($params)) {
 			$params = [$params];
 		}
 		call_user_func_array([$this, $methodName], $params);
-	}
-
-	public static function getEventHandlersMap()
-	{
-		return [];
 	}
 }

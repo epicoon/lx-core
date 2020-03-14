@@ -2,6 +2,11 @@
 
 require_once(__DIR__ . '/PlatformConductor.php');
 
+/**
+ * Static environment for application
+ *
+ * Class lx
+ */
 class lx
 {
 	const MODE_PROD = 'prod';
@@ -26,25 +31,38 @@ class lx
 
 	/** @var \lx\Autoloader */
 	public static $autoloader;
+
 	/** @var lx\PlatformConductor */
 	public static $conductor;
-	/** @var \lx\AbstractApplication */
+
+	/** @var \lx\Application|\lx\ConsoleApplication */
 	public static $app;
 
 	/** @var string */
 	private static $dump;
+	
+	/** @var \lx\DevLogger */
+	private static $devLogger;
 
+	/**
+	 * Initialisation of platform conductor and autoloader
+	 */
 	public static function init()
 	{
 		self::$conductor = new lx\PlatformConductor();
 
 		require_once(__DIR__ . '/classes/system/autoload/Autoloader.php');
 		self::$autoloader = lx\Autoloader::getInstance();
-		self::$autoloader->init(self::$conductor->sitePath);
+		self::$autoloader->init(self::$conductor->sitePath, dirname(__DIR__));
 
 		self::$dump = '';
 	}
 
+	/**
+	 * Advanced way to dump some information in browser
+	 *
+	 * @param mixed $data
+	 */
 	public static function echo($data)
 	{
 		if (self::$app->isMode(self::MODE_PROD)) {
@@ -58,6 +76,11 @@ class lx
 		self::$dump .= $data;
 	}
 
+	/**
+	 * Advanced way to dump some information in browser
+	 *
+	 * @param mixed $data
+	 */
 	public static function dump($data)
 	{
 		if (self::$app->isMode(self::MODE_PROD)) {
@@ -70,6 +93,29 @@ class lx
 		self::echo($out);
 	}
 
+	/**
+	 * @param array|string $data
+	 */
+	public static function devLog($data)
+	{
+		if (self::$app->isMode(self::MODE_PROD)) {
+			return;
+		}
+
+		if ( ! self::$devLogger) {
+			self::$devLogger = new \lx\DevLogger();
+			self::$devLogger->truncate();
+		}
+
+		self::$devLogger->log($data, self::$app->getMode() ?? 'common');
+	}
+
+	/**
+	 * Method for recieving dumped data while response preparing
+	 * You don't need to use this method
+	 *
+	 * @return string
+	 */
 	public static function getDump()
 	{
 		return self::$dump;

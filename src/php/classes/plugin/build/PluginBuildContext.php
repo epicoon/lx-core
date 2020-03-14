@@ -2,56 +2,106 @@
 
 namespace lx;
 
-class PluginBuildContext extends Object implements ContextTreeInterface {
+/**
+ * Class PluginBuildContext
+ * @package lx
+ */
+class PluginBuildContext extends BaseObject implements ContextTreeInterface
+{
 	use ApplicationToolTrait;
 	use ContextTreeTrait;
 
 	const DEFAULT_MODULE_TITLE = 'lx';
 
+	/** @var Plugin */
 	private $plugin;
+
+	/** @var string */
+	private $cacheType;
+
+	/** @var SnippetBuildContext */
 	private $rootSnippetBuildContext;
 
+	/** @var bool */
 	private $compiled;
+
+	/** @var string */
 	private $pluginInfo;
+
+	/** @var string */
 	private $bootstrapJs;
+
+	/** @var string */
 	private $mainJs;
+
+	/** @var string */
 	private $snippetData;
+
+	/** @var string */
 	private $commonData;
 
+	/** @var array */
 	private $scripts;
+
+	/** @var array */
 	private $css;
 
+	/** @var JsCompiler */
 	private $jsCompiler;
-	private $moduleDependencies;
-	private $commonModuleDependencies;
 
-	public function __construct($plugin, $parent = null) {
-		parent::__construct($parent);
+	/** @var array */
+	private $moduleDependencies = [];
 
-		$this->plugin = $plugin;
+	/** @var array */
+	private $commonModuleDependencies = [];
+
+	/**
+	 * PluginBuildContext constructor.
+	 * @param array $config
+	 */
+	public function __construct($config = [])
+	{
+		parent::__construct($config);
+
+		$this->plugin = $config['plugin'];
 		$this->compiled = false;
-		$this->moduleDependencies = [];
 		$this->jsCompiler = new JsCompiler($this->getPlugin()->conductor);
 
-		if (!$parent) {
-			$this->commonModuleDependencies = [];
-		}
-
-		$moduleDependencies = $plugin->getModuleDependencies();
+		$moduleDependencies = $this->plugin->getModuleDependencies();
 		if (!empty($moduleDependencies)) {
 			$this->noteModuleDependencies($moduleDependencies);
 		}
 	}
 
-	public function getPlugin() {
+	/**
+	 * @return Plugin
+	 */
+	public function getPlugin()
+	{
 		return $this->plugin;
 	}
-	
-	public function getJsCompiler() {
+
+	/**
+	 * @return string
+	 */
+	public function getCacheType()
+	{
+		return $this->cacheType ?? $this->getPlugin()->getConfig('cacheType') ?? Plugin::CACHE_NONE;
+	}
+
+	/**
+	 * @return JsCompiler
+	 */
+	public function getJsCompiler()
+	{
 		return $this->jsCompiler;
 	}
 
-	public function noteModuleDependencies($moduleNames) {
+	/**
+	 * @param array $moduleNames
+	 */
+	public function noteModuleDependencies($moduleNames)
+	{
 		$this->moduleDependencies = array_values(array_unique(array_merge(
 			$this->moduleDependencies,
 			$moduleNames
@@ -65,9 +115,21 @@ class PluginBuildContext extends Object implements ContextTreeInterface {
 	}
 
 	/**
-	 * Собрать все контексты
+	 * Rebuild plugin cache
 	 */
-	public function build() {
+	public function buildCache()
+	{
+		$this->cacheType = Plugin::CACHE_BUILD;
+		$this->compile();
+	}
+
+	/**
+	 * Build all contexts
+	 *
+	 * @return array
+	 */
+	public function build()
+	{
 		$this->compile();
 
 		$plugin = $this->getPlugin();
@@ -76,34 +138,38 @@ class PluginBuildContext extends Object implements ContextTreeInterface {
 		$result = [
 			'pluginInfo' => '',
 			'modules' => $this->commonModuleDependencies,
-			'page' => [
-				'title' => $title,
-				'icon' => $plugin->icon,
-				'scripts' => [],
-				'css' => []
-			]
 		];
 
-		$this->eachContext(function($context) use (&$result) {
+		$allScripts = [];
+		$allCss = [];
+		$this->eachContext(function (PluginBuildContext $context) use (&$result, &$allScripts, &$allCss) {
 			$key = $context->getKey();
 			$result['pluginInfo'] .= "<plugin $key>{$context->commonData}</plugin $key>";
 
 			if (!empty($context->scripts)) {
-				$result['page']['scripts'][$key] = $context->scripts;
+				$allScripts = array_merge($allScripts, $context->scripts);
 			}
 
 			if (!empty($context->css)) {
-				$result['page']['css'][$key] = $context->css;
+				$allCss = array_merge($allCss, $context->css);
 			}
 		});
+
+		$result['page'] = [
+			'title' => $title,
+			'icon' => $plugin->icon,
+			'scripts' => $this->collapseScripts($allScripts),
+			'css' => $this->collapseCss($allCss),
+		];
 
 		return $result;
 	}
 
 	/**
-	 * Собираем только этот контекст
+	 * Build this context
 	 */
-	public function compile() {
+	public function compile()
+	{
 		$this->getPlugin()->beforeCompile();
 		if ($this->compiled) {
 			return;
@@ -124,24 +190,22 @@ class PluginBuildContext extends Object implements ContextTreeInterface {
 			. "<mj $key>{$this->mainJs}</mj $key>";
 		$this->commonData = I18nHelper::localizePlugin($this->getPlugin(), $data);
 
-		$this->compileScripts();
-		$this->compileCss();
-
 		$this->compiled = true;
 		$this->getPlugin()->afterCompile();
 	}
 
 	/**
-	 * @param $dependencies JsCompileDependencies
+	 * @param JsCompileDependencies $dependencies
 	 */
-	public function applayDependencies($dependencies) {
+	public function applayDependencies($dependencies)
+	{
 		$dependenciesArray = $dependencies->toArray();
 
 		if (isset($dependenciesArray['plugins'])) {
 			foreach ($dependenciesArray['plugins'] as $pluginInfo) {
 				$plugin = $this->app->getPlugin($pluginInfo);
 				$plugin->setAnchor($pluginInfo['anchor']);
-				$context = $this->add($plugin);
+				$context = $this->add(['plugin' => $plugin]);
 				$context->compile();
 			}
 		}
@@ -152,7 +216,7 @@ class PluginBuildContext extends Object implements ContextTreeInterface {
 
 		if (isset($dependenciesArray['scripts'])) {
 			foreach ($dependenciesArray['scripts'] as $script) {
-				$this->getPlugin()->script($script);
+				$this->getPlugin()->addScript($script);
 			}
 		}
 
@@ -163,73 +227,85 @@ class PluginBuildContext extends Object implements ContextTreeInterface {
 		}
 	}
 
-	
+
 	/*******************************************************************************************************************
 	 * COMPILE METHODS
 	 ******************************************************************************************************************/
 
-	public function compilePluginInfo() {
-		$info = $this->callPrivatePluginMethod('getSelfInfo');
-
-		/* Подсовываем зависимости от js-модулей
-		 * Это только для того, чтобы плагин знал о своих собственных зависимостях
-		 * и, если плагин сброшен, модули тоже можно было сбросить
-		 * На ajax-дозагрузку модулей по зависимостям это не влияет - для этого строится
-		 * единая карта зависимостей для всех отрендеренных плагинов
-		 */
-		if (!empty($this->moduleDependencies)) {
-			$info['modep'] = $this->moduleDependencies;
-		}
+	/**
+	 * Building of plugin self information
+	 */
+	private function compilePluginInfo()
+	{
+		$info = $this->getPlugin()->getSelfInfo();
 
 		// Root snippet key
 		$info['rsk'] = $this->getPlugin()->getRootSnippetKey();
 
+		// All plugin dependencies
+		$this->scripts = $this->getPlugin()->getScripts();
+		$this->css = $this->getPlugin()->getCss();
+		$dependencies = [];
+		if (!empty($this->scripts)) {
+			$dependencies['s'] = [];
+			foreach ($this->scripts as $script) {
+				$dependencies['s'][] = $script['path'];
+			}
+		}
+		if (!empty($this->css)) {
+			$dependencies['c'] = $this->css;
+		}
+		if (!empty($this->moduleDependencies)) {
+			$dependencies['m'] = $this->moduleDependencies;
+		}
+		if (!ArrayHelper::deepEmpty($dependencies)) {
+			$info['dep'] = $dependencies;
+		}
+
 		$this->pluginInfo = json_encode($info);
 	}
 
-	private function compileSnippet() {
-		$this->rootSnippetBuildContext = new SnippetBuildContext($this);
+	/**
+	 * Building of root snippet
+	 */
+	private function compileSnippet()
+	{
+		$this->rootSnippetBuildContext = new SnippetBuildContext(['pluginBuildContext' => $this]);
 		$snippets = $this->rootSnippetBuildContext->build();
 		$this->snippetData = $snippets;
 	}
 
-	private function compileBootstrapJs() {
+	/**
+	 * Building of bootstrap JS-code
+	 */
+	private function compileBootstrapJs()
+	{
 		$plugin = $this->getPlugin();
 		$jsBootstrapFile = $plugin->conductor->getJsBootstrap();
-		$this->bootstrapJs = $this->compileJs('', $jsBootstrapFile, '');
+		$this->bootstrapJs = $this->compileJs($jsBootstrapFile);
 	}
 
-	private function compileMainJs() {
+	/**
+	 * Building of main JS-code
+	 */
+	private function compileMainJs()
+	{
 		$plugin = $this->getPlugin();
-		$this->mainJs = $this->compileJs(
-			$this->prepareJs('getPreJs'),
-			$plugin->conductor->getJsMain(),
-			$this->prepareJs('getPostJs')
-		);
+		$this->mainJs = $this->compileJs($plugin->conductor->getJsMain());
 	}
 
-	private function prepareJs($method) {
-		$result = '';
-		$jsArr = $this->callPrivatePluginMethod($method);
-		foreach ($jsArr as $js) {
-			if (preg_match('/^\(\)=>/', $js)) $result .= preg_replace('/^\(\)=>/', '', $js);
-			else {
-				$file = $this->conductor->getJsFile($js);
-				if (!$file) continue;
-				$result .= $file->get();
-			}
-		}
-		return $result;
-	}
-
-	private function compileJs($preCode, $file, $postCode) {
+	/**
+	 * @param File $file
+	 * @return string
+	 */
+	private function compileJs($file)
+	{
 		$fileExists = $file && $file->exists();
 		$code = '';
 		if ($fileExists) {
 			$code = $file->get();
 		}
 
-		$code = "$preCode$code$postCode";
 		if ($code == '') return '';
 
 		return $this->jsCompiler->compileCode(
@@ -238,18 +314,39 @@ class PluginBuildContext extends Object implements ContextTreeInterface {
 		);
 	}
 
-	private function compileScripts() {
-		$this->scripts = $this->callPrivatePluginMethod('getScripts');
-	}
+	/**
+	 * @param array $scripts
+	 * @return array
+	 */
+	private function collapseScripts($scripts)
+	{
+		$result = [];
+		foreach ($scripts as $value) {
+			$path = $value['path'];
+			if (!array_key_exists($path, $result)) {
+				$result[$path] = $value;
+			} else {
+				if ($value['parallel'] ?? false) {
+					$result[] = $value;
+				}
+			}
+		}
 
-	private function compileCss() {
-		$this->css = $this->callPrivatePluginMethod('getCss');
+		return array_values($result);
 	}
 
 	/**
-	 * PHP не поддерживает дружественные классы, но есть выход
-	 * */
-	public function callPrivatePluginMethod($methodName, $args = []) {
-		return ClassHelper::call($this->getPlugin(), $methodName, $args);
+	 * @param array $css
+	 * @return array
+	 */
+	private function collapseCss($css)
+	{
+		$result = [];
+		foreach ($css as $value) {
+			if (array_search($value, $result) === false) {
+				$result[] = $value;
+			}
+		}
+		return $result;
 	}
 }

@@ -291,10 +291,10 @@ Of all the elements of the architecture a service and a plugin are configurable 
   A snippet can have its own JS-code running on the client side. To do this, you need to define a function in the snippet code and pass it to the `Snipept.onload ()` method:
   ```js
   /**
-   * @const lx.Application App
-   * @const lx.Plugin Plugin
-   * @const lx.Snippet Snippet
-   * */
+   * @const {lx.Application} App
+   * @const {lx.Plugin} Plugin
+   * @const {lx.Snippet} Snippet
+   */
 
    Snippet.onload(()=>{
       console.log('This code has executed on the client side!');

@@ -3,57 +3,62 @@
 namespace lx;
 
 /**
- * Класс для создания роутеров в сервисах
- * */
-class ServiceRouter {
-	protected $service;
+ * Class ServiceRouter
+ * @package lx
+ */
+class ServiceRouter extends BaseObject implements FusionComponentInterface
+{
+	use FusionComponentTrait;
 
 	/**
-	 *
-	 * */
-	public function route($serviceRouteData) {
+	 * @return Service
+	 */
+	public function getService()
+	{
+		return $this->owner;
+	}
+
+	/**
+	 * @param array $serviceRouteData
+	 * @return SourceContext|false
+	 */
+	public function route($serviceRouteData)
+	{
 		return $this->determineRouteData($serviceRouteData);
 	}
 
 	/**
-	 *
-	 * */
-	public function __construct($service) {
-		$this->service = $service;
+	 * @return array
+	 */
+	public function getMap()
+	{
+		$map = $this->getService()->getConfig('service.routes');
+		return $map ?? [];
 	}
 
 	/**
+	 * Map example:
+	 * [
+	 *     'route/a' => [
+	 *         'controller' => 'psrTest\controller\MainController',
+	 *         'method' => 'get',
+	 *         'on-mode' => 'dev',
+	 *         'on-service-mode' => 'someMode',
+	 *     ],
 	 *
-	 * */
-	public function getMap() {
-		$map = $this->service->getConfig('service.router');
-		if ($map && isset($map['type']) && $map['type'] == 'map') {
-			if (isset($map['routes'])) {
-				return $map['routes'];
-			}
-		}
-		return [];
-	}
-
-	/**
-	 *	Пример карты:
-	 *	[
-	 *		'route/a' => [
-	 *			'controller' => 'psrTest\controller\MainController',
-	 *			'method' => 'get',
-	 *			'on-mode' => 'dev',
-	 *			'on-service-mode' => 'someMode',
-	 *		],
-	 * 
-	 *		'route/b' => 'psrTest\controller\SomeController',  // Контроллер должен иметь метод ::run() - именно он будет запущен
-	 * 
-	 *		'route/c' => 'psrTest\controller\SomeController::someAction',
-	 *		'route/d' => ['action' => 'psrTest\action\SomeAction'],  // Экшен должен иметь метод ::run() - именно он будет запущен
+	 *     'route/b' => 'psrTest\controller\SomeController',
 	 *
-	 *		'route/e' => ['plugin' => 'somePlugin'],  // Сразу замыкает на плагин - он будет отрендерен
-	 *	]
-	 * */
-	protected function determineRouteData($routeData) {
+	 *     'route/c' => 'psrTest\controller\SomeController::someAction',
+	 *     'route/d' => ['action' => 'psrTest\action\SomeAction'],
+	 *
+	 *     'route/e' => ['plugin' => 'somePlugin'],
+	 * ]
+	 *
+	 * @param array $routeData
+	 * @return SourceContext|false
+	 */
+	protected function determineRouteData($routeData)
+	{
 		$source = $routeData;
 		if (isset($source['route'])) {
 			$route = $source['route'];
@@ -83,11 +88,10 @@ class ServiceRouter {
 					$source['class'] = $arr[0];
 					$source['method'] = $arr[1];
 				} elseif (isset($data['plugin'])) {
-					if (!$this->service->pluginExists($data['plugin'])) {
+					if (!$this->getService()->pluginExists($data['plugin'])) {
 						return false;
 					}
 					$source['plugin'] = $data['plugin'];
-					$source['method'] = 'build';
 				}
 			}
 		}
@@ -96,9 +100,11 @@ class ServiceRouter {
 	}
 
 	/**
-	 *
-	 * */
-	protected function getControllerData($nameWithAction) {
+	 * @param string $nameWithAction
+	 * @return array|false
+	 */
+	protected function getControllerData($nameWithAction)
+	{
 		$arr = explode('::', $nameWithAction);
 		$className = $arr[0];
 		$actionMethod = $arr[1] ?? 'run';
@@ -111,23 +117,23 @@ class ServiceRouter {
 	}
 
 	/**
-	 * Проверка общих условий доступа
-	 * */
-	private function validateConditions($data) {
-		if ( ! is_array($data)) {
+	 * @param array $data
+	 * @return bool
+	 */
+	private function validateConditions($data)
+	{
+		if (!is_array($data)) {
 			return true;
 		}
 
-		// Проверка мода приложения
 		if (isset($data['on-mode'])) {
-			if (!$this->service->app->isMode($data['on-mode'])) {
+			if (!$this->getService()->app->isMode($data['on-mode'])) {
 				return false;
 			}
 		}
 
-		// Проверка мода сервиса
 		if (isset($data['on-service-mode'])) {
-			if (!$this->service->isMode($data['on-service-mode'])) {
+			if (!$this->getService()->isMode($data['on-service-mode'])) {
 				return false;
 			}
 		}

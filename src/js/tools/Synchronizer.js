@@ -1,32 +1,8 @@
 class Synchronizer #lx:namespace lx {
-	constructor(action) {
+	constructor(callback) {
 		this.keyCounter = 0;
 		this.waitingList = [];
-		this.action = action;
-	}
-
-	setAction(action) {
-		this.action = action;
-	}
-
-	genKey() {
-		return 'k' + (this.keyCounter++);
-	}
-
-	allAreReady() {
-		for (var i in this.waitingList) {
-			if (this.waitingList[i].status === false)
-				return false;
-		}
-		return true;
-	}
-
-	ready(obj) {
-		var info = this.waitingList[obj.synchronKey];
-		info.status = true;
-		delete obj.synchronKey;
-		obj[info.successMethodName] = info.successMethod;
-		obj[info.errorMethodName] = info.errorMethod;
+		this.callback = callback;
 	}
 
 	register(obj, successMethodName, errorMethodName) {
@@ -64,8 +40,12 @@ class Synchronizer #lx:namespace lx {
 		};
 	}
 
-	start(action) {
-		if (action) this.setAction(action);
+	setCallback(callback) {
+		this.callback = callback;
+	}
+
+	start(callback) {
+		if (callback) this.setCallback(callback);
 		lx.addTimer(this);
 	}
 
@@ -76,7 +56,27 @@ class Synchronizer #lx:namespace lx {
 	go() {
 		if (this.allAreReady()) {
 			this.stop();
-			if (this.action.isFunction) this.action();
+			if (this.callback.isFunction) this.callback();
 		}
+	}
+
+	genKey() {
+		return 'k' + (this.keyCounter++);
+	}
+
+	allAreReady() {
+		for (var i in this.waitingList) {
+			if (this.waitingList[i].status === false)
+				return false;
+		}
+		return true;
+	}
+
+	ready(obj) {
+		var info = this.waitingList[obj.synchronKey];
+		info.status = true;
+		delete obj.synchronKey;
+		obj[info.successMethodName] = info.successMethod;
+		obj[info.errorMethodName] = info.errorMethod;
 	}
 }

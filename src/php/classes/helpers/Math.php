@@ -20,25 +20,24 @@ class Math
 	}
 
 	/**
-	 * Сгенерировать случайное число
-	 *
-	 * @param $min int
-	 * @param $max int
+	 * @param int $min
+	 * @param int $max
+	 * @param bool $crypt
 	 * @return int
 	 * @throws \Exception
 	 */
-	public static function rand($min, $max)
+	public static function rand($min, $max, $crypt = false)
 	{
-		if (function_exists('\random_int'))
+		if ($crypt) {
 			return \random_int($min, $max);
+		}
 
 		return \rand($min, $max);
 	}
 
 	/**
-	 * @param $probability float - в интервале [0; 1]
+	 * @param float $probability - value from interval [0; 1]
 	 * @return bool
-	 * @throws \Exception
 	 */
 	public static function gamble($probability)
 	{
@@ -48,11 +47,11 @@ class Math
 	}
 
 	/**
-	 * Смена системы счисления с десятичной на заданную
-	 * Можно задать базис до 62-ричной системы счисления
+	 * Change the number system from decimal to custom system
+	 * You can use basis up to 62
 	 *
-	 * @param $n int
-	 * @param $basis int
+	 * @param int $n
+	 * @param int $basis
 	 * @return string
 	 */
 	public static function decChangeNotation($n, $basis)
@@ -63,19 +62,19 @@ class Math
 			$a = $n % $basis;
 			if ($a>35) $a = chr($a+29);
 			else if ($a>9) $a = chr($a+87);
-			$str = $a.$str;
+			$str = "$a$str";
 			$n = $q;
 			$q = floor($n / $basis);
 		}
 		$a = $n % $basis;
 		if ($a>35) $a = chr($a+29);
 		else if ($a>9) $a = chr($a+87);
-		$str = $a.$str;
+		$str = "$a$str";
 		return $str;
 	}
 
 	/**
-	 * @param $val float
+	 * @param float $val
 	 * @return int
 	 */
 	public static function roundToZero($val)
@@ -86,9 +85,9 @@ class Math
 	}
 
 	/**
-	 * Вычислить значение из строки, н-р '(11 + 44) * 3'
+	 * Calculate result from string, example: '(11 + 44) * 3'
 	 *
-	 * @param $str
+	 * @param string $str
 	 * @return float|false
 	 */
 	public static function calculate($str)

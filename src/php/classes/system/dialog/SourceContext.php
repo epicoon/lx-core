@@ -3,21 +3,25 @@
 namespace lx;
 
 /**
- * Запрашиваемый ресурс может представлять собой либо плагин, либо экшен:
- * 1. Плагин - должен быть возвращен результат рендеригна плагина. Объект знает имя сервиса и имя плагина
+ * Requested source is plugin or action:
+ * 1. Plugin - will be returned plugin rendering result.
+ * Object need to know service name and plugin name.
  *	$this->data == ['service' => 'serviceName', 'plugin' => 'pluginName']
- * 2. Экшен - должен быть возвращен результат выполнения метода.
- *  Объект может знать имя сервиса, знает имя класса и метода
+ * 2. Action - will be returned result of a method invoke.
+ * Object need to know action class name and method name. It can also know service name.
  *	$this->data == ['service' => 'serviceName', 'class' => 'className', 'method' => 'methodName']
  *
  * Class SourceContext
  * @package lx
  */
-class SourceContext extends Object
+class SourceContext extends BaseObject
 {
 	use ApplicationToolTrait;
 
+	/** @var array */
 	private $data;
+
+	/** @var Plugin */
 	private $plugin;
 
 	/**
@@ -40,7 +44,7 @@ class SourceContext extends Object
 	/**
 	 * @param string $methodName
 	 * @param array $params
-	 * @return bool|mixed
+	 * @return mixed|SourceError
 	 */
 	public function invoke($methodName = null, $params = null)
 	{
@@ -52,7 +56,7 @@ class SourceContext extends Object
 			return $this->invokePlugin($methodName, $params);
 		}
 
-		return false;
+		return new SourceError(ResponseCodeEnum::NOT_FOUND);
 	}
 
 	/**
@@ -100,16 +104,12 @@ class SourceContext extends Object
 		if ( ! $this->plugin) {
 			$plugin = $this->getService()->getPlugin($this->data['plugin']);
 
-			if (isset($this->data['renderParams'])) {
-				$plugin->addRenderParams($this->data['renderParams']);
-			}
-
-			if (isset($this->data['clientParams'])) {
-				$plugin->clientParams->setProperties($this->data['clientParams']);
+			if (isset($this->data['params'])) {
+				$plugin->addParams($this->data['params']);
 			}
 
 			if (isset($this->data['dependencies'])) {
-				$plugin->setDependencies($this->data['dependencies']);
+				$plugin->addDependencies($this->data['dependencies']);
 			}
 
 			$this->plugin = $plugin;
@@ -126,18 +126,18 @@ class SourceContext extends Object
 	/**
 	 * @param string $methodName
 	 * @param array $params
-	 * @return bool
+	 * @return mixed|SourceError
 	 */
 	private function invokeAction($methodName, $params)
 	{
 		$object = $this->getObject();
 		if (!$object) {
-			return false;
+			return new SourceError(ResponseCodeEnum::NOT_FOUND);
 		}
 
 		$methodName = $methodName ?? $this->data['method'] ?? null;
 		if (!$methodName || !method_exists($object, $methodName)) {
-			return false;
+			return new SourceError(ResponseCodeEnum::NOT_FOUND);
 		}
 
 		$params = $params ?? $this->data['params'] ?? [];
@@ -148,37 +148,38 @@ class SourceContext extends Object
 	/**
 	 * @param string $methodName
 	 * @param array $params
-	 * @return bool|mixed
+	 * @return mixed|SourceError
 	 */
 	private function invokePlugin($methodName, $params)
 	{
 		$plugin = $this->getPlugin();
-		$methodName = $methodName ?? $this->data['method'] ?? null;
-		if (!$plugin || !$methodName || !method_exists($plugin, $methodName)) {
-			return false;
+		$methodName = $methodName ?? Plugin::DEFAULT_SOURCE_METHOD;
+		if (!method_exists($plugin, $methodName)) {
+			return new SourceError(ResponseCodeEnum::NOT_FOUND);
 		}
 
+		$params = $params ?? $this->data['params'] ?? [];
 		return $plugin->runAction($methodName, $params);
 	}
 
 	/**
-	 * @return Source|null
+	 * @return SourceInterface|null
 	 */
 	private function getObject()
 	{
+		$object = null;
 		if (isset($this->data['object'])) {
-			return $this->data['object'];
-		}
-
-		if (isset($this->data['class'])) {
+			$object = $this->data['object'];
+		} elseif (isset($this->data['class'])) {
 			$class = $this->data['class'];
 			$config = [];
 			if (isset($this->data['service'])) {
 				$config['service'] = $this->getService();
 			}
-
 			$object = $this->app->diProcessor->create($class, $config);
+		}
 
+		if ($object && $object instanceof SourceInterface) {
 			return $object;
 		}
 

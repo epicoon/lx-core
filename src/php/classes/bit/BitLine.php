@@ -2,7 +2,15 @@
 
 namespace lx;
 
-class BitLine {
+/**
+ * Class BitLine
+ * @package lx
+ *
+ * @property-read int $len
+ * @property-read array $map
+ */
+class BitLine
+{
 	const BASIS = 32;
 	const BIT = [
 		1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048,
@@ -13,17 +21,32 @@ class BitLine {
 		134217728, 268435456, 536870912, 1073741824, 2147483648
 	];
 
+	/** @var int */
 	private $_len;
+
+	/** @var int */
 	private $_innerLen;
+
+	/** @var array */
 	private $_map;
 
-	public function __construct($len) {
+	/**
+	 * BitLine constructor.
+	 * @param int $len
+	 */
+	public function __construct($len)
+	{
 		$this->_len = $len ? $len : self::BASIS;
 		$this->_innerLen = floor(($this->_len - 1) / self::BASIS) + 1;
 		$this->_map = array_fill(0, $this->_innerLen, 0);
 	}
 
-	public function __get($name) {
+	/**
+	 * @param string $name
+	 * @return array|int|null
+	 */
+	public function __get($name)
+	{
 		switch ($name) {
 			case 'len': return $this->_len;
 			case 'map': return $this->_map;
@@ -32,7 +55,11 @@ class BitLine {
 		return null;
 	}
 
-	public function setLen($len) {
+	/**
+	 * @param int $len
+	 */
+	public function setLen($len)
+	{
 		if ($len == $this->_len) return;
 
 		$this->_len = $len ? $len : self::BASIS;
@@ -46,7 +73,12 @@ class BitLine {
 		}
 	}
 
-	public function setBit($i, $amt = 1) {
+	/**
+	 * @param int $i
+	 * @param int $amt
+	 */
+	public function setBit($i, $amt = 1)
+	{
 		$innerIndex = floor($i / self::BASIS);
 		$index = $i % self::BASIS;
 		$len = count($this->_map);
@@ -62,7 +94,12 @@ class BitLine {
 		}
 	}
 
-	public function unsetBit($i, $amt = 1) {
+	/**
+	 * @param int $i
+	 * @param int $amt
+	 */
+	public function unsetBit($i, $amt = 1)
+	{
 		$innerIndex = floor($i / self::BASIS);
 		$index = $i % self::BASIS;
 		$len = count($this->_map);
@@ -78,13 +115,21 @@ class BitLine {
 		}
 	}
 
-	public function getBit($i) {
+	/**
+	 * @param int $i
+	 * @return int
+	 */
+	public function getBit($i)
+	{
 		$innerIndex = floor($i / self::BASIS);
 		$index = $i % self::BASIS;
 		return (int)((bool) ($this->_map[$innerIndex] & self::BIT[$index]) );
 	}
 
-	public function clone() {
+	/**
+	 * @return BitLine
+	 */
+	public function clone(){
 		$result = new BitLine($this->_len);
 
 		foreach ($this->_map as $i => $item) {
@@ -94,14 +139,23 @@ class BitLine {
 		return $result;
 	}
 
-	public function copy($line) {
+	/**
+	 * @param BitLine $line
+	 */
+	public function copy($line)
+	{
 		$this->setLen($line->len);
 		foreach ($line->_map as $i => $item) {
 			$this->_map[$i] = $item;
 		}
 	}
 
-	public function project($line) {
+	/**
+	 * @param BitLine $line
+	 * @return BitLine
+	 */
+	public function project($line)
+	{
 		$result = $this->clone();
 		if (is_array($line)) {
 			foreach ($line as $item) {
@@ -119,7 +173,12 @@ class BitLine {
 		return $result;
 	}
 
-	public function findSpace($size) {
+	/**
+	 * @param int $size
+	 * @return int|false
+	 */
+	public function findSpace($size)
+	{
 		$start = null;
 		$sum = 0;
 		for ($i=0, $l=$this->_len; $i<$l; $i++) {
@@ -140,7 +199,11 @@ class BitLine {
 		return false;
 	}
 
-	public function toString() {
+	/**
+	 * @return string
+	 */
+	public function toString()
+	{
 		$result = '';
 		for ($i=0, $l=$this->_len; $i<$l; $i++) $result .= $this->getBit($i);
 		return $result;

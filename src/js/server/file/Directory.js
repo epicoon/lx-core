@@ -23,7 +23,7 @@ class Directory extends lx.BaseFile #lx:namespace lx {
 
         if (!f) return false;
         if (flag == self::FIND_NAME) return f;
-        return lx.BaseFile.getFileOrDir(f);
+        return lx.BaseFile.construct(f);
     }
 }
 

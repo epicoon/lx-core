@@ -3,16 +3,18 @@
 namespace lx;
 
 abstract class DB {
-	const
-		SELECT_TYPE_FULL = 5,    // Возвращать все найденные поля
-		SELECT_TYPE_MAP = 10,    // Возвращать поля с ключами именами полей
-		SELECT_TYPE_ARRAY = 15,  // Возвращать поля с числовыми ключами
+	const POSTGRESQL = 'pg';
+	const MYSQL = 'mysql';
 
-		SHORT_SCHEMA = 20,
+	const SELECT_TYPE_FULL = 5;    // Возвращать все найденные поля
+	const SELECT_TYPE_MAP = 10;    // Возвращать поля с ключами именами полей
+	const SELECT_TYPE_ARRAY = 15;  // Возвращать поля с числовыми ключами
 
-		TYPE_INTEGER = 'integer',
-		TYPE_STRING = 'string',
-		TYPE_BOOLEAN = 'boolean';
+	const SHORT_SCHEMA = 20;
+
+	const TYPE_INTEGER = 'integer';
+	const TYPE_STRING = 'string';
+	const TYPE_BOOLEAN = 'boolean';
 
 	public static $connections = null;
 

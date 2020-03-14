@@ -2,14 +2,18 @@
 
 namespace lx;
 
+/**
+ * Implementation for \lx\FusionComponentInterface
+ *
+ * Trait FusionComponentTrait
+ * @package lx
+ *
+ * @property mixed $owner
+ */
 trait FusionComponentTrait
 {
+	/** @var FusionInterface */
 	private $_owner;
-
-	public function initAsFusionComponent($config = [])
-	{
-		// pass
-	}
 
 	/**
 	 * @magic __construct
@@ -18,7 +22,6 @@ trait FusionComponentTrait
 	public function constructFusionComponent($config = [])
 	{
 		$this->_owner = $config['__fusion__'] ?? null;
-
 		foreach ($config as $key => $value) {
 			if (ClassHelper::publicPropertyExists($this, $key)
 				|| ClassHelper::protectedPropertyExists($this, $key)
@@ -26,14 +29,12 @@ trait FusionComponentTrait
 				$this->$key = $value;
 			}
 		}
-
-		$this->initAsFusionComponent($config);
 	}
 
 	/**
 	 * @magic __get
-	 * @param $name
-	 * @return |null
+	 * @param string $name
+	 * @return mixed
 	 */
 	public function getFusionComponentProperty($name)
 	{

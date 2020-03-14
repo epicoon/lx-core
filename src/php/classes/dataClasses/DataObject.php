@@ -2,11 +2,24 @@
 
 namespace lx;
 
-class DataObject {
+/**
+ * Class DataObject
+ * @package lx
+ */
+class DataObject
+{
+	/** @var null */
 	private static $nullCache;
+	
+	/** @var array */
 	protected $_prop = [];
 
-	public static function create($arr=[]) {
+	/**
+	 * @param array $arr
+	 * @return DataObject
+	 */
+	public static function create($arr = [])
+	{
 		if ($arr instanceof DataObject) return $arr;
 
 		$obj = new static();
@@ -14,7 +27,12 @@ class DataObject {
 		return $obj;
 	}
 
-	public function __set($prop, $val) {
+	/**
+	 * @param string $prop
+	 * @param mixed $val
+	 */
+	public function __set($prop, $val)
+	{
 		if (property_exists($this, $prop)) {
 			$this->$prop = $val;
 			return;
@@ -23,7 +41,12 @@ class DataObject {
 		$this->_prop[$prop] = $val;
 	}
 
-	public function &__get($prop) {
+	/**
+	 * @param string $prop
+	 * @return mixed
+	 */
+	public function &__get($prop)
+	{
 		if (property_exists($this, $prop)) {
 			return $this->$prop;
 		}
@@ -35,57 +58,41 @@ class DataObject {
 		return $this->null();
 	}
 
-	/*
-	 * $full - полное имя класса с пространством имен, если false - только собственное имя класса
-	 * */
-	public static function className($full=true) {
-		$name = get_called_class();
-		if ($full) return $name;
-		$array = explode('\\', $name);
-		return $array[count($array) - 1];
-	}
-
 	/**
-	 * Пространство имен класса
-	 * */
-	public static function namespaceName() {
-		$staticClass = static::class;
-		$namespace = preg_replace('/\\\[^\\'.'\]+$/', '', $staticClass);
-		return $namespace;
-	}
-
-	/**
-	 * Возвращает динамические свойства
-	 * */
-	public function getProperties() {
+	 * Returns the dynamic properties
+	 * 
+	 * @return array
+	 */
+	public function getProperties()
+	{
 		return $this->_prop;
 	}
 
 	/**
-	 * Инициализировать динамические свойства переданным массивом
-	 * */
-	public function setProperties($arr) {
+	 * @param array $arr
+	 */
+	public function setProperties($arr)
+	{
 		$this->_prop = $arr;
 	}
 
 	/**
-	 * Имеются ли динамические свойства у объекта
-	 * */
-	public function hasProperties() {
-		return !empty($this->_prop);
-	}
-
-	/**
-	 * Проверяет, что поле с именем $name существует в динамических свойствах и равно null
-	 * */
-	public function isNull($name) {
+	 * @param string $name
+	 * @return bool
+	 */
+	public function isNull($name)
+	{
 		return (array_key_exists($name, $this->_prop) && $this->_prop[$name] === null);
 	}
 
 	/**
-	 * Вернет динамическое свойство, при этом удалит его из объекта
-	 * */
-	public function extract($name) {
+	 * Returns a dynamic property and deletes it from the object
+	 * 
+	 * @param string $name
+	 * @return mixed|null
+	 */
+	public function extract($name)
+	{
 		if (!array_key_exists($name, $this->_prop)) return null;
 		$res = $this->_prop[$name];
 		unset($this->_prop[$name]);
@@ -93,17 +100,24 @@ class DataObject {
 	}
 
 	/**
-	 * Объект считается пустым, если у него нет динамических свойств
-	 * */
-	public function isEmpty() {
+	 * Object is empty if it doesn't have dynamic properties
+	 * 
+	 * @return bool
+	 */
+	public function isEmpty()
+	{
 		return count($this->_prop) === 0;
 	}
 
 	/**
-	 * $names - массив наименований полей (статических и динамических), из которых первое существующее в объекте будет возвращено
-	 * если нет таких полей, будет возвращено значение по умолчанию
-	 * */
-	public function getFirstDefined($names, $default=null) {
+	 * Returns first defined property (dynamic or static)
+	 * 
+	 * @param string $names
+	 * @param mixed $default
+	 * @return mixed
+	 */
+	public function getFirstDefined($names, $default=null)
+	{
 		if (is_string($names)) $names = [$names];
 		foreach ($names as $name) {
 			if (array_key_exists($name, $this->_prop)) return $this->_prop[$name];
@@ -113,23 +127,31 @@ class DataObject {
 	}
 
 	/**
-	 * Проверить наличие собственного свойства
-	 * */
-	public function hasOwnProperty($name) {
+	 * @param string $name
+	 * @return bool
+	 */
+	public function hasOwnProperty($name)
+	{
 		return property_exists($this, $name);
 	}
 
 	/**
-	 * Проверить наличие динамического свойства (в массиве $_prop)
-	 * */
-	public function hasDynamicProperty($name) {
+	 * @param string $name
+	 * @return bool
+	 */
+	public function hasDynamicProperty($name)
+	{
 		return array_key_exists($name, $this->_prop);
 	}
 
 	/**
-	 * Проверить наличие свойства (хоть собственного, хоть динамического)
-	 * */
-	public function hasProperty($name) {
+	 * Check the property exists (dynamic or static)
+	 *
+	 * @param string $name
+	 * @return bool
+	 */
+	public function hasProperty($name)
+	{
 		return (
 			property_exists($this, $name)
 			||
@@ -138,24 +160,29 @@ class DataObject {
 	}
 
 	/**
-	 * Проверить на наличие свойства и соответствие значению
-	 * */
-	public function testProperty($name, $val) {
+	 * @param string $name
+	 * @param mixed $val
+	 * @return bool
+	 */
+	public function testProperty($name, $val)
+	{
 		if (!$this->hasProperty($name)) return false;
 		return $this->$name == $val;
 	}
 
 	/**
-	 * Проверить на наличие метода
-	 * */
-	public function hasMethod($name) {
+	 * @param string $name
+	 */
+	public function hasMethod($name)
+	{
 		require method_exists($this, $name);
 	}
 
 	/**
-	 *
-	 * */
-	protected function & null() {
+	 * @return null
+	 */
+	private function & null()
+	{
 		self::$nullCache = null;
 		return self::$nullCache;
 	}

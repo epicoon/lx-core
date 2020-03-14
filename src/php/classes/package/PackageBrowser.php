@@ -3,18 +3,25 @@
 namespace lx;
 
 /**
- * Класс для обозревания пакетов со стороны
- * */
+ * Class PackageBrowser
+ * @package lx
+ */
 class PackageBrowser
 {
-	public static function getPackageNamesList()
+	/**
+	 * @return array
+	 */
+	public static function getPackagePathesList()
 	{
 		return Autoloader::getInstance()->map->packages;
 	}
 
-	public static function getServiceNamesList()
+	/**
+	 * @return array
+	 */
+	public static function getServicePathesList()
 	{
-		$list = self::getPackageNamesList();
+		$list = self::getPackagePathesList();
 		$result = [];
 
 		foreach ($list as $name => $path) {
@@ -26,9 +33,12 @@ class PackageBrowser
 		return $result;
 	}
 
+	/**
+	 * @return Service[]
+	 */
 	public static function getServicesList()
 	{
-		$list = self::getServiceNamesList();
+		$list = self::getServicePathesList();
 		foreach ($list as $name => &$value) {
 			$value = \lx::$app->getService($name);
 		}
@@ -37,6 +47,10 @@ class PackageBrowser
 		return $list;
 	}
 
+	/**
+	 * @param string $packagePath
+	 * @return bool
+	 */
 	public static function checkDirectoryIsPackage($packagePath)
 	{
 		$fullPath = \lx::$app->conductor->getFullPath($packagePath);
@@ -51,9 +65,11 @@ class PackageBrowser
 	}
 
 	/**
-	 *
-	 * */
-	public static function checkDirectoryIsService($packagePath) {
+	 * @param string $packagePath
+	 * @return bool
+	 */
+	public static function checkDirectoryIsService($packagePath)
+	{
 		$fullPath = \lx::$app->conductor->getFullPath($packagePath);
 
 		$directory = new PackageDirectory($fullPath);
@@ -67,15 +83,17 @@ class PackageBrowser
 	}
 
 	/**
-	 *
-	 * */
-	public static function checkPackageIsService($packageName) {
-		$list = self::getPackageNamesList();
+	 * @param string $packageName
+	 * @return bool
+	 */
+	public static function checkPackageIsService($packageName)
+	{
+		$list = self::getPackagePathesList();
 		if (!array_key_exists($packageName, $list)) {
 			return false;
 		}
 
 		return self::checkDirectoryIsService($list[$packageName]);
 	}
-	
+
 }

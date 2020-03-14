@@ -6,14 +6,14 @@ namespace lx;
  * Trait ApplicationToolTrait
  * @package lx
  *
- * @property AbstractApplication $app
+ * @property Application|ConsoleApplication $app
  */
 trait ApplicationToolTrait
 {
 	/**
 	 * @magic __get
 	 * @param $name
-	 * @return AbstractApplication|null
+	 * @return Application|ConsoleApplication|null
 	 */
 	protected function getApplicationToolProperty($name)
 	{

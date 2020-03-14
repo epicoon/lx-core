@@ -2,8 +2,19 @@
 
 namespace lx;
 
-class ArrayHelper {
-	public static function map($array, $field) {
+/**
+ * Class ArrayHelper
+ * @package lx
+ */
+class ArrayHelper
+{
+	/**
+	 * @param array $array
+	 * @param string $field
+	 * @return array
+	 */
+	public static function map($array, $field)
+	{
 		$result = [];
 
 		foreach ($array as $value) {
@@ -13,23 +24,34 @@ class ArrayHelper {
 
 		return $result;
 	}
-	
+
+	/**
+	 * @param static $key
+	 * @param array $array
+	 * @param mixed $default
+	 * @return mixed
+	 */
 	public static function extract($key, &$array, $default = null)
 	{
-		if ( ! array_key_exists($key, $array)) {
+		if (!array_key_exists($key, $array)) {
 			return $default;
 		}
-		
+
 		$result = $array[$key];
 		unset($array[$key]);
 		return $result;
 	}
 
+	/**
+	 * @param array $array
+	 * @param array $path
+	 * @return bool
+	 */
 	public static function pathExists($array, $path)
 	{
 		$currentArray = $array;
 		foreach ($path as $key) {
-			if ( ! is_array($currentArray) || ! array_key_exists($key, $currentArray)) {
+			if (!is_array($currentArray) || !array_key_exists($key, $currentArray)) {
 				return false;
 			}
 
@@ -39,15 +61,20 @@ class ArrayHelper {
 		return true;
 	}
 
+	/**
+	 * @param array $array
+	 * @param array $path
+	 * @return array
+	 */
 	public static function createPath($array, $path)
 	{
 		$currentArray = &$array;
 		foreach ($path as $key) {
-			if ( ! is_array($currentArray)) {
+			if (!is_array($currentArray)) {
 				return $array;
 			}
 
-			if ( ! array_key_exists($key, $currentArray)) {
+			if (!array_key_exists($key, $currentArray)) {
 				$currentArray[$key] = [];
 			}
 
@@ -57,14 +84,45 @@ class ArrayHelper {
 		return $array;
 	}
 
-	public static function mergeRecursiveDistinct($array1, $array2, $change = false)
+	/**
+	 * @param array $arr
+	 * @return bool
+	 */
+	public static function deepEmpty($arr)
+	{
+		$rec = function ($arr) use (&$rec) {
+			if (empty($arr)) {
+				return true;
+			}
+
+			foreach ($arr as $value) {
+				if (is_array($value)) {
+					$empty = $rec($value);
+					if (!$empty) {
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+		};
+		return $rec($arr);
+	}
+
+	/**
+	 * @param array $array1
+	 * @param array $array2
+	 * @param bool $rewrite
+	 * @return array
+	 */
+	public static function mergeRecursiveDistinct($array1, $array2, $rewrite = false)
 	{
 		$merged = $array1;
 		foreach ($array2 as $key => $value) {
 			if (is_array($value) && array_key_exists($key, $merged) && is_array($merged[$key])) {
-				$merged[$key] = self::mergeRecursiveDistinct($merged[$key], $value, $change);
+				$merged[$key] = self::mergeRecursiveDistinct($merged[$key], $value, $rewrite);
 			} else {
-				if (!array_key_exists($key, $merged) || $change) {
+				if (!array_key_exists($key, $merged) || $rewrite) {
 					$merged[$key] = $value;
 				}
 			}
@@ -73,7 +131,12 @@ class ArrayHelper {
 		return $merged;
 	}
 
-	public static function isAssoc($array) {
+	/**
+	 * @param array $array
+	 * @return bool
+	 */
+	public static function isAssoc($array)
+	{
 		$counter = 0;
 		foreach ($array as $key => $value) {
 			if ($key != $counter++) {
@@ -85,11 +148,15 @@ class ArrayHelper {
 	}
 
 	/**
-	 * Получает массив ассоциативных массивов с одинаковыми ключами
-	 * Извлекает ключи в отдельное поле
-	 * Все ассоциативные массивы переводит в перечислимые, с порядком элементов, соответствующим порядку ключей
-	 * */
-	public static function valuesStable($arr) {
+	 * Method recieves array of accosiated arrays wirh the same keys
+	 * Extract keys in the individual field
+	 * Transfer arrays to countable with values order according to keys order
+	 *
+	 * @param array $arr
+	 * @return array
+	 */
+	public static function valuesStable($arr)
+	{
 		$keys = array_keys($arr[0]);
 		$rows = [];
 
@@ -108,10 +175,14 @@ class ArrayHelper {
 	}
 
 	/**
-	 * Преобразование php-массива в строку, которую можно вставить в js-код
-	 * */
-	public static function arrayToJsCode($array) {
-		$rec = function($val) use (&$rec) {
+	 * Convert array to JS-like code string
+	 *
+	 * @param array $array
+	 * @return string
+	 */
+	public static function arrayToJsCode($array)
+	{
+		$rec = function ($val) use (&$rec) {
 			// на рекурсию
 			if (is_array($val)) {
 				$arr = [];
@@ -134,7 +205,7 @@ class ArrayHelper {
 			if (is_string($val)) {
 				if ($val == '') return '\'\'';
 				if (preg_match('/\n/', $val)) {
-					if (preg_match('/`/')) {
+					if (preg_match('/`/', $val)) {
 						$val = preg_replace('/(?:\n|\r|\r\n)/', '$1\'+\'', $val);
 					} else {
 						$val = "`$val`";

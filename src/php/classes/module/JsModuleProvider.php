@@ -2,9 +2,18 @@
 
 namespace lx;
 
+/**
+ * Class JsModuleProvider
+ * @package lx
+ */
 class JsModuleProvider extends Source
 {
-	public function getModulesCode($list) {
+	/**
+	 * @param array $list
+	 * @return string
+	 */
+	public function getModulesCode($list)
+	{
 		$modulesCode = '';
 		foreach ($list as $moduleName) {
 			$modulesCode .= '#lx:use ' . $moduleName . ';';

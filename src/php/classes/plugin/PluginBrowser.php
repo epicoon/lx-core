@@ -2,17 +2,30 @@
 
 namespace lx;
 
-class PluginBrowser {
+/**
+ * Class PluginBrowser
+ * @package lx
+ */
+class PluginBrowser
+{
+	/** @var Plugin */
 	private $plugin;
 
-	public function __construct($plugin) {
+	/**
+	 * PluginBrowser constructor.
+	 * @param Plugin $plugin
+	 */
+	public function __construct($plugin)
+	{
 		$this->plugin = $plugin;
 	}
 
 	/**
-	 *
-	 * */
-	public static function checkDirectoryIsPlugin($path) {
+	 * @param string $path
+	 * @return bool
+	 */
+	public static function checkDirectoryIsPlugin($path)
+	{
 		$fullPath = \lx::$app->conductor->getFullPath($path);
 
 		$directory = new PluginDirectory($fullPath);
@@ -31,48 +44,19 @@ class PluginBrowser {
 		if (isset($config['rootSnippet'])
 			&& file_exists($directory->getPath() . '/' . $config['rootSnippet'])
 		) return true;
-		
-		$commonConfig = \lx::$app->getDefaultPluginConfig();
-		if (file_exists($directory->getPath() . '/' . $commonConfig['jsMain'])) return true;
-		if (file_exists($directory->getPath() . '/' . $commonConfig['rootSnippet'])) return true;
 
 		return false;
 	}
 
 	/**
-	 *
-	 * */
-	public function getPluginsMap($service) {
-		$dynamicPlugins = $service->getConfig('service.dynamicPlugins');
-		$plugins = (array)$service->getConfig('service.plugins');
-
-		if (!$dynamicPlugins) {
-			$dynamicPlugins = [];
-		}
-
-		$result = [
-			'dynamic' => [],
-			'static' => [],
+	 * @param Service $service
+	 * @return array
+	 */
+	public static function getPluginsDataMap($service)
+	{
+		return [
+			'dynamic' => $service->getDynamicPluginsDataList(),
+			'static' => $service->getStaticPluginsDataList(),
 		];
-
-		foreach ($dynamicPlugins as $name => $data) {
-			$result['dynamic'][] = $name;
-		}
-
-		foreach ($plugins as $dirName) {
-			$dir = $service->directory->get($dirName);
-			if (!$dir) {
-				continue;
-			}
-
-			$dirs = $dir->getDirs()->getData();
-			foreach ($dirs as $subdir) {
-				if (self::checkDirectoryIsPlugin($subdir->getPath())) {
-					$result['static'][$subdir->getName()] = explode($service->getPath() . '/', $subdir->getPath())[1];
-				}
-			}
-		}
-
-		return $result;
 	}
 }

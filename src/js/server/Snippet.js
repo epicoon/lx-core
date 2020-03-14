@@ -5,7 +5,8 @@ class Snippet #lx:namespace lx {
         if (data.renderParams) __extractRenderParams(data.renderParams);
         
         this.filePath = data.filePath || '';
-        this.clientParams = data.clientParams || {};
+        this.clientParams = __extractClientParams(data.clientParams);
+        this.metaData = {};
 
         // Коробка, представляющая сниппет
         this._widget = new lx.Box({parent: null});
@@ -94,6 +95,13 @@ class Snippet #lx:namespace lx {
         this.clientJs = js;
     }
 
+    setScreenModes(map) {
+        this.metaData.sm = map;
+        for (var i in this.metaData.sm)
+            if (this.metaData.sm[i] == Infinity)
+                this.metaData.sm[i] = 'INF';
+    }
+
     getDependencies() {
         return {
             plugins: this.plugins
@@ -108,7 +116,8 @@ class Snippet #lx:namespace lx {
             selfData: this.selfData,
             html: this.htmlContent,
             lx: this.lx,
-            js: this.clientJs
+            js: this.clientJs,
+            meta: this.metaData
         };
     }
 }
@@ -119,8 +128,18 @@ class Snippet #lx:namespace lx {
  **********************************************************************************************************************/
 
 function __extractRenderParams(params) {
+    if (params.isArray && !params.len) return;
+
     for (var name in params)
         lx.globalContext[name] = params[name];
+}
+
+function __extractClientParams(params) {
+    if (!params) return {};
+    var result = {};
+    if (params.isArray)
+        for (var i in params) result[i] = params[i];
+    return result;
 }
 
 function __prepareSelfData(self) {

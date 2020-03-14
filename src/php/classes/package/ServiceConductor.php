@@ -2,77 +2,128 @@
 
 namespace lx;
 
-class ServiceConductor {
-	private $service = null;
+/**
+ * Class ServiceConductor
+ * @package lx
+ */
+class ServiceConductor extends BaseObject implements ConductorInterface, FusionComponentInterface
+{
+	use FusionComponentTrait;
 
 	/**
-	 *
-	 * */
-	public function __construct($service) {
-		$this->service = $service;
-	}
-
-	public function getRootPath() {
-		return $this->getPath();
-	}
-
-	/**
-	 * @return string - путь к сервису на сервере
-	 * */
-	public function getPath() {
-		return $this->service->directory->getPath();
-	}
-
-	public function getSystemPath() {
-		return $this->getPath() . '/.system';
+	 * @return Service
+	 */
+	public function getService()
+	{
+		return $this->owner;
 	}
 
 	/**
-	 * @param $fileName string - путь относительно корня сервиса
-	 * @return string - полный путь к файлу
+	 * @return string
 	 * */
-	public function getFullPath($fileName) {
+	public function getPath()
+	{
+		return $this->getService()->directory->getPath();
+	}
+
+	/**
+	 * @param string $fileName - path relative to the service root
+	 * @param string $relativePath
+	 * @return string
+	 */
+	public function getFullPath($fileName, $relativePath = null)
+	{
 		if ($fileName{0} == '@') {
 			$fileName = $this->decodeAlias($fileName);
 		}
 
-		return $this->service->app->conductor->getFullPath($fileName, $this->getPath());
+		if ($relativePath === null) {
+			$relativePath = $this->getPath();
+		}
+
+		return $this->getService()->app->conductor->getFullPath($fileName, $relativePath);
 	}
 
 	/**
-	 * @param $pluginName string - имя плагина, путь к которому нужно найти
-	 * @return string - полный путь к плагину
+	 * @param string $path
+	 * @param string $defaultLocation
+	 * @return string
+	 */
+	public function getRelativePath($path, $defaultLocation = null)
+	{
+		$fullPath = $this->getFullPath($path, $defaultLocation);
+		return explode($this->getPath() . '/', $fullPath)[1];
+	}
+
+	/**
+	 * @param string $name
+	 * @return BaseFile|null
+	 */
+	public function getFile($name)
+	{
+		$path = $this->getFullPath($name);
+		if (!$path) {
+			return null;
+		}
+
+		return BaseFile::construct($path);
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getSystemPath($name = null)
+	{
+		$path = $this->getPath() . '/.system';
+		if ($name) {
+			return $path . '/' . $name;
+		}
+
+		return $path;
+	}
+
+	/**
+	 * @param string $pluginName
+	 * @return string|null
 	 * */
-	public function getPluginPath($pluginName) {
-		$pluginDirs = (array)$this->service->getConfig('service.plugins');
+	public function getPluginPath($pluginName)
+	{
+		$pluginDirs = (array)$this->getService()->getConfig('service.plugins');
 		foreach ($pluginDirs as $dir) {
-			if ($dir != '') $dir .= '/';
+			if ($dir != '' && $dir{-1} != '/') {
+				$dir .= '/';
+			}
 			$fullPath = $this->getPath() . '/' . $dir . $pluginName;
 
 			if (file_exists($fullPath)) {
 				return $fullPath;
 			}
 		}
+
 		return null;
 	}
 
 	/**
-	 *
-	 * */
-	public function getDefaultModelPath() {
-		$models = $this->service->getConfig('service.models');
-		if ($models === null) return false;
+	 * @return string|false
+	 */
+	public function getDefaultModelPath()
+	{
+		$models = $this->getService()->getConfig('service.models');
+		if ($models === null) {
+			return false;
+		}
 
 		$models = (array)$models;
 		return $this->getFullPath($models[0]);
 	}
 
 	/**
-	 * Ищет путь к файлу модели. Файл должен называться как модель, расширение только .yaml
-	 * */
-	public function getModelPath($name) {
-		// Сначала проверяется карта [имя_модели => путь_к_файлу_с_моделью]
-		$modelsMap = $this->service->getConfig('service.modelsMap');
+	 * @param string $name
+	 * @return string|false
+	 */
+	public function getModelPath($name)
+	{
+		$modelsMap = $this->getService()->getConfig('service.modelsMap');
 		if ($modelsMap !== null) {
 			if (array_key_exists($name, $modelsMap)) {
 				$fullPath = $this->getFullPath($modelsMap[$name]);
@@ -82,9 +133,10 @@ class ServiceConductor {
 			}
 		}
 
-		// Если не нашли - проверяется массив с директориями, где лежат модели
-		$models = $this->service->getConfig('service.models');
-		if ($models === null) return false;
+		$models = $this->getService()->getConfig('service.models');
+		if ($models === null) {
+			return false;
+		}
 
 		$models = (array)$models;
 
@@ -92,24 +144,27 @@ class ServiceConductor {
 			$path = $this->getFullPath($dir);
 			$d = new Directory($path);
 			$f = $d->find($name . '.yaml', Directory::FIND_NAME);
-			if ($f) return $f;
+			if ($f) {
+				return $f;
+			}
 		}
 
 		return false;
 	}
 
 	/**
-	 * Ищет пути к файлам моделей
-	 * */
-	public function getModelsPath() {
+	 * @return array
+	 */
+	public function getModelsPath()
+	{
 		$result = [];
 
-		$modelsMap = $this->service->getConfig('service.modelsMap');
+		$modelsMap = $this->getService()->getConfig('service.modelsMap');
 		if ($modelsMap !== null) {
 			$result = $modelsMap;
 		}
 
-		$models = $this->service->getConfig('service.models');
+		$models = $this->getService()->getConfig('service.models');
 		if ($models === null) return $result;
 
 		$models = (array)$models;
@@ -126,7 +181,7 @@ class ServiceConductor {
 				'mask' => '*.yaml',
 				'ext' => false
 			]);
-			$ff->each(function($a) use ($path, &$result) {
+			$ff->each(function ($a) use ($path, &$result) {
 				$result[$a] = "$path/$a.yaml";
 			});
 		}
@@ -134,20 +189,33 @@ class ServiceConductor {
 		return $result;
 	}
 
-	public function getMigrationDirectory() {
-		$dir = new Directory($this->getSystemPath() . '/migrations');
+	/**
+	 * @return Directory
+	 */
+	public function getMigrationDirectory()
+	{
+		$dir = new Directory($this->getSystemPath('migrations'));
 		$dir->make();
 		return $dir;
 	}
 
-	public function getModuleMapDirectory() {
-		$dir = new Directory($this->getSystemPath() . '/modules');
+	/**
+	 * @return Directory
+	 */
+	public function getModuleMapDirectory()
+	{
+		$dir = new Directory($this->getSystemPath('modules'));
 		$dir->make();
 		return $dir;
 	}
 
-	private function decodeAlias($path) {
-		$aliases = $this->service->getConfig('service.aliases');
+	/**
+	 * @param string $path
+	 * @return string
+	 */
+	private function decodeAlias($path)
+	{
+		$aliases = $this->getService()->getConfig('service.aliases');
 		if (!$aliases) return $path;
 
 		$result = $path;

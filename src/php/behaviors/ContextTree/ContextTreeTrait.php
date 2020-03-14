@@ -2,19 +2,35 @@
 
 namespace lx;
 
-trait ContextTreeTrait {
-	/** @var ContextTreeTrait */
-	protected $parentContext;
-	protected $nestedContexts;
-	protected $key;
-	protected static $keyPrefix = null;
+/**
+ * Implementation for \lx\ContextTreeInterface
+ * 
+ * Trait ContextTreeTrait
+ * @package lx
+ */
+trait ContextTreeTrait
+{
+	/** @var string */
+	protected static $keyPrefix;
+
+	/** @var int */
 	protected static $keyCounter = 1;
 
+	/** @var ContextTreeInterface */
+	protected $parentContext;
+
+	/** @var array */
+	protected $nestedContexts;
+	
+	/** @var string */
+	protected $key;
+	
 	/**
 	 * @magic __construct
-	 * @param null $config
+	 * @param array $config
 	 */
-	public function constructContextTree($config = null) {
+	public function constructContextTree($config = [])
+	{
 		$this->nestedContexts = [];
 
 		if (is_array($config)) {
@@ -24,9 +40,8 @@ trait ContextTreeTrait {
 			if (isset($config['key'])) {
 				$key = $config['key'];
 			}
-		} elseif ($config instanceof ContextTreeInterface) {
-			$parent = $config;
 		}
+
 		if (!isset($parent)) {
 			$parent = null;
 		}
@@ -35,10 +50,16 @@ trait ContextTreeTrait {
 		}
 
 		$this->key = $key;
-		$this->setParent($parent);
+		if ($parent) {
+			$this->setParent($parent);
+		}
 	}
 
-	public function getHead() {
+	/**
+	 * @return ContextTreeInterface
+	 */
+	public function getHead()
+	{
 		$head = $this;
 		while ($head->getParent()) {
 			$head = $head->getParent();
@@ -46,11 +67,19 @@ trait ContextTreeTrait {
 		return $head;
 	}
 
-	public function getKey() {
+	/**
+	 * @return string
+	 */
+	public function getKey()
+	{
 		return $this->key;
 	}
 
-	public function setKey($key) {
+	/**
+	 * @param string $key
+	 */
+	public function setKey($key)
+	{
 		if ($this->parentContext) {
 			$this->parentContext->unnest($this);
 		}
@@ -61,10 +90,17 @@ trait ContextTreeTrait {
 		}
 	}
 
-	public function getParent() {
+	/**
+	 * @return ContextTreeInterface|null
+	 */
+	public function getParent()
+	{
 		return $this->parentContext;
 	}
 
+	/**
+	 * @param ContextTreeInterface $parent
+	 */
 	public function setParent($parent)
 	{
 		if ($this->parentContext) {
@@ -77,24 +113,39 @@ trait ContextTreeTrait {
 		}
 	}
 
-	public function getNested() {
+	/**
+	 * @return array
+	 */
+	public function getNested()
+	{
 		return $this->nestedContexts;
 	}
 
-	public function isHead() {
+	/**
+	 * @return bool
+	 */
+	public function isHead()
+	{
 		return $this->parentContext === null;
 	}
 
-	public function add() {
-		$args = func_get_args();
-		$args[] = $this;
-
+	/**
+	 * @param array $config
+	 * @return ContextTreeInterface
+	 */
+	public function add($config = [])
+	{
+		$config['parent'] = $this;
 		$refClass = new \ReflectionClass(static::class);
-		$instance = $refClass->newInstanceArgs($args);
+		$instance = $refClass->newInstance($config);
 		return $instance;
 	}
 
-	public function eachContext($func) {
+	/**
+	 * @param callable $func
+	 */
+	public function eachContext($func)
+	{
 		$head = $this->getHead();
 
 		$re = function($context) use ($func, &$re) {
@@ -109,11 +160,20 @@ trait ContextTreeTrait {
 		$re($head);
 	}
 
-	protected function nest($context) {
+	/**
+	 * @param ContextTreeInterface $context
+	 */
+	protected function nest($context)
+	{
 		$this->nestedContexts[$context->getKey()] = $context;
 	}
 
-	protected function unnest($context) {
+	/**
+	 * @param ContextTreeInterface $context
+	 * @return bool
+	 */
+	protected function unnest($context)
+	{
 		if (!array_key_exists($context->getKey(), $this->nestedContexts)) {
 			return false;
 		}
@@ -122,14 +182,22 @@ trait ContextTreeTrait {
 		return true;
 	}
 
-	protected function genUniqKey() {
+	/**
+	 * @return string
+	 */
+	protected function genUniqKey()
+	{
 		$index = self::$keyCounter;
 		self::$keyCounter++;
 		return self::getKeyPrefix() . '_' . Math::decChangeNotation($index, 62);
 	}
-	
-	protected static function getKeyPrefix() {
-		if (self::$keyPrefix === null) {
+
+	/**
+	 * @return string
+	 */
+	protected static function getKeyPrefix()
+	{
+		if ( ! self::$keyPrefix) {
 			self::$keyPrefix = ''
 				. Math::decChangeNotation(time(), 62)
 				. '_'

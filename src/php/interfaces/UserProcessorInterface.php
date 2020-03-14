@@ -2,13 +2,47 @@
 
 namespace lx;
 
-interface UserProcessorInterface {
+/**
+ * Interface UserProcessorInterface
+ * @package lx
+ */
+interface UserProcessorInterface
+{
+	/**
+	 * @param string $authValue
+	 * @return bool
+	 */
 	public function setApplicationUser($authValue);
-	public function getUserData($condition);
+
+	/**
+	 * @param string|array $condition
+	 * @return ModelInterface
+	 */
 	public function getUser($condition);
-	public function getUsersData($offset = 0, $limit = null);
+
+	/**
+	 * @param int $offset
+	 * @param int $limit
+	 * @return ModelInterface[]
+	 */
 	public function getUsers($offset = 0, $limit = null);
-	public function findUserByPassword($login, $password);
+
+	/**
+	 * @param string $authValue
+	 * @param string $password
+	 * @return ModelInterface
+	 */
+	public function findUserByPassword($authValue, $password);
+
+	/**
+	 * @param string $authValue
+	 * @param string $password
+	 * @return ModelInterface
+	 */
 	public function createUser($authValue, $password);
+
+	/**
+	 * @param string $authValue
+	 */
 	public function deleteUser($authValue);
 }

@@ -30,7 +30,7 @@ class BaseFile #lx:namespace lx {
     get name() { return this.__name; }
     get parentDirPath() { return this.__parentDirPath; }
 
-    static getFileOrDir(path) {
+    static construct(path) {
         var stat = lx.node.fs.statSync(path);
         if (stat.isDirectory()) {
             return new lx.Directory(path, stat);

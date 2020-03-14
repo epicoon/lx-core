@@ -25,6 +25,12 @@ $lx = $site->getOrMakeDirectory('lx');
 $system = $lx->getOrMakeDirectory('.system');
 $system->getOrMakeDirectory('temp');
 
+// Создаем в корне папку web
+$web = $site->getOrMakeDirectory('web');
+$cssCompiler = new \lx\AssetCompiler();
+$cssCompiler->copyLxCss();
+$cssCompiler->makePluginsAssetLinks();
+
 // Корректируем ".gitignore"
 $gitignore = $site->makeFile('.gitignore');
 if ($gitignore->exists()) {

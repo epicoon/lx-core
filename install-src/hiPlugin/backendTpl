@@ -29,9 +29,6 @@ class Respondent extends \lx\Respondent {
 			return false;
 		}
 
-		$builder = new PluginBuildContext($plugin);
-		$result = $builder->build();
-
-		return $result;		
+		return $plugin->run();
 	}
 }

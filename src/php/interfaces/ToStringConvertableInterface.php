@@ -9,8 +9,13 @@ namespace lx;
 interface ToStringConvertableInterface
 {
 	/**
-	 * @param $callback null|callable
+	 * @param callable $callback
 	 * @return string
 	 */
 	public function toString($callback = null);
+
+	/**
+	 * @return string
+	 */
+	public function __toString();
 }

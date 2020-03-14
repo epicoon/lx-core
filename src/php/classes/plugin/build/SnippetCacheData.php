@@ -6,26 +6,35 @@ namespace lx;
  * Class SnippetCacheData
  * @package lx
  */
-class SnippetCacheData extends Object
+class SnippetCacheData extends BaseObject
 {
 	use ApplicationToolTrait;
 
+	/** @var SnippetBuildContext */
 	private $snippetBuildContext;
+
+	/** @var string */
 	private $buildType;
+
+	/** @var Directory */
 	private $dir;
+
+	/** @var File */
 	private $mainFile;
+
+	/** @var File */
 	private $mapFile;
+
+	/** @var array */
 	private $map;
 
 	/**
 	 * SnippetCacheData constructor.
-	 * @param $snippetBuildContext SnippetBuildContext
+	 * @param SnippetBuildContext $snippetBuildContext
 	 */
 	public function __construct($snippetBuildContext)
 	{
 		$this->snippetBuildContext = $snippetBuildContext;
-		$this->mainFile = false;
-		$this->mapFile = false;
 		$this->map = null;
 	}
 
@@ -38,7 +47,7 @@ class SnippetCacheData extends Object
 	}
 
 	/**
-	 * @param $buildType int
+	 * @param string $buildType
 	 */
 	public function initBuildType($buildType)
 	{
@@ -51,11 +60,11 @@ class SnippetCacheData extends Object
 	public function isEmpty()
 	{
 		$this->retrieveFiles();
-		return $this->mainFile === false || $this->mapFile === false;
+		return !$this->mainFile || !$this->mapFile;
 	}
 
 	/**
-	 * @return array|bool
+	 * @return array|false
 	 */
 	public function get()
 	{
@@ -67,16 +76,22 @@ class SnippetCacheData extends Object
 		$map = json_decode($map, true);
 		return [
 			'rootSnippetKey' => $map['root'],
+			'pluginModif' => $map['pluginModif'] ?? [],
 			'dependencies' => new JsCompileDependencies($map['dependencies']),
 			'cache' => $this->mainFile->get(),
 		];
 	}
 
+	/**
+	 * @param string $rootKey
+	 * @param array $snippets
+	 * @param array $snippetsData
+	 * @param array $commonData
+	 */
 	public function renew($rootKey, $snippets, $snippetsData, $commonData)
 	{
 		$plugin = $this->getPlugin();
-		$bundlesPath = $plugin->getFilePath($plugin->getConfig('bundles'));
-		$snippetBundlesDir = new Directory($bundlesPath . '/snippets');
+		$snippetBundlesDir = new Directory($plugin->conductor->getSnippetsCachePath());
 		$snippetBundlesDir->remove();
 		$snippetBundlesDir->make();
 
@@ -87,7 +102,12 @@ class SnippetCacheData extends Object
 			'root' => $rootKey,
 			'map' => [],
 		];
-		$dependencies = new JsCompileDependencies();
+		$pluginModif = $snippets[$rootKey]->getPluginModifications();
+		if (!empty($pluginModif)) {
+			$map['pluginModif'] = $pluginModif;
+		}
+
+		$commonDependencies = new JsCompileDependencies();
 		/** @var $snippet Snippet */
 		foreach ($snippets as $key => $snippet) {
 			$cacheFileName = $key . '.json';
@@ -99,31 +119,50 @@ class SnippetCacheData extends Object
 				$path = '@site/' . $snippet->getFile()->getRelativePath($this->app->sitePath);
 			}
 
+			$dependencies = $snippet->getDependencies()->toArray();
+			$this->processDependencies($commonDependencies, $dependencies);
 			$data = [
 				'key' => $key,
 				'path' => $path,
 				'cache' => $cacheFileName,
 
-				'dependencies' => $snippet->getDependencies()->toArray(),
+				'dependencies' => $dependencies,
 				'files' => $snippet->getFileDependencies(),
-				'snippets' => $snippet->innerSnippetKeys,
+				'snippets' => $snippet->getInnerSnippetKeys(),
 			];
-			if (!empty($snippet->renderParams)) $data['renderParams'] = $snippet->renderParams;
-			if (!empty($snippet->clientParams)) $data['clientParams'] = $snippet->clientParams;
+			if (!empty($snippet->getRenderParams())) {
+				$data['renderParams'] = $snippet->getRenderParams();
+			}
+			if (!empty($snippet->getClientParams())) {
+				$data['clientParams'] = $snippet->getClientParams();
+			}
 			$map['map'][$key] = $data;
-			$dependencies->add($snippet->getDependencies());
 		}
 
-		$map['dependencies'] = $dependencies->toArray();
+		$map['dependencies'] = $commonDependencies->toArray();
 		$mapFile = $snippetBundlesDir->makeFile('__map__.json');
 		$mapFile->put($map);
 	}
 
+	/**
+	 * @param array $changed
+	 * @param array $snippets
+	 * @return array
+	 */
 	public function smartRenew($changed, $snippets)
 	{
 		$plugin = $this->getPlugin();
-		$cachePath = $plugin->getFilePath($plugin->getConfig('bundles')) . '/snippets';
+		$cachePath = $plugin->conductor->getSnippetsCachePath();
 		$map = $this->getMap();
+
+		if (array_key_exists($map['root'], $snippets)) {
+			$pluginModif = $snippets[$map['root']]->getPluginModifications();
+			if (empty($pluginModif)) {
+				unset($map['pluginModif']);
+			} else {
+				$map['pluginModif'] = $pluginModif;
+			}
+		}
 
 		$allChanged = [];
 		$rec = function($arr) use ($map, &$allChanged, &$rec) {
@@ -140,12 +179,14 @@ class SnippetCacheData extends Object
 			unset($map['map'][$key]);
 		}
 
-		$dependencies = new JsCompileDependencies();
+		$oldDependencies = $map['dependencies'];
+		$commonDependencies = new JsCompileDependencies();
 		$mainArr = [];
 		foreach ($map['map'] as $key => $data) {
 			$cacheFile = $plugin->getFile($cachePath . '/' . $data['cache']);
 			$mainArr[$key] = json_decode($cacheFile->get(), true);
-			$dependencies->add($data['dependencies']);
+			$restoredDependencies = $this->restoreDependencies($data['dependencies'], $oldDependencies);
+			$commonDependencies->add($restoredDependencies);
 		}
 
 		/** @var $snippet Snippet */
@@ -164,37 +205,46 @@ class SnippetCacheData extends Object
 				$path = '@site/' . $snippet->getFile()->getRelativePath($this->app->sitePath);
 			}
 
+			$dependencies = $snippet->getDependencies()->toArray();
+			$this->processDependencies($commonDependencies, $dependencies);
 			$data = [
 				'key' => $key,
 				'path' => $path,
 				'cache' => $cacheFileName,
 
-				'dependencies' => $snippet->getDependencies()->toArray(),
+				'dependencies' => $dependencies,
 				'files' => $snippet->getFileDependencies(),
-				'snippets' => $snippet->innerSnippetKeys,
+				'snippets' => $snippet->getInnerSnippetKeys(),
 			];
-			if (!empty($snippet->renderParams)) $data['renderParams'] = $snippet->renderParams;
-			if (!empty($snippet->clientParams)) $data['clientParams'] = $snippet->clientParams;
+			if (!empty($snippet->getRenderParams())) {
+				$data['renderParams'] = $snippet->getRenderParams();
+			}
+			if (!empty($snippet->getClientParams())) {
+				$data['clientParams'] = $snippet->getClientParams();
+			}
 			$map['map'][$key] = $data;
-			$dependencies->add($snippet->getDependencies());
 		}
 
 		$main = json_encode($mainArr);
-		$map['dependencies'] = $dependencies->toArray();
+		$map['dependencies'] = $commonDependencies->toArray();
 		$this->mapFile->put($map);
 		$this->mainFile->put($main);
 
 		return [
 			'rootSnippetKey' => $map['root'],
-			'dependencies' => $dependencies,
+			'pluginModif' => $map['pluginModif'] ?? [],
+			'dependencies' => $commonDependencies,
 			'cache' => $main,
 		];
 	}
 
+	/**
+	 * @return array
+	 */
 	public function getDiffs()
 	{
 		$plugin = $this->getPlugin();
-		$cachePath = $plugin->getFilePath($plugin->getConfig('bundles')) . '/snippets';
+		$cachePath = $plugin->conductor->getSnippetsCachePath();
 		$map = $this->getMap();
 
 		$changes = [];
@@ -219,6 +269,9 @@ class SnippetCacheData extends Object
 		return $changes;
 	}
 
+	/**
+	 * @return array
+	 */
 	public function getMap()
 	{
 		if ($this->map === null) {
@@ -233,6 +286,16 @@ class SnippetCacheData extends Object
 		return $this->map;
 	}
 
+
+	/*******************************************************************************************************************
+	 * PRIVATE
+	 ******************************************************************************************************************/
+
+	/**
+	 * @param File $cacheFile
+	 * @param array $fileNames
+	 * @return bool
+	 */
 	private function checkCacheIsOutdated($cacheFile, $fileNames) {
 		foreach ($fileNames as $name) {
 			$file = new File($name);
@@ -244,6 +307,47 @@ class SnippetCacheData extends Object
 		return false;
 	}
 
+	/**
+	 * @param array $commonDependencies
+	 * @param array $dependencies
+	 */
+	private function processDependencies($commonDependencies, &$dependencies)
+	{
+		$commonDependencies->add($dependencies);
+		if (!isset($dependencies['plugins'])) {
+			return;
+		}
+
+		foreach ($dependencies['plugins'] as &$dependency) {
+			$dependency = $dependency['anchor'];
+		}
+		unset($dependency);
+	}
+
+	/**
+	 * @param array $dependencies
+	 * @param array $oldDependencies
+	 * @return array
+	 */
+	private function restoreDependencies($dependencies, $oldDependencies)
+	{
+		if (!isset($oldDependencies['plugins']) || !isset($dependencies['plugins'])) {
+			return $dependencies;
+		}
+		
+		$map = ArrayHelper::map($oldDependencies['plugins'], 'anchor');
+		$result = [];
+		foreach ($dependencies['plugins'] as &$dependency) {
+			$dependency = $map[$dependency];
+		}
+		unset($dependency);
+
+		return $result;
+	}
+
+	/**
+	 * Retrieve main file to the field [[$this->mainFile]] and map file fo the field [[$this->>mapFile]]
+	 */
 	private function retrieveFiles()
 	{
 		if ($this->dir !== null) {
@@ -251,8 +355,8 @@ class SnippetCacheData extends Object
 		}
 
 		$plugin = $this->getPlugin();
-		$bundlesPath = $plugin->getFilePath($plugin->getConfig('bundles'));
-		$dir = new Directory($bundlesPath . '/snippets');
+		$path = $plugin->conductor->getSnippetsCachePath();
+		$dir = new Directory($path);
 		if (!$dir->exists()) {
 			$this->dir = false;
 			return;

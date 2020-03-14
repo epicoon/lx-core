@@ -61,7 +61,7 @@
  * setIndents(config)
  *
  * * 5. Load
- * injectPlugin(info, func)
+ * setPlugin(info, params, func)
  * dropPlugin()
  *
  * * 6. Js-features
@@ -183,20 +183,23 @@ class Box extends lx.Rect #lx:namespace lx {
     /* 2. Content managment */
 
     #lx:server {
-		setSnippet(config, renderParams = null) {
+		setSnippet(config, renderParams = null, clientParams = null) {
 			if (config.isString) {
 				config = {path: config};
 				if (renderParams !== null) {
 					config.renderParams = renderParams;
 				}
+                if (clientParams !== null) {
+                    config.clientParams = clientParams;
+                }
 			}
 
 			if (!config.renderParams) {
-				config.renderParams = [];
+				config.renderParams = {};
 			}
 
 			if (!config.clientParams) {
-				config.clientParams = [];
+				config.clientParams = {};
 			}
 			
 			if (!config.path) return;
@@ -214,10 +217,9 @@ class Box extends lx.Rect #lx:namespace lx {
             container.isSnippet = true;
 		}
 
-		setPlugin(name, renderParams, clientParams) {
-            if (renderParams === undefined && name.isObject) {
-                renderParams = name.renderParams;
-                clientParams = name.clientParams;
+		setPlugin(name, params, onload) {
+            if (params === undefined && name.isObject) {
+                params = name.params;
                 name = name.name;
             }
 
@@ -227,8 +229,8 @@ class Box extends lx.Rect #lx:namespace lx {
             container.pluginAnchor = App.genId();
 
             var data = {name, anchor:container.pluginAnchor};
-            if (renderParams) data.renderParams = renderParams;
-            if (clientParams) data.clientParams = clientParams;
+            if (params) data.params = params;
+            if (onload) data.onload = onload;
             this.getSnippet().addPlugin(data);
         }
 
@@ -306,7 +308,7 @@ class Box extends lx.Rect #lx:namespace lx {
             if (this.renderCacheStatus) {
                 __addToRenderCache(container, widget);
             } else {
-                widget.domElem.createElement();
+                widget.domElem.applyParent();
             }
         }
 
@@ -446,31 +448,47 @@ class Box extends lx.Rect #lx:namespace lx {
         // ситуация 1 - элемент не передан, надо удалить тот, на котором вызван метод
         if (el === undefined) return super.del();
 
-        // ситуация 2 - el - объект
+        var c = this.remove(el, index, count);
+        c.each((a)=>a.destruct());
+    }
+
+    /*
+     * Удаление элементов в вариантах:
+     * 1. Аргумент el - элемент - если такой есть в элементе, на котом вызван метод, он будет удален
+     * 2. Аргумент el - ключ (единственный аргумент) - удаляется элемент по ключу, если по ключу - массив,
+     *    то удаляются все элементы из этого массива
+     * 3. Аргументы el (ключ) + index - имеет смысл, если по ключу - массив, удаляется из массива
+     * элемент с индексом index в массиве
+     * 4. Аргументы el (ключ) + index + count - как 4, но удаляется count элементов начиная с index
+     * */
+    remove(el, index, count) {
+        // el - объект
         if (!el.isString) {
             // Проверка на дурака - не удаляем чужой элемент
-            if (el.parent !== this) return;
+            if (el.parent !== this) return false;
 
             var container = __getContainer(this);
 
             // Если у элемента есть ключ - будем удалять по ключу
-            if (el.key && el.key in container.childrenByKeys) return this.del(el.key, el._index, 1);
+            if (el.key && el.key in container.childrenByKeys) return this.remove(el.key, el._index, 1);
 
             // Если ключа нет - удаляем проще
+            var result = new lx.Collection();
             var pre = el.prevSibling();
             container.domElem.removeChild(el.domElem);
             container.children.remove(el);
             #lx:client{ lx.WidgetHelper.checkFrontMap(); }
             container.positioning().actualize({from: pre, deleted: [el]});
             container.positioning().onDel();
-            el.destruct();
-            return 1;
+            result.add(el);
+            return result;
         }
 
         // el - ключ
         var key = el;
         var container = __getContainer(this);
-        if (!(key in container.childrenByKeys)) return 0;
+        var result = new lx.Collection();
+        if (!(key in container.childrenByKeys)) return result;
 
         // childrenByKeys[key] - не массив, элемент просто удаляется
         if (!container.childrenByKeys[key].isArray) {
@@ -482,7 +500,8 @@ class Box extends lx.Rect #lx:namespace lx {
             delete container.childrenByKeys[key];
             container.positioning().actualize({from: pre, deleted: [elem]});
             container.positioning().onDel();
-            return 1;
+            result.add(elem);
+            return result;
         }
 
         // childrenByKeys[key] - массив
@@ -490,7 +509,7 @@ class Box extends lx.Rect #lx:namespace lx {
         if (index === undefined) {
             index = 0;
             count = container.childrenByKeys[key].length;
-        } else if (index >= container.childrenByKeys[key].length) return 0;
+        } else if (index >= container.childrenByKeys[key].length) return result;
         if (index + count > container.childrenByKeys[key].length)
             count = container.childrenByKeys[key].length - index;
 
@@ -516,9 +535,8 @@ class Box extends lx.Rect #lx:namespace lx {
         }
         container.positioning().actualize({from: pre, deleted});
         container.positioning().onDel();
-        deleted.each((a)=>a.destruct());
-
-        return count;
+        result.add(deleted);
+        return result;
     }
 
     text(text) {
@@ -835,8 +853,9 @@ class Box extends lx.Rect #lx:namespace lx {
     /**
      * Загружает уже полученные данные о модуле в элемент
      * */
-    injectPlugin(info, func) {
+    setPlugin(info, params = {}, func = null) {
         this.dropPlugin();
+        if (!params.lxEmpty) info.clientParams = params;
         lx.Loader.run(info, this, this.getPlugin(), func);
     }
 

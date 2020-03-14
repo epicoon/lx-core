@@ -3,24 +3,30 @@
 namespace lx;
 
 /**
- * Для классов, объявленных в сервисах реализация набора методов доступа к возможностям сервиса
- * */
-trait ClassOfServiceTrait {
+ * Realisation for \lx\ClassOfServiceInterface
+ *
+ * Trait ClassOfServiceTrait
+ * @package lx
+ */
+trait ClassOfServiceTrait
+{
 	/**
-	 * Получить имя сервиса для текущего класса
+	 * Get service name for current class
 	 *
 	 * @return string|null
-	 * */
-	public function getServiceName() {
+	 */
+	public function getServiceName()
+	{
 		return ClassHelper::defineServiceName(static::class);
 	}
 
 	/**
-	 * Получить сервис для текущего класса
+	 * Get service for current class
 	 *
 	 * @return lx\Service|null
-	 * */
-	public function getService() {
+	 */
+	public function getService()
+	{
 		$name = $this->getServiceName();
 		if (!$name) {
 			return null;

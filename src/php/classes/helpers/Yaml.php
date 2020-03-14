@@ -1,40 +1,63 @@
 <?php
 
-// https://ru.wikipedia.org/wiki/YAML
-// https://habr.com/post/270097/
-
 namespace lx;
 
-class Yaml {
+/**
+ * Class Yaml
+ * @package lx
+ */
+class Yaml
+{
+	/** @var string */
 	private $text = '';
+
+	/** @var array */
 	private $parsed = null;
+
+	/** @var string */
 	private $referencesRootPath = null;
+
+	/** @var array */
 	private $templates = [];
+
+	/** @var array */
 	private $references = [];
 
-	public function __construct($text = null, $referencesRootPath = null) {
+	/**
+	 * Yaml constructor.
+	 * @param string $text
+	 * @param string $referencesRootPath
+	 */
+	public function __construct($text = null, $referencesRootPath = null)
+	{
 		if ($text !== null) {
 			$this->reset($text, $referencesRootPath);
 		}
 	}
 
 	/**
-	 * Полностью переинициализирует текущий парсер
-	 * */
-	public function reset($text, $referencesRootPath = null) {
+	 * @param string $text
+	 * @param string $referencesRootPath
+	 */
+	public function reset($text, $referencesRootPath = null)
+	{
 		$this->text = $text;
 		$this->parsed = null;
 		$this->referencesRootPath = $referencesRootPath;
-		if ($this->referencesRootPath !== null && !preg_match('/\/$/', $this->referencesRootPath))
+		if ($this->referencesRootPath !== null && $this->referencesRootPath{-1} != '/') {
 			$this->referencesRootPath .= '/';
+		}
 		$this->templates = [];
 		$this->references = [];
 	}
 
 	/**
-	 * Преобразует yaml-текст в php-массив
-	 * */
-	public function parse($text = null, $referencesRootPath = null) {
+	 * @param string $text
+	 * @param string $referencesRootPath
+	 * @return array
+	 */
+	public function parse($text = null, $referencesRootPath = null)
+	{
 		if ($text !== null) $this->reset($text, $referencesRootPath);
 
 		if ($this->parsed !== null) return $this->parsed;
@@ -52,33 +75,52 @@ class Yaml {
 	}
 
 	/**
-	 * Преобразует yaml-текст в json-текст
-	 * */
-	public function parseToJson($text = null, $referencesRootPath = null) {
+	 * @param string $text
+	 * @param string $referencesRootPath
+	 * @return string
+	 */
+	public function parseToJson($text = null, $referencesRootPath = null)
+	{
 		return json_encode($this->parse($text, $referencesRootPath));
 	}
 
 	/**
-	 * Преобразует yaml-текст в формат, понятный js - такой, что его можно конкатенировать в код
-	 * */
-	public function parseToJs($text = null, $referencesRootPath = null) {
+	 * Transform YAML-text to JS-like code string
+	 *
+	 * @param string $text
+	 * @param string $referencesRootPath
+	 * @return string
+	 */
+	public function parseToJs($text = null, $referencesRootPath = null)
+	{
 		$arr = $this->parse($text, $referencesRootPath);
 		return ArrayHelper::arrayToJsCode($arr);
 	}
 
+
+	/*******************************************************************************************************************
+	 * PRIVATE
+	 ******************************************************************************************************************/
+
 	/**
-	 * Локальное расширение yaml-синтаксиса - многострочные комментарии
-	 * */
-	private function cutMultiLineComments($text) {
+	 * Local extension of YAML - multi-line commetns
+	 *
+	 * @param string $text
+	 * @return string
+	 */
+	private function cutMultiLineComments($text)
+	{
 		$text = preg_replace('/(^|\n)###\n[\w\W]*?###(\n|$)/', '', $text);
 		return $text;
 	}
 
 	/**
-	 * Чтобы извлекать относительные ссылки нужно иметь информацию пути к каталогу
-	 * */
-	private function extractReferences($text) {
-		return preg_replace_callback('/\^ref (.*?)(\n)/', function($matches) {
+	 * @param string $text
+	 * @return string
+	 */
+	private function extractReferences($text)
+	{
+		return preg_replace_callback('/\^ref (.*?)(\n)/', function ($matches) {
 			$path = $matches[1];
 			if (array_key_exists($path, $this->references))
 				return "*{$matches[1]}{$matches[2]}";
@@ -102,9 +144,13 @@ class Yaml {
 	}
 
 	/**
-	 * Формирование предварительного навигационного массива
-	 * */
-	private function toArray($text) {
+	 * Creating of basic navigation array
+	 *
+	 * @param string $text
+	 * @return array
+	 */
+	private function toArray($text)
+	{
 		$text = preg_replace('/^\n+/', '', $text);
 		$text = preg_replace('/\n+$/', '', $text);
 		$arr = preg_split('/\n/', $text);
@@ -116,7 +162,7 @@ class Yaml {
 
 		$spacesStep = $this->identifySpaceStep($text);
 
-		$dropModeConcat = function() use ($spacesStep, &$routerStack, &$modeConcat, &$concatSpacesCount) {
+		$dropModeConcat = function () use ($spacesStep, &$routerStack, &$modeConcat, &$concatSpacesCount) {
 			if ($modeConcat == 1) {
 				$r = $routerStack[$concatSpacesCount - $spacesStep]['row'];
 				$str = array_shift($r);
@@ -140,14 +186,15 @@ class Yaml {
 		foreach ($arr as $i => $row) {
 			if ($row == '' || $row == ']' || $row{0} == '#') continue;
 			$spacesCount = 0;
-			while ($row{$spacesCount++} == ' ') {}
+			while ($row{$spacesCount++} == ' ') {
+			}
 			$row = preg_replace('/^ */', '', $row);
 			if ($row == '' || $row == ']' || $row{0} == '#') continue;
 
 			if ($modeConcat != 0) {
 				if ($spacesCount != $concatSpacesCount) $dropModeConcat();
 				else {
-					$index = $concatSpacesCount - $spacesStep * ($modeConcat==3?2:1);
+					$index = $concatSpacesCount - $spacesStep * ($modeConcat == 3 ? 2 : 1);
 					$routerStack[$index]['row'][] = $row;
 					continue;
 				}
@@ -162,11 +209,11 @@ class Yaml {
 			}
 
 			$len = strlen($row);
-			if ($row{$len-1} == '|' || ($len > 1 && $row{$len-1} == '-' && $row{$len-2} == '|')) {
+			if ($row{$len - 1} == '|' || ($len > 1 && $row{$len - 1} == '-' && $row{$len - 2} == '|')) {
 				$currentSource['row'] = [preg_replace('/:[^:]+$/', ':', $row)];
 				$modeConcat = 1;
 				$concatSpacesCount = $spacesCount + $spacesStep;
-			} elseif ($row{$len-1} == '>' || ($len > 1 && $row{$len-1} == '-' && $row{$len-2} == '>')) {
+			} elseif ($row{$len - 1} == '>' || ($len > 1 && $row{$len - 1} == '-' && $row{$len - 2} == '>')) {
 				$currentSource['row'] = [preg_replace('/:[^:]+$/', ':', $row)];
 				$modeConcat = 2;
 				$concatSpacesCount = $spacesCount + $spacesStep;
@@ -211,9 +258,11 @@ class Yaml {
 	}
 
 	/**
-	 * Определение числа пробелов, разграничивающих вложенности
-	 * */
-	private function identifySpaceStep($text) {
+	 * @param string $text
+	 * @return int
+	 */
+	private function identifySpaceStep($text)
+	{
 		$min = INF;
 		preg_match_all('/\n( +)/', $text, $matches);
 		foreach ($matches[1] as $match) {
@@ -224,9 +273,13 @@ class Yaml {
 	}
 
 	/**
-	 * Преобразование элемента навигационного массива
-	 * */
-	private function translateSource($source) {
+	 * Process the navigation array item
+	 *
+	 * @param array $source
+	 * @return array
+	 */
+	private function translateSource($source)
+	{
 		if (empty($source)) return [];
 		$result = [];
 		foreach ($source as $value) {
@@ -239,13 +292,15 @@ class Yaml {
 	}
 
 	/**
-	 * Если в самих шаблонах есть указатели, они будут разыменованы, но рекурсивные ссылки разыменуются только один раз
-	 * */
-	private function prepareTemplates() {
-		// Если в самих шаблонах есть ссылки на другие шаблоны
+	 * If the templates themselves have pointers, they will be dereferenced,
+	 * but recursive links will be dereferenced only once
+	 */
+	private function prepareTemplates()
+	{
+		// If the templates themselves have links to other templates
 		$this->templates = $this->applyTemplates($this->templates);
 
-		// Ссылки на другие файлы к этому моменту загружены и идут по логике шаблонов
+		// Links to other files are up to this point loaded and follow the logic of the templates
 		$this->templates = array_merge(
 			$this->templates,
 			$this->references
@@ -253,15 +308,21 @@ class Yaml {
 	}
 
 	/**
-	 * Применение шаблонов делается после процесса самого парсинга, чтобы можно было ссылки объявлять после указателей
-	 * */
-	private function applyTemplates($arr) {
+	 * The applying of templates is done after the parsing process,
+	 * so that links can be declared after pointers
+	 *
+	 * @param array $arr
+	 * @return array
+	 */
+	private function applyTemplates($arr)
+	{
 		foreach ($arr as $key => $item) {
 			if (is_string($item) && strlen($item) && $item{0} == '*') {
 				$template = substr($item, 1);
 				if (!array_key_exists($template, $this->templates)) continue;
 				$arr[$key] = $this->templates[$template];
-			} if (is_array($item)) {
+			}
+			if (is_array($item)) {
 				if (array_key_exists('<<', $item)) {
 					$template = $item['<<'];
 					if (!is_string($template) || $template{0} != '*') continue;
@@ -280,9 +341,13 @@ class Yaml {
 	}
 
 	/**
-	 * Преобразование ресурса элемента навигационного массива (по факту - одной yaml-строки) в ключ и значение
-	 * */
-	private function translateSourceElement($source) {
+	 * Transformation of the navigation array item source (one yaml-line as as fact) to key and value
+	 *
+	 * @param array $source
+	 * @return array
+	 */
+	private function translateSourceElement($source)
+	{
 		$content = $source['source'];
 		$row = $this->rowCutComments($source['row']);
 
@@ -296,9 +361,11 @@ class Yaml {
 	}
 
 	/**
-	 * Удаление комментариев в yaml-строке
-	 * */
-	private function rowCutComments($text) {
+	 * @param string $text
+	 * @return string
+	 */
+	private function rowCutComments($text)
+	{
 		$parts = preg_split('/(?:(\'.*?\')|(".*?"))/', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
 		$result = '';
 		foreach ($parts as $i => $part) {
@@ -310,9 +377,15 @@ class Yaml {
 	}
 
 	/**
-	 * Преобразование ресурса элемента навигационного массива, являющегося элементом перечисления (в yaml это строка, начинающаяся с '-')
-	 * */
-	private function translateEnumElement($sourceRow, $content) {
+	 * Transformation of the navigation array item source,
+	 * which is an element of the enumeration (in yaml it is a line starting with '-')
+	 *
+	 * @param string $sourceRow
+	 * @param array $content
+	 * @return array
+	 */
+	private function translateEnumElement($sourceRow, $content)
+	{
 		$key = null;
 		$value = null;
 		$row = preg_replace('/^-\s*/', '', $sourceRow);
@@ -323,18 +396,18 @@ class Yaml {
 
 		preg_match_all('/((?:[\w_.!\/$\\\ -][\w\d_.!\/$\\\ -]*?)|(?:<<)):\s*(.*)/', $row, $matches);
 
-		// Если вида '- value'
+		// For type '- value'
 		if (empty($matches[0])) {
 			$value = $row;
+		// For type '- key: value'
 		} else {
-		// Если вида '- key: value'
 			$key = $matches[1][0];
 			$value = $matches[2][0];
 		}
 
-		// Если ключа нет
+		// If there isn't a key
 		if ($key === null) {
-			// Если есть содержимое - это текст на нескольких строках, либо массив
+			// If content is exist, this is a multi-line text or an array
 			if (!empty($content)) {
 				if ($content[0]['row']{0} == '-') {
 					$value = '[';
@@ -347,7 +420,7 @@ class Yaml {
 					foreach ($content as $item) $value .= ' ' . $item['row'];
 				}
 			}
-		// С ключом
+		// If there is a key
 		} else {
 			$content = $this->translateSource($content);
 			if (is_string($value)) {
@@ -365,32 +438,38 @@ class Yaml {
 	}
 
 	/**
-	 * Преобразование ресурса элемента навигационного массива, не являющегося элементом перечисления
-	 * */
-	private function translateNotEnumElement($row, $content) {
+	 * Transformation of the navigation array item source,
+	 * which is not an element of the enumeration
+	 *
+	 * @param string $row
+	 * @param array $content
+	 * @return array
+	 */
+	private function translateNotEnumElement($row, $content)
+	{
 		$key = null;
 		$value = null;
 		preg_match_all('/((?:[\w_.!\/$\\\ -][\w\d_.!\/$\\\ -]*?)|(?:<<)):\s*(.+)/', $row, $matches);
-		// Если вида 'value'
+		// For type 'value'
 		if (empty($matches[0])) {
 			$key = preg_replace('/:$/', '', $row);
+		// For type 'key: value'
 		} else {
-		// Если вида 'key: value'
 			$key = $matches[1][0];
 			$value = $matches[2][0];
 		}
 
-		// Если значения нет
+		// If the value doesn't exist
 		if ($value === null) {
-			// Если дальше нет и содержимого - это значение пустая строка
+			// If the content is empty, this is an empty line
 			$value = empty($content) ? '' : $this->translateSource($content);
-		// Со значением
+		// If the value exists
 		} else {
-			// Если значение начинается с '&' - это шаблон-ссылка
+			// If the value starts with '&', this is a template-link
 			if ($value{0} == '&') {
 				$template = substr($value, 1);
 				$value = $this->translateSource($content);
-			// Если есть содержимое - это текст на нескольких строках, либо массив
+			// If the content exists, this is a multi-line text or an array
 			} elseif (!empty($content)) {
 				if ($value{0} == '[') {
 					$temp = [];
@@ -405,23 +484,27 @@ class Yaml {
 		if (is_string($value)) {
 			$value = $this->translateString($value);
 		}
-		if (isset($template)) {			
+		if (isset($template)) {
 			$this->addTemplate($template, $value);
 		}
 		return [$key, $value];
 	}
 
 	/**
-	 * Добавление шаблона в список шаблонов парсера
-	 * */
-	private function addTemplate($template, $value) {
+	 * @param string $template
+	 * @param array $value
+	 */
+	private function addTemplate($template, $value)
+	{
 		$this->templates[$template] = $value;
 	}
 
 	/**
-	 * Делим строку по внутренним запятым
-	 * */
-	private function splitJsonLikeString($sourceString) {
+	 * @param string $sourceString
+	 * @return array
+	 */
+	private function splitJsonLikeString($sourceString)
+	{
 		preg_match_all('/^\[\s*(.*?)\s*\]$/', $sourceString, $matches);
 		if (empty($matches[1])) {
 			return [];
@@ -452,9 +535,13 @@ class Yaml {
 	}
 
 	/**
-	 * Преобразование строки, пришедшей из yaml - в т.ч. вариантов с inline-массивами и js-like данными
-	 * */
-	private function translateString($sourceString) {
+	 * Converting a string that came from YAML - incl. options with inline arrays and JS-like data
+	 *
+	 * @param string $sourceString
+	 * @return array
+	 */
+	private function translateString($sourceString)
+	{
 		$str = $sourceString;
 		if ($str == '') return $sourceString;
 
@@ -484,9 +571,13 @@ class Yaml {
 	}
 
 	/**
-	 * Преобразование истинной строки (уже без inline-массивов и js-like данных), но она может содержать 'ключ:значение'
-	 * */
-	private function translateStringDeep($value) {
+	 * Converting a true string (already without inline arrays and JS-like data), but it may contain 'key: value'
+	 *
+	 * @param string $value
+	 * @return array
+	 */
+	private function translateStringDeep($value)
+	{
 		$arr = preg_split('/\s*,\s*/', $value);
 		$result = [];
 		foreach ($arr as $item) {
@@ -503,7 +594,7 @@ class Yaml {
 			}
 
 			$val = $this->normalizeValue($val);
-			if ($key) {				
+			if ($key) {
 				$result[$key] = $val;
 			} else {
 				$result[] = $val;
@@ -513,9 +604,13 @@ class Yaml {
 	}
 
 	/**
-	 * Соблюдение соответствия типов
-	 * */
-	private function normalizeValue($val) {
+	 * Type compliance
+	 *
+	 * @param mixed $val
+	 * @return mixed
+	 */
+	private function normalizeValue($val)
+	{
 		if (is_array($val)) return $val;
 		if (is_numeric($val)) {
 			$val = (double)$val;

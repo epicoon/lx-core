@@ -1,17 +1,40 @@
 class Plugin #lx:namespace lx {
     constructor(data = {}) {
-        this.title = null;
-        this.icon = null;
-        
+        this.serviceName = data.serviceName;
         this.name = data.name;
         this.path = data.path;
         this.images = data.images;
-        this.serviceName = data.serviceName;
-        this.renderParams = data.renderParams || {};
-        this.clientParams = data.clientParams || {};
         this.widgetBasicCss = data.widgetBasicCss || {};
-        this.__preJs = [];
-        this.__postJs = [];
+
+        this._title = data.title;
+        this._icon = data.icon;
+        this._onloadList = [];
+        this._changes = {
+            title: null,
+            icon: null,
+            onloadList: []
+        };
+
+        this._oldParams = data.params ? data.params.lxCopy() : {};
+        this.params = data.params || {};
+    }
+
+    get title() {
+        return this._title;
+    }
+
+    set title(value) {
+        this._title = value;
+        this._changes.title = value;
+    }
+
+    get icon() {
+        return this._icon;
+    }
+
+    set icon(value) {
+        this._icon = value;
+        this._changes.icon = value;
     }
 
     getWidgetBasicCss(widgetClass) {
@@ -24,12 +47,9 @@ class Plugin #lx:namespace lx {
 
     }
 
-    preJs(code) {
-        this.__preJs.push(lx.functionToString(code));
-    }
-
-    postJs(code) {
-        this.__postJs.push(lx.functionToString(code));
+    onload(code) {
+        this._onloadList.push(lx.functionToString(code));
+        this._changes.onloadList.push(lx.functionToString(code));
     }
 
     getDependencies() {
@@ -37,13 +57,19 @@ class Plugin #lx:namespace lx {
     }
 
     getResult() {
-        var result = {
-            clientParams: this.clientParams,
-            preJs: this.__preJs,
-            postJs: this.__postJs
-        };
-        if (this.title) result.title = this.title;
-        if (this.icon) result.icon = this.icon;
+        var result = {};
+
+        var changedParams = {};
+        for (var key in this.params) {
+            if (!(key in this._oldParams) || this.params[key] != this._oldParams[key]) {
+                changedParams[key] = this.params[key];
+            }
+        }
+
+        if (!changedParams.lxEmpty) result.params = changedParams;
+        if (this._changes.onloadList.len) result.onload = this._changes.onloadList;
+        if (this._changes.title) result.title = this._changes.title;
+        if (this._changes.icon) result.icon = this._changes.icon;
         
         return result;
     }
