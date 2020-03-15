@@ -119,10 +119,6 @@ class Autoloader
 		$path = $this->getClassPath($className);
 
 		if ($path === false) {
-			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
-				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-				'msg' => "Autoload failed. Class '$className' not found",
-			]);
 			return false;
 		}
 
