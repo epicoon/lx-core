@@ -36,6 +36,10 @@ class BaseFile
 	 */
 	public function setPath($path)
 	{
+        if ($path{0} == '@') {
+            $path = \lx::$app->conductor->getFullPath($path);
+        }
+
 		$this->path = $path;
 		$arr = explode('/', $path);
 

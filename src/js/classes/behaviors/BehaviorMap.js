@@ -75,6 +75,6 @@ class BehaviorMap #lx:namespace lx {
 	 *
 	 * */
 	__copyMap(map) {
-		this.supportedEssence.__lxBehaviors = map.lxCopy();
+		this.supportedEssence.__lxBehaviors = map.lxClone();
 	}
 }

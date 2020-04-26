@@ -9,7 +9,7 @@ Object.defineProperty(Object.prototype, "lxGetKeys", {
 	}	
 });
 
-Object.defineProperty(Object.prototype, "lxCopy", {
+Object.defineProperty(Object.prototype, "lxClone", {
 	value: function() {
 		if (!this.isArray && !this.isObject) return this;
 		var result = (this.isArray) ? [] : {};

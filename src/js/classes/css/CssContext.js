@@ -28,7 +28,7 @@ class CssContext #lx:namespace lx {
 			let content = list[nameI];
 			if (content.lxParent) {
 				content = list[content.lxParent]
-					? list[content.lxParent].lxCopy().lxMerge(content, true)
+					? list[content.lxParent].lxClone().lxMerge(content, true)
 					: content;
 				delete content.lxParent;
 			}
@@ -37,7 +37,6 @@ class CssContext #lx:namespace lx {
 		}
 	}
 
-	//TODO pseudoclasses - не реализовано наследование псевдоклассов
 	addAbstractClass(name, content = {}, pseudoclasses = {}) {
 		this.abstractClasses[name] = {
 			name,
@@ -81,6 +80,23 @@ class CssContext #lx:namespace lx {
 		};
 	}
 
+	inheritAbstractClass(name, parent, content = {}, pseudoclasses = {}) {
+		this.abstractClasses[name] = {
+			name,
+			parent,
+			content,
+			pseudoclasses
+		};
+	}
+
+	inheritClasses(list, parent) {
+		for (let name in list) {
+			let content = list[name];
+			if (content.isArray) this.inheritClass(name, parent, content[0], content[1]);
+			else this.inheritClass(name, parent, content);
+		}
+	}
+
 	toString() {
 		var result = '';
 		for (var i=0, l=this.sequens.length; i<l; i++) {
@@ -114,12 +130,13 @@ function __renderClass(self, classData) {
 
 	var text = className + '{';
 
-	var content = __getContentWithParent(self, classData);
+	var content = __getPropertyWithParent(self, classData, 'content');
 	var contentString = __getContentString(content);
 
 	text += contentString + '}';
 
-	for (var pseudoName in classData.pseudoclasses) {
+	var pseudoclasses = __getPropertyWithParent(self, classData, 'pseudoclasses');
+	if (pseudoclasses) for (var pseudoName in pseudoclasses) {
 		var data;
 		if (pseudoName == 'disabled') {
 			data = {name: className + '[' + pseudoName + ']'};
@@ -127,7 +144,7 @@ function __renderClass(self, classData) {
 			data = {name: className + ':' + pseudoName};
 		}
 
-		var pseudoContent = classData.pseudoclasses[pseudoName];
+		var pseudoContent = pseudoclasses[pseudoName];
 		if (pseudoContent.lxParent) {
 			data.parent = pseudoContent.lxParent;
 			delete pseudoContent.lxParent;
@@ -140,30 +157,31 @@ function __renderClass(self, classData) {
 	return text;
 }
 
-function __getContentWithParent(self, classData) {
-	if (!classData.parent) return classData.content;
+function __getPropertyWithParent(self, classData, property) {
+	if (!classData.parent) return classData[property];
 	var parentClass = null;
 	if (self.abstractClasses[classData.parent])
 		parentClass = self.abstractClasses[classData.parent];
 	if (self.classes[classData.parent])
 		parentClass = self.classes[classData.parent];
-	if (!parentClass) return classData.content;
+	if (!parentClass) return classData[property];
 
-	if (parentClass.parent)
-		return __getContentWithParent(self, parentClass).lxCopy().lxMerge(classData.content, true);
-	else {
-		var pContent = parentClass.content.isObject
-			? parentClass.content.lxCopy()
-			: (parentClass.content.isString ? {__str__: [parentClass.content]} : {});
-		if (pContent.__str__ === undefined) pContent.__str__ = [];
 
-		var result = pContent;
-		if (classData.content.isObject)
-			result = pContent.lxMerge(classData.content, true)
-		else if (classData.content.isString)
-			pContent.__str__.push(classData.content);
-		return result;
-	}
+	var pProperty = parentClass.parent
+		? __getPropertyWithParent(self, parentClass, property)
+		: parentClass[property];
+	if (!pProperty) pProperty = {};
+	if (pProperty.isString) pProperty = {__str__:[pProperty]};
+	var result = pProperty.lxClone();
+	if (!result.__str__) result.__str__ = [];
+
+	if (classData[property].isObject)
+		result = result.lxMerge(classData[property], true)
+	else if (classData[property].isString)
+		result.__str__.push(classData[property]);
+	if (!result.__str__.len) delete result.__str__;
+	if (result.lxEmpty) return null;
+	return result;
 }
 
 function __getContentString(content) {

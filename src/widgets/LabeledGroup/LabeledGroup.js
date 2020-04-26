@@ -48,7 +48,6 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 				l = new lx.Box({
 					parent: this,
 					key: 'label',
-					html: label,
 					css: [this.basicCss.item, this.basicCss.label],
 					style: {'grid-column': 'labels' + counter}
 				});
@@ -68,11 +67,11 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 				l = new lx.Box({
 					parent: this,
 					key: 'label',
-					html: label,
 					css: [this.basicCss.item, this.basicCss.label],
 					style: {'grid-column': 'labels' + counter}
 				});
 			}
+			l.text(label);
 			counter++;
 			if (counter >= cols) counter = 0;
 		}
@@ -97,6 +96,10 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 				this.parent.widget(this.index).trigger('mouseup');
 			});
 		});
+	}
+
+	align(w, h) {
+		this.labels().each(a=>a.align(w, h));
 	}
 
 	widgets() {

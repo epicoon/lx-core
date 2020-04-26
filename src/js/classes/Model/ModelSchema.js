@@ -12,7 +12,7 @@ class ModelSchema #lx:namespace lx {
 	 *
 	 * */
 	set(list) {
-		this.fields = list.lxCopy();
+		this.fields = list.lxClone();
 	}
 
 	getPkName() {

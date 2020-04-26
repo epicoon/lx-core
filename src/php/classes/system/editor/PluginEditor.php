@@ -26,9 +26,17 @@ class PluginEditor
 	 * @param array $config
 	 * @return Plugin|null
 	 */
-	public function createPlugin($name, $path, $config = [])
+	public function createPlugin($name, $path = null, $config = [])
 	{
 		$servicePath = $this->service->getPath();
+		if ($path === null) {
+		    $plaginPathes = $this->service->getConfig('service.plugins');
+		    if (is_array($plaginPathes)) {
+		        $path = $plaginPathes[0];
+            } else {
+		        $path = $plaginPathes;
+            }
+        }
 		$pluginRootPath = $path == ''
 			? $servicePath
 			: $servicePath . '/' . $path;

@@ -540,15 +540,17 @@ class Box extends lx.Rect #lx:namespace lx {
     }
 
     text(text) {
+        var container = __getContainer(this);
+
         if (text === undefined) {
-            if ( !this.contains('text') ) return '';
-            return this->text.value();
+            if ( !container.contains('text') ) return '';
+            return container->text.value();
         }
 
-        if (!this.contains('text')) new lx.TextBox({parent: this});
+        if (!container.contains('text')) new lx.TextBox({parent: container});
 
-        this->text.value(text);
-        return this;
+        container->text.value(text);
+        return container;
     }
 
     /**
@@ -964,7 +966,7 @@ function __get(self, path) {
     function __renderContent(self) {
         var arr = [];
 
-        if (!self.children) return self.domElem.content;
+        if (!self.children || self.children.isEmpty()) return self.domElem.content;
 
         self.eachChild((child)=>{
             if (child.domElem.rendered()) arr.push(child.domElem.outerHtml());

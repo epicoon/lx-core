@@ -163,9 +163,18 @@ function __prepareSelfData(self) {
 }
 
 function __renderContent(self) {
+    self.renderIndexCounter = 0;
+    self.widget.children.each(a=>__setRenderIndex(self, a));
+
     var html = '';
     self.widget.children.each((a)=>html+=__renderWidget(self, a));
     self.htmlContent = html;
+}
+
+function __setRenderIndex(self, widget) {
+    widget.renderIndex = self.renderIndexCounter++;
+    if (widget.children === undefined) return;
+    widget.children.each(a=>__setRenderIndex(self, a));
 }
 
 function __renderWidget(self, widget) {

@@ -5,10 +5,10 @@ class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx 
 		TYPE_SIMPLE = 1,
 		TYPE_PROPORTIONAL = 2,
 
-		ROW_DEFAULT_HEIGHT = '25px',
-		COLUMN_DEFAULT_WIDTH = '25px',
-		ROW_MIN_HEIGHT = '25px',
-		COLUMN_MIN_WIDTH = '25px';
+		ROW_DEFAULT_HEIGHT = '40px',
+		COLUMN_DEFAULT_WIDTH = '40px',
+		ROW_MIN_HEIGHT = '40px',
+		COLUMN_MIN_WIDTH = '40px';
 
 	init(config={}) {
 		this.type = config.type || self::TYPE_SIMPLE;

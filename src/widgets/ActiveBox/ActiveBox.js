@@ -3,8 +3,23 @@
 #lx:private;
 
 class ActiveBox extends lx.Box #lx:namespace lx {
+	//TODO - тут подразумеваются пиксели. Бардак с единицами измерения продолжается...
+	#lx:const
+		HEADER_HEIGHT = 40,
+		INDENT = 5;
+
 	getContainer() {
 		return this->body;
+	}
+
+	getBasicCss() {
+		return {
+			main: 'lx-ActiveBox',
+			header: 'lx-ActiveBox-header',
+			body: 'lx-ActiveBox-body',
+			resizer: 'lx-ActiveBox-resizer',
+			onMove: 'lx-ActiveBox-move',
+		}
 	}
 
 	/**
@@ -50,7 +65,8 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 		}
 
 		if (this.contains('header')) {
-			this->header.on('dblclick', function() {
+			var header = this->header;
+			header.on('dblclick', function() {
 				if (!this.lxActiveBoxGeom) {
 					this.lxActiveBoxGeom = this.parent.getGeomMask();
 					this.parent.setGeom([0, 0, '100%', '100%']);
@@ -59,6 +75,18 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 					delete this.lxActiveBoxGeom;
 				}
 			});
+			if (header.__move) {
+				delete header.__move;
+				header.move({parentMove: true});
+				if (this.basicCss.onMove) {
+					header.on('moveBegin', ()=>{
+						this.addClass(this.basicCss.onMove);
+					});
+					header.on('moveEnd', ()=>{
+						this.removeClass(this.basicCss.onMove);
+					});
+				}
+			}
 		}
 		this.setBuildMode(false);
 	}
@@ -72,8 +100,8 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 			parent: this,
 			key: 'resizer',
 			geom: [null, null, self::RESIZER_SIZE, self::RESIZER_SIZE, 0, 0]
-		}).fill('Gray')
-		.move({parentResize: true});
+		}).move({parentResize: true});
+		resizer.addClass(this.basicCss.resizer);
 
 		if (config.adhesive) {
 			resizer.moveParams.xMinMove = 5;
@@ -86,34 +114,36 @@ lx.ActiveBox.DEFAULT_MOVE = true;
 lx.ActiveBox.DEFAULT_RESIZE = true;
 lx.ActiveBox.DEFAULT_ADHESIVE = false;
 lx.ActiveBox.ADHESION_DISTANCE = 15;
-lx.ActiveBox.HEADER_HEIGHT = '25px';
-lx.ActiveBox.RESIZER_SIZE = '12px';
+lx.ActiveBox.RESIZER_SIZE = '25px';
 
 //=============================================================================================================================
 function __setHeader(self, config) {
 	if (!config.header && !config.headerHeight && !config.headerConfig) return;
 
 	var headerConfig = config.headerConfig || {};
-	if (config.headerHeight) headerConfig.height = config.headerHeight;
-	if (headerConfig.height === undefined) headerConfig.height = lx.ActiveBox.HEADER_HEIGHT;
-	headerConfig.geom = true;
 	headerConfig.parent = self;
 	headerConfig.key = 'header';
 
 	var text = headerConfig.text || config.header || '';
 	delete headerConfig.text;
+	headerConfig.geom = [
+		lx.ActiveBox.INDENT + 'px',
+		lx.ActiveBox.INDENT + 'px',
+		null,
+		lx.ActiveBox.HEADER_HEIGHT + 'px',
+		lx.ActiveBox.INDENT + 'px',
+	];
 
 	var header = new lx.Box(headerConfig);
-	header.fill('lightgray');
+	header.addClass(self.basicCss.header);
 
 	if (text != '') {
-		var wrapper = header.add(lx.Box, {geom:true, key:'textWrapper'});
+		var wrapper = header.add(lx.Box, {size:['100%', '100%'], key:'textWrapper'});
 		wrapper.text(text);
 		wrapper.align(lx.CENTER, lx.MIDDLE);
 	}
 
-	if (lx.getFirstDefined(config.move, lx.ActiveBox.DEFAULT_MOVE))
-		header.move({parentMove: true});
+	if (lx.getFirstDefined(config.move, lx.ActiveBox.DEFAULT_MOVE)) header.__move = true;
 
 	if (config.closeButton) {
 		let butConfig = config.closeButton.isObject ? config.closeButton : {};
@@ -136,8 +166,18 @@ function __setBody(self, constructor) {
 	}
 	config.parent = self;
 	config.key = 'body';
-	config.top = self.contains('header') ? lx.ActiveBox.HEADER_HEIGHT : 0;
-	new constructor(config);
+	config.geom = [
+		lx.ActiveBox.INDENT + 'px',
+		self.contains('header')
+			? lx.ActiveBox.INDENT * 2 + lx.ActiveBox.HEADER_HEIGHT + 'px'
+			: lx.ActiveBox.INDENT + 'px',
+		null,
+		null,
+		lx.ActiveBox.INDENT + 'px',
+		lx.ActiveBox.INDENT + 'px'
+	];
+	var body = new constructor(config);
+	body.addClass(self.basicCss.body);
 }
 
 #lx:client {

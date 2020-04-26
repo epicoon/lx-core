@@ -20,7 +20,7 @@ class MessageBox extends lx.Box #lx:namespace lx {
 	}
 
 	add(...args) {
-		var config = this.msgConfig.lxCopy();
+		var config = this.msgConfig.lxClone();
 		config.text = args.join(' ');
 		super.add(lx.Box, config);
 	}

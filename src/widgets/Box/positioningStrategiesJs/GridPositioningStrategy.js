@@ -61,8 +61,8 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		TYPE_PROPORTIONAL = 2,
 		DEAULT_COLUMNS_AMOUNT = 12,
 
-		COLUMN_MIN_WIDTH = '25px',
-		ROW_MIN_HEIGHT = '25px';
+		COLUMN_MIN_WIDTH = '40px',
+		ROW_MIN_HEIGHT = '40px';
 
 	init(config={}) {
 		//TODO direction?

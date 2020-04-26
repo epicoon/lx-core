@@ -42,7 +42,6 @@ class Rect #lx:namespace lx {
     #lx:client __construct() {
         this.domElem = null;
         this.parent = null;
-        this._disabled = false;
     }
 
     static getStaticTag() {
@@ -177,21 +176,6 @@ class Rect #lx:namespace lx {
         }
 
         /**
-         * Метод чисто для допиливания виджета при получении данных от сервера
-         * */
-        postUnpack(config={}) {
-        }
-
-        /**
-         * Метод, вызываемый загрузчиком для допиливания элемента
-         * */
-        postLoad() {
-            var config = this.lxExtract('__postBuild') || {};
-            this.postBuild(config);
-            this.postUnpack(config);
-        }
-
-        /**
          * Восстановление при загрузке
          * */
         static rise(elem) {
@@ -237,15 +221,7 @@ class Rect #lx:namespace lx {
         if (name[0] == '/') return name;
 
         var plugin = this.getPlugin();
-        if (name[0] != '@') {
-            if (!plugin.images['default']) return name;
-            return plugin.images['default'] + '/' + name;
-        }
-
-        var arr = name.match(/^@([^\/]+?)(\/.+)$/);
-        if (!arr || !plugin.images[arr[1]]) return '';
-
-        return plugin.images[arr[1]] + arr[2];
+        return plugin.getImage(name);
     }
 
     /**
@@ -540,13 +516,6 @@ class Rect #lx:namespace lx {
     visibility(vis) {
         if (vis !== undefined) { vis ? this.show(): this.hide(); return this; }
 
-        if (!this.domElem) {
-            console.log('----------');
-            console.log(this);
-            console.log(vis);
-            console.log('==========');
-        }
-
         if ( !this.domElem.style('visibility') || this.domElem.style('visibility') == 'inherit' ) {
             var p = this.domElem.parent;
             while (p) { if (p.domElem.style('visibility') == 'hidden') return false; p = p.domElem.parent; }
@@ -811,13 +780,13 @@ class Rect #lx:namespace lx {
 
     getGeomMask() {
         var result = {};
-        result.pH = this.geomPriorityH().lxCopy();
-        result.pV = this.geomPriorityV().lxCopy();
+        result.pH = this.geomPriorityH().lxClone();
+        result.pV = this.geomPriorityV().lxClone();
         result[result.pH[0]] = this[lx.Geom.geomName(result.pH[0])]();
         result[result.pH[1]] = this[lx.Geom.geomName(result.pH[1])]();
         result[result.pV[0]] = this[lx.Geom.geomName(result.pV[0])]();
         result[result.pV[1]] = this[lx.Geom.geomName(result.pV[1])]();
-        if (this.geom) result.geom = this.geom.lxCopy();
+        if (this.geom) result.geom = this.geom.lxClone();
         return result;
     }
 
@@ -834,7 +803,7 @@ class Rect #lx:namespace lx {
         this.setGeomParam(pH[0], geomMask[pH[0]]);
         this.setGeomParam(pV[1], geomMask[pV[1]]);
         this.setGeomParam(pV[0], geomMask[pV[0]]);
-        if (geomMask.geom) this.geom = geomMask.geom.lxCopy();
+        if (geomMask.geom) this.geom = geomMask.geom.lxClone();
 
         this.trigger('resize');
 
@@ -1694,6 +1663,26 @@ class Rect #lx:namespace lx {
 
                 delete this.handlers;
             }
+        }
+
+        /**
+         * Метод чисто для допиливания виджета при получении данных от сервера
+         * */
+        postUnpack(config={}) {
+            // pass
+        }
+
+        /**
+         * Метод, вызываемый загрузчиком для допиливания элемента
+         * */
+        postLoad() {
+            var config = this.lxExtract('__postBuild') || {};
+            this.postUnpack(config);
+            this.postBuild(config);
+        }
+
+        restoreLinks(loader) {
+            // pass
         }
 
         /**

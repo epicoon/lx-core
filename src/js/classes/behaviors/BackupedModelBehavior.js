@@ -68,7 +68,7 @@ class BackupedModelBehavior extends lx.Behavior #lx:namespace lx {
 	commit() {
 		this.backup.getSchema().getFieldNames().each((key)=>{
 			var val = this[key];
-			if (val && (val.isArray || val.isObject)) val = val.lxCopy();
+			if (val && (val.isArray || val.isObject)) val = val.lxClone();
 			this.backup[key] = val;
 		});
 		this.onCommit();
@@ -80,7 +80,7 @@ class BackupedModelBehavior extends lx.Behavior #lx:namespace lx {
 	reset() {
 		this.backup.getSchema().getFieldNames().each((key)=>{
 			var val = this.backup.getField(key);
-			if (val && (val.isArray || val.isObject)) val = val.lxCopy();
+			if (val && (val.isArray || val.isObject)) val = val.lxClone();
 			this[key] = val;
 		});
 		this.onReset();

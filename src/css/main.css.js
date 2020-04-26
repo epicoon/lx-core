@@ -103,7 +103,8 @@ cssList.addClass('lx-TextBox', {
 	//color: '#333333',
 	//whiteSpace: 'pre',
 	cursor: 'inherit',
-	fontFamily: 'helvetica, arial, sans-serif'
+	// fontFamily: 'helvetica, arial, sans-serif'
+	fontFamily: 'TestFont'
 });
 /* TextBox */
 /*============================================================================*/
@@ -147,7 +148,8 @@ cssList.addAbstractClass('Input', {
 	background: '#ffffff !important',
 	borderRadius: '8px',
 	outline: 'none',
-	boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.2)'
+	boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
+	fontFamily: 'TestFont'
 });
 
 cssList.inheritClass('lx-Input', 'Input', {
@@ -534,5 +536,12 @@ cssList.addClasses({
 });
 /* TableManager */
 /*============================================================================*/
+
+cssList.addStyle('@font-face', {
+	fontFamily: 'TestFont',
+	src: 'url("font/Muli-VariableFont_wght.ttf") format("truetype")',
+	fontStyle: 'normal',
+	fontWeight: 'normal'
+});
 
 return cssList.toString();

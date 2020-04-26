@@ -186,7 +186,7 @@ function __bindMatrix(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 
 	function newBox(w, obj) {
 		let rowClass = w.lxcwb_widget || lx.Box,
-			rowConfig = w.lxcwb_config ? w.lxcwb_config.lxCopy() : {}
+			rowConfig = w.lxcwb_config ? w.lxcwb_config.lxClone() : {}
 		rowConfig.key = 'r';
 		rowConfig.parent = w;
 		let r = new rowClass(rowConfig);

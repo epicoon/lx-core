@@ -21,6 +21,7 @@ class Slider extends lx.Box #lx:namespace lx {
 		// трек
 		var track = new lx.Rect({
 			parent: this,
+			geom: true,
 			key: 'track',
 			css: this.basicCss.track
 		});
@@ -28,6 +29,7 @@ class Slider extends lx.Box #lx:namespace lx {
 		// бегунок
 		var handle = new lx.Rect({
 			parent: this,
+			geom: true,
 			key: 'handle',
 			css: this.basicCss.handle
 		});

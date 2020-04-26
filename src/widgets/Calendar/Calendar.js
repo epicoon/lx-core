@@ -30,7 +30,8 @@ class Calendar extends lx.Input #lx:namespace lx {
 			this.on('mouseup', _handler_open);
 		}
 
-		postUnpack() {
+		postUnpack(config) {
+			super.postUnpack(config);
 			this.date = lx.Date(this.date);
 		}
 	}

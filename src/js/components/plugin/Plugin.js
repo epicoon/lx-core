@@ -1,6 +1,6 @@
 #lx:private;
 
-#lx:require plugin/AjaxGet;
+#lx:require AjaxGet;
 
 class Plugin #lx:namespace lx {
 	constructor(info, snippet) {
@@ -135,8 +135,16 @@ class Plugin #lx:namespace lx {
 		return c.at(0);
 	}
 
-	getImage(name='') {
-		return this.images + '/' + name;
+	getImage(name) {
+		if (name[0] != '@') {
+			if (!this.images['default']) return name;
+			return this.images['default'] + '/' + name;
+		}
+
+		var arr = name.match(/^@([^\/]+?)(\/.+)$/);
+		if (!arr || !this.images[arr[1]]) return '';
+
+		return this.images[arr[1]] + arr[2];
 	}
 
 	/**

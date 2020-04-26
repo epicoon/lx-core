@@ -8,7 +8,6 @@
 
 /* 
  * Special events:
- * - leafLoad(event, node)
  * - leafOpen(event, leaf, node)
  * - leafClose(event, leaf, node)
  * - beforeAdd(event, info)  // info == { parentNode, button, text, data: null, comment: '' } - в info можно записать данные узла по умолчанию, text - при варианте add==2, здесь окажется предварительно введенный текст
@@ -21,6 +20,19 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		FORBIDDEN_ADDING = 0,
 		ALLOWED_ADDING = 1,
 		ALLOWED_ADDING_BY_TEXT = 2;
+
+	getBasicCss() {
+		return {
+			main: 'lx-TreeBox',
+			button: 'lx-TW-Button',
+			buttonClosed: 'lx-TW-Button-closed',
+			buttonOpened: 'lx-TW-Button-opened',
+			buttonEmpty: 'lx-TW-Button-empty',
+			buttonAdd: 'lx-TW-Button-add',
+			buttonDel: 'lx-TW-Button-del',
+			label: 'lx-TW-Label'
+		};
+	}
 
 	/* config = {
 	 *	// стандартные для Box,
@@ -42,7 +54,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		//todo - сейчас только в пикселях, переделать несложно + надо значения вынести в константы класса
 		this.indent = config.indent || 10;
 		this.step   = config.step   || 5;
-		this.leafHeight = config.leafHeight || 18;
+		this.leafHeight = config.leafHeight || 25;
 		this.labelWidth = config.labelWidth || 250;
 		this.addMode = config.add || self::FORBIDDEN_ADDING;
 		this.rootAdding = config.rootAdding === undefined
@@ -66,19 +78,6 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			width: this.step + 'px',
 			style: {cursor: 'ew-resize'}
 		});
-	}
-
-	getBasicCss() {
-		return {
-			main: 'lx-TreeBox',
-			button: 'lx-TW-Button',
-			buttonClosed: 'lx-TW-Button-closed',
-			buttonOpened: 'lx-TW-Button-opened',
-			buttonEmpty: 'lx-TW-Button-empty',
-			buttonAdd: 'lx-TW-Button-add',
-			buttonDel: 'lx-TW-Button-del',
-			label: 'lx-TW-Label'
-		};
 	}
 
 	#lx:server beforePack() {
@@ -230,7 +229,8 @@ class TreeBox extends lx.Box #lx:namespace lx {
 					key: 'add',
 					parent: menu,
 					width: this.leafHeight+'px',
-					css: [this.basicCss.button, this.basicCss.buttonAdd],
+					height: '100%',
+					css: this.basicCss.buttonAdd,
 					click: self::addNode
 				});
 			}
@@ -426,7 +426,6 @@ class TreeBox extends lx.Box #lx:namespace lx {
 					parent: this,
 					key: 'open',
 					geom: [0, 0, tw.leafHeight+'px', tw.leafHeight+'px'],
-					css: tw.basicCss.button,
 					click: lx.TreeBox.toggleOpened
 				}).addClass(
 					(this.node.keys.length || (this.node.fill !== undefined && this.node.fill))
@@ -461,9 +460,6 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			if (config instanceof Function) config = {click: config};
 
 			config.key = 'button';
-			config.css = config.css
-				? [config.css, this.box.basicCss.button]
-				: this.box.basicCss.button;
 			config.type = lx.Rect;
 			return this.createChild(config);
 		}

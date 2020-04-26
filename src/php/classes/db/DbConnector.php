@@ -76,10 +76,13 @@ class DbConnector extends BaseObject implements FusionComponentInterface
 		$dbList = [];
 		if (isset($config['db'])) {
 			$dbList['db'] = $config['db'];
+			unset($config['db']);
 		}
 		if (isset($config['dbList'])) {
 			$dbList += $config['dbList'];
+            unset($config['dbList']);
 		}
+		$dbList += $config;
 
 		$this->config = $dbList;
 	}

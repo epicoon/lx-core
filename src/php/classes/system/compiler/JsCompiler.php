@@ -353,7 +353,7 @@ class JsCompiler extends BaseObject
 			$fullPath = $this->conductor->getFullPath($path, $parentDir);
 			$this->dependencies->addI18n($fullPath);
 
-//			$this->app->useI18n($fullPath);
+			$this->app->useI18n($fullPath);
 		}
 	}
 

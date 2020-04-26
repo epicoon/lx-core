@@ -5,9 +5,6 @@
 #lx:private;
 
 class Table extends lx.Box #lx:namespace lx {
-	#lx:const
-		DEFAULT_ROW_HEIGHT = '25px';
-
 	/**
 	 * config = {
 	 * 	rows: integer
@@ -44,7 +41,8 @@ class Table extends lx.Box #lx:namespace lx {
 		this.indents = this.indents.pack();
 	}
 
-	#lx:client postUnpack() {
+	#lx:client postUnpack(config) {
+		super.postUnpack(config);
 		this.indents = lx.IndentData.unpackOrNull(this.indents);
 	}
 

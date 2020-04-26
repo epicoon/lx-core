@@ -25,16 +25,12 @@ class Dropbox extends lx.Box #lx:namespace lx {
 	build(config) {
 		super.build(config);
 
-		var wrapper = this.add(lx.Box, {
-			css: this.basicCss.wrapper,
-		});
-
 		new lx.Input({
-			parent: wrapper,
+			parent: this,
 			key: 'input',
 			css: this.basicCss.input,
 		});
-		if (config.placeholder) this->>input.placeholder(placeholder);
+		if (config.placeholder) this->input.placeholder(placeholder);
 
 		new lx.Rect({
 			parent: this,
@@ -43,24 +39,40 @@ class Dropbox extends lx.Box #lx:namespace lx {
 		});
 
 		this.data = config.options || [];
+
+		//TODO - есть встроенная возможность. По функционалу примерно то же, что сделано руками. Но и не больше.
+		// if (this.data.len) {
+		// 	var list = new lx.Box({tag:'datalist', parent:this});
+		// 	list.setAttribute('id', 'wewe');
+		// 	lx.Box.construct(this.data.len, {tag:'option', parent:list}, {
+		// 		postBuild: (el, i)=>{
+		// 			el.html(this.data[i]);
+		// 		}
+		// 	});
+		// 	this->input.setAttribute('list', 'wewe');
+		// }
+
 		this.value(config.value !== undefined ? config.value : null);
 	}
 
 	#lx:client {
 		postBuild(config) {
-			this.data = this.data.isArray ? this.data : new lx.Dict(this.data);
+			super.postBuild(config);
+			if (!this.data.isArray && !this.data.is(lx.Dict))
+				this.data = new lx.Dict(this.data);
 			this.click(_handler_open);
 			this->button.click(_handler_toggle);
 		}
 
-		postUnpack() {
+		postUnpack(config) {
+			super.postUnpack(config);
 			if (this.data.isObject) this.data = new lx.Dict(this.data);
 		}
 
 		close() {
 			if (!__opened) return;
 			__options.hide();
-			lx.off('click', _lxHandler_checkOutclick);
+			lx.off('click', _handler_checkOutclick);
 			__opened = null;
 		}
 
@@ -125,7 +137,7 @@ class Dropbox extends lx.Box #lx:namespace lx {
 		__opened = this;
 		__initOptions(this).show();
 
-		lx.on('click', _lxHandler_checkOutclick);
+		lx.on('click', _handler_checkOutclick);
 	}
 
 	function _handler_toggle(event) {
@@ -148,7 +160,7 @@ class Dropbox extends lx.Box #lx:namespace lx {
 		dropbox.trigger('change', event, oldVal, dropbox.value());
 	}
 
-	function _lxHandler_checkOutclick(event) {
+	function _handler_checkOutclick(event) {
 		if (!__opened) return;
 
 		if (__opened.containPoint(event.clientX, event.clientY)

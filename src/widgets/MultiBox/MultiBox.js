@@ -2,109 +2,15 @@
 
 #lx:use lx.Box;
 
+#lx:private;
+
 class MultiBox extends lx.Box #lx:namespace lx {
-	/**
-	 * config = {
-	 *	// стандартные для Box,
-	 *	
-	 *	marks: [],
-	 *	markHeight: px|%|int,
-	 *	animation: bool
-	 * }
-	 * */
-	build(config) {
-		super.build(config);
-
-		this.activeSheetNum = null;
-
-		var marks = config.marks || [],
-			markH = config.markHeight || '25px',
-			amt = marks.length;
-		if (!amt) return;
-		var markW = 100 / amt;
-
-		lx.Box.construct(amt, {
-			parent: this,
-			key: 'mark',
-			geom: [0, 0, markW, markH],
-			css: this.basicCss.mark,
-		}, {
-			postBuild: function(a, i) { a.left(markW * i + '%').text(marks[i]); }
-		});
-
-		lx.Box.construct(amt, {parent: this, key: 'sheet', top: markH}).call('hide');
-
-		this.select(0);
-		if (config.animation) this.animation = config.animation;
-	}
-
-	#lx:server beforePack() {
-		if (this.animation && this.animation.isFunction)
-			this.animation = this.packFunction(this.animation);
-
-		var marks = this.marks();
-		if (marks) marks.each((a)=> {
-			if (a.condition) a.condition = a.packFunction(a.condition);
-		});
-	}
-
-	#lx:client {
-		postBuild(config) {
-			super.postBuild(config);
-
-			if (this.animation) {
-				if (this.animation.isString) this.animation = this.unpackFunction(this.animation);
-				this.setTimer( (this.animation instanceof Function) ? this.animation : null );
-				delete this.animation;
-			}
-
-			var marks = this.marks();
-			if (marks) marks.each((a)=> {
-				if (a.condition) a.condition = a.unpackFunction(a.condition);
-				a.click(self::clickMark);
-				a.on('mousedown', lx.Event.preventDefault);
-				a.align(lx.CENTER, lx.MIDDLE);
-			});
-		}
-
-		static clickMark(event) {
-			if (this.condition && !this.condition()) return;
-
-			event = event || window.event;
-			lx.Event.preventDefault(event);
-			var p = this.parent;
-			if (p.activeSheetNum == this.index) return;
-
-			var oldIndex = p.activeSheetNum;
-			p.select(this.index);
-			p.trigger('selectionChange', event, this.index, oldIndex);
-		}
-
-		setTimer(action) {
-			var timer = new lx.Timer(300);
-			timer.owner = this;
-
-			timer.on = function(oldNum, newNum) {
-				if (this.inAction) return;
-				this.oldNum = oldNum;
-				this.newNum = newNum;
-				this.owner.sheet(newNum).show();
-				this.start();
-			};
-
-			timer.whileCycle(action || function() {
-				var k = this.shift();
-				this.owner.sheet(this.newNum).opacity(k);
-				this.owner.sheet(this.oldNum).opacity(1 - k);
-				if (this.periodEnds()) {
-					this.stop();
-					this.owner.setActiveSheet(this.newNum);
-				}
-			});
-
-			this.timer = timer;
-		}
-	}
+	#lx:const
+		MODE_UNI_SHEET = 1,
+		MODE_MULTI_SHEET = 2,
+		MARK_HEIGHT = 40,
+		MARK_WIDTH = 200,
+		INDENT = 10;
 
 	getBasicCss() {
 		return {
@@ -114,58 +20,291 @@ class MultiBox extends lx.Box #lx:namespace lx {
 		};
 	}
 
-	select(num) {
-		if (num == this.activeSheetNum) return;
+	/**
+	 * config = {
+	 *	// стандартные для Box,
+	 *	
+	 *  mode: self::MODE_UNI_SHEET | self::MODE_MULTI_SHEET
+	 *  markWidth: integer
+	 *  markHeight: integer
+	 *  indent: integer
+	 *	marks: lx.Collection | array,
+	 *	template: object,
+	 *	sheets: lx.Collection | array | lx.Box | 'auto'
+	 *  animation: bool | integer
+	 * }
+	 * */
+	build(config) {
+		this.mode = config.mode || self::MODE_UNI_SHEET;
 
-		if (this.timer)
-			this.timer.on(this.activeSheetNum, num);
-		else
-			this.setActiveSheet(num);
+		var marks = config.marks;
+		if (!marks) return;
+
+		var template = __defineTemplate(config);
+		var configArr = __defineMarksConfig(this, config, template);
+
+		var marksBox = new lx.Box(configArr.marksBoxCofig);
+		var step = config.indent || self::INDENT;
+		marksBox.gridProportional({
+			cols: template.cols,
+			rows: template.rows,
+			indent: step + 'px'
+		});
+		this.marks = lx.Box.construct(marks.len, {parent:marksBox, key:'mark'}, {postBuild:(a, i)=>a.text(marks[i])});
+		this.marks.each((mark)=>{
+			mark.addClass(this.basicCss.mark);
+			mark.checked = false;
+		});
+
+		if (config.sheets) {
+			if (config.sheets instanceof lx.Rect)
+				this.sheets = lx.Box.construct(marks.len, {parent: config.sheets, key: 'sheet', geom: true});
+			else if (config.sheets instanceof lx.Collection)
+				this.sheets = config.sheets;
+		}
+
+		if (!this.sheets) {
+			var sheetsBox = new lx.Box({parent: this, key: 'sheets', geom: configArr.sheetsGeom});
+			this.sheets = lx.Box.construct(marks.len, {parent: sheetsBox, key: 'sheet', geom: true});
+		}
+
+		this.sheets.call('hide');
+
+		if (this.mode == self::MODE_UNI_SHEET) this.select(0);
+		if (config.animation) this.animation = config.animation;
+	}
+
+	#lx:client postBuild(config) {
+		super.postBuild(config);
+
+		if (this.animation) {
+			var duration = this.animation.isNumber ? this.animation : 300;
+			this.setAnimationOnOpen(duration, _handler_defaultAnimationOnOpen);
+			this.setAnimationOnClose(duration, _handler_defaultAnimationOnClose);
+			delete this.animation;
+		}
+
+		if (this.marks) this.marks.each((mark)=>{
+			mark.align(lx.CENTER, lx.MIDDLE);
+			mark.on('mousedown', lx.Event.preventDefault);
+			mark.click(_handler_clickMark);
+		});
+	}
+
+	#lx:server beforePack() {
+		var marks = [];
+		if (this.marks) this.marks.each(mark=>{
+			let data = {i: mark.renderIndex};			
+			if (mark.condition) data.condition = mark.packFunction(mark.condition);
+			marks.push(data);
+		});
+
+		var sheets = [];
+		if (this.sheets) this.sheets.each(sheet=>sheets.push(sheet.renderIndex));
+
+		this.marks = marks;
+		this.sheets = sheets;
+	}
+
+	#lx:client restoreLinks(loader) {
+		this.marks = loader.getCollection(this.marks, {
+			index: 'i',
+			fields: {
+				condition: {
+					type: 'function',
+					name: 'condition'
+				}
+			}
+		});
+		this.sheets = loader.getCollection(this.sheets);
 	}
 
 	mark(num) {
-		if (!this->mark || num >= this->mark.len) return null;
-		return this->mark[num];
-	}
-
-	marks() {
-		if (!this->mark) return null;
-		return new lx.Collection(this->mark);
+		return this.marks.at(num);
 	}
 
 	sheet(num) {
-		if (!this->sheet || num >= this->sheet.len) return null;
-		return this->sheet[num];
+		return this.sheets.at(num);
 	}
 
-	sheets() {
-		if (!this->sheet) return null;
-		return new lx.Collection(this->sheet);
+	select(num) {
+		var mark = this.mark(num);
+		mark.checked = true;
+		mark.addClass(this.basicCss.active);
+
+		var sheet = this.sheet(num);
+		if (this.animationOnOpen) {
+			var timer = __initTimerOnOpen(this);
+			timer.on(sheet);
+		} else sheet.show();
 	}
 
-	activeMark() {
-		if (this.activeSheetNum === null) return null;
-		return this.mark(this.activeSheetNum);
-	}
+	unselect(num) {
+		var mark = this.mark(num);
+		mark.checked = false;
+		mark.removeClass(this.basicCss.active);
 
-	activeSheet() {
-		if (this.activeSheetNum === null) return null;
-		return this.sheet(this.activeSheetNum);
-	}
-
-	setActiveSheet(num) {
-		var oldIndex = this.activeSheetNum;
-		if (this.activeSheetNum !== null) {
-			this.activeMark().removeClass(this.basicCss.active);
-			this.activeSheet().hide();
-		}
-		this.activeSheetNum = num;
-		this.activeMark().addClass(this.basicCss.active);
-		this.activeSheet().show();
-		#lx:client{ this.trigger('selectionChange', null, num, oldIndex); }
+		var sheet = this.sheet(num);
+		if (this.animationOnClose) {
+			var timer = __initTimerOnClose(this);
+			timer.on(sheet);
+		} else sheet.hide();
 	}
 
 	setCondition(num, func) {
 		this.mark(num).condition = func;
+	}
+
+	#lx:client {
+		setAnimationOnOpen(duration, callback) {
+			callback = callback || _handler_defaultAnimationOnOpen;
+			this.animationOnOpen = {duration, callback};
+		}
+
+		setAnimationOnClose(duration, callback) {
+			callback = callback || _handler_defaultAnimationOnClose;
+			this.animationOnClose = {duration, callback};
+		}
+	}
+}
+
+
+/***********************************************************************************************************************
+ * PRIVATE
+ **********************************************************************************************************************/
+
+function __defineTemplate(config) {
+	var template = config.template || {};
+	if (!template.position) template.position = lx.TOP;
+	if (!template.cols && !template.rows) template.rows = 1;
+	if (template.rows && !template.cols) {
+		template.cols = Math.floor((config.marks.len - 1) / template.rows) + 1;
+	} else if (!template.rows && template.cols) {
+		template.rows = Math.floor((config.marks.len - 1) / template.cols) + 1;
+	}
+	return template;
+}
+
+function __defineMarksConfig(self, config, template) {	
+	var marksBoxCofig = {parent:self};
+	var sheetsGeom = [];
+	var markWidth = config.markWidth || lx.MultiBox.MARK_WIDTH;
+	var markHeight = config.markHeight || lx.MultiBox.MARK_HEIGHT;
+	var step = config.indent || lx.MultiBox.INDENT;
+	if (config.sheets) {
+		marksBoxCofig.geom = true;
+		return {marksBoxCofig, sheetsGeom};
+	}
+
+	var sheetsStep = step + 'px';
+	switch (template.position) {
+		case lx.TOP:
+			marksBoxCofig.height = markHeight * template.rows + (step*2) + 'px';
+			sheetsGeom = [sheetsStep, marksBoxCofig.height, null, null, sheetsStep, sheetsStep];
+			break;
+		case lx.BOTTOM:
+			marksBoxCofig.height = (markHeight + step) * template.rows + step + 'px';
+			marksBoxCofig.bottom = 0;
+			sheetsGeom = [sheetsStep, sheetsStep, null, null, sheetsStep, marksBoxCofig.height];
+			break;
+		case lx.LEFT:
+			marksBoxCofig.width = (markWidth + step) * template.cols + step + 'px';
+			sheetsGeom = [marksBoxCofig.width, sheetsStep, null, null, sheetsStep, sheetsStep];
+			break;
+		case lx.RIGHT:
+			marksBoxCofig.width = (markWidth + step) * template.cols + step + 'px';
+			marksBoxCofig.height = 'auto';
+			marksBoxCofig.right = 0;
+			sheetsGeom = [sheetsStep, sheetsStep, null, null, marksBoxCofig.width, sheetsStep];
+			break;
+	}
+	return {marksBoxCofig, sheetsGeom};
+}
+
+#lx:client {
+	function _handler_clickMark(event) {
+		if (this.condition && !this.condition()) return;
+
+		event = event || window.event;
+		lx.Event.preventDefault(event);
+
+		var p = this.parent.parent;
+		if (p.mode == lx.MultiBox.MODE_UNI_SHEET) {
+			if (this.checked) return;
+
+			var oldActive = null;
+			p.marks.each(function(mark, i) {
+				if (mark.checked) {
+					oldActive = i;
+					this.stop();
+				}
+			});
+
+			if (oldActive !== null) p.unselect(oldActive);
+			p.select(this.index);
+			p.trigger('sheetOpened', event, this.index);
+			p.trigger('sheetClosed', event, oldActive);
+			p.trigger('selectionChange', event, this.index, oldActive);
+			return;
+		}
+
+		if (this.checked) {
+			p.unselect(this.index);
+			p.trigger('sheetClosed', event, this.index);
+		} else {
+			p.select(this.index);
+			p.trigger('sheetOpened', event, this.index);
+		}
+	}
+
+	function _handler_defaultAnimationOnOpen(timeShift, sheet) {
+		sheet.opacity(timeShift);
+	}
+
+	function _handler_defaultAnimationOnClose(timeShift, sheet) {
+		sheet.opacity(1 - timeShift);
+	}
+
+	function __initTimerOnOpen(self) {
+		if (self.timerOnOpen) return;
+		var timer = new lx.Timer();
+		timer.on = function(sheet) {
+			if (this.inAction) return;
+			this.sheet = sheet;
+			this.sheet.show();
+			this.start();
+		};
+		timer.whileCycle(function() {
+			var k = this.shift();
+			this.callback(k, this.sheet);
+			if (this.periodEnds()) {
+				this.stop();
+				this.sheet = null;
+			}
+		});
+		timer.periodDuration = self.animationOnOpen.duration;
+		timer.callback = self.animationOnOpen.callback;
+		return timer;
+	}
+
+	function __initTimerOnClose(self) {
+		var timer = new lx.Timer();
+		timer.on = function(sheet) {
+			if (this.inAction) return;
+			this.sheet = sheet;
+			this.start();
+		};
+		timer.whileCycle(function() {
+			var k = this.shift();
+			this.callback(k, this.sheet);
+			if (this.periodEnds()) {
+				this.stop();
+				this.sheet.hide();
+				this.sheet = null;
+			}
+		});
+		timer.periodDuration = self.animationOnClose.duration;
+		timer.callback = self.animationOnClose.callback;
+		return timer;
 	}
 }

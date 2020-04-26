@@ -3,6 +3,10 @@ class BoxChildren {
         this.data = [];
     }
 
+    isEmpty() {
+        return !this.data.length;
+    }
+
     count() {
         return this.data.length;
     }

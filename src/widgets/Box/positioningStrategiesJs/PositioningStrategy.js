@@ -61,20 +61,24 @@ class PositioningStrategy #lx:namespace lx {
 	 * */
 	allocate(elem, config) {
 		var geom = this.geomFromConfig(config);
+
 		if (geom.lxEmpty) {
 			elem.trigger('resize');
 			return;
 		}
 
-		if (geom.l !== undefined || geom.t !== undefined || geom.r !== undefined || geom.b !== undefined)
+		var abs = false;
+		if (geom.l !== undefined || geom.t !== undefined || geom.r !== undefined || geom.b !== undefined) {			
 			elem.addClass('lx-abspos');
+			abs = true;
+		}
 
-		if (geom.w === undefined) {
+		if (geom.w === undefined && abs) {
 			geom.l = geom.l || 0;
 			geom.r = geom.r || 0;
 		}
 
-		if (geom.h === undefined) {
+		if (geom.h === undefined && abs) {
 			geom.t = geom.t || 0;
 			geom.b = geom.b || 0;
 		}

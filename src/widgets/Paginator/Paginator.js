@@ -12,13 +12,26 @@ class Paginator extends lx.Box #lx:namespace lx {
 		DEFAULT_SLOTS_COUNT = 7,
 		DEFAULT_ELEMENTS_PER_PAGE = 10;
 
+    getBasicCss() {
+        return {
+            main: 'lx-Paginator',
+            toStart: 'lx-Paginator-to-start',
+            toFinish: 'lx-Paginator-to-finish',
+            toLeft: 'lx-Paginator-to-left',
+            toRight: 'lx-Paginator-to-right',
+            middle: 'lx-Paginator-middle',
+            page: 'lx-Paginator-page',
+            active: 'lx-Paginator-active'
+        };
+    }
+
     /* config = {
      *	// стандартные для Box,
      *
      * slotsCount
      * elementsPerPage
      * elementsCount
-     * activePage  // Активная страница считается из последовательности страниц, начиная с 1 (не с 0!)
+     * activePage
      * }
      * */
 	build(config) {
@@ -39,19 +52,6 @@ class Paginator extends lx.Box #lx:namespace lx {
         this.selectPage(lx.getFirstDefined(config.activePage, 0));
 	}
 
-    getBasicCss() {
-        return {
-            main: 'lx-Paginator',
-            toStart: 'lx-Paginator-to-start',
-            toFinish: 'lx-Paginator-to-finish',
-            toLeft: 'lx-Paginator-to-left',
-            toRight: 'lx-Paginator-to-right',
-            middle: 'lx-Paginator-middle',
-            page: 'lx-Paginator-page',
-            active: 'lx-Paginator-active'
-        };
-    }
-
 	#lx:client {
 	    postBuild(config) {
             this->toStart.click(self::toFirstPage);
@@ -59,13 +59,11 @@ class Paginator extends lx.Box #lx:namespace lx {
             this->toRight.click(self::toNextPage);
             this->toFinish.click(self::toLastPage);
 
-            #lx:client {
-                var middle = this->middle;
-                if (middle.childrenCount() > 1) {
-                    middle.getChildren().each((a, i)=>{
-                        if (a->text.value() !== '...') a.click(self::onSlotClick);
-                    });
-                }
+            var middle = this->middle;
+            if (middle.childrenCount() > 1) {
+                middle.getChildren().each((a, i)=>{
+                    if (a->text.value() !== '...') a.click(self::onSlotClick);
+                });
             }
         }
 

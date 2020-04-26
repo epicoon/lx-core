@@ -119,6 +119,7 @@ class RequestHandler extends BaseObject
 
 		$this->beforeFailedSending();
 
+		http_response_code($this->code);
 		if ($this->app->dialog->isPageLoad()) {
 			$this->renderStandartResponse($this->code);
 			$this->app->dialog->send();

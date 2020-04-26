@@ -11,7 +11,7 @@ namespace lx;
  * @property-read string $prototype
  * @property-read PluginDirectory $directory
  * @property-read PluginConductor $conductor
- * @property-read I18nServiceMap $i18nMap
+ * @property-read I18nPluginMap $i18nMap
  */
 class Plugin extends Source implements FusionInterface
 {

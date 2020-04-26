@@ -6,6 +6,10 @@
 #lx:private;
 
 class BoxSlider extends lx.Box #lx:namespace lx {
+	#lx:const
+		TYPE_SLIDER = 1,
+		TYPE_OPACITY = 2;
+
 	build(config) {
 		super.build(config);
 
@@ -13,8 +17,8 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 		#lx:server{
 			var timer = {};
 			if (config.type) timer.type = config.type;
-			if (config.showTime) timer.showTime = config.showTime;
-			if (config.slideTime) timer.slideTime = config.slideTime;
+			if (config.showDuration) timer.showDuration = config.showDuration;
+			if (config.slideDuration) timer.slideDuration = config.slideDuration;
 			if (config.auto !== null) timer.auto = config.auto;
 			if (!timer.lxEmpty) this.timer = timer;
 		}
@@ -31,12 +35,14 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 	}
 
 	#lx:client {
-		postBuild() {
+		postBuild(config) {
+			super.postBuild(config);
 			if (this->pre) this->pre.click(()=> this.timer.swapSlides(-1));
 			if (this->post) this->post.click(()=> this.timer.swapSlides(1));
 		}
 
-		postUnpack() {
+		postUnpack(config) {
+			super.postUnpack(config);
 			this.timer = new BoxSliderTimer(this, this.timer || {});
 			this.timer.slides = new lx.Collection(this->s);
 			if (this.timer.auto) this.timer.start();
@@ -83,7 +89,7 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 		#lx:client{ this.timer.stop(); }
 
 		this.clear();
-		var slides = lx.Box.construct(count, { key:'s', parent:this, size:[100,100] }).call('hide');
+		var slides = lx.Box.construct(count, { key:'s', parent:this, geom:[0,0,100,100] }).call('hide');
 		if (count) slides.at(0).show();
 
 		#lx:client {
@@ -117,16 +123,16 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 #lx:client {
 	class BoxSliderTimer extends lx.Timer {
 		constructor(owner, config) {
-			super(config.showTime || 3000);
+			super(config.showDuration || 3000);
 
 			this.owner = owner;
 			this.timer0 = this.periodDuration;
-			this.timer1 = config.slideTime || 1000;
+			this.timer1 = config.slideDuration || 1000;
 			this.slides = new lx.Collection();
 			this.activeSlide = 0;
 			this.unactiveSlide = -1;
 			this.direction = 1;
-			this.type = (config.type) || 'opacity';
+			this.type = (config.type) || lx.BoxSlider.TYPE_OPACITY;
 			this.auto = (config.auto!==undefined) ? config.auto : true;
 			// В каком режиме таймер: true - отображение, false - перелистывание
 			this.show = true;
@@ -174,10 +180,10 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 			}
 
 			this.next();
-			if (this.type == 'slide') {
+			if (this.type == lx.BoxSlider.TYPE_SLIDER) {
 				this.unactive().left('0%');
 				this.active().left(dir * 100 + '%');
-			} else if (this.type == 'opacity') {
+			} else if (this.type == lx.BoxSlider.TYPE_OPACITY) {
 				this.unactive().opacity(1);
 				this.active().opacity(0);
 			}
@@ -188,18 +194,18 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 		drop() {
 			this.stop();
 			if (this.unactive()) this.unactive().hide();
-			if (this.type == 'slide') this.active().left('0%');
+			if (this.type == lx.BoxSlider.TYPE_SLIDER) this.active().left('0%');
 			else this.active().opacity(1);
 		}
 
 		onFrame() {
 			if (!this.show) {
 				var k = this.shift();
-				if (this.type == 'slide') {
+				if (this.type == lx.BoxSlider.TYPE_SLIDER) {
 					k *= 100;
 					this.unactive().left( -k * this.direction + '%' );
 					this.active().left( this.direction * (100 - k) + '%' );
-				} else if (this.type == 'opacity') {
+				} else if (this.type == lx.BoxSlider.TYPE_OPACITY) {
 					this.unactive().opacity(1 - k);
 					this.active().opacity(k);
 				}

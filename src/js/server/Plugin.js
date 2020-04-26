@@ -15,7 +15,7 @@ class Plugin #lx:namespace lx {
             onloadList: []
         };
 
-        this._oldParams = data.params ? data.params.lxCopy() : {};
+        this._oldParams = data.params ? data.params.lxClone() : {};
         this.params = data.params || {};
     }
 

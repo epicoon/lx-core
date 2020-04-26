@@ -96,6 +96,7 @@ class SnippetLoader {
 			var namespaceObj = lx.getNamespace(namespace);
 			if (!(namespaceObj)) {
 				console.error('Widget not found:', namespace + '.' + info.type);
+				this.elems.push(null);
 				continue;
 			}
 
@@ -106,6 +107,7 @@ class SnippetLoader {
 
 			if (type === null) {
 				console.error('Widget not found:', namespace + '.' + info.type);
+				this.elems.push(null);
 				continue;
 			}
 
@@ -134,7 +136,10 @@ class SnippetLoader {
 		// Некоторые свойства требуют распаковки, н-р стратегии позиционирования, функции на обработчиках событий и т.п.
 		for (var i=0, l=this.elems.length; i<l; i++) {
 			var el = this.elems[i];
+			if (!el) continue;
+
 			el.unpackProperties();
+			el.restoreLinks(this);
 
 			// Сборка вложенных блоков
 			if (el.ib) {
@@ -195,5 +200,42 @@ class SnippetLoader {
 				func.apply(el, args);
 			}
 		}
+	}
+
+	/**
+	 * Для использования в [[lx.Rect::restoreLinks(loader)]]
+	 */
+	getCollection(src, rules=null) {
+		var result = new lx.Collection();
+		if (!rules) {
+			for (var i=0, l=src.len; i<l; i++) {
+				let item = src[i];
+				result.add(this.elems[item]);
+			}
+			return result;
+		}
+
+		var indexName = rules.index || 'index';
+		var fields = rules.fields || {};
+		for (var i=0, l=src.len; i<l; i++) {
+			let item = src[i];
+			let elem = this.elems[item[indexName]];
+			if (fields.isArray) {
+				for (var j=0, ll=fields.len; j<ll; j++) {
+					var name = fields[j];
+					if (item[name]) elem[name] = item[name];
+				}
+			} else {
+				for (let fieldName in fields) {
+					if (!item[fieldName]) continue;
+					var fieldData = fields[fieldName];
+					elem[fieldData.name] = fieldData.type == 'function'
+						? elem.unpackFunction(item[fieldName])
+						: item[fieldName];
+				}
+			}
+			result.add(elem);
+		}
+		return result;
 	}
 }
