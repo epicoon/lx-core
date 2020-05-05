@@ -1,5 +1,7 @@
 /* TextBox */
 /* Button */
+/* ActiveBox */
+/* MultiBox */
 /* Input */
 /* Textarea */
 /* Dropbox */
@@ -11,13 +13,23 @@
 /* BoxSlider */
 /* Calendar */
 /* TreeBox */
-/* MultiBox */
 /* Paginator */
-
 /* TableManager */
+
+
+
+
+
+
 
 /*
 TODO - нужны функции преобразования цветов по аналогии с LESS
+
+var aldenTurquoise = '#1C8382';
+var aldenRed = '#DC2E2F';
+var buttonBorderColor = '#0f4443';
+var intactGradient = 'linear-gradient(to bottom, #25adac, #135958)';
+var activeGradient = 'linear-gradient(to bottom, #e35a5a, #b81f20)';
 
 var buttonBorderColor = darken(aldenTurquoise, '15%');
 var intactGradient = 'linear-gradient(' + [
@@ -37,28 +49,55 @@ https://habr.com/ru/post/181580/
 https://habr.com/ru/post/202966/
 */
 
-var hoverColor = '#FFFF99';
 
-var aldenTurquoise = '#1C8382';
-var aldenRed = '#DC2E2F';
 
-var buttonColor = 'white';
-var buttonTextShadow = 'black';
-var buttonBorderColor = '#0f4443';
 
-var intactGradient = 'linear-gradient(to bottom, #25adac, #135958)';
-var hoverGradient = 'linear-gradient(to bottom, #ff8, #dd8)';
-var activeGradient = 'linear-gradient(to bottom, #e35a5a, #b81f20)';
+#lx:require colorSchema/white;
+// #lx:require colorSchema/dark;
+
+
+
+
+var borderRadius = '5px';
+
+var iconFlex = {
+	display: 'flex',
+	flexDirection: 'row',
+	alignItems: 'center',
+	justifyContent: 'center',
+	color: widgetIconColor
+};
+
+var iconStyle = {
+	fontSize: 'calc(30px + 1.0vh)',
+	fontWeight: '500',
+	paddingBottom: '6px',
+	color: 'inherit',
+	fontFamily: 'MainFont',
+};
+
+function icon(code, config = null) {
+	var style = iconStyle.lxClone();
+	if (config) {
+		if (config.isNumber) style.fontSize = config;
+		else if (config.isObject) style = style.lxMerge(config, true);
+		if (style.fontSize.isNumber)
+			style.fontSize = 'calc('+style.fontSize+'px + 1.0vh)';
+	}
+	return style.lxMerge({content: "'" + code + "'"});
+}
+
+
+
+
+
+
+
+
+
 
 var cssList = new lx.CssContext();
 
-
-cssList.addStyle('body', {
-	display: 'block',
-	margin: '0px',
-	padding: '0px',
-	overflow: 'auto'//!!!hidden
-});
 
 cssList.addClass('lxbody', {
 	position: 'absolute',
@@ -66,7 +105,8 @@ cssList.addClass('lxbody', {
 	top: '0%',
 	width: '100%',
 	height: '100%',
-	overflow: 'auto'//!!!hidden
+	overflow: 'auto',
+	backgroundColor: mainBackgroundColor
 });
 
 cssList.addClass('lx-abspos', {
@@ -87,10 +127,17 @@ cssList.addClass('lxps-grid-h', {
 });
 
 
-cssList.addStyle(['div', 'input'], {
+cssList.addStyle('input', {
 	overflow: 'hidden',
 	visibility: 'inherit',
 	boxSizing: 'border-box'
+});
+
+cssList.addStyle('div', {
+	overflow: 'visible',
+	visibility: 'inherit',
+	boxSizing: 'border-box',
+	color: textColor
 });
 
 
@@ -100,11 +147,14 @@ cssList.addClass('lx-TextBox', {
 	padding: '0px 5px',
 	width: 'auto',
 	height: 'auto',
-	//color: '#333333',
-	//whiteSpace: 'pre',
+	fontFamily: 'MainFont',
+	fontSize: 'calc(10px + 1.0vh)',
+
+	color: 'inherit',
 	cursor: 'inherit',
-	// fontFamily: 'helvetica, arial, sans-serif'
-	fontFamily: 'TestFont'
+	overflow: 'inherit',
+	whiteSpace: 'inherit',
+	textOverflow: 'inherit',
 });
 /* TextBox */
 /*============================================================================*/
@@ -112,49 +162,139 @@ cssList.addClass('lx-TextBox', {
 
 /*============================================================================*/
 /* Button */
-cssList.addClass('lx-Button', {
-	fontWeight: 'bold',
-	color: buttonColor,
-	background: 'white',
-	backgroundImage: intactGradient,
-	boxShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
-	textShadow: '0 1px 1px ' + buttonTextShadow,
-	borderRadius: '8px',
-	border: '1px solid ' + buttonBorderColor
+var butShadowSize = Math.floor(shadowSize * 0.33) + 3;
+var butShadowShift = Math.floor(butShadowSize * 0.5);
+
+cssList.addAbstractClass('Button', {
+	overflow: 'hidden',
+	whiteSpace: 'nowrap',
+	textOverflow: 'ellipsis',
+	borderRadius: borderRadius,
+	boxShadow: '0 '+butShadowShift+'px '+butShadowSize+'px rgba(0,0,0,0.5)',
+	cursor: 'pointer',
+	backgroundColor: widgetBackgroundColor,
+});
+
+cssList.inheritAbstractClass('ActiveButton', 'Button', {
+	marginTop: '0px',
 }, {
-	'not([disabled])': {
-		cursor: 'pointer'
-	},
 	'hover:not([disabled])': {
-		backgroundColor: '#D8D8D8',
-		boxShadow: '0px 0px 10px #888888'
+		marginTop: '-2px',
+		boxShadow: '0 '+(Math.round(butShadowShift*1.5))+'px '+(Math.round(butShadowSize*1.5))+'px rgba(0,0,0,0.5)',
+		// boxShadow: '0 3px 8px rgba(0,0,0,0.5)',
+		transition: 'margin-top 0.1s linear, box-shadow 0.1s linear',
 	},
 	'active:not([disabled])': {
-	    backgroundImage: activeGradient
+		marginTop: '0px',
+		boxShadow: '0 '+butShadowShift+'px '+butShadowSize+'px rgba(0,0,0,0.5)',
+		transition: 'margin-top 0.05s linear, box-shadow 0.05s linear'
 	},
 	disabled: {
-		opacity: '0.5'
+		opacity: '0.5',
+		cursor: 'default'
 	}
 });
+
+cssList.inheritClass('lx-Button', 'ActiveButton');
 /* Button */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* ActiveBox */
+var abShadowSize = shadowSize + 2;
+var abShadowShift = Math.floor(abShadowSize * 0.5);
+
+cssList.addClass('lx-ActiveBox', {
+	overflow: 'hidden',
+	borderRadius: borderRadius,
+	boxShadow: '0 '+abShadowShift+'px '+abShadowSize+'px rgba(0,0,0,0.5)',
+	minWidth: '50px',
+	minHeight: '75px',
+	backgroundColor: bodyBackgroundColor
+});
+
+cssList.addClass('lx-ActiveBox-header', {
+	overflow: 'hidden',
+	whiteSpace: 'nowrap',
+	textOverflow: 'ellipsis',
+	cursor: 'move',
+	borderRadius: borderRadius,
+	boxShadow: '0 0px 3px rgba(0,0,0,0.5) inset',
+	background: widgetGradient
+});
+
+cssList.addClass('lx-ActiveBox-close', {
+	cursor: 'pointer'
+}.lxMerge(iconFlex), {
+	after: icon('\\2715', {fontSize:10, paddingBottom:'3px'})
+});
+
+
+cssList.addStyle('.lx-ActiveBox-header .lx-TextBox', {
+	fontWeight: 'bold',
+	color: headerTextColor
+});
+
+cssList.addClass('lx-ActiveBox-body', {
+	overflow: 'auto',
+	backgroundColor: altBodyBackgroundColor
+});
+
+cssList.addClass('lx-ActiveBox-resizer', {
+	cursor: 'se-resize',
+	borderRadius: borderRadius,
+	backgroundColor: bodyBackgroundColor
+}.lxMerge(iconFlex), {
+	after: icon('\\21F2', {fontSize:10, paddingBottom:'0px'})
+});
+
+cssList.addClass('lx-ActiveBox-move', {
+	marginTop: '-2px',
+	boxShadow: '0 '+(Math.round(abShadowShift*1.5))+'px '+(Math.round(abShadowSize*1.5))+'px rgba(0,0,0,0.5)',
+});
+/* ActiveBox */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* MultiBox */
+cssList.addClass('lx-MultiBox', {
+	borderRadius: borderRadius,
+	boxShadow: '0 0px '+shadowSize+'px rgba(0,0,0,0.5)',
+	backgroundColor: bodyBackgroundColor
+});
+
+cssList.inheritClass('lx-MultiBox-mark', 'ActiveButton', {
+	backgroundColor: coldSoftColor,
+	color: coldDeepColor
+});
+
+cssList.addClass('lx-MultiBox-active', {
+	backgroundColor: coldDeepColor,
+	color: coldSoftColor
+});
+/* MultiBox */
 /*============================================================================*/
 
 
 /*============================================================================*/
 /* Input */
 cssList.addAbstractClass('Input', {
-	border: '1px solid #ccc',
+	border: '1px solid ' + widgetBorderColor,
 	padding: '4px 5px',
-	background: '#ffffff !important',
-	borderRadius: '8px',
+	background: textBackgroundColor,
+	borderRadius: borderRadius,
 	outline: 'none',
-	boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
-	fontFamily: 'TestFont'
+	boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
+	fontFamily: 'MainFont',
+	fontSize: 'calc(10px + 1.0vh)',
+	color: textColor
 });
 
 cssList.inheritClass('lx-Input', 'Input', {
 }, {
-	focus: 'border: 1px solid #888',
+	focus: 'border: 1px solid ' + checkedMainColor,
 	disabled: 'opacity: 0.5'
 });
 /* Input */
@@ -173,124 +313,49 @@ cssList.inheritClass('lx-Textarea', 'Input', {
 /*============================================================================*/
 /* Dropbox */
 cssList.addClass('lx-Dropbox', {
-	borderRadius: '8px',
+	borderRadius: borderRadius,
 	cursor: 'pointer',
+	overflow: 'hidden'
 }, {
 	disabled: 'opacity: 0.5'
 });
 
-cssList.addClass('lx-Dropbox-input-wrapper', {
-	display: 'inline-block',
-	width: 'calc(100% - 30px)',
-	height: '100%',
-});
 cssList.addClass('lx-Dropbox-input', {
-	width: '100%',
+	position: 'absolute',
+	width: 'calc(100% - 30px)',
 	height: '100%',
 	borderTopRightRadius: 0,
 	borderBottomRightRadius: 0
 });
 
 cssList.addClass('lx-Dropbox-but', {
-	display: 'inline-block',
+	position: 'absolute',
+	right: 0,
 	width: '30px',
 	height: '100%',
-	borderTop: '1px solid #ccc',
-	borderBottom: '1px solid #ccc',
-	borderRight: '1px solid #ccc',
-	backgroundImage: 'url(img/dropbut.png)',
-	backgroundRepeat: 'no-repeat',
-	backgroundSize: '100% 100%'
-}, {
-	hover: 'opacity: 0.7'
+	borderTop: '1px solid ' + widgetBorderColor,
+	borderBottom: '1px solid ' + widgetBorderColor,
+	borderRight: '1px solid ' + widgetBorderColor,
+	background: widgetGradient,
+	cursor: 'pointer'
+}.lxMerge(iconFlex), {
+	hover: 'opacity: 0.7',
+	after: icon('\\25BC', 15)
 });
 
 cssList.addClass('lx-Dropbox-cell', {
 }, {
-	hover: 'background-color:' + hoverColor
+	hover: 'background-color:' + checkedSoftColor
 });
 /* Dropbox */
 /*============================================================================*/
 
 
 /*============================================================================*/
-/* Table */
-var tableBorderColor = '#D8D8D8';
-
-cssList.addClass('lx-Table', {
-	border: '1px solid ' + tableBorderColor,
-	borderRadius: '8px'
-});
-
-cssList.addClass('lx-Table-row', {
-	borderTop: '1px solid ' + tableBorderColor
-}, {
-	'first-child': 'border: 0px',
-	'nth-child(2n)': 'background-color: #F6F6F6',
-	'nth-child(2n+1)': 'background-color: white'
-});
-
-cssList.addClass('lx-Table-cell', {
-	height: '100%',
-	borderRight: '1px solid ' + tableBorderColor
-}, {
-	'last-child': 'border: 0px'
-});
-
-//TODO - после переделки lx.Box.entry это не надо будет
-cssList.addStyle('.lx-Table-cell .lx-Textarea', {
-	borderRadius: '0px'
-});
-/* Table */
-/*============================================================================*/
-
-
-/*============================================================================*/
 /* Slider */
-cssList.addClass('lx-slider-track', {
-	backgroundColor: '#EEEEEE',
-	border: '#CCCCCC solid 1px',
-	borderRadius: '5px',
-	cursor: 'pointer'
-});
-
-cssList.addClass('lx-slider-handle', {
-	backgroundColor: '#F6F6F6',
-	border: '#CCCCCC solid 1px',
-	borderRadius: '5px',
-	cursor: 'pointer'
-}, {
-	hover: {
-		backgroundColor: '#FDFCCE',
-		borderColor: '#FBCB09'
-	},
-	active: {
-		backgroundColor: '#FDFCCE',
-		borderColor: '#FBCB09'
-	}
-});
+cssList.inheritClass('lx-slider-track', 'Button');
+cssList.inheritClass('lx-slider-handle', 'ActiveButton');
 /* Slider */
-/*============================================================================*/
-
-
-/*============================================================================*/
-/* LabeledGroup */
-cssList.addClass('lx-LabeledGroup', {
-	display: 'grid',
-	gridAutoFlow: 'row',
-	gridGap: '.8em',
-	padding: '1.2em'
-});
-
-cssList.addClass('lx-LabeledGroup-item', {
-	position: 'relative',
-	gridRow: 'auto'
-});
-
-cssList.addClass('lx-LabeledGroup-label', {
-	color: '#000000'
-});
-/* LabeledGroup */
 /*============================================================================*/
 
 
@@ -346,25 +411,163 @@ cssList.inheritClass('lx-Radio-1', 'Checkbox-shape', {
 
 
 /*============================================================================*/
+/* LabeledGroup */
+cssList.addClass('lx-LabeledGroup', {
+	display: 'grid',
+	gridAutoFlow: 'row',
+	gridGap: '.8em',
+	padding: '1.2em'
+});
+
+cssList.addClass('lx-LabeledGroup-item', {
+	position: 'relative',
+	gridRow: 'auto'
+});
+
+cssList.addClass('lx-LabeledGroup-label', {
+});
+/* LabeledGroup */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* Paginator */
+cssList.addClass('lx-Paginator', {
+	gridTemplateRows: '100%',
+	overflow: 'hidden',
+	whiteSpace: 'nowrap',
+	textOverflow: 'ellipsis',
+	border: 'solid 1px ' + widgetBorderColor,
+	borderRadius: borderRadius
+});
+
+cssList.addClass('lx-Paginator-middle', {
+	width: 'auto'
+});
+
+cssList.addClass('lx-Paginator-page', {
+	cursor: 'pointer'
+});
+
+cssList.addAbstractClass('Paginator-button', {
+	background: widgetGradient,
+	cursor: 'pointer'
+}.lxMerge(iconFlex), {
+	disabled: {
+		color: widgetIconColorDisabled,
+		cursor: 'default'
+	}
+});
+cssList.inheritClass('lx-Paginator-active', 'Paginator-button', { borderRadius: borderRadius });
+cssList.inheritClass('lx-Paginator-to-finish', 'Paginator-button', {}, {after: icon('\\00BB')});
+cssList.inheritClass('lx-Paginator-to-start',  'Paginator-button', {}, {after: icon('\\00AB')});
+cssList.inheritClass('lx-Paginator-to-left',   'Paginator-button', {}, {after: icon('\\2039')});
+cssList.inheritClass('lx-Paginator-to-right',  'Paginator-button', {}, {after: icon('\\203A')});
+/* Paginator */
+/*============================================================================*/
+
+
+/*============================================================================*/
 /* BoxSlider */
 cssList.addAbstractClass('lx-IS-button', {
 	backgroundImage: 'url(img/ISarroy.png)',
 	backgroundRepeat: 'no-repeat',
 	backgroundSize: '100% 100%',
+	borderTopLeftRadius: borderRadius,
+	borderBottomLeftRadius: borderRadius,
 	opacity: '0.3'
 });
 
 cssList.inheritClass('lx-IS-button-l', 'lx-IS-button', {
-	transform: 'rotate(180deg)'
+	transform: 'rotate(180deg)',
 }, {
-	hover: 'opacity: 0.5'
+	hover: 'background-color: black'
 });
 
 cssList.inheritClass('lx-IS-button-r', 'lx-IS-button', {
 }, {
-	hover: 'opacity: 0.5'
+	hover: 'background-color: black'
 });
 /* BoxSlider */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* Table */
+var tableBorderColor = '#D8D8D8';
+
+cssList.addClass('lx-Table', {
+	border: '1px solid ' + tableBorderColor,
+	borderRadius: borderRadius
+});
+
+cssList.addClass('lx-Table-row', {
+	borderTop: '1px solid ' + tableBorderColor
+}, {
+	'first-child': 'border: 0px',
+	'nth-child(2n)': 'background-color: #F6F6F6',
+	'nth-child(2n+1)': 'background-color: white'
+});
+
+cssList.addClass('lx-Table-cell', {
+	height: '100%',
+	borderRight: '1px solid ' + tableBorderColor
+}, {
+	'last-child': 'border: 0px'
+});
+
+//TODO - после переделки lx.Box.entry это не надо будет
+cssList.addStyle('.lx-Table-cell .lx-Textarea', {
+	borderRadius: '0px'
+});
+/* Table */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* TreeBox */
+cssList.addClass('lx-TreeBox', {
+	backgroundColor: bodyBackgroundColor,
+	borderRadius: '10px'
+});
+
+cssList.inheritAbstractClass('lx-TW-Button', 'ActiveButton', {
+	backgroundColor: checkedSoftColor,
+	color: 'black'
+}.lxMerge(iconFlex));
+cssList.inheritClass('lx-TW-Button-closed', 'lx-TW-Button', {}, {after: icon('\\25BA', {
+	fontSize: 10,
+	paddingBottom: '3px',
+	paddingLeft: '2px'
+})});
+cssList.inheritClass('lx-TW-Button-opened', 'lx-TW-Button', {}, {after: icon('\\25BC', {
+	fontSize:10,
+	paddingBottom:'2px'
+})});
+cssList.inheritClass('lx-TW-Button-add', 'lx-TW-Button', {}, {after: icon('\\002B', {
+	fontSize:12,
+	fontWeight: 700,
+	paddingBottom:'3px'
+})});
+cssList.inheritClass('lx-TW-Button-del', 'lx-TW-Button', {}, {after: icon('\\002D', {
+	fontSize:12,
+	fontWeight: 700,
+	paddingBottom:'3px'
+})});
+
+cssList.inheritClass('lx-TW-Button-empty', 'Button', {
+	backgroundColor: checkedSoftColor,
+	cursor: 'default'	
+});
+
+cssList.addClass('lx-TW-Label', {
+	overflow: 'hidden',
+	whiteSpace: 'nowrap',
+	textOverflow: 'ellipsis',
+	backgroundColor: textBackgroundColor,
+	borderRadius: borderRadius
+});
+/* TreeBox */
 /*============================================================================*/
 
 
@@ -394,8 +597,8 @@ cssList.addClass('lx-Calendar-day-of-week', {
 });
 
 cssList.inheritClass('lx-Calendar-today', 'lx-Calendar-day-of-week', {
-	borderBottomLeftRadius: '8px',
-	borderBottomRightRadius: '8px',
+	borderBottomLeftRadius: borderRadius,
+	borderBottomRightRadius: borderRadius,
 	cursor: 'pointer'
 });
 
@@ -417,117 +620,6 @@ cssList.addStyleGroup('.lx-Calendar-menu', {
 
 
 /*============================================================================*/
-/* TreeBox */
-cssList.addClass('lx-TreeBox', {
-	backgroundColor: '#D8D8D8',
-	borderRadius: '10px'
-});
-
-cssList.addClass('lx-TW-Button', {
-	borderRadius: '5px',
-	backgroundRepeat: 'no-repeat',
-	backgroundSize: '100% 100%'
-}, {
-	hover: 'box-shadow: 0px 0px 7px #888888'
-});
-
-cssList.addClasses({
-	'lx-TW-Button-closed': 'background-image: url(img/TWclosed.png)',
-	'lx-TW-Button-opened': 'background-image: url(img/TWopened.png)',
-	'lx-TW-Button-empty' : 'background-image: url(img/TWempty.png)',
-	'lx-TW-Button-add'   : 'background-image: url(img/TWadd.png)',
-	'lx-TW-Button-del'   : 'background-image: url(img/TWdel.png)'
-});
-
-cssList.addClass('lx-TW-Label', {
-	backgroundColor: '#FFFFFF',
-	borderRadius: '5px'
-});
-/* TreeBox */
-/*============================================================================*/
-
-
-/*============================================================================*/
-/* MultiBox */
-cssList.addClass('lx-MultiBox', {
-	border: '1px solid ' + tableBorderColor,
-	borderTopWidth: '0px',
-	borderRadius: '4px'
-});
-
-cssList.addClass('lx-MultiBox-mark', {
-	fontWeight: 'bold',
-	color: buttonColor,
-	boxShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
-	textShadow: '0 1px 1px ' + buttonTextShadow,
-	backgroundImage: intactGradient,
-	border: '1px solid ' + buttonBorderColor,
-	borderTopLeftRadius: '4px',
-	borderTopRightRadius: '4px'
-}, {
-	hover: {
-		backgroundColor: hoverColor,
-		backgroundImage: hoverGradient
-	},
-	active: {
-		backgroundImage: activeGradient
-	}
-});
-
-cssList.addClass('lx-MultiBox-active', 'background-image:'+activeGradient);
-/* MultiBox */
-/*============================================================================*/
-
-
-/*============================================================================*/
-/* Paginator */
-cssList.addClass('lx-Paginator', {
-	border: 'solid 1px #d9d9d9',
-	borderRadius: '8px'
-});
-
-cssList.addClass('lx-Paginator-middle', {
-	width: 'auto'
-});
-
-cssList.addClass('lx-Paginator-active', {
-	backgroundRepeat: 'no-repeat',
-	backgroundSize: '100% 100%',
-	backgroundImage: 'url(img/pgnActive.jpg)',
-	borderRadius: '8px'
-});
-
-cssList.addClass('lx-Paginator-page', {
-	cursor: 'pointer'
-});
-
-cssList.addAbstractClass('lx-Paginator-button', {
-	cursor: 'pointer',
-	// width: '40px',
-	backgroundRepeat: 'no-repeat',
-	backgroundSize: '100% 100%'
-});
-cssList.inheritClass('lx-Paginator-to-start', 'lx-Paginator-button',
-	'background-image: url(img/pgnToStart.jpg)',
-	{disabled: 'cursor:default;background-image: url(img/pgnToStartD.jpg)'}
-);
-cssList.inheritClass('lx-Paginator-to-finish', 'lx-Paginator-button',
-	'background-image: url(img/pgnToFinish.jpg)',
-	{disabled: 'cursor:default;background-image: url(img/pgnToFinishD.jpg)'}
-);
-cssList.inheritClass('lx-Paginator-to-left', 'lx-Paginator-button',
-	'background-image: url(img/pgnToLeft.jpg)',
-	{disabled: 'cursor:default;background-image: url(img/pgnToLeftD.jpg)'}
-);
-cssList.inheritClass('lx-Paginator-to-right', 'lx-Paginator-button',
-	'background-image: url(img/pgnToRight.jpg)',
-	{disabled: 'cursor:default;background-image: url(img/pgnToRightD.jpg)'}
-);
-/* Paginator */
-/*============================================================================*/
-
-
-/*============================================================================*/
 /* TableManager */
 cssList.addClasses({
 	'lx-TM-table': 'border: #00CC00 solid 2px',
@@ -537,11 +629,13 @@ cssList.addClasses({
 /* TableManager */
 /*============================================================================*/
 
+
 cssList.addStyle('@font-face', {
-	fontFamily: 'TestFont',
+	fontFamily: 'MainFont',
 	src: 'url("font/Muli-VariableFont_wght.ttf") format("truetype")',
 	fontStyle: 'normal',
-	fontWeight: 'normal'
+	fontWeight: 600
 });
+
 
 return cssList.toString();

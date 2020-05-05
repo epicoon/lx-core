@@ -54,7 +54,7 @@ class CheckboxGroup extends lx.LabeledGroup #lx:namespace lx {
 
 		this.checkboxes().each((a)=> a.value(false));
 		if (!nums.isArray) nums = [nums];
-		nums.each((num)=> this.widget(num).value(true));
+		nums.each((num)=> this.checkbox(num).value(true));
 	}
 }
 

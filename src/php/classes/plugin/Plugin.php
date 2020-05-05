@@ -275,6 +275,16 @@ class Plugin extends Source implements FusionInterface
 		return $this->directory->find($name);
 	}
 
+    /**
+     * @param string $name
+     * @return File
+     */
+	public function createFile($name)
+    {
+        $fullName = $this->conductor->getFullPath($name);
+        return new File($fullName);
+    }
+
 	/**
 	 * @param string $key
 	 * @return mixed

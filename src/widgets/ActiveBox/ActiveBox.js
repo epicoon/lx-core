@@ -16,6 +16,7 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 		return {
 			main: 'lx-ActiveBox',
 			header: 'lx-ActiveBox-header',
+			close: 'lx-ActiveBox-close',
 			body: 'lx-ActiveBox-body',
 			resizer: 'lx-ActiveBox-resizer',
 			onMove: 'lx-ActiveBox-move',
@@ -27,7 +28,7 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 	 * 	header: string
 	 * 	headerHeight: 
 	 * 	headerConfig: {}
-	 * 	closeButton ???
+	 * 	closeButton	 
 	 * 	move: boolean
 	 * 	resize: boolean
 	 *	adhesive: boolean
@@ -87,6 +88,12 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 					});
 				}
 			}
+
+			var closeButton = this->>closeButton;
+			if (closeButton && closeButton instanceof lx.Rect && !closeButton.hasTrigger('click'))
+				closeButton.click(function() {
+					this.parent.parent.hide();
+				});
 		}
 		this.setBuildMode(false);
 	}
@@ -147,11 +154,11 @@ function __setHeader(self, config) {
 
 	if (config.closeButton) {
 		let butConfig = config.closeButton.isObject ? config.closeButton : {};
-		if (!butConfig.geom) butConfig.geom = [null, '2px', '20px', '20px', '2px'];
-		if (!butConfig.style) butConfig.style = {fill:'red', cursor:'pointer'};
-		if (!butConfig.click) butConfig.click = function() {
-			self.parent.parent.hide();
-		};
+		let butSize = lx.ActiveBox.HEADER_HEIGHT - lx.ActiveBox.INDENT * 4 + 'px';
+		let butIndent = lx.ActiveBox.INDENT * 2 + 'px';
+		butConfig.key = 'closeButton';
+		if (!butConfig.geom) butConfig.geom = [null, butIndent, butSize, butSize, butIndent];
+		if (!butConfig.css) butConfig.css = self.basicCss.close;
 		butConfig.parent = header;
 		let className = butConfig.widget ? butConfig.widget : lx.Box;
 		new className(butConfig);

@@ -136,7 +136,8 @@ lx.Event = (function() {
 
 		has: function(el, type, handler) {
 			if (!el.events || !el.events[type]) return false;
-			return (el.events[type][handler.guid] === handler);
+			if (handler) return (el.events[type][handler.guid] === handler);
+			return true;
 		},
 
 		preventDefault: function(event) {

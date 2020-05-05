@@ -791,15 +791,6 @@ class CliProcessor extends BaseObject
 		} else {
 			$this->outln('Plugin was not created');
 		}
-
-		try {
-			$plugin = $editor->createPlugin($name, $path);
-			$dir = $plugin->directory;
-			$this->out('New plugin created in: ');
-			$this->outln($dir->getPath(), ['decor' => 'u']);
-		} catch (\Exception $e) {
-			$this->outln('Plugin was not created. ' . $e->getMessage());
-		}
 	}
 
 	/**
