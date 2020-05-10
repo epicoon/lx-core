@@ -119,7 +119,7 @@ class NodeJsExecutor extends BaseObject {
 		$file = \lx::$conductor->getTempFile('js');
 		$file->put($code);
 		$command = 'node ' . $this->getExecJs() . ' "' . $file->getPath() . '"';
-		$result = shell_exec($command);
+		$result = \lx::exec($command);
 		$result = preg_replace('/\s$/', '', $result);
 		$result = json_decode($result, true);
 

@@ -275,6 +275,58 @@ class Service extends BaseObject implements FusionInterface
 		return $this->_name;
 	}
 
+    /**
+     * @param string $name
+     * @return bool
+     */
+	public function hasProcess($name)
+    {
+        $processesConfig = $this->getConfig('service.processes') ?? [];
+        return array_key_exists($name, $processesConfig);
+    }
+
+    /**
+     * @param string $name
+     * @param integer $index
+     */
+	public function runProcess($name, $index = null)
+    {
+        $processesConfig = $this->getConfig('service.processes') ?? [];
+        if (!array_key_exists($name, $processesConfig)) {
+            \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+                '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+                'msg' => "Service process '$name' does not exist",
+            ]);
+            return;
+        }
+
+        $processData = $processesConfig[$name];
+        $processClassName = $processData['class'];
+        $processConfig = $processData['config'] ?? [];
+
+        if (is_subclass_of($processClassName, AbstractApplication::class)) {
+            $appConfig = $this->app->getConfig();
+            $processConfig = ArrayHelper::mergeRecursiveDistinct($appConfig, $processConfig, true);
+        }
+
+        $processConfig['serviceName'] = $this->name;
+        $processConfig['processName'] = $name;
+        if ($index !== null) {
+            $processConfig['processIndex'] = $index;
+        }
+        
+        $args = [$processClassName];
+        if (!empty($processConfig)) {
+            $args[] = json_encode($processConfig);
+        }
+        
+        \lx::exec([
+            'executor' => 'php',
+            'script' => $this->conductor->getFullPath('@core/../process.php'),
+            'args' => $args
+        ], true);
+    }
+
 	/**
 	 * @param string $pluginName
 	 * @return bool

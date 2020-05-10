@@ -1,7 +1,7 @@
 
 var mainBackgroundColor = 'white';
 var altMainBackgroundColor = 'white';
-var bodyBackgroundColor = '#F0F0F0';
+var bodyBackgroundColor = 'white';
 var altBodyBackgroundColor = '#F0F0F0';
 var textBackgroundColor = 'white';
 var widgetBackgroundColor = 'white';

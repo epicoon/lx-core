@@ -18,14 +18,17 @@ return [
 		'services' => '@site/services',
 	],
 
-	// Routing to services
-	'router' => require __DIR__ . '/routes.php',
-
 	// Application components
 	'components' => [
+    	// Routing to services
+	    'router' => [
+	        'class' => lx\Router::class,
+	        'routes' => require __DIR__ . '/routes.php',
+	    ],
+	
 		// You can define db-connector component for your application
 		'dbConnector' => [
-			'class' => 'lx\DbConnector',
+			'class' => lx\DbConnector::class,
 			'db' => [
 				'hostname' => 'localhost',
 				'username' => 'username',
@@ -49,17 +52,9 @@ EOT;
 
 $configRoutesCode = <<<EOT
 <?php
-/*
-Router settings
-Type variants:
-	- map (require parameter 'routes' - routes map - array with pares key - route, value - source information)
-	- class (require parameter 'name' - Router class name)
-*/
+
 return [
-	'type' => 'map',
-	'routes' => [
-		'/' => ['service-plugin' => 'lx/lx-hello:world', 'on-mode' => 'dev'],
-	],
+    '/' => ['service-plugin' => 'lx/hello:world', 'on-mode' => 'dev'],
 ];
 
 EOT;
@@ -84,7 +79,7 @@ return [
 
 	// Service components
 	'components' => [
-		// You need to install 'lx/lx-model' service to use this model provider
+		// You have to install 'lx/model' service to use this model provider
 		// 'modelProvider' => [
 		//	'class' => 'lx\model\ModelProvider',
 		//	'crudAdapter' => 'lx\model\CRUD\db\DbCrudAdapter',

@@ -8,9 +8,9 @@ class Respondent extends \lx\Respondent {
 	public function loadPlugin($key) {
 		$name = null;
 		switch ($key) {
-			case 'cli': $name = 'lx/lx-tools:webcli'; break;
-			case 'doc': $name = 'lx/lx-doc:docParser'; break;
-			case 'demo': $name = 'lx/lx-demo:_main'; break;
+			case 'cli': $name = 'lx/tools:webcli'; break;
+			case 'doc': $name = 'lx/doc:docParser'; break;
+			case 'demo': $name = 'lx/demo:_main'; break;
 		}
 		if (!$name) {
 			return false;

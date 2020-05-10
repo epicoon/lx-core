@@ -35,7 +35,7 @@ class lx
 	/** @var lx\PlatformConductor */
 	public static $conductor;
 
-	/** @var \lx\Application|\lx\ConsoleApplication */
+	/** @var \lx\HttpApplication|\lx\ConsoleApplication|\lx\ProcessApplication */
 	public static $app;
 
 	/** @var string */
@@ -57,6 +57,32 @@ class lx
 
 		self::$dump = '';
 	}
+
+    /**
+     * @param string $command
+     * @param bool $async
+     * @return string|null
+     */
+	public static function exec($command, $async = false)
+    {
+        if (is_array($command)) {
+            $str = $command['executor'] . ' ' . $command['script'];
+            if (array_key_exists('args', $command)) {
+                $args = [];
+                foreach ($command['args'] as $arg) {
+                    $args[] = '"' . addcslashes($arg, '"\\') . '"';
+                }
+                $str .= ' ' . implode(' ', $args);
+            }
+            $command = $str;
+        }
+        
+        if ($async) {
+            $command .= ' > /dev/null 2>/dev/null &';
+        }
+
+        return shell_exec($command);
+    }
 
 	/**
 	 * Advanced way to dump some information in browser

@@ -3,68 +3,47 @@
 namespace lx;
 
 /**
- * Class Application
+ * Class HttpApplication
  * @package lx
  *
- * @property Dialog $dialog
- * @property Router $router
- *
+ * @property-read Router $router
+ * @property-read Dialog $dialog
  * @property-read Language $language
  * @property-read I18nApplicationMap $i18nMap
  * @property-read User $user
- * @property-read EventManager $events
- * @property-read DependencyProcessor $diProcessor
  */
-class Application extends AbstractApplication implements FusionInterface
+class HttpApplication extends AbstractApplication implements FusionInterface
 {
 	use FusionTrait;
-
-	/** @var Dialog */
-	private $_dialog;
-
-	/** @var Router */
-	private $_router;
 
 	/** @var array */
 	private $settings;
 
 	/**
-	 * Application constructor.
+	 * HttpApplication constructor.
+     * @param array $config
 	 */
-	public function __construct()
+	public function __construct($config = [])
 	{
-		parent::__construct();
-		$this->settings = [
+		parent::__construct($config);
+        $this->settings = [
 			'unpackType' => \lx::POSTUNPACK_TYPE_FIRST_DISPLAY,
 		];
-
-		$this->_dialog = new Dialog();
-		$this->retrieveRouter();
-
-		$this->initFusionComponents($this->getConfig('components'), [
-			'language' => Language::class,
-			'i18nMap' => I18nApplicationMap::class,
-			'user' => User::class,
-			'events' => EventManager::class,
-			'diProcessor' => DependencyProcessor::class,
-		]);
 	}
 
-	/**
-	 * @param string $name
-	 * @return Dialog|Router|mixed
-	 */
-	public function __get($name)
-	{
-		switch ($name) {
-			case 'dialog':
-				return $this->_dialog;
-			case 'router':
-				return $this->_router;
-		}
-
-		return parent::__get($name);
-	}
+    /**
+     * @return array
+     */
+	protected static function getDefaultComponents()
+    {
+        return array_merge(parent::getDefaultComponents(), [
+            'router' => Router::class,
+            'dialog' => Dialog::class,
+            'language' => Language::class,
+            'i18nMap' => I18nApplicationMap::class,
+            'user' => User::class,
+        ]);
+    }
 
 	/**
 	 * @return array
@@ -192,42 +171,6 @@ class Application extends AbstractApplication implements FusionInterface
 	/*******************************************************************************************************************
 	 * PRIVATE
 	 ******************************************************************************************************************/
-
-	/**
-	 * Method defines application router
-	 */
-	private function retrieveRouter()
-	{
-		$router = null;
-		$routerData = $this->getConfig('router');
-		if ($routerData && isset($routerData['type'])) {
-			switch ($routerData['type']) {
-				case 'map':
-					$data = null;
-					if (isset($routerData['path'])) {
-						$path = $this->conductor->getFullPath($routerData['path']);
-						$file = $this->diProcessor->createByInterface(DataFileInterface::class, [$path]);
-						if ($file->exists()) {
-							$data = $file->get();
-						}
-					} elseif (isset($routerData['routes'])) {
-						$data = $routerData['routes'];
-					}
-					if ($data) {
-						$router = new Router();
-						$router->setMap($data);
-					}
-					break;
-				case 'class':
-					if (isset($routerData['name']) && ClassHelper::exists($routerData['name'])) {
-						$router = new $routerData['name']();
-					}
-					break;
-			}
-		}
-
-		$this->_router = $router;
-	}
 
 	/**
 	 * Method defines current user

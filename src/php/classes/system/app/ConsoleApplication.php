@@ -13,21 +13,13 @@ class ConsoleApplication extends AbstractApplication implements FusionInterface
 	/** @var array */
 	protected $argv;
 
-	/**
-	 * ConsoleApplication constructor.
-	 * @param array $argv
-	 */
-	public function __construct($argv = [])
-	{
-		parent::__construct();
-
-		$this->argv = $argv;
-
-		$this->initFusionComponents([], [
-			'events' => EventManager::class,
-			'diProcessor' => DependencyProcessor::class,
-		]);
-	}
+    /**
+     * @param array $argv
+     */
+	public function setArguments($argv)
+    {
+        $this->argv = $argv;
+    }
 
 	public function run()
 	{
@@ -40,6 +32,13 @@ class ConsoleApplication extends AbstractApplication implements FusionInterface
 			case 'cli':
 				(new Cli())->run();
 				break;
+
+
+            case 'test':
+                $service = $this->getService('lx/help');
+                $service->runProcess('test');
+                break;
+
 
 			default:
 				//TODO можно реализовать какие-то команды безоболочечные

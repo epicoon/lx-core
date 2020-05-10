@@ -33,7 +33,7 @@ This repository contains platform core. The core is enough for web application d
    ```
    {
        "require":{
-           "lx/lx-core":"dev-master"
+           "lx/core":"dev-master"
        },
        "repositories":[
            {
@@ -43,7 +43,7 @@ This repository contains platform core. The core is enough for web application d
         ],
         "scripts": {
            "post-update-cmd": [
-               "php vendor/lx/lx-core/lx-install"
+               "php vendor/lx/core/lx-install"
            ]
         }
    }
@@ -85,7 +85,7 @@ This repository contains platform core. The core is enough for web application d
    /* An example is given for the situation when the index file is in the project root
     * If it is in a directory (for example web), you need to correct the path
     */
-   require_once __DIR__ . '/vendor/lx/lx-core/main.php';
+   require_once __DIR__ . '/vendor/lx/core/main.php';
    $app = new lx\Application();
    $app->run();
    ```
@@ -374,7 +374,7 @@ Of all the elements of the architecture a service and a plugin are configurable 
 
   // Add a snippet from another plugin
   Snippet.addSnippet({
-    plugin:'lx/lx-tools:snippets',
+    plugin:'lx/tools:snippets',
     snippet:'confirmPopup'
   });
   ```

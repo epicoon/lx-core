@@ -41,7 +41,7 @@ class FusionComponentList
 			unset($this->config[$name]);
 			$params = $data['params'];
 			$params['__fusion__'] = $this->fusion;
-			$this->list[$name] = new $data['class']($params);
+			$this->list[$name] = \lx::$app->diProcessor->create($data['class'], $params);
 			return $this->list[$name];
 		}
 

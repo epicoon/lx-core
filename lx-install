@@ -95,10 +95,10 @@ if (!$data->contains('languages.php')) {
 (new lx\JsModuleMapBuilder())->renewHead();
 
 // Если нет HelloWorld-ного сервиса - создадим
-if (!$app->services->exists('lx/lx-hello')) {
+if (!$app->services->exists('lx/hello')) {
 	$site->getOrMakeDirectory('vendor');
 
-	$service = (new lx\ServiceEditor())->createService('lx/lx-hello', '@site/vendor');
+	$service = (new lx\ServiceEditor())->createService('lx/hello', '@site/vendor');
 	$pluginEditor = new lx\PluginEditor($service);
 	$plugin = $pluginEditor->createPlugin('world', null, [
         'cacheType' => lx\Plugin::CACHE_SMART

@@ -179,7 +179,9 @@ class File extends BaseFile
 	{
 		if (is_array($info) || is_object($info)) {
 			$info = json_encode($info);
-		}
+		} elseif (is_numeric($info)) {
+		    $info = (string)$info;
+        }
 
 		if ( ! is_string($info)) {
 			return false;

@@ -33,7 +33,7 @@
    ```
    {
        "require":{
-           "lx/lx-core":"dev-master"
+           "lx/core":"dev-master"
        },
        "repositories":[
            {
@@ -43,12 +43,12 @@
         ],
         "scripts": {
            "post-update-cmd": [
-               "php vendor/lx/lx-core/lx-install"
+               "php vendor/lx/core/lx-install"
            ]
         }
    }
    ```
-   Чтобы использовать прочие lx-пакеты, просто добавьте их в конфигурационный файл по аналогии с пакетом `lx/lx-core`, например: [конфигурация с прочими lx-пакетами](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/doc/composer-example.md).<br>
+   Чтобы использовать прочие lx-пакеты, просто добавьте их в конфигурационный файл по аналогии с пакетом `lx/core`, например: [конфигурация с прочими lx-пакетами](https://github.com/epicoon/lx-doc-articles/blob/master/ru/lx-core/doc/composer-example.md).<br>
    В корне проекта выполните команду `composer install`.<br>
    В результате будет создан каталог `vendor` (если еще не существовал). В нем в папке `lx` будут располагаться указанные в зависимостях пакеты.
    Обратите внимание на раздел "scripts". Вызывается скрипт, который в корне приложения создаст папку `lx`, необходимую для функционирования платформы. Внутри будут конфигурационные файлы, файл запуска CLI, каталоги для системных и временных файлов.Также этот скрипт создаст (или изменит) файл `.gitignore`, чтобы системные файлы платформы не отслеживались системой контроля версий.
@@ -85,7 +85,7 @@
    /* Пример приведен для ситуации, когда индексный файл находится в корне проекта
     * Если он находится в каталоге (например web), нужно скорректировать путь
     */
-   require_once __DIR__ . '/vendor/lx/lx-core/main.php';
+   require_once __DIR__ . '/vendor/lx/core/main.php';
    $app = new lx\Application();
    $app->run();
    ```
@@ -374,7 +374,7 @@
 
   // Добавим сниппет из другого плагина
   Snippet.addSnippet({
-    plugin:'lx/lx-tools:snippets',
+    plugin:'lx/tools:snippets',
     snippet:'confirmPopup'
   });
   ```

@@ -6,9 +6,10 @@ namespace lx;
  * Class Dialog
  * @package lx
  */
-class Dialog extends BaseObject
+class Dialog extends BaseObject implements FusionComponentInterface
 {
 	use ApplicationToolTrait;
+	use FusionComponentTrait;
 
 	const REQUEST_TYPE_COMMON = 'common';
 	const REQUEST_TYPE_PAGE_LOAD = 'page_load';

@@ -24,17 +24,10 @@ function __print(msg) {
 		parent: alerts,
 		geom: [10, 5, 80, 80],
 		key: 'lx_alert',
-		header: 'Alert'
+		header: 'Alert',
+		closeButton: {click: function(){this.parent.parent.del();}}
 	});
 	el.style('zIndex', 1000);
-	el.fill('white');
-	el.border();
-
 	el->body.overflow('auto');
 	el->body.html(msg);
-	el->header.add(lx.Rect, {
-		geom: [null, '2px', '20px', '20px', '2px'],
-		style: {fill: 'red'},
-		click: function() { this.parent.parent.del(); }
-	});
 }

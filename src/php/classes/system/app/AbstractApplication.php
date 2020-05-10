@@ -10,12 +10,17 @@ namespace lx;
  * @property-read Directory $directory
  * @property-read ApplicationConductor $conductor
  * @property-read ServicesMap $services
+ * @property-read DependencyProcessor $diProcessor
+ * @property-read EventManager $events
  * @property-read LoggerInterface $logger
  */
 abstract class AbstractApplication extends BaseObject
 {
 	/** @var string */
 	private $id;
+
+	/** @var integer */
+	private $pid;
 
 	/** @var string */
 	private $_sitePath;
@@ -35,29 +40,68 @@ abstract class AbstractApplication extends BaseObject
 	/** @var ServicesMap */
 	private $_services;
 
+	/** @var DependencyProcessor */
+	private $_diProcessor;
+
 	/** @var LoggerInterface */
 	private $_logger;
 
 	/**
 	 * AbstractApplication constructor.
+     * @param array $config
 	 */
-	public function __construct()
+	public function __construct($config = [])
 	{
 		$this->id = Math::randHash();
-
+		$this->pid = getmypid();
 		$this->_sitePath = \lx::$conductor->sitePath;
 		$this->_conductor = new ApplicationConductor();
+
+        if (empty($config)) {
+            $this->renewConfig();
+        } else {
+            $this->_config = $config;
+        }
+
 		$aliases = $this->getConfig('aliases');
 		if (!$aliases) $aliases = [];
 		$this->_conductor->setAliases($aliases);
 
+        \lx::$app = $this;
+
 		$this->_services = new ServicesMap();
 
-		$loggerConfig = ClassHelper::prepareConfig($this->getConfig('logger'), ApplicationLogger::class);
+		$diConfig = ClassHelper::prepareConfig(
+            $this->getConfig('diProcessor'),
+            DependencyProcessor::class
+        );
+		$this->_diProcessor = new $diConfig['class']($diConfig['params']);
+
+		$loggerConfig = ClassHelper::prepareConfig(
+		    $this->getConfig('logger'),
+            ApplicationLogger::class
+        );
 		$this->_logger = new $loggerConfig['class']($loggerConfig['params']);
 
-		\lx::$app = $this;
+        $this->initFusionComponents($this->getConfig('components'), static::getDefaultComponents());
+
+        $this->init();
 	}
+
+    /**
+     * @return array
+     */
+    protected static function getDefaultComponents()
+    {
+        return [
+            'events' => EventManager::class,
+        ];
+    }
+
+    protected function init()
+    {
+        // pass
+    }
 
 	/**
 	 * @param $name string
@@ -74,12 +118,22 @@ abstract class AbstractApplication extends BaseObject
 				return $this->_conductor;
 			case 'services':
 				return $this->_services;
+            case 'diProcessor':
+                return $this->_diProcessor;
 			case 'logger':
 				return $this->_logger;
 		}
 
 		return parent::__get($name);
 	}
+
+    /**
+     * @return int
+     */
+	public function getPid()
+    {
+        return $this->pid;
+    }
 
 	/**
 	 * @param string $alias
@@ -113,10 +167,6 @@ abstract class AbstractApplication extends BaseObject
 	 */
 	public function getConfig($param = null)
 	{
-		if ($this->_config === null) {
-			$this->renewConfig();
-		}
-
 		if ($param === null) {
 			return $this->_config;
 		}

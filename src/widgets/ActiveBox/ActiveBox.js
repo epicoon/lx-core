@@ -48,54 +48,61 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 		super.build(config);
 	}
 
-	#lx:client postBuild(config) {
-		super.postBuild(config);
+	#lx:client {
+		postBuild(config) {
+			super.postBuild(config);
 
-		this.setBuildMode(true);
+			this.setBuildMode(true);
 
-		if (this.width() === null) this.width(this.width('px')+'px');
-		if (this.height() === null) this.height(this.height('px')+'px');
+			if (this.width() === null) this.width(this.width('px')+'px');
+			if (this.height() === null) this.height(this.height('px')+'px');
 
-		if (this.adhesive) {
-			ActiveBoxAdhesor.makeAdhesion(this);
-		}
-
-		if (this.contains('resizer') || this.contains('header')) {
-			this.click(()=>lx.WidgetHelper.bringToFront(this));
-			lx.WidgetHelper.bringToFront(this);
-		}
-
-		if (this.contains('header')) {
-			var header = this->header;
-			header.on('dblclick', function() {
-				if (!this.lxActiveBoxGeom) {
-					this.lxActiveBoxGeom = this.parent.getGeomMask();
-					this.parent.setGeom([0, 0, '100%', '100%']);
-				} else {
-					this.parent.copyGeom(this.lxActiveBoxGeom);
-					delete this.lxActiveBoxGeom;
-				}
-			});
-			if (header.__move) {
-				delete header.__move;
-				header.move({parentMove: true});
-				if (this.basicCss.onMove) {
-					header.on('moveBegin', ()=>{
-						this.addClass(this.basicCss.onMove);
-					});
-					header.on('moveEnd', ()=>{
-						this.removeClass(this.basicCss.onMove);
-					});
-				}
+			if (this.adhesive) {
+				ActiveBoxAdhesor.makeAdhesion(this);
 			}
 
-			var closeButton = this->>closeButton;
-			if (closeButton && closeButton instanceof lx.Rect && !closeButton.hasTrigger('click'))
-				closeButton.click(function() {
-					this.parent.parent.hide();
+			if (this.contains('resizer') || this.contains('header')) {
+				this.on('mousedown', ()=>lx.WidgetHelper.bringToFront(this));
+				lx.WidgetHelper.bringToFront(this);
+			}
+
+			if (this.contains('header')) {
+				var header = this->header;
+				header.on('dblclick', function() {
+					if (!this.lxActiveBoxGeom) {
+						this.lxActiveBoxGeom = this.parent.getGeomMask();
+						this.parent.setGeom([0, 0, '100%', '100%']);
+					} else {
+						this.parent.copyGeom(this.lxActiveBoxGeom);
+						delete this.lxActiveBoxGeom;
+					}
 				});
+				if (header.__move) {
+					delete header.__move;
+					header.move({parentMove: true});
+					if (this.basicCss.onMove) {
+						header.on('moveBegin', ()=>{
+							this.addClass(this.basicCss.onMove);
+						});
+						header.on('moveEnd', ()=>{
+							this.removeClass(this.basicCss.onMove);
+						});
+					}
+				}
+
+				var closeButton = this->>closeButton;
+				if (closeButton && closeButton instanceof lx.Rect && !closeButton.hasTrigger('click'))
+					closeButton.click(function() {
+						this.parent.parent.hide();
+					});
+			}
+			this.setBuildMode(false);
 		}
-		this.setBuildMode(false);
+
+		show() {
+			lx.WidgetHelper.bringToFront(this);
+			super.show();
+		}
 	}
 
 	setHeader(text) {

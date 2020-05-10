@@ -7,7 +7,7 @@ return [
 	'BaseObject' => 'classes/system/object',
 
 	'AbstractApplication' => 'classes/system/app',
-	'Application' => 'classes/system/app',
+	'HttpApplication' => 'classes/system/app',
 	'ConsoleApplication' => 'classes/system/app',
 
 	'DevApplicationLifeCycleManager' => 'classes/system/app',

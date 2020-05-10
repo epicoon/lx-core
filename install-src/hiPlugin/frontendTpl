@@ -10,17 +10,17 @@ const list = new lx.Dict({
 	cli: {
 		box: null,
 		title: 'CLI',
-		service: 'lx/lx-tools'
+		service: 'lx/tools'
 	},
 	doc: {
 		box: null,
 		title: 'Documentation',
-		service: 'lx/lx-doc'
+		service: 'lx/doc'
 	},
 	demo: {
 		box: null,
 		title: 'Demo',
-		service: 'lx/lx-demo'
+		service: 'lx/demo'
 	}
 });
 const buts = [ Plugin->>cli, Plugin->>doc, Plugin->>demo ];

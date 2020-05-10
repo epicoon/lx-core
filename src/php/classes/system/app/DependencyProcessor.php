@@ -6,16 +6,18 @@ namespace lx;
  * Class DependencyProcessor
  * @package lx
  */
-class DependencyProcessor extends BaseObject implements FusionComponentInterface
+class DependencyProcessor extends BaseObject
 {
 	use ApplicationToolTrait;
-	use FusionComponentTrait;
 
 	/** @var array */
-	protected $interfaces = [];
+	private $interfaces = [];
 
 	/** @var array */
-	protected $classes = [];
+	private $classes = [];
+
+	/** @var array */
+	private $addedServices = [];
 
 	/**
 	 * DependencyProcessor constructor.
@@ -23,7 +25,10 @@ class DependencyProcessor extends BaseObject implements FusionComponentInterface
 	 */
 	public function __construct($config = [])
 	{
-		parent::__construct($config);
+	    parent::__construct($config);
+
+        $this->interfaces = $config['interfaces'] ?? [];
+        $this->classes = $config['classes'] ?? [];
 
 		// Validation creates dev-log messages if classes don't due to interfaces.
 		// This collisions must be solved during development.
@@ -32,9 +37,9 @@ class DependencyProcessor extends BaseObject implements FusionComponentInterface
 		}
 
 		// Default settings
-		if (!array_key_exists(DataFileInterface::class, $this->interfaces)) {
-			$this->interfaces[DataFileInterface::class] = DataFile::class;
-		}
+        $this->setDefaults([
+            DataFileInterface::class => DataFile::class,
+        ]);
 	}
 
 	/**
@@ -234,26 +239,51 @@ class DependencyProcessor extends BaseObject implements FusionComponentInterface
 	 */
 	private function createInstanceByInterface($interfaceName, $className = null)
 	{
-		$classForInterface = null;
-		if ($className !== null && array_key_exists($className, $this->classes)) {
-			$classData = $this->classes[$className];
-			if (array_key_exists($interfaceName, $classData)) {
-				$classForInterface = $classData[$interfaceName];
-			}
-		}
-
+		$classForInterface = $this->tryCreateInstanceByInterface($interfaceName, $className);
 		if (!$classForInterface) {
-			if (array_key_exists($interfaceName, $this->interfaces)) {
-				$classForInterface = $this->interfaces[$interfaceName];
-			}
-		}
+		    $service = ClassHelper::defineService($interfaceName);
+		    if (!$service || in_array($service->name, $this->addedServices)) {
+		        return null;
+            }
 
-		if (!$classForInterface) {
-			return null;
+		    $map = $service->getConfig('service.diProcessor') ?? [];
+		    $interfaces = $map['interfaces'] ?? [];
+            $classes = $map['classes'] ?? [];
+            $this->interfaces = ArrayHelper::mergeRecursiveDistinct($this->interfaces, $interfaces);
+            $this->classes = ArrayHelper::mergeRecursiveDistinct($this->classes, $classes);
+            $this->addedServices[] = $service->name;
+            $classForInterface = $this->tryCreateInstanceByInterface($interfaceName, $className);
+            if (!$classForInterface) {
+                return null;
+            }
 		}
 
 		return $this->create($classForInterface);
 	}
+
+    /**
+     * @param string $interfaceName
+     * @param string|null $className
+     * @return string|null
+     */
+    private function tryCreateInstanceByInterface($interfaceName, $className = null)
+    {
+        $classForInterface = null;
+        if ($className !== null && array_key_exists($className, $this->classes)) {
+            $classData = $this->classes[$className];
+            if (array_key_exists($interfaceName, $classData)) {
+                $classForInterface = $classData[$interfaceName];
+            }
+        }
+
+        if (!$classForInterface) {
+            if (array_key_exists($interfaceName, $this->interfaces)) {
+                $classForInterface = $this->interfaces[$interfaceName];
+            }
+        }
+
+        return $classForInterface;
+    }
 
 	/**
 	 * Validation creates dev-log messages if classes don't due to interfaces
@@ -285,4 +315,16 @@ class DependencyProcessor extends BaseObject implements FusionComponentInterface
 			}
 		}
 	}
+
+    /**
+     * @param array $map
+     */
+    private function setDefaults($map)
+    {
+        foreach ($map as $interface => $class) {
+            if (!array_key_exists($interface, $this->interfaces)) {
+                $this->interfaces[$interface] = $class;
+            }
+        }
+    }
 }

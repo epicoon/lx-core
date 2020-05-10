@@ -87,7 +87,7 @@ class PlatformConductor
 		$this->_lxAssets = $this->_web . '/lx';
 		$this->_webCss = $this->_web . '/css';
 
-		$this->_core = $this->_sitePath . '/vendor/lx/lx-core/src';
+		$this->_core = $this->_sitePath . '/vendor/lx/core/src';
 		$this->_jsCore = $this->_core . '/js/app.js';
 		$this->_jsNode = $this->_core . '/js/exec.js';
 		$this->_stdResponses = $this->_core . '/php/stdResponses';

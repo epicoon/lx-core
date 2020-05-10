@@ -6,20 +6,20 @@ namespace lx;
  * Class Router
  * @package lx
  */
-class Router extends BaseObject
+class Router extends BaseObject implements FusionComponentInterface
 {
 	use ApplicationToolTrait;
+	use FusionComponentTrait;
 
 	/** @var array */
-	protected $map;
+	protected $routes = [];
 
 	/**
 	 * @return SourceContext|false
 	 */
 	public function route()
 	{
-		$map = $this->getMap();
-		foreach ($map as $routeKey => $data) {
+		foreach ($this->routes as $routeKey => $data) {
 			$routeData = $this->determineRouteData($data);
 			if (!$this->validateRouteData($routeData)) {
 				continue;
@@ -49,22 +49,6 @@ class Router extends BaseObject
 		}
 
 		return false;
-	}
-
-	/**
-	 * @param array $map
-	 */
-	public function setMap($map)
-	{
-		$this->map = $map;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getMap()
-	{
-		return $this->map;
 	}
 
 
