@@ -127,7 +127,7 @@ class DbConnectionList
 	 * @param array $settings
 	 * @return resource|false
 	 */
-	private function try_pg($settings)
+	private function try_pgsql($settings)
 	{
 		if (!function_exists('\pg_connect')) {
 			return false;

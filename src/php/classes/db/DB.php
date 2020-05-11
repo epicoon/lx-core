@@ -3,7 +3,7 @@
 namespace lx;
 
 abstract class DB {
-	const POSTGRESQL = 'pg';
+	const POSTGRESQL = 'pgsql';
 	const MYSQL = 'mysql';
 
 	const SELECT_TYPE_FULL = 5;    // Возвращать все найденные поля
@@ -32,8 +32,8 @@ abstract class DB {
 
 		list($type, $connection) = self::$connections->add($settings);
 		switch ($type) {
-			case 'pg': return new DBpostgres($settings, $connection);
-			case 'mysql': return new DBmysql($settings, $connection);
+            case DB::POSTGRESQL: return new DBpostgres($settings, $connection);
+			case DB::MYSQL: return new DBmysql($settings, $connection);
 			case false: return null;
 		}
 	}

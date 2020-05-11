@@ -1,8 +1,8 @@
 <?php
 
-namespace lx\hello\plugin\world\backend;
+namespace lx\hello\plugins\world\backend;
 
-use lx\PluginBuildContext;
+use Exception;
 
 class Respondent extends \lx\Respondent {
 	public function loadPlugin($key) {
@@ -25,7 +25,7 @@ class Respondent extends \lx\Respondent {
 			if (!$plugin) {
 				return false;
 			}
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			return false;
 		}
 

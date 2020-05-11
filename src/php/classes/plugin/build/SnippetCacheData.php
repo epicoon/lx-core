@@ -336,13 +336,12 @@ class SnippetCacheData extends BaseObject
 		}
 		
 		$map = ArrayHelper::map($oldDependencies['plugins'], 'anchor');
-		$result = [];
 		foreach ($dependencies['plugins'] as &$dependency) {
 			$dependency = $map[$dependency];
 		}
 		unset($dependency);
 
-		return $result;
+		return $dependencies;
 	}
 
 	/**

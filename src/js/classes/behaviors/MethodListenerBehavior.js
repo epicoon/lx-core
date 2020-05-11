@@ -17,33 +17,33 @@ class MethodListenerBehavior extends lx.Behavior #lx:namespace lx {
 	/**
 	 *
 	 * */
-	static beforeMethod(funcName, func) {
-		__setMethodEvent.call(this, funcName, func, 'before');
+	static beforeMethod(funcName, func, duplicate = false) {
+		__setMethodEvent.call(this, funcName, func, 'before', duplicate);
 	}
 
 	/**
 	 *
 	 * */
-	static afterMethod(funcName, func) {
-		__setMethodEvent.call(this, funcName, func, 'after');
+	static afterMethod(funcName, func, duplicate = false) {
+		__setMethodEvent.call(this, funcName, func, 'after', duplicate);
 	}
 
 	/**
 	 *
 	 * */
-	beforeMethod(funcName, func) {
+	beforeMethod(funcName, func, duplicate = false) {
 		if (!this.behaviorMap.get(behKey, 'methodEvents'))
 			this.behaviorMap.set(behKey, 'methodEvents', {});
-		__setMethodEvent.call(this, funcName, func, 'before');
+		__setMethodEvent.call(this, funcName, func, 'before', duplicate);
 	}
 
 	/**
 	 *
 	 * */
-	afterMethod(funcName, func) {
+	afterMethod(funcName, func, duplicate = false) {
 		if (!this.behaviorMap.get(behKey, 'methodEvents'))
 			this.behaviorMap.set(behKey, 'methodEvents', {});
-		__setMethodEvent.call(this, funcName, func, 'after');
+		__setMethodEvent.call(this, funcName, func, 'after', duplicate);
 	}
 }
 
@@ -57,10 +57,16 @@ const behKey = lx.MethodListenerBehavior.lxFullName;
 /**
  *
  * */
-function __setMethodEvent(funcName, func, category) {
-	var obj = this.isFunction ? this.prototype : this;
+function __setMethodEvent(funcName, func, category, duplicate) {
+	var methodEvents = this.behaviorMap.get(behKey, 'methodEvents');
+	if (!duplicate
+		&& methodEvents[funcName]
+		&& methodEvents[funcName][category]
+		&& methodEvents[funcName][category].contains(func)
+	) return;
 
-	var temp = obj.__proto__,
+	var obj = this.isFunction ? this.prototype : this,
+		temp = obj.__proto__,
 		finded = false;
 	while (temp && !finded) {
 		var names = Object.getOwnPropertyNames(temp);
@@ -78,7 +84,6 @@ function __setMethodEvent(funcName, func, category) {
 
 	__wrapMethod.call(obj, funcName);
 
-	var methodEvents = this.behaviorMap.get(behKey, 'methodEvents');
 	if (!methodEvents[funcName]) {
 		methodEvents[funcName] = {
 			before: [],

@@ -174,85 +174,22 @@ function __makeWidgetMatrix(obj, info) {
 function __bindMatrix(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 	if (!(c instanceof lx.Collection)) return;
 
-	//todo c - коллекция существует чисто в замыкании - утечка памяти? надо рефакторить
 	if (c._lxMatrixBindId === undefined) c._lxMatrixBindId = __genBindId();
-	if (!(c._lxMatrixBindId in __matrixBinds)) __matrixBinds[c._lxMatrixBindId] = {collection: c, widgets:[widget]};
-	else __matrixBinds[c._lxMatrixBindId].widgets.push(widget);
+	if (!(c._lxMatrixBindId in __matrixBinds))
+		__matrixBinds[c._lxMatrixBindId] = {collection: c, type, widgets:[widget]};
+	else
+		__matrixBinds[c._lxMatrixBindId].widgets.push(widget);
 	widget._lxMatrixBindId = c._lxMatrixBindId;
 
-	function getMatrixCollection(widget) {
-		return __matrixBinds[widget._lxMatrixBindId].collection;
-	}
-
-	function newBox(w, obj) {
-		let rowClass = w.lxcwb_widget || lx.Box,
-			rowConfig = w.lxcwb_config ? w.lxcwb_config.lxClone() : {}
-		rowConfig.key = 'r';
-		rowConfig.parent = w;
-		let r = new rowClass(rowConfig);
-		r.begin();
-		w.lxcwb_itemRender(r, obj);
-		r.end();
-		__bind(obj, r, type);
-		if (w.lxcwb_afterBind) w.lxcwb_afterBind(r, obj);
-		r.matrixItems = function() {return getMatrixCollection(this.parent);};
-		r.matrixIndex = function() {return this.index || 0;};
-		r.matrixModel = function() {return getMatrixCollection(this.parent).at(this.index || 0);};
-	}
-
-	function onAdd(obj = null) {
-		if (this._lxMatrixBindId === undefined) return;
-		if (obj === null) obj = this.last();
-
-		var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
-		widgets.each((w)=>{
-			newBox(w, obj)
-		});
-	};
-
-	function onRemove(i) {
-		if (this._lxMatrixBindId === undefined) return;
-		var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
-		widgets.eachRevert((w)=>{
-			__unbind(this.at(i), w.getAll('r').at(i));
-			w.del('r', i);
-		});
-	};
-
-	function onClear() {
-		if (this._lxMatrixBindId === undefined) return;
-
-		var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
-		widgets.each((w)=>{
-			this.first();
-			let i = 0;
-			while (this.current()) {
-				__unbind(this.current(), w.getAll('r').at(i++));
-				this.next();
-			}
-			w.del('r');
-		});
-	};
-
-	function onSet(i, obj) {
-		if (this._lxMatrixBindId === undefined) return;
-		var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
-		widgets.eachRevert((w)=>{
-			__bind(this.at(i), w.getAll('r').at(i), type);
-		});
-	};
-
 	widget.stopPositioning();
-	c.each((a)=>newBox(widget, a));
+	c.each((a)=>__matrixNewBox(widget, a, type));
 	widget.startPositioning();
 
-	if (!c.hasBehavior(lx.MethodListenerBehavior))
-		c.addBehavior(lx.MethodListenerBehavior);
-
-	c.afterMethod('add',       function()      {onAdd.call(this);        });
-	c.beforeMethod('removeAt', function(i)     {onRemove.call(this, i);  });
-	c.beforeMethod('clear',    function(i)     {onClear.call(this);      });
-	c.afterMethod('set',       function(i, obj){onSet.call(this, i, obj);});
+	c.addBehavior(lx.MethodListenerBehavior);
+	c.afterMethod('add',       __matrixHandlerOnAdd   );
+	c.beforeMethod('removeAt', __matrixHandlerOnRemove);
+	c.beforeMethod('clear',    __matrixHandlerOnClear );
+	c.afterMethod('set',       __matrixHandlerOnSet   );
 }
 
 function __unbindMatrix(widget) {
@@ -476,3 +413,61 @@ function __bindProcess(obj, name, widgets) {
 	widgets.each((a)=> bindWidget(a, obj.lxBindId));
 }
 
+function __getMatrixCollection(widget) {
+	return __matrixBinds[widget._lxMatrixBindId].collection;
+}
+
+function __matrixNewBox(w, obj, type) {
+	let rowClass = w.lxcwb_widget || lx.Box,
+		rowConfig = w.lxcwb_config ? w.lxcwb_config.lxClone() : {}
+	rowConfig.key = 'r';
+	rowConfig.parent = w;
+	let r = new rowClass(rowConfig);
+	r.begin();
+	w.lxcwb_itemRender(r, obj);
+	r.end();
+	__bind(obj, r, type);
+	if (w.lxcwb_afterBind) w.lxcwb_afterBind(r, obj);
+	r.matrixItems = function() {return __getMatrixCollection(this.parent);};
+	r.matrixIndex = function() {return this.index || 0;};
+	r.matrixModel = function() {return __getMatrixCollection(this.parent).at(this.index || 0);};
+}
+
+function __matrixHandlerOnAdd(obj = null) {
+	if (this._lxMatrixBindId === undefined) return;
+	var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
+	widgets.each(w=>__matrixNewBox(w, this.last(), __matrixBinds[this._lxMatrixBindId].type));
+}
+
+function __matrixHandlerOnRemove(i) {
+	if (this._lxMatrixBindId === undefined) return;
+	var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
+	widgets.eachRevert((w)=>{
+		__unbind(this.at(i), w.getAll('r').at(i));
+		w.del('r', i);
+	});
+}
+
+function __matrixHandlerOnClear() {
+	if (this._lxMatrixBindId === undefined) return;
+
+	var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
+	widgets.each((w)=>{
+		this.first();
+		let i = 0;
+		while (this.current()) {
+			__unbind(this.current(), w.getAll('r').at(i++));
+			this.next();
+		}
+		w.del('r');
+	});
+}
+
+function __matrixHandlerOnSet(i, obj) {
+	if (this._lxMatrixBindId === undefined) return;
+	var widgets = __matrixBinds[this._lxMatrixBindId].widgets,
+		type = __matrixBinds[this._lxMatrixBindId].type;
+	widgets.eachRevert((w)=>{
+		__bind(this.at(i), w.getAll('r').at(i), type);
+	});
+}
