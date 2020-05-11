@@ -28,7 +28,7 @@ class ConsoleApplication extends AbstractApplication implements FusionInterface
 
 	public function run()
 	{
-		if (empty($this->args)) {
+		if (!isset($this->command)) {
 			return;
 		}
 
