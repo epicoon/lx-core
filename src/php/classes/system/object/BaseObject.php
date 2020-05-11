@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use ReflectionClass;
+
 /**
  * Class BaseObject
  * @package lx
@@ -139,7 +141,7 @@ class BaseObject
 
 		foreach ($protocol as $paramName => $paramDescr) {
 			$required = $paramDescr['required'] ?? false;
-			$instance = is_string($paramDescr)
+			$class = is_string($paramDescr)
 				? $paramDescr
 				: ($paramDescr['instance'] ?? null);
 
@@ -156,9 +158,9 @@ class BaseObject
 				continue;
 			}
 
-			if ($instance) {
+			if ($class) {
 				$param = $config[$paramName];
-				if (!($param instanceof $instance)) {
+				if (!($param instanceof $class)) {
 					$className = static::class;
 					\lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
 						'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
@@ -166,6 +168,10 @@ class BaseObject
 					]);
 					return false;
 				}
+
+				if (property_exists($this, $paramName)) {
+				    $this->$paramName = $param;
+                }
 			}
 		}
 
@@ -204,7 +210,7 @@ class BaseObject
 	private static function loadTraitInfo($traitName)
 	{
 		try {
-			$trait = new \ReflectionClass($traitName);
+			$trait = new ReflectionClass($traitName);
 		} catch (\ReflectionException $e) {
 			return;
 		}

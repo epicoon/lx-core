@@ -12,13 +12,10 @@ class User extends BaseObject implements FusionComponentInterface
 	use FusionComponentTrait;
 
 	/** @var string */
-	private static $userModelClass = null;
-
-	/** @var string */
 	private $authFieldName = null;
 
 	/** @var ModelInterface */
-	private $userModel = null;
+	protected $userModel = null;
 
 	/**
 	 * User constructor.
@@ -27,17 +24,18 @@ class User extends BaseObject implements FusionComponentInterface
 	public function __construct($config = [])
 	{
 		parent::__construct($config);
-
-		if (self::$userModelClass === null) {
-			self::$userModelClass = $config['userModelClass'] ?? null;
-		}
-
-		if (self::$userModelClass) {
-			$this->userModel = new self::$userModelClass();
-		}
-
 		$this->delegateMethodsCall('userModel');
 	}
+
+    /**
+     * @return array
+     */
+    public static function getConfigProtocol()
+    {
+        return [
+            'userModel' => ModelInterface::class,
+        ];
+    }
 
 	/**
 	 * @param string $name
@@ -85,7 +83,7 @@ class User extends BaseObject implements FusionComponentInterface
 	 */
 	public function isAvailable()
 	{
-		return self::$userModelClass !== null && $this->userModel !== null;
+		return $this->userModel !== null;
 	}
 
 	/**
