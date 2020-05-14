@@ -12,8 +12,8 @@ namespace lx;
  * @property-read string $site
  * @property-read string $sitePath
  * @property-read string $web
- * @property-read string $lxAssets
  * @property-read string $webCss
+ * @property-read string $webJs
  * @property-read string $core
  * @property-read string $jsCore
  * @property-read string $jsNode
@@ -30,10 +30,10 @@ class PlatformConductor
 	private $_web;
 
 	/** @var string */
-	private $_lxAssets;
-
-	/** @var string */
 	private $_webCss;
+
+    /** @var string */
+    private $_webJs;
 
 	/** @var string */
 	private $_core;
@@ -84,8 +84,8 @@ class PlatformConductor
 	{
 		$this->_sitePath = dirname(__DIR__, 5);
 		$this->_web = $this->_sitePath . '/web';
-		$this->_lxAssets = $this->_web . '/lx';
 		$this->_webCss = $this->_web . '/css';
+        $this->_webJs = $this->_web . '/js';
 
 		$this->_core = $this->_sitePath . '/vendor/lx/core/src';
 		$this->_jsCore = $this->_core . '/js/app.js';
@@ -106,8 +106,8 @@ class PlatformConductor
 		$this->_packageConfig = array_merge($this->_lxPackageConfig, ['composer.json']);
 		$this->publicFields = [
 			'web',
-			'lxAssets',
 			'webCss',
+            'webJs',
 			'core',
 			'jsCore',
 			'jsNode',

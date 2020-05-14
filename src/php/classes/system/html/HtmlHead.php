@@ -68,7 +68,7 @@ class HtmlHead extends BaseObject
 	private function getLxCss()
 	{
 		return '<link href="'
-			. ($this->getLxPath() . '/main.css')
+			. ($this->getCssPath() . '/main.css')
 			. '" type="text/css" rel="stylesheet">';
 	}
 
@@ -77,7 +77,7 @@ class HtmlHead extends BaseObject
 	 */
 	private function getLxJs()
 	{
-		$path = $this->getLxPath() . '/main.js';
+		$path = $this->getJsPath() . '/core.js';
 		return '<script src="' . $path . '"></script>';
 	}
 
@@ -87,7 +87,7 @@ class HtmlHead extends BaseObject
 	private function getIcon()
 	{
 		return '<link rel="shortcut icon" href="'
-			. ($this->icon ? $this->icon : ($this->getLxPath() . '/img/icon.png'))
+			. ($this->icon ? $this->icon : ($this->getCssPath() . '/img/icon.png'))
 			. '" type="image/png">';
 	}
 
@@ -129,11 +129,19 @@ class HtmlHead extends BaseObject
 		return $result;
 	}
 
+    /**
+     * @return string
+     */
+    private function getCssPath()
+    {
+        return '/' . $this->app->conductor->getRelativePath(\lx::$conductor->webCss);
+    }
+
 	/**
 	 * @return string
 	 */
-	private function getLxPath()
+	private function getJsPath()
 	{
-		return '/' . $this->app->conductor->getRelativePath(\lx::$conductor->lxAssets);
+		return '/' . $this->app->conductor->getRelativePath(\lx::$conductor->webJs);
 	}
 }

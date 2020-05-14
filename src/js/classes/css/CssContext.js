@@ -210,7 +210,10 @@ function __prepareContentString(content) {
 			}
 
 			var propName = prop.replace(/([A-Z])/g, function(x){return "-" + x.toLowerCase()});
-			arr.push(propName + ':' + content[prop]);
+			var propVal = content[prop].isString
+				? content[prop]
+				: (content[prop].toString ? content[prop].toString() : '');
+			arr.push(propName + ':' + propVal);
 		}
 		return arr.join(';');
 	};

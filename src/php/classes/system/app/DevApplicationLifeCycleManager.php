@@ -23,7 +23,7 @@ class DevApplicationLifeCycleManager
 		$compiler->compileLxCss();
 
 		$coreCode = $compiler->compileJsCore();
-		$file = new File(\lx::$conductor->lxAssets . '/main.js');
+		$file = new File(\lx::$conductor->webJs . '/core.js');
 		$file->put($coreCode);
 	}
 

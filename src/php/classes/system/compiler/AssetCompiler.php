@@ -109,7 +109,7 @@ class AssetCompiler
 		$coreCssPath = \lx::$conductor->core . '/css';
 		$dir = new \lx\Directory($coreCssPath);
 
-		$webCssPath = \lx::$conductor->lxAssets;
+		$webCssPath = \lx::$conductor->webCss;
 		$dir->clone($webCssPath);
 	}
 
@@ -162,7 +162,7 @@ class AssetCompiler
 	 */
 	public function compileLxCss()
 	{
-		$path = \lx::$conductor->lxAssets;
+		$path = \lx::$conductor->webCss;
 		$cssFile = new File($path . '/main.css');
 		if (!$cssFile->exists()) {
 			$this->copyLxCss();
