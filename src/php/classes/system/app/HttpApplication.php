@@ -12,10 +12,8 @@ namespace lx;
  * @property-read I18nApplicationMap $i18nMap
  * @property-read User $user
  */
-class HttpApplication extends AbstractApplication implements FusionInterface
+class HttpApplication extends AbstractApplication
 {
-	use FusionTrait;
-
 	/** @var array */
 	private $settings;
 

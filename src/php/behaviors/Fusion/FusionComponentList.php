@@ -37,11 +37,8 @@ class FusionComponentList
 		}
 
 		if (array_key_exists($name, $this->config)) {
-			$data = $this->config[$name];
-			unset($this->config[$name]);
-			$params = $data['params'];
-			$params['__fusion__'] = $this->fusion;
-			$this->list[$name] = \lx::$app->diProcessor->create($data['class'], $params);
+			$this->createInstance($name, $this->config[$name]);
+            unset($this->config[$name]);
 			return $this->list[$name];
 		}
 
@@ -82,7 +79,22 @@ class FusionComponentList
 				continue;
 			}
 
-			$this->config[$name] = $data;
+			if (is_subclass_of($data['class'], EventListenerInterface::class)) {
+			    $this->createInstance($name, $data);
+            } else {
+                $this->config[$name] = $data;
+            }
 		}
 	}
+
+    /**
+     * @param string $name
+     * @param array $data
+     */
+	private function createInstance($name, $data)
+    {
+        $params = $data['params'];
+        $params['__fusion__'] = $this->fusion;
+        $this->list[$name] = \lx::$app->diProcessor->create($data['class'], $params);
+    }
 }

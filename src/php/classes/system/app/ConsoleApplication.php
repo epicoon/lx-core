@@ -6,10 +6,8 @@ namespace lx;
  * Class ConsoleApplication
  * @package lx
  */
-class ConsoleApplication extends AbstractApplication implements FusionInterface
+class ConsoleApplication extends AbstractApplication
 {
-	use FusionTrait;
-
     /** @var string */
     protected $command;
 

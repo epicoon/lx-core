@@ -14,8 +14,10 @@ namespace lx;
  * @property-read EventManager $events
  * @property-read LoggerInterface $logger
  */
-abstract class AbstractApplication extends BaseObject
+abstract class AbstractApplication extends BaseObject implements FusionInterface
 {
+    use FusionTrait;
+
 	/** @var string */
 	private $id;
 
@@ -40,11 +42,11 @@ abstract class AbstractApplication extends BaseObject
 	/** @var ServicesMap */
 	private $_services;
 
+	/** @var EventManager */
+	private $_events;
+
 	/** @var DependencyProcessor */
 	private $_diProcessor;
-
-	/** @var LoggerInterface */
-	private $_logger;
 
 	/**
 	 * AbstractApplication constructor.
@@ -76,11 +78,11 @@ abstract class AbstractApplication extends BaseObject
         );
 		$this->_diProcessor = new $diConfig['class']($diConfig['params']);
 
-		$loggerConfig = ClassHelper::prepareConfig(
-		    $this->getConfig('logger'),
-            ApplicationLogger::class
+        $eventsConfig = ClassHelper::prepareConfig(
+            $this->getConfig('eventManager'),
+            EventManager::class
         );
-		$this->_logger = new $loggerConfig['class']($loggerConfig['params']);
+        $this->_events = new $eventsConfig['class']($eventsConfig['params']);
 
         $this->initFusionComponents($this->getConfig('components'), static::getDefaultComponents());
 
@@ -93,7 +95,7 @@ abstract class AbstractApplication extends BaseObject
     protected static function getDefaultComponents()
     {
         return [
-            'events' => EventManager::class,
+            'logger' => ApplicationLogger::class,
         ];
     }
 
@@ -119,8 +121,8 @@ abstract class AbstractApplication extends BaseObject
 				return $this->_services;
             case 'diProcessor':
                 return $this->_diProcessor;
-			case 'logger':
-				return $this->_logger;
+            case 'events':
+                return $this->_events;
 		}
 
 		return parent::__get($name);
