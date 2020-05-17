@@ -35,6 +35,34 @@ class Yaml
 		}
 	}
 
+    /**
+     * @param File|string $file
+     * @return array
+     */
+    public static function runParseFile($file)
+    {
+        if (is_string($file)) {
+            $file = new File($file);
+        }
+
+        if (!$file->exists()) {
+            return [];
+        }
+
+        return self::runParse($file->get(), $file->getParentDirPath());
+    }
+
+    /**
+     * @param string $text
+     * @param string $referencesRootPath
+     * @return array
+     */
+    public static function runParse($text = null, $referencesRootPath = null)
+    {
+        $instance = new self();
+        return $instance->parse($text, $referencesRootPath);
+    }
+
 	/**
 	 * @param string $text
 	 * @param string $referencesRootPath
@@ -43,13 +71,27 @@ class Yaml
 	{
 		$this->text = $text;
 		$this->parsed = null;
-		$this->referencesRootPath = $referencesRootPath;
-		if ($this->referencesRootPath !== null && $this->referencesRootPath{-1} != '/') {
-			$this->referencesRootPath .= '/';
-		}
+		$this->referencesRootPath = \lx::$app->conductor->getFullPath($referencesRootPath);
 		$this->templates = [];
 		$this->references = [];
 	}
+
+    /**
+     * @param File|string $file
+     * @return array
+     */
+	public function parseFile($file)
+    {
+        if (is_string($file)) {
+            $file = new File($file);
+        }
+
+        if (!$file->exists()) {
+            return [];
+        }
+
+        return $this->parse($file->get(), $file->getParentDirPath());
+    }
 
 	/**
 	 * @param string $text
@@ -120,19 +162,15 @@ class Yaml
 	 */
 	private function extractReferences($text)
 	{
-		return preg_replace_callback('/\^ref (.*?)(\n)/', function ($matches) {
+		return preg_replace_callback('/\^ref (.*?)(\n|$)/', function ($matches) {
 			$path = $matches[1];
-			if (array_key_exists($path, $this->references))
-				return "*{$matches[1]}{$matches[2]}";
+			if (array_key_exists($path, $this->references)) {
+                return "*{$matches[1]}{$matches[2]}";
+            }
 
 			$value = 'ref_error';
 
-			$rootPath = ($path{0} == '/')
-				? \lx::$app->sitePath
-				: $this->referencesRootPath;
-			if (!$rootPath) return $matches[0];
-
-			$fullPath = $rootPath . $path;
+			$fullPath = \lx::$app->conductor->getFullPath($path, $this->referencesRootPath);
 			$file = new File($fullPath);
 			if (!$file->exists()) return $matches[0];
 

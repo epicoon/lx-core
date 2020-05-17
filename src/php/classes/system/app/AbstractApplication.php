@@ -56,6 +56,7 @@ abstract class AbstractApplication extends BaseObject
 		$this->pid = getmypid();
 		$this->_sitePath = \lx::$conductor->sitePath;
 		$this->_conductor = new ApplicationConductor();
+        \lx::$app = $this;
 
         if (empty($config)) {
             $this->renewConfig();
@@ -66,8 +67,6 @@ abstract class AbstractApplication extends BaseObject
 		$aliases = $this->getConfig('aliases');
 		if (!$aliases) $aliases = [];
 		$this->_conductor->setAliases($aliases);
-
-        \lx::$app = $this;
 
 		$this->_services = new ServicesMap();
 
