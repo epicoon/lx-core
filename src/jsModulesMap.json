@@ -1,1 +1,117 @@
-{"lx.ActiveBox":{"name":"lx.ActiveBox","path":"vendor\/lx\/core\/src\/widgets\/ActiveBox\/ActiveBox.js"},"lx.Box":{"name":"lx.Box","path":"vendor\/lx\/core\/src\/widgets\/Box\/Box.js"},"lx.BoxSlider":{"name":"lx.BoxSlider","path":"vendor\/lx\/core\/src\/widgets\/BoxSlider\/BoxSlider.js"},"lx.Button":{"name":"lx.Button","path":"vendor\/lx\/core\/src\/widgets\/Button\/Button.js"},"lx.Calendar":{"name":"lx.Calendar","path":"vendor\/lx\/core\/src\/widgets\/Calendar\/Calendar.js"},"lx.Checkbox":{"name":"lx.Checkbox","path":"vendor\/lx\/core\/src\/widgets\/Checkbox\/Checkbox.js"},"lx.CheckboxGroup":{"name":"lx.CheckboxGroup","path":"vendor\/lx\/core\/src\/widgets\/CheckboxGroup\/CheckboxGroup.js"},"lx.Dropbox":{"name":"lx.Dropbox","path":"vendor\/lx\/core\/src\/widgets\/Dropbox\/Dropbox.js"},"lx.EggMenu":{"name":"lx.EggMenu","path":"vendor\/lx\/core\/src\/widgets\/EggMenu\/EggMenu.js"},"lx.Form":{"name":"lx.Form","path":"vendor\/lx\/core\/src\/widgets\/Form\/Form.js"},"lx.Image":{"name":"lx.Image","path":"vendor\/lx\/core\/src\/widgets\/Image\/Image.js"},"lx.ImageSlider":{"name":"lx.ImageSlider","path":"vendor\/lx\/core\/src\/widgets\/ImageSlider\/ImageSlider.js"},"lx.Input":{"name":"lx.Input","path":"vendor\/lx\/core\/src\/widgets\/Input\/Input.js"},"lx.LabeledGroup":{"name":"lx.LabeledGroup","path":"vendor\/lx\/core\/src\/widgets\/LabeledGroup\/LabeledGroup.js"},"lx.MessageBox":{"name":"lx.MessageBox","path":"vendor\/lx\/core\/src\/widgets\/MessageBox\/MessageBox.js"},"lx.MultiBox":{"name":"lx.MultiBox","path":"vendor\/lx\/core\/src\/widgets\/MultiBox\/MultiBox.js"},"lx.Paginator":{"name":"lx.Paginator","path":"vendor\/lx\/core\/src\/widgets\/Paginator\/Paginator.js","data":{"i18n":"i18n.yaml"}},"lx.Radio":{"name":"lx.Radio","path":"vendor\/lx\/core\/src\/widgets\/Radio\/Radio.js"},"lx.RadioGroup":{"name":"lx.RadioGroup","path":"vendor\/lx\/core\/src\/widgets\/RadioGroup\/RadioGroup.js"},"lx.Rect":{"name":"lx.Rect","path":"vendor\/lx\/core\/src\/widgets\/Rect\/Rect.js"},"lx.Slider":{"name":"lx.Slider","path":"vendor\/lx\/core\/src\/widgets\/Slider\/Slider.js"},"lx.Table":{"name":"lx.Table","path":"vendor\/lx\/core\/src\/widgets\/Table\/Table.js"},"lx.TextBox":{"name":"lx.TextBox","path":"vendor\/lx\/core\/src\/widgets\/TextBox\/TextBox.js"},"lx.Textarea":{"name":"lx.Textarea","path":"vendor\/lx\/core\/src\/widgets\/Textarea\/Textarea.js"},"lx.TreeBox":{"name":"lx.TreeBox","path":"vendor\/lx\/core\/src\/widgets\/TreeBox\/TreeBox.js"}}
+{
+    "lx.ColorSchema.dark": {
+        "name": "lx.ColorSchema.dark",
+        "path": "vendor\/lx\/core\/src\/modules\/colorSchemas\/dark.js"
+    },
+    "lx.ColorSchema.white": {
+        "name": "lx.ColorSchema.white",
+        "path": "vendor\/lx\/core\/src\/modules\/colorSchemas\/white.js"
+    },
+    "lx.MainCssContext": {
+        "name": "lx.MainCssContext",
+        "path": "vendor\/lx\/core\/src\/modules\/cssContexts\/MainCssContext.js"
+    },
+    "lx.ActiveBox": {
+        "name": "lx.ActiveBox",
+        "path": "vendor\/lx\/core\/src\/widgets\/ActiveBox\/ActiveBox.js"
+    },
+    "lx.Box": {
+        "name": "lx.Box",
+        "path": "vendor\/lx\/core\/src\/widgets\/Box\/Box.js"
+    },
+    "lx.BoxSlider": {
+        "name": "lx.BoxSlider",
+        "path": "vendor\/lx\/core\/src\/widgets\/BoxSlider\/BoxSlider.js"
+    },
+    "lx.Button": {
+        "name": "lx.Button",
+        "path": "vendor\/lx\/core\/src\/widgets\/Button\/Button.js"
+    },
+    "lx.Calendar": {
+        "name": "lx.Calendar",
+        "path": "vendor\/lx\/core\/src\/widgets\/Calendar\/Calendar.js"
+    },
+    "lx.Checkbox": {
+        "name": "lx.Checkbox",
+        "path": "vendor\/lx\/core\/src\/widgets\/Checkbox\/Checkbox.js"
+    },
+    "lx.CheckboxGroup": {
+        "name": "lx.CheckboxGroup",
+        "path": "vendor\/lx\/core\/src\/widgets\/CheckboxGroup\/CheckboxGroup.js"
+    },
+    "lx.Dropbox": {
+        "name": "lx.Dropbox",
+        "path": "vendor\/lx\/core\/src\/widgets\/Dropbox\/Dropbox.js"
+    },
+    "lx.EggMenu": {
+        "name": "lx.EggMenu",
+        "path": "vendor\/lx\/core\/src\/widgets\/EggMenu\/EggMenu.js"
+    },
+    "lx.Form": {
+        "name": "lx.Form",
+        "path": "vendor\/lx\/core\/src\/widgets\/Form\/Form.js"
+    },
+    "lx.Image": {
+        "name": "lx.Image",
+        "path": "vendor\/lx\/core\/src\/widgets\/Image\/Image.js"
+    },
+    "lx.ImageSlider": {
+        "name": "lx.ImageSlider",
+        "path": "vendor\/lx\/core\/src\/widgets\/ImageSlider\/ImageSlider.js"
+    },
+    "lx.Input": {
+        "name": "lx.Input",
+        "path": "vendor\/lx\/core\/src\/widgets\/Input\/Input.js"
+    },
+    "lx.LabeledGroup": {
+        "name": "lx.LabeledGroup",
+        "path": "vendor\/lx\/core\/src\/widgets\/LabeledGroup\/LabeledGroup.js"
+    },
+    "lx.MessageBox": {
+        "name": "lx.MessageBox",
+        "path": "vendor\/lx\/core\/src\/widgets\/MessageBox\/MessageBox.js"
+    },
+    "lx.MultiBox": {
+        "name": "lx.MultiBox",
+        "path": "vendor\/lx\/core\/src\/widgets\/MultiBox\/MultiBox.js"
+    },
+    "lx.Paginator": {
+        "name": "lx.Paginator",
+        "path": "vendor\/lx\/core\/src\/widgets\/Paginator\/Paginator.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
+    },
+    "lx.Radio": {
+        "name": "lx.Radio",
+        "path": "vendor\/lx\/core\/src\/widgets\/Radio\/Radio.js"
+    },
+    "lx.RadioGroup": {
+        "name": "lx.RadioGroup",
+        "path": "vendor\/lx\/core\/src\/widgets\/RadioGroup\/RadioGroup.js"
+    },
+    "lx.Rect": {
+        "name": "lx.Rect",
+        "path": "vendor\/lx\/core\/src\/widgets\/Rect\/Rect.js"
+    },
+    "lx.Slider": {
+        "name": "lx.Slider",
+        "path": "vendor\/lx\/core\/src\/widgets\/Slider\/Slider.js"
+    },
+    "lx.Table": {
+        "name": "lx.Table",
+        "path": "vendor\/lx\/core\/src\/widgets\/Table\/Table.js"
+    },
+    "lx.TextBox": {
+        "name": "lx.TextBox",
+        "path": "vendor\/lx\/core\/src\/widgets\/TextBox\/TextBox.js"
+    },
+    "lx.Textarea": {
+        "name": "lx.Textarea",
+        "path": "vendor\/lx\/core\/src\/widgets\/Textarea\/Textarea.js"
+    },
+    "lx.TreeBox": {
+        "name": "lx.TreeBox",
+        "path": "vendor\/lx\/core\/src\/widgets\/TreeBox\/TreeBox.js"
+    }
+}

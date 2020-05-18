@@ -7,6 +7,7 @@ class CssContext #lx:namespace lx {
 		this.styles = {};
 		this.abstractClasses = {};
 		this.classes = {};
+		this.mixins = {};
 	}
 
 	addStyle(name, content = {}) {
@@ -38,10 +39,11 @@ class CssContext #lx:namespace lx {
 	}
 
 	addAbstractClass(name, content = {}, pseudoclasses = {}) {
+		var processed = __processContent(this, content, pseudoclasses);
 		this.abstractClasses[name] = {
 			name,
-			content,
-			pseudoclasses
+			content: processed.content,
+			pseudoclasses: processed.pseudoclasses
 		};
 	}
 
@@ -51,10 +53,11 @@ class CssContext #lx:namespace lx {
 			type: 'classes'
 		});
 
+		var processed = __processContent(this, content, pseudoclasses);
 		this.classes[name] = {
 			name,
-			content,
-			pseudoclasses
+			content: processed.content,
+			pseudoclasses: processed.pseudoclasses
 		};
 	}
 
@@ -72,20 +75,22 @@ class CssContext #lx:namespace lx {
 			type: 'classes'
 		});
 
+		var processed = __processContent(this, content, pseudoclasses);
 		this.classes[name] = {
 			name,
 			parent,
-			content,
-			pseudoclasses
+			content: processed.content,
+			pseudoclasses: processed.pseudoclasses
 		};
 	}
 
 	inheritAbstractClass(name, parent, content = {}, pseudoclasses = {}) {
+		var processed = __processContent(this, content, pseudoclasses);
 		this.abstractClasses[name] = {
 			name,
 			parent,
-			content,
-			pseudoclasses
+			content: processed.content,
+			pseudoclasses: processed.pseudoclasses
 		};
 	}
 
@@ -95,6 +100,10 @@ class CssContext #lx:namespace lx {
 			if (content.isArray) this.inheritClass(name, parent, content[0], content[1]);
 			else this.inheritClass(name, parent, content);
 		}
+	}
+
+	registerMixin(name, callback) {
+		this.mixins[name] = callback;
 	}
 
 	toString() {
@@ -110,6 +119,32 @@ class CssContext #lx:namespace lx {
 /***********************************************************************************************************************
  * PRIVATE
  **********************************************************************************************************************/
+function __processContent(self, content, pseudoclasses) {
+	var processedContent = {};
+	var processedPClasses = pseudoclasses;
+	for (var name in content) {
+		if (name[0] != '@') {
+			processedContent[name] = content[name];
+			continue;
+		}
+
+		name = name.replace('@', '');
+		if (!(name in self.mixins)) continue;
+
+		var args = content['@'+name];
+		if (!args.isArray) args = [args];
+		var result = self.mixins[name].apply(null, args);
+
+		processedContent.lxMerge(result.content);
+		processedPClasses.lxMerge(result.pseudoclasses);
+	}
+
+	return {
+		content: processedContent,
+		pseudoclasses
+	};
+}
+
 function __renderRule(self, rule) {
 	switch (rule.type) {
 		case 'styles': return __renderStyle(self, self.styles[rule.name]);

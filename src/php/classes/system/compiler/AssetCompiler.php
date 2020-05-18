@@ -150,8 +150,11 @@ class AssetCompiler
 				if (!$pare['css']) {
 					$pare['css'] = $d->makeFile($key);
 				}
-				$exec = new NodeJsExecutor();
-				$cssCode = $exec->runFile($pare['js'], ['@core/js/classes/css/CssContext']);
+
+                $compiler = new JsCompiler();
+                $compiler->setBuildModules(true);
+                $exec = new NodeJsExecutor($compiler);
+                $cssCode = $exec->runFile($pare['js']);
 				$pare['css']->put($cssCode);
 			}
 		}
@@ -170,8 +173,10 @@ class AssetCompiler
 
 		$cssJsFile = new File($path . '/main.css.js');
 		if ($cssJsFile->exists() && $cssJsFile->isNewer($cssFile)) {
-			$exec = new NodeJsExecutor();
-			$res = $exec->runFile($cssJsFile, ['@core/js/classes/css/CssContext']);
+		    $compiler = new JsCompiler();
+		    $compiler->setBuildModules(true);
+			$exec = new NodeJsExecutor($compiler);
+            $res = $exec->runFile($cssJsFile);
 			$cssFile->put($res);
 		}
 	}
