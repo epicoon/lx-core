@@ -37,6 +37,18 @@ class Plugin #lx:namespace lx {
         this._changes.icon = value;
     }
 
+    getImage(name) {
+        if (name[0] != '@') {
+            if (!this.images['default']) return name;
+            return this.images['default'] + '/' + name;
+        }
+
+        var arr = name.match(/^@([^\/]+?)(\/.+)$/);
+        if (!arr || !this.images[arr[1]]) return '';
+
+        return this.images[arr[1]] + arr[2];
+    }
+
     getWidgetBasicCss(widgetClass) {
         if (widgetClass in this.widgetBasicCss)
             return this.widgetBasicCss[widgetClass];

@@ -11,7 +11,7 @@ class Minimizer
 	{
 		$text = preg_replace('/\/\/\*.*?(\\\n|\n|$)/', '', $text);
 		$text = preg_replace('/\/\*[\w\W]*?\*\//', '', $text);
-		$text = preg_replace('/(?<!http:|https:)\/\/.*?(\\\n|\n|$)/', '', $text);
+		$text = preg_replace('/(?<!:)\/\/.*?(\\\n|\n|$)/', '', $text);
 		return $text;
 	}
 
