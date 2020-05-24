@@ -105,8 +105,16 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 		}
 	}
 
-	setHeader(text) {
+	setHeaderText(text) {
 		this->header->textWrapper.text(text);
+	}
+
+	getCloseButton() {
+		this.setBuildMode(true);
+		var contains = this.contains('header') && this->header.contains('closeButton');
+		this.setBuildMode(false);
+		if (!contains) return null;
+		return this->header->closeButton;
 	}
 
 	setResizer(config) {

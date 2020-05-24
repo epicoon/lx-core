@@ -24,12 +24,34 @@ class ModelCollection extends lx.Collection #lx:namespace lx {
 	}
 
 	load(list) {
-		list.each((fields)=>this.add(fields));
+		list.each(fields=>this.add(fields));
 	}
 
 	reset(list) {
 		this.clear();
 		if (list) this.load(list);
+	}
+
+	removeByData(data) {
+		var indexes = this.searchIndexesByData(data);
+		indexes.eachRevert(index=>{
+			this.removeAt(index)
+		});
+	}
+
+	searchIndexesByData(data) {
+		var indexes = [];
+		this.each((elem, index)=>{
+			for (var i in data) {
+				if (!(i in elem) || data[i] != elem[i]) return;
+			}
+			indexes.push(index);
+		});
+		return indexes;
+	}
+
+	unbind() {
+		this.each(elem=>elem.unbind());
 	}
 
 	static create(config) {

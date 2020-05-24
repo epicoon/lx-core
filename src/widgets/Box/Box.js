@@ -913,6 +913,10 @@ class Box extends lx.Rect #lx:namespace lx {
         );
     }
 
+    dropMatrix() {
+        lx.Binder.unbindMatrix(this);
+    }
+
     agregator(c, type=lx.Binder.BIND_TYPE_FULL) {
         lx.Binder.bindAgregation(c, this, type);
     }
