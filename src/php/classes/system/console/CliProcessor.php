@@ -479,12 +479,16 @@ class CliProcessor extends BaseObject
 			return;
 		}
 
-		$service = null;
-		$serviceName = $this->getArg(0);
-		if (!$serviceName) {
-			$serviceName = $this->getArg('s');
-		}
-		if ($serviceName) {
+        if ($this->getArg(0) == 'all') {
+            $this->outln('Creating full map...');
+            (new JsModuleMapBuilder())->renewAllServices();
+            $this->outln('Done');
+            return;
+        }
+
+        $service = null;
+        $serviceName = $this->getArg(['s', 'service']);
+        if ($serviceName) {
 			try {
 				$service = $this->app->getService($serviceName);
 			} catch (\Exception $e) {
@@ -497,8 +501,8 @@ class CliProcessor extends BaseObject
 		}
 
 		if ($service === null) {
-			$this->outln('Creating full map...');
-			(new JsModuleMapBuilder())->renewAllServices();
+			$this->outln('Updating modules list...');
+			(new JsModuleMapBuilder())->renewHead();
 			$this->outln('Done');
 			return;
 		}
