@@ -6,10 +6,8 @@ namespace lx;
  * Class HtmlHead
  * @package lx
  */
-class HtmlHead extends BaseObject
+class HtmlHead
 {
-	use ApplicationToolTrait;
-
 	/** @var string */
 	private $title = 'lx';
 
@@ -53,7 +51,6 @@ class HtmlHead extends BaseObject
 			. $this->getLxCss()
 			. $this->getCss()
 			. $this->getLxJs()
-			. $this->js . '</script>'
 			. $this->getScripts();
 	}
 
@@ -134,7 +131,7 @@ class HtmlHead extends BaseObject
      */
     private function getCssPath()
     {
-        return '/' . $this->app->conductor->getRelativePath(\lx::$conductor->webCss);
+        return '/' . \lx::$app->conductor->getRelativePath(\lx::$conductor->webCss);
     }
 
 	/**
@@ -142,6 +139,6 @@ class HtmlHead extends BaseObject
 	 */
 	private function getJsPath()
 	{
-		return '/' . $this->app->conductor->getRelativePath(\lx::$conductor->webJs);
+		return '/' . \lx::$app->conductor->getRelativePath(\lx::$conductor->webJs);
 	}
 }

@@ -74,7 +74,7 @@ class Plugin extends Source implements FusionInterface
 	 */
 	public function __construct($data)
 	{
-		parent::__construct($data);
+	    parent::__construct($data);
 
 		$this->service = $data['service'];
 		$this->_name = $this->service->getID() . ':' . $data['name'];
@@ -168,7 +168,7 @@ class Plugin extends Source implements FusionInterface
 				return $this->_prototype;
 		}
 
-		return parent::__get($name);
+		return $this->__objectGet($name);
 	}
 
 	/**
@@ -310,23 +310,25 @@ class Plugin extends Source implements FusionInterface
 	 *
 	 * @param array $params
 	 * @param User $user
-	 * @return array|SourceError
+	 * @return ResponseInterface
 	 */
 	public function run($params = [], $user = null)
 	{
 		$builder = new PluginBuildContext(['plugin' => $this]);
-		return $builder->build();
+		$result = $builder->build();
+
+		return $this->prepareResponse($result);
 	}
 
 	/**
 	 * Define in child
 	 *
 	 * @param array $data
-	 * @return mixed
+	 * @return ResponseInterface
 	 */
 	protected function ajaxResponse($data)
 	{
-		return false;
+		return $this->prepareErrorResponse('Resource not found', ResponseCodeEnum::NOT_FOUND);
 	}
 
 	/**

@@ -9,10 +9,8 @@ require_once(__DIR__ . '/Minimizer.php');
  * Class JsCompiler
  * @package lx
  */
-class JsCompiler extends BaseObject
+class JsCompiler
 {
-	use ApplicationToolTrait;
-
 	const CONTEXT_CLIENT = 'client';
 	const CONTEXT_SERVER = 'server';
 
@@ -43,7 +41,7 @@ class JsCompiler extends BaseObject
 	 */
 	public function __construct($conductor = null)
 	{
-		$this->conductor = $conductor ?? $this->app->conductor;
+		$this->conductor = $conductor ?? \lx::$app->conductor;
 		$this->sintaxExtender = new SintaxExtender($this);
 
 		$this->context = self::CONTEXT_CLIENT;
@@ -211,22 +209,29 @@ class JsCompiler extends BaseObject
 
 	/**
 	 * Можно писать js-код под конкретный режим работы приложения при помощи директив:
-	 * #lx:mode-case: SOME_MODE_0;
+	 * #lx:mode-case: SOME_MODE_0
 	 *    ... some code
-	 * #lx:mode-case: SOME_MODE_1;
+	 * #lx:mode-case: SOME_MODE_1
 	 *    ... some code
+     * #lx:mode-default:
+     *    ... some code
 	 * #lx:mode-end;
 	 * */
 	private function checkMode($code)
 	{
-		$mode = $this->app->getConfig('mode');
+		$mode = \lx::$app->getConfig('mode');
 		$reg = '/#lx:mode-case[\w\W]*?#lx:mode-end;?/';
 		$code = preg_replace_callback($reg, function ($matches) use ($mode) {
 			if (!$mode) return '';
 
 			$match = $matches[0];
-			preg_match_all('/#lx:mode-case:?\s*' . $mode . ';([\w\W]*?)#lx:mode-/', $match, $data);
-			if (empty($data[0])) return '';
+			preg_match_all('/#lx:mode-case:?\s*' . $mode . '\s+([\w\W]*?)#lx:mode-/', $match, $data);
+			if (empty($data[0])) {
+                preg_match_all('/#lx:mode-default:\s*([\w\W]*?)#lx:mode-/', $match, $data);
+                if (empty($data[0])) {
+                    return '';
+                }
+			}
 
 			return $data[1][0];
 		}, $code);
@@ -322,7 +327,7 @@ class JsCompiler extends BaseObject
 		}
 
 		$moduleMap = (new JsModuleMap())->getMap();
-		$sitePath = $this->app->sitePath;
+		$sitePath = \lx::$app->sitePath;
 		$filePathes = [];
 		foreach ($moduleNames as $moduleName) {
 			if (!array_key_exists($moduleName, $moduleMap)) {
@@ -353,7 +358,7 @@ class JsCompiler extends BaseObject
 			$fullPath = $this->conductor->getFullPath($path, $parentDir);
 			$this->dependencies->addI18n($fullPath);
 
-			$this->app->useI18n($fullPath);
+			\lx::$app->useI18n($fullPath);
 		}
 	}
 
@@ -530,7 +535,7 @@ class JsCompiler extends BaseObject
 		$code = preg_replace_callback($pattern, function ($matches) use ($parentDir) {
 			$path = $matches[1];
 			$fullPath = $this->conductor->getFullPath($path, $parentDir);
-			$file = $this->app->diProcessor->createByInterface(DataFileInterface::class, [$fullPath]);
+			$file = \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$fullPath]);
 			if (!$file->exists()) {
 				return 'undefined';
 			}

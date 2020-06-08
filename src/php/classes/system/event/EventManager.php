@@ -6,8 +6,9 @@ namespace lx;
  * Class EventManager
  * @package lx
  */
-class EventManager extends BaseObject implements FusionComponentInterface
+class EventManager implements FusionComponentInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
@@ -20,7 +21,7 @@ class EventManager extends BaseObject implements FusionComponentInterface
 	 */
 	public function __construct($config = [])
 	{
-		parent::__construct($config);
+	    $this->__objectConstruct($config);
 		$this->list = [];
 	}
 

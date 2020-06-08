@@ -6,10 +6,8 @@ namespace lx;
  * Class DependencyProcessor
  * @package lx
  */
-class DependencyProcessor extends BaseObject
+class DependencyProcessor
 {
-	use ApplicationToolTrait;
-
 	/** @var array */
 	private $interfaces = [];
 
@@ -19,26 +17,29 @@ class DependencyProcessor extends BaseObject
 	/** @var array */
 	private $addedServices = [];
 
+	/** @var array */
+	private $instances = [];
+
 	/**
 	 * DependencyProcessor constructor.
 	 * @param array $config
 	 */
 	public function __construct($config = [])
 	{
-	    parent::__construct($config);
-
         $this->interfaces = $config['interfaces'] ?? [];
         $this->classes = $config['classes'] ?? [];
 
 		// Validation creates dev-log messages if classes don't due to interfaces.
 		// This collisions must be solved during development.
-		if ($this->app->isNotProd()) {
+		if (\lx::$app->isNotProd()) {
 			$this->validate();
 		}
 
 		// Default settings
         $this->setDefaults([
             DataFileInterface::class => DataFile::class,
+            ResponseInterface::class => Response::class,
+            RendererInterface::class => Renderer::class,
         ]);
 	}
 
@@ -51,11 +52,29 @@ class DependencyProcessor extends BaseObject
 	public function create($className, $params = [], $dependencies = [])
 	{
 		$re = new \ReflectionClass($className);
-		if ($re->isSubclassOf(BaseObject::class)) {
-			return $this->createObject($re, $params, $dependencies);
-		}
+		
+		if ($re->isInterface()) {
+		    return $this->createByInterface($className, $params, $dependencies);
+        }
 
-		return $this->createProcess($re, $params, $dependencies);
+		$isSingleton = false;
+		if ($re->hasMethod('isSingleton')) {
+		    $method = $re->getMethod('isSingleton');
+            $isSingleton = $method->invoke(null);
+		    if ($isSingleton && array_key_exists($className, $this->instances)) {
+		        return $this->instances[$className];
+            }
+        }
+
+		$instance = ($re->hasMethod('isLxObject'))
+            ? $this->createObject($re, $params, $dependencies)
+            : $this->createProcess($re, $params, $dependencies);
+
+		if ($isSingleton) {
+		    $this->instances[$className] = $instance;
+        }
+
+		return $instance;
 	}
 
 	/**

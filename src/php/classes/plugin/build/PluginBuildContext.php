@@ -6,8 +6,9 @@ namespace lx;
  * Class PluginBuildContext
  * @package lx
  */
-class PluginBuildContext extends BaseObject implements ContextTreeInterface
+class PluginBuildContext implements ContextTreeInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 	use ContextTreeTrait;
 
@@ -61,7 +62,7 @@ class PluginBuildContext extends BaseObject implements ContextTreeInterface
 	 */
 	public function __construct($config = [])
 	{
-		parent::__construct($config);
+	    $this->__objectConstruct($config);
 
 		$this->plugin = $config['plugin'];
 		$this->compiled = false;

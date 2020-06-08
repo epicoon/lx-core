@@ -13,8 +13,9 @@ namespace lx;
  * @property-read ServiceRouter $router
  * @property-read I18nServiceMap $i18nMap
  */
-class Service extends BaseObject implements FusionInterface
+class Service implements FusionInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionTrait;
 
@@ -37,7 +38,7 @@ class Service extends BaseObject implements FusionInterface
 	 */
 	public function __construct($name, $config, $params = [])
 	{
-		parent::__construct($params);
+	    $this->__objectConstruct($params);
 
 		$this->setName($name);
 		$this->setConfig($config);
@@ -149,7 +150,7 @@ class Service extends BaseObject implements FusionInterface
 				return $this->_path;
 		}
 
-		return parent::__get($name);
+		return $this->__objectGet($name);
 	}
 
 	/**

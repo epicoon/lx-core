@@ -6,8 +6,9 @@ namespace lx;
  * Class SnippetBuildContext
  * @package lx
  */
-class SnippetBuildContext extends BaseObject implements ContextTreeInterface
+class SnippetBuildContext implements ContextTreeInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 	use ContextTreeTrait;
 
@@ -26,7 +27,7 @@ class SnippetBuildContext extends BaseObject implements ContextTreeInterface
 	 */
 	public function __construct($config)
 	{
-		parent::__construct($config);
+	    $this->__objectConstruct($config);
 
 		$this->pluginBuildContext = $config['pluginBuildContext'];
 		if ($this->isHead()) {

@@ -6,8 +6,9 @@ namespace lx;
  * Class AbstractSourceVoter
  * @package lx
  */
-abstract class AbstractSourceVoter extends BaseObject implements SourceVoterInterface
+abstract class AbstractSourceVoter implements SourceVoterInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 
 	/** @var Source */

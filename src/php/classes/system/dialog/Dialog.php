@@ -6,8 +6,9 @@ namespace lx;
  * Class Dialog
  * @package lx
  */
-class Dialog extends BaseObject implements FusionComponentInterface
+class Dialog implements FusionComponentInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
@@ -53,8 +54,10 @@ class Dialog extends BaseObject implements FusionComponentInterface
 	/**
 	 * Dialog constructor.
 	 */
-	public function __construct()
+	public function __construct($config = [])
 	{
+	    $this->__objectConstruct($config);
+
 		$this->_serverName = $this->app->getConfig('serverName') ?? $_SERVER['SERVER_NAME'];
 		$this->defineType();
 		$this->defineClientIp();
@@ -266,50 +269,22 @@ class Dialog extends BaseObject implements FusionComponentInterface
 		return $result;
 	}
 
-	/**
-	 * @param array|string $data
-	 */
-	public function send($data = null)
+    /**
+     * @param ResponseInterface $response
+     */
+	public function send($response)
 	{
-		if ($data === null) {
-			$type = 'html';
-			$content = ob_get_contents();
-			if ($content != '') {
-				ob_end_clean();
-			}
-		} else {
-			$type = is_string($data) ? 'plane' : 'json';
-			$content = $data;
-		}
+	    $response->applyResponseParams();
 
-		$dump = \lx::getDump();
-		if ($dump != '') {
-			if (is_array($content)) {
-				$content['lxdump'] = $dump;
-			} else {
-				if ($this->isAjax()) {
-					$content .= '<lx-var-dump>' . $dump . '</lx-var-dump>';
-				} else {
-					$dumpStr = '<pre class="lx-var-dump">' . $dump . '</pre>';
-					if (preg_match('/<body>/', $content)) {
-						$content = preg_replace('/<body>/', '<body>' . $dumpStr, $content);
-					} else {
-						$content = "$dumpStr$content";
-					}
-				}
-			}
-		}
+        if ($this->isCors()) {
+            $this->addCorsHeaders();
+        }
 
-		if ($this->isCors()) {
-			$this->addCorsHeaders();
-		}
+        if (!$this->app->user || $this->app->user->isGuest()) {
+            header('lx-user-status: guest');
+        }
 
-		if ($this->app->user && $this->app->user->isGuest()) {
-			header('lx-user-status: guest');
-		}
-		header("Content-Type: text/$type; charset=utf-8");
-		$content = $type == 'json' ? json_encode($content) : $content;
-		$this->echo($content);
+        $this->echo($response->getDataString());
 	}
 
 	/**

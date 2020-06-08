@@ -6,9 +6,7 @@ namespace lx;
  * Class NodeJsExecutor
  * @package lx
  */
-class NodeJsExecutor extends BaseObject {
-	use ApplicationToolTrait;
-
+class NodeJsExecutor {
 	/** @var string */
     private $filePath = null;
 
@@ -124,7 +122,7 @@ class NodeJsExecutor extends BaseObject {
 		$result = json_decode($result, true);
 
 		foreach ($result['log'] as $msg) {
-			$this->app->log($msg['data'], $msg['category']);
+			\lx::$app->log($msg['data'], $msg['category']);
 		}
 
 		foreach ($result['dump'] as $item) {

@@ -6,8 +6,9 @@ namespace lx;
  * Class DbConnector
  * @package lx
  */
-class DbConnector extends BaseObject implements FusionComponentInterface
+class DbConnector implements FusionComponentInterface
 {
+    use ObjectTrait;
 	use FusionComponentTrait;
 
 	const DEFAULT_DB_CONNECTION_KEY = 'db';
@@ -20,7 +21,7 @@ class DbConnector extends BaseObject implements FusionComponentInterface
 
 	public function __construct($config = [])
 	{
-		parent::__construct($config);
+	    $this->__objectConstruct($config);
 		$this->parseConfig($config);
 	}
 

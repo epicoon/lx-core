@@ -6,10 +6,8 @@ namespace lx;
  * Class CliProcessor
  * @package lx
  */
-class CliProcessor extends BaseObject
+class CliProcessor
 {
-	use ApplicationToolTrait;
-
 	const COMMAND_TYPE_COMMON = 5;
 	const COMMAND_TYPE_CONSOLE_ONLY = 10;
 	const COMMAND_TYPE_WEB_ONLY = 15;
@@ -412,7 +410,7 @@ class CliProcessor extends BaseObject
 		}
 
 		try {
-			$this->service = $this->app->getService($name);
+			$this->service = \lx::$app->getService($name);
 		} catch (\Exception $e) {
 			$this->outln("Service '$name' not found");
 			return;
@@ -439,7 +437,7 @@ class CliProcessor extends BaseObject
 		if ($name) {
 			if (preg_match('/:/', $name)) {
 				try {
-					$path = $this->app->getPluginPath($name);
+					$path = \lx::$app->getPluginPath($name);
 					if ($path === null) {
 						throw new \Exception('', 400);
 					}
@@ -451,7 +449,7 @@ class CliProcessor extends BaseObject
 				}
 			} else {
 				try {
-					$service = $this->app->getService($name);
+					$service = \lx::$app->getService($name);
 					$this->outln("Service '$name' path: " . $service->getPath());
 					return;
 				} catch (\Exception $e) {
@@ -490,7 +488,7 @@ class CliProcessor extends BaseObject
         $serviceName = $this->getArg(['s', 'service']);
         if ($serviceName) {
 			try {
-				$service = $this->app->getService($serviceName);
+				$service = \lx::$app->getService($serviceName);
 			} catch (\Exception $e) {
 				$this->outln("Service '$name' not found");
 				return;
@@ -546,7 +544,7 @@ class CliProcessor extends BaseObject
 		$serviceName = $this->getArg(0);
 		if ($serviceName) {
 			try {
-				$service = $this->app->getService($serviceName);
+				$service = \lx::$app->getService($serviceName);
 			} catch (\Exception $e) {
 				$this->outln("Service '$name' not found");
 				return;
@@ -604,7 +602,7 @@ class CliProcessor extends BaseObject
 
 	private function createService()
 	{
-		$dirs = $this->app->getConfig('packagesMap');
+		$dirs = \lx::$app->getConfig('packagesMap');
 		if ($dirs) {
 			$dirs = (array)$dirs;
 		}
@@ -754,7 +752,7 @@ class CliProcessor extends BaseObject
 			$data[$name] = [
 				'name' => $name,
 				'path' => $path,
-				'object' => $this->app->getService($name),
+				'object' => \lx::$app->getService($name),
 			];
 		}
 		uksort($data, 'strcasecmp');

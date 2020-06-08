@@ -36,7 +36,9 @@ trait ErrorCollectorTrait
 	 */
 	public function addErrors($errors)
 	{
-		if (is_array($errors)) {
+	    if (is_string($errors)) {
+	        $this->addError($errors);
+        } elseif (is_array($errors)) {
 			foreach ($errors as $error) {
 				$this->addError($error);
 			}

@@ -10,8 +10,9 @@ namespace lx;
  * @property-read string $current
  * @property-read array $codes
  */
-class Language extends BaseObject implements FusionComponentInterface
+class Language implements FusionComponentInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
@@ -27,7 +28,7 @@ class Language extends BaseObject implements FusionComponentInterface
 	 */
 	public function __construct($config = [])
 	{
-		parent::__construct($config);
+	    $this->__objectConstruct($config);
 
 		$filePath = \lx::$conductor->lxData . '/languages';
 		$file = $this->app->diProcessor->createByInterface(DataFileInterface::class, [$filePath]);
@@ -54,7 +55,7 @@ class Language extends BaseObject implements FusionComponentInterface
 				return array_keys($this->_list);
 		}
 
-		return parent::__get($name);
+		return $this->__objectGet($name);
 	}
 
 	/**

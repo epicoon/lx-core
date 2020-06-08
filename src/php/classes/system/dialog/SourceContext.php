@@ -14,10 +14,8 @@ namespace lx;
  * Class SourceContext
  * @package lx
  */
-class SourceContext extends BaseObject
+class SourceContext
 {
-	use ApplicationToolTrait;
-
 	/** @var array */
 	private $data;
 
@@ -44,7 +42,7 @@ class SourceContext extends BaseObject
 	/**
 	 * @param string $methodName
 	 * @param array $params
-	 * @return mixed|SourceError
+	 * @return ResponseInterface
 	 */
 	public function invoke($methodName = null, $params = null)
 	{
@@ -56,7 +54,7 @@ class SourceContext extends BaseObject
 			return $this->invokePlugin($methodName, $params);
 		}
 
-		return new SourceError(ResponseCodeEnum::NOT_FOUND);
+		return $this->getNotFoundResponse();
 	}
 
 	/**
@@ -86,7 +84,7 @@ class SourceContext extends BaseObject
 	public function getService()
 	{
 		if (isset($this->data['service'])) {
-			return $this->app->getService($this->data['service']);
+			return \lx::$app->getService($this->data['service']);
 		}
 
 		return null;
@@ -126,41 +124,77 @@ class SourceContext extends BaseObject
 	/**
 	 * @param string $methodName
 	 * @param array $params
-	 * @return mixed|SourceError
+	 * @return ResponseInterface
 	 */
 	private function invokeAction($methodName, $params)
 	{
 		$object = $this->getObject();
 		if (!$object) {
-			return new SourceError(ResponseCodeEnum::NOT_FOUND);
+			return $this->getNotFoundResponse();
 		}
 
 		$methodName = $methodName ?? $this->data['method'] ?? null;
 		if (!$methodName || !method_exists($object, $methodName)) {
-			return new SourceError(ResponseCodeEnum::NOT_FOUND);
+            return $this->getNotFoundResponse();
 		}
 
 		$params = $params ?? $this->data['params'] ?? [];
 
-		return $object->runAction($methodName, $params);
+		$result = $object->runAction($methodName, $params);
+		$response = $this->prepareResponse($object, $result);
+		return $response;
 	}
 
 	/**
 	 * @param string $methodName
 	 * @param array $params
-	 * @return mixed|SourceError
+	 * @return ResponseInterface
 	 */
 	private function invokePlugin($methodName, $params)
 	{
 		$plugin = $this->getPlugin();
 		$methodName = $methodName ?? Plugin::DEFAULT_SOURCE_METHOD;
 		if (!method_exists($plugin, $methodName)) {
-			return new SourceError(ResponseCodeEnum::NOT_FOUND);
+            return $this->getNotFoundResponse();
 		}
 
 		$params = $params ?? $this->data['params'] ?? [];
-		return $plugin->runAction($methodName, $params);
+		$result = $plugin->runAction($methodName, $params);
+        $response = $this->prepareResponse($plugin, $result);
+        return $response;
 	}
+
+    /**
+     * @param Source $object
+     * @param ResponseInterface|array|string|null $result
+     */
+	private function prepareResponse($object, $result)
+	{
+	    if ($object->hasErrors()) {
+            return \lx::$app->diProcessor->createByInterface(ResponseInterface::class, [
+                $object,
+                ResponseCodeEnum::BAD_REQUEST_ERROR
+            ]);
+        }
+
+        if ($result === null) {
+            return \lx::$app->diProcessor->createByInterface(ResponseInterface::class, ['Ok']);
+        }
+
+        if ($result instanceof ResponseInterface) {
+            return $result;
+        }
+
+        if (!is_object($result)) {
+            return \lx::$app->diProcessor->createByInterface(ResponseInterface::class, [$result]);
+        }
+
+        \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+            '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+            'msg' => 'Wrong response class ' . get_class($result),
+        ]);
+        return $this->getNotFoundResponse();
+    }
 
 	/**
 	 * @return SourceInterface|null
@@ -176,7 +210,7 @@ class SourceContext extends BaseObject
 			if (isset($this->data['service'])) {
 				$config['service'] = $this->getService();
 			}
-			$object = $this->app->diProcessor->create($class, $config);
+			$object = \lx::$app->diProcessor->create($class, $config);
 		}
 
 		if ($object && $object instanceof SourceInterface) {
@@ -185,4 +219,15 @@ class SourceContext extends BaseObject
 
 		return null;
 	}
+
+    /**
+     * @return ResponseInterface
+     */
+	private function getNotFoundResponse()
+    {
+        return \lx::$app->diProcessor->createByInterface(ResponseInterface::class, [
+            'Resource not found',
+            ResponseCodeEnum::NOT_FOUND
+        ]);
+    }
 }

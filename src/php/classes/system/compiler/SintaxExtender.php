@@ -2,9 +2,8 @@
 
 namespace lx;
 
-class SintaxExtender extends BaseObject {
-	use ApplicationToolTrait;
-
+class SintaxExtender
+{
 	/** @var JsCompiler */
 	private $compiler;
 	private $currentPath;
@@ -376,7 +375,7 @@ class SintaxExtender extends BaseObject {
 					function ($matches) use ($path) {
 						$modelName = $matches[1];
 
-						$manager = $this->app->getModelManager($modelName);
+						$manager = \lx::$app->getModelManager($modelName);
 						if ( ! $manager) {
 							$service = $this->getCurrentService($path);
 							if (!$service) {
@@ -594,7 +593,7 @@ class SintaxExtender extends BaseObject {
 		}
 
 		$this->currentPath = $path;
-		$this->currentService = $this->app->getServiceByFile($path);
+		$this->currentService = \lx::$app->getServiceByFile($path);
 		return $this->currentService;
 	}
 }

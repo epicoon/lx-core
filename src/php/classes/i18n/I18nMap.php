@@ -6,8 +6,9 @@ namespace lx;
  * Class I18nMap
  * @package lx
  */
-abstract class I18nMap extends BaseObject implements FusionComponentInterface
+abstract class I18nMap implements FusionComponentInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 

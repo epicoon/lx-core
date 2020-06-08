@@ -6,10 +6,8 @@ namespace lx;
  * Class JsModuleMapBuilder
  * @package lx
  */
-class JsModuleMapBuilder extends BaseObject
+class JsModuleMapBuilder
 {
-	use ApplicationToolTrait;
-
 	/**
 	 * Renew application list of services which has modules
 	 */
@@ -18,7 +16,7 @@ class JsModuleMapBuilder extends BaseObject
 		$list = PackageBrowser::getServicePathesList();
 		$names = [];
 		foreach (array_keys($list) as $serviceName) {
-			$service = $this->app->getService($serviceName);
+			$service = \lx::$app->getService($serviceName);
 			if (!$service) {
 				continue;
 			}
@@ -31,7 +29,7 @@ class JsModuleMapBuilder extends BaseObject
 		}
 
 		$path = \lx::$conductor->getSystemPath('jsModulesMap.json');
-		$file = $this->app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
+		$file = \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
 		$file->put($names);
 	}
 
@@ -43,7 +41,7 @@ class JsModuleMapBuilder extends BaseObject
 		$list = PackageBrowser::getServicePathesList();
 		$names = [];
 		foreach (array_keys($list) as $serviceName) {
-			$service = $this->app->getService($serviceName);
+			$service = \lx::$app->getService($serviceName);
 			if (!$service) {
 				continue;
 			}
@@ -54,7 +52,7 @@ class JsModuleMapBuilder extends BaseObject
 		}
 
 		$path = \lx::$conductor->getSystemPath('jsModulesMap.json');
-		$file = $this->app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
+		$file = \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
 		$file->put($names);
 	}
 
@@ -77,7 +75,7 @@ class JsModuleMapBuilder extends BaseObject
 	 */
 	public function renewCore()
 	{
-		$dir = new Directory($this->app->conductor->getFullPath('@core'));
+		$dir = new Directory(\lx::$app->conductor->getFullPath('@core'));
 		$map = $this->makeMap($dir);
 		$mapFile = $dir->makeFile('jsModulesMap.json', DataFileInterface::class);
 		$mapFile->put($map);
@@ -116,7 +114,7 @@ class JsModuleMapBuilder extends BaseObject
 	{
 		$files = $dir->getAllFiles('*.js');
 		$map = [];
-		$sitePath = $this->app->sitePath;
+		$sitePath = \lx::$app->sitePath;
 		$files->each(function ($file) use ($sitePath, &$map) {
 			$code = $file->get();
 			preg_match('/(?<!\/ )(?<!\/)#lx:module\s+([^;]+?);/', $code, $matches);
@@ -175,7 +173,7 @@ class JsModuleMapBuilder extends BaseObject
 	private function addService($serviceName)
 	{
 		$path = \lx::$conductor->getSystemPath('jsModulesMap.json');
-		$file = $this->app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
+		$file = \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
 		$data = $file->exists() ? $file->get() : [];
 
 		if (!in_array($serviceName, $data)) {
@@ -191,7 +189,7 @@ class JsModuleMapBuilder extends BaseObject
 	private function delService($serviceName)
 	{
 		$path = \lx::$conductor->getSystemPath('jsModulesMap.json');
-		$file = $this->app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
+		$file = \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
 		if (!$file->exists()) {
 			return;
 		}

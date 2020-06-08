@@ -6,27 +6,24 @@ namespace lx;
  * Class RequestHandler
  * @package lx
  */
-class RequestHandler extends BaseObject
+class RequestHandler
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
-
-	/** @var int */
-	private $code;
 
 	/** @var SourceContext */
 	private $sourceContext;
+
+	/** @var ResponseInterface */
+	private $response;
 
 	/**
 	 * Launch of the response preparing
 	 */
 	public function run()
 	{
-		if (!$this->getSource()) {
-			$this->code = ResponseCodeEnum::NOT_FOUND;
-			return;
-		}
-
-		$this->code = ResponseCodeEnum::OK;
+        $this->defineSourceContext();
+        $this->defineResponse();
 	}
 
 	/**
@@ -34,11 +31,26 @@ class RequestHandler extends BaseObject
 	 */
 	public function send()
 	{
-		if ($this->code == ResponseCodeEnum::OK) {
-			$this->trySend();
-		} else {
-			$this->sendNotOk();
-		}
+	    if (!$this->sourceContext) {
+	        $r = 1;
+        }
+
+        if ($this->sourceContext && $this->sourceContext->isPlugin() && $this->app->dialog->isPageLoad()) {
+            $response = $this->renderPlugin();
+        } else {
+            $response = $this->response;
+        }
+
+        if ($response->getCode() == ResponseCodeEnum::OK) {
+            $this->beforeSuccessfulSending();
+            $this->app->dialog->send($response);
+            $this->afterSuccessfulSending();
+        } else {
+            $response = $this->processProblemResponse($response);
+            $this->beforeFailedSending();
+            $this->app->dialog->send($response);
+            $this->afterFailedSending();
+        }
 	}
 
 
@@ -46,10 +58,7 @@ class RequestHandler extends BaseObject
 	 * PRIVATE
 	 ******************************************************************************************************************/
 
-	/**
-	 * @return bool
-	 */
-	private function getSource()
+	private function defineSourceContext()
 	{
 		if (SpecialAjaxRouter::checkDialog()) {
 			$ajaxRouter = new SpecialAjaxRouter();
@@ -66,64 +75,50 @@ class RequestHandler extends BaseObject
 				}
 			}
 		}
-
-		return $this->sourceContext !== null;
 	}
 
-	/**
-	 * Try to send OK-response or will be sent error response
-	 */
-	private function trySend()
+	private function defineResponse()
+    {
+        if (!isset($this->sourceContext)) {
+            $this->response = $this->app->diProcessor->createByInterface(ResponseInterface::class, [
+                'Resource not found',
+                ResponseCodeEnum::NOT_FOUND,
+            ]);
+            return;
+        }
+
+        $response = $this->sourceContext->invoke();
+        if ($response->hasErrors()) {
+            if ($response->getCode() == ResponseCodeEnum::FORBIDDEN
+                && $this->app->dialog->isPageLoad()
+                && $this->app->user->isGuest()
+            ) {
+                $sourceContext = $this->app->authenticationGate->responseToAuthenticate() ?? null;
+                if ($sourceContext && $sourceContext->isPlugin()) {
+                    $this->sourceContext = $sourceContext;
+                    $response = $this->sourceContext->invoke();
+                }
+            }
+        }
+
+        $this->response = $response;
+    }
+
+    /**
+     * @param ResponseInterface $response
+     */
+	private function processProblemResponse($response)
 	{
-		if (!$this->sourceContext) {
-			$this->sendNotOk(ResponseCodeEnum::FORBIDDEN);
-			return;
-		}
-
-		$result = $this->sourceContext->invoke();
-		if ($result instanceof SourceError) {
-			$this->code = $result->getCode();
-			$this->sendNotOk();
-			return;
-		}
-
-		if ($this->sourceContext->isPlugin() && $this->app->dialog->isPageLoad()) {
-			$this->renderPlugin($result);
-			$result = null;
-		}
-
-		$this->beforeSuccessfulSending();
-		$this->app->dialog->send($result);
-		$this->afterSuccessfulSending();
-	}
-
-	/**
-	 * @param int $code
-	 */
-	private function sendNotOk($code = null)
-	{
-		if ($code) {
-			$this->code = $code;
-		}
-
-		if ($this->code == ResponseCodeEnum::FORBIDDEN
-			&& $this->app->dialog->isPageLoad()
-			&& $this->app->user->isGuest()
-		) {
-			$sourceContext = $this->app->authenticationGate->responseToAuthenticate() ?? null;
-			if ($sourceContext && $sourceContext->isPlugin()) {
-				$this->renderPlugin($sourceContext->invoke());
-				return;
-			}
-		}
-
-		$this->beforeFailedSending();
-
-		http_response_code($this->code);
 		if ($this->app->dialog->isPageLoad()) {
-			$this->renderStandartResponse($this->code);
-			$this->app->dialog->send();
-		} elseif ($this->app->dialog->isAssetLoad()) {
+            $renderer = $this->app->diProcessor->createByInterface(RendererInterface::class);
+            $result = $renderer->render($response->getCode() . '.php');
+
+            /** @var ResponseInterface $response */
+            $newResponse = $this->app->diProcessor->createByInterface(ResponseInterface::class, [$result]);
+            return $newResponse;
+		}
+
+		if ($this->app->dialog->isAssetLoad()) {
 			$url = $this->app->dialog->getUrl();
 			$assetName = 'unknown';
 			switch (true) {
@@ -131,22 +126,21 @@ class RequestHandler extends BaseObject
 					$assetName = 'javascript file';
 			}
 			$msg = "Asset ($assetName) \"$url\" not found";
-			$this->app->dialog->send('console.error(\'' . $msg . '\');');
-		} else {
-			$this->app->dialog->send([
-				'success' => false,
-				'error' => $this->code,
-			]);
+            return $this->app->diProcessor->createByInterface(ResponseInterface::class, [
+                'console.error(\'' . $msg . '\');',
+                ResponseCodeEnum::NOT_FOUND,
+            ]);
 		}
 
-		$this->afterFailedSending();
+		return $response;
 	}
 
 	/**
-	 * @param array $pluginData
+     * @return ResponseInterface
 	 */
-	private function renderPlugin($pluginData)
+	private function renderPlugin()
 	{
+	    $pluginData = $this->response->getData();
 		$pluginInfo = addcslashes($pluginData['pluginInfo'], '\\');
 
 		$modules = '';
@@ -160,26 +154,17 @@ class RequestHandler extends BaseObject
 		$settings = ArrayHelper::arrayToJsCode($this->app->getSettings());
 		$js = "lx.start($settings, `$modules`, `$jsBootstrap`, `$pluginInfo`, `$jsMain`);";
 
-		$this->renderStandartResponse(ResponseCodeEnum::OK, [
-			'head' => new HtmlHead($pluginData['page']),
-			'body' => new HtmlBody($pluginData['page'], $js),
-		]);
-	}
+		
+		
+		$renderer = $this->app->diProcessor->createByInterface(RendererInterface::class);
+		$result = $renderer->render('200.php', [
+            'head' => new HtmlHead($pluginData['page']),
+            'body' => new HtmlBody($pluginData['page'], $js),
+        ]);
 
-	/**
-	 * @param int $code
-	 * @param array $params
-	 */
-	private function renderStandartResponse($code, $params = [])
-	{
-		$path = \lx::$conductor->stdResponses . '/' . $code . '.php';
-		if (!file_exists($path)) {
-			$path = \lx::$conductor->stdResponses . '/404.php';
-		}
-
-		extract($params);
-		ob_start();
-		require_once($path);
+		/** @var ResponseInterface $response */
+		$response = $this->app->diProcessor->createByInterface(ResponseInterface::class, [$result]);
+		return $response;
 	}
 
 	private function beforeSuccessfulSending()

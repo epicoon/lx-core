@@ -25,4 +25,14 @@ class JsModuleProvider extends Source
 
 		return $modulesCode;
 	}
+
+    /**
+     * @param array $list
+     * @return ResponseInterface
+     */
+	public function getModulesRequest($list)
+    {
+        $code = $this->getModulesCode($list);
+        return \lx::$app->diProcessor->createByInterface(ResponseInterface::class, [$code]);
+    }
 }

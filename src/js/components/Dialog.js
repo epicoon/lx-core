@@ -178,7 +178,7 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 	}
 
 	// Обертка при успешном ответе - он может нести отладочную информацию
-	function successWrap(request) {
+	function handlerWrapper(request, handler) {
 		var response = request.response;
 
 		// Гостевой флаг
@@ -190,13 +190,15 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 			? JSON.parse(response)
 			: response;
 
-		var resultAndDump = __findDump(result);
-		result = resultAndDump[0];
-		callHandler(handlerMap.success, [result, request]);
+		#lx:mode-case: dev
+			var resultAndDump = __findDump(result);
+			result = resultAndDump[0];
+			callHandler(handler, [result, request]);
 
-		if (resultAndDump[1]) {
-			lx.Alert(resultAndDump[1]);
-		}
+			if (resultAndDump[1]) lx.Alert(resultAndDump[1]);
+		#lx:mode-default:
+			callHandler(handler, [result, request]);
+		#lx:mode-end;
 	}
 
 	// Назначаем пользовательский обработчик
@@ -209,10 +211,10 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 		}
 
 		if (request.status == 200) {
-			successWrap(request);
+			handlerWrapper(request, handlerMap.success);
 		} else {
 			// Оповещаем пользователя о произошедшей ошибке
-			callHandler(handlerMap.error, [request]);
+			handlerWrapper(request, handlerMap.error);
 		}
 	};
 
@@ -252,23 +254,27 @@ function __isAjax(url) {
 	return !url.match(reg);
 }
 
-//TODO - ограничить код режимом НЕ-ПРОДА
-function __findDump(res) {
-	if (res.isString) {
-		var dump = res.match(/<lx-var-dump>[\w\W]*<\/lx-var-dump>/);
-		if (dump) {
-			dump = dump[0];
-			res = res.replace(dump, '');
-			dump = dump.replace(/<lx-var-dump>/, '');
-			dump = dump.replace(/<\/lx-var-dump>/, '');
-		}
-		return [res, dump];
-	} else if (res.isObject) {
-		var dump = null;
-		if (res.lxdump) {
-			dump = res.lxdump;
-			delete res.lxdump;
-		}
-		return [res, dump];
-	} else return [res, null];
-}
+#lx:mode-case: dev
+	function __findDump(res) {
+		if (res.isString) {
+			var dump = res.match(/<lx-var-dump>[\w\W]*<\/lx-var-dump>/);
+			if (dump) {
+				dump = dump[0];
+				res = res.replace(dump, '');
+				dump = dump.replace(/<lx-var-dump>/, '');
+				dump = dump.replace(/<\/lx-var-dump>/, '');
+			}
+			return [res, dump];
+		} else if (res.isObject) {
+			var dump = null;
+			if (res.lxdump) {
+				dump = res.lxdump;
+				delete res.lxdump;
+			} else if (res.data && res.data.lxdump) {
+				dump = res.data.lxdump;
+				delete res.data.lxdump;
+			}
+			return [res, dump];
+		} else return [res, null];
+	}
+#lx:mode-end;

@@ -6,8 +6,9 @@ namespace lx;
  * Class CorsProcessor
  * @package lx
  */
-class CorsProcessor extends BaseObject implements FusionComponentInterface
+class CorsProcessor implements FusionComponentInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
@@ -20,7 +21,7 @@ class CorsProcessor extends BaseObject implements FusionComponentInterface
 	 */
 	public function __construct($config = [])
 	{
-		parent::__construct($config);
+	    $this->__objectConstruct($config);
 
 		$originMap = [];
 		foreach ($this->originMap as $key => $value) {

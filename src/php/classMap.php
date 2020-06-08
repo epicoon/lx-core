@@ -4,7 +4,8 @@ return [
 	'AutoloadMapBuilder' => 'classes/system/autoload',
 	'AutoloadMap' => 'classes/system/autoload',
 
-	'BaseObject' => 'classes/system/object',
+    'ObjectTrait' => 'classes/system/object',
+    'ObjectReestr' => 'classes/system/object',
 
 	'AbstractApplication' => 'classes/system/app',
 	'HttpApplication' => 'classes/system/app',
@@ -25,11 +26,12 @@ return [
 	'SpecialAjaxRouter' => 'classes/system/dialog',
 	'RequestHandler' => 'classes/system/dialog',
 	'Source' => 'classes/system/dialog',
+    'Response' => 'classes/system/dialog',
+    'Renderer' => 'classes/system/dialog',
 	'Rect' => 'classes/system/dialog',
 	'SourceContext' => 'classes/system/dialog',
-	'SourceError' => 'classes/system/dialog',
 	'AbstractSourceVoter' => 'classes/system/dialog',
-	'CorsProcessor' => 'classes/system/dialog',
+    'CorsProcessor' => 'classes/system/dialog',
 
 	'EventManager' => 'classes/system/event',
 	'EventListenerInterface' => 'classes/system/event',
@@ -155,6 +157,8 @@ return [
 	'ApplicationLifeCycleManagerInterface' => 'interfaces',
 	'ConductorInterface' => 'interfaces',
 	'DataFileInterface' => 'interfaces',
+    'ResponseInterface' => 'interfaces',
+    'RendererInterface' => 'interfaces',
 	'UserProcessorInterface' => 'interfaces',
 	'AuthenticationInterface' => 'interfaces',
 	'AuthorizationInterface' => 'interfaces',

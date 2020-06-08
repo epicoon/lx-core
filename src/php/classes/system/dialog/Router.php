@@ -6,8 +6,9 @@ namespace lx;
  * Class Router
  * @package lx
  */
-class Router extends BaseObject implements FusionComponentInterface
+class Router implements FusionComponentInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 

@@ -14,8 +14,9 @@ namespace lx;
  * @property-read EventManager $events
  * @property-read LoggerInterface $logger
  */
-abstract class AbstractApplication extends BaseObject implements FusionInterface
+abstract class AbstractApplication implements FusionInterface
 {
+    use ObjectTrait;
     use FusionTrait;
 
 	/** @var string */
@@ -125,7 +126,7 @@ abstract class AbstractApplication extends BaseObject implements FusionInterface
                 return $this->_events;
 		}
 
-		return parent::__get($name);
+		return $this->__objectGet($name);
 	}
 
     /**

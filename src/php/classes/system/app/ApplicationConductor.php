@@ -6,8 +6,9 @@ namespace lx;
  * Class ApplicationConductor
  * @package lx
  */
-class ApplicationConductor extends BaseObject implements ConductorInterface
+class ApplicationConductor implements ConductorInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 
 	/** @var array */
@@ -19,7 +20,7 @@ class ApplicationConductor extends BaseObject implements ConductorInterface
 	 */
 	public function __get($name)
 	{
-		$result = parent::__get($name);
+		$result = $this->__objectGet($name);
 		if ($result !== null) {
 			return $result;
 		}

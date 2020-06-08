@@ -6,16 +6,17 @@ namespace lx;
  * Class User
  * @package lx
  */
-class User extends BaseObject implements FusionComponentInterface
+class User implements FusionComponentInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
+    /** @var ModelInterface */
+    private $userModel = null;
+
 	/** @var string */
 	private $authFieldName = null;
-
-	/** @var ModelInterface */
-	protected $userModel = null;
 
 	/**
 	 * User constructor.
@@ -23,7 +24,7 @@ class User extends BaseObject implements FusionComponentInterface
 	 */
 	public function __construct($config = [])
 	{
-		parent::__construct($config);
+	    $this->__objectConstruct($config);
 		$this->delegateMethodsCall('userModel');
 	}
 
@@ -49,7 +50,7 @@ class User extends BaseObject implements FusionComponentInterface
 			}
 		}
 
-		return parent::__get($name);
+		return $this->__objectGet($name);
 	}
 
 	/**
@@ -87,7 +88,7 @@ class User extends BaseObject implements FusionComponentInterface
 	}
 
 	/**
-	 * @todo - need some interface for $userData?
+	 * TODO - need some interface for $userData?
 	 * @param $userData
 	 */
 	public function set($userData)
@@ -99,31 +100,31 @@ class User extends BaseObject implements FusionComponentInterface
 		$this->userModel->setData($userData);
 	}
 
+    /**
+     * @param string $name
+     */
+    public function setAuthFieldName($name)
+    {
+        $this->authFieldName = $name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAuthFieldName()
+    {
+        if ($this->isGuest()) {
+            return '';
+        }
+
+        return $this->authFieldName;
+    }
+
 	/**
 	 * @return string
 	 */
 	public function getAuthField()
 	{
 		return $this->{$this->authFieldName};
-	}
-
-	/**
-	 * @param string $name
-	 */
-	public function setAuthFieldName($name)
-	{
-		$this->authFieldName = $name;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getAuthFieldName()
-	{
-		if ($this->isGuest()) {
-			return '';
-		}
-
-		return $this->authFieldName;
 	}
 }

@@ -6,8 +6,9 @@ namespace lx;
  * Class ServiceRouter
  * @package lx
  */
-class ServiceRouter extends BaseObject implements FusionComponentInterface
+class ServiceRouter implements FusionComponentInterface
 {
+    use ObjectTrait;
 	use FusionComponentTrait;
 
 	/**

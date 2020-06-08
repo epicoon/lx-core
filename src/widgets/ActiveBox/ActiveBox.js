@@ -52,14 +52,14 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 		postBuild(config) {
 			super.postBuild(config);
 
-			this.setBuildMode(true);
-
 			if (this.width() === null) this.width(this.width('px')+'px');
 			if (this.height() === null) this.height(this.height('px')+'px');
 
 			if (this.adhesive) {
 				ActiveBoxAdhesor.makeAdhesion(this);
 			}
+
+			this.setBuildMode(true);
 
 			if (this.contains('resizer') || this.contains('header')) {
 				this.on('mousedown', ()=>lx.WidgetHelper.bringToFront(this));

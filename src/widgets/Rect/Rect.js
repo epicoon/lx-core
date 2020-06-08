@@ -778,31 +778,63 @@ class Rect #lx:namespace lx {
         this.trigger('resize');
     }
 
-    getGeomMask() {
+    getGeomMask(units = undefined) {
         var result = {};
         result.pH = this.geomPriorityH().lxClone();
         result.pV = this.geomPriorityV().lxClone();
-        result[result.pH[0]] = this[lx.Geom.geomName(result.pH[0])]();
-        result[result.pH[1]] = this[lx.Geom.geomName(result.pH[1])]();
-        result[result.pV[0]] = this[lx.Geom.geomName(result.pV[0])]();
-        result[result.pV[1]] = this[lx.Geom.geomName(result.pV[1])]();
+        result[result.pH[0]] = this[lx.Geom.geomName(result.pH[0])](units);
+        result[result.pH[1]] = this[lx.Geom.geomName(result.pH[1])](units);
+        result[result.pV[0]] = this[lx.Geom.geomName(result.pV[0])](units);
+        result[result.pV[1]] = this[lx.Geom.geomName(result.pV[1])](units);
         if (this.geom) result.geom = this.geom.lxClone();
         return result;
     }
 
     /**
      * Копия "как есть" - с приоритетами, без адаптаций под старые соответствующие значения
-     * Стратегия позиционирования может не позволить некоторые изменения
      * */
-    copyGeom(geomMask) {
-        if (geomMask instanceof lx.Rect) geomMask = geomMask.getGeomMask();
+    copyGeom(geomMask, units = undefined) {
+        if (geomMask instanceof lx.Rect) geomMask = geomMask.getGeomMask(units);
 
         var pH = geomMask.pH,
             pV = geomMask.pV;
-        this.setGeomParam(pH[1], geomMask[pH[1]]);
-        this.setGeomParam(pH[0], geomMask[pH[0]]);
-        this.setGeomParam(pV[1], geomMask[pV[1]]);
-        this.setGeomParam(pV[0], geomMask[pV[0]]);
+        this.setGeomParam(pH[1], units ? geomMask[pH[1]] + units : geomMask[pH[1]]);
+        this.setGeomParam(pH[0], units ? geomMask[pH[0]] + units : geomMask[pH[0]]);
+        this.setGeomParam(pV[1], units ? geomMask[pV[1]] + units : geomMask[pV[1]]);
+        this.setGeomParam(pV[0], units ? geomMask[pV[0]] + units : geomMask[pV[0]]);
+        if (geomMask.geom) this.geom = geomMask.geom.lxClone();
+
+        this.trigger('resize');
+
+        return this;
+    }
+
+    getGlobalGeomMask(units = undefined) {
+        var result = {};
+        result.pH = this.geomPriorityH().lxClone();
+        result.pV = this.geomPriorityV().lxClone();
+        //TODO - возвращает только в пикселях, units - не работает
+        var rect = this.globalRect();
+        result[result.pH[0]] = rect[lx.Geom.geomName(result.pH[0])];
+        result[result.pH[1]] = rect[lx.Geom.geomName(result.pH[1])];
+        result[result.pV[0]] = rect[lx.Geom.geomName(result.pV[0])];
+        result[result.pV[1]] = rect[lx.Geom.geomName(result.pV[1])];
+        if (this.geom) result.geom = this.geom.lxClone();
+        return result;
+    }
+
+    /**
+     * Копия "как есть" - с приоритетами, без адаптаций под старые соответствующие значения
+     * */
+    copyGlobalGeom(geomMask, units = undefined) {
+        if (geomMask instanceof lx.Rect) geomMask = geomMask.getGlobalGeomMask(units);
+
+        var pH = geomMask.pH,
+            pV = geomMask.pV;
+        this.setGeomParam(pH[1], units ? geomMask[pH[1]] + units : geomMask[pH[1]]);
+        this.setGeomParam(pH[0], units ? geomMask[pH[0]] + units : geomMask[pH[0]]);
+        this.setGeomParam(pV[1], units ? geomMask[pV[1]] + units : geomMask[pV[1]]);
+        this.setGeomParam(pV[0], units ? geomMask[pV[0]] + units : geomMask[pV[0]]);
         if (geomMask.geom) this.geom = geomMask.geom.lxClone();
 
         this.trigger('resize');

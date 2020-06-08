@@ -6,10 +6,8 @@ namespace lx;
  * Class Snippet
  * @package lx
  */
-class Snippet extends BaseObject
+class Snippet
 {
-	use ApplicationToolTrait;
-
 	/** @var File */
 	private $file;
 
@@ -294,7 +292,7 @@ class Snippet extends BaseObject
 					return null;
 				}
 
-				$plugin = $this->app->getPlugin($path['plugin']);
+				$plugin = \lx::$app->getPlugin($path['plugin']);
 				if (!$plugin) {
 					return null;
 				}

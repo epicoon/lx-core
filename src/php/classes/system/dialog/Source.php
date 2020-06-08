@@ -6,9 +6,11 @@ namespace lx;
  * Class Source
  * @package lx
  */
-class Source extends BaseObject implements SourceInterface
+class Source implements SourceInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
+	use ErrorCollectorTrait;
 
 	/** @var SourceVoterInterface */
 	private $voter;
@@ -19,7 +21,7 @@ class Source extends BaseObject implements SourceInterface
 	 */
 	public function __construct($config = [])
 	{
-		parent::__construct($config);
+	    $this->__objectConstruct($config);
 
 		$this->voter = $config['voter'] ?? null;
 		if ($this->voter) {
@@ -37,45 +39,64 @@ class Source extends BaseObject implements SourceInterface
 		];
 	}
 
+    /**
+     * @param mixed $data
+     * @return ResponseInterface
+     */
+	public function prepareResponse($data)
+    {
+        return $this->newResponse($data);
+    }
+
+    /**
+     * @param array|string $error
+     * @param int $code
+     * @return ResponseInterface
+     */
+    public function prepareErrorResponse($error, $code = ResponseCodeEnum::BAD_REQUEST_ERROR)
+    {
+        return $this->newResponse($error, $code);
+    }
+
 	/**
 	 * @param array $params
 	 * @param User $user
-	 * @return mixed|SourceError
+	 * @return ResponseInterface
 	 */
 	public function run($params, $user = null)
 	{
-		return new SourceError(ResponseCodeEnum::NOT_FOUND);
+	    return $this->newResponse('Resource not found', ResponseCodeEnum::NOT_FOUND);
 	}
 
 	/**
 	 * @param string $actionName
 	 * @param array $params
 	 * @param User $user
-	 * @return mixed|SourceError
+	 * @return ResponseInterface
 	 */
 	public function runAction($actionName, $params, $user = null)
 	{
 		if (!method_exists($this, $actionName)) {
-			return new SourceError(ResponseCodeEnum::NOT_FOUND);
+			return $this->newResponse('Resource not found', ResponseCodeEnum::NOT_FOUND);
 		}
 
 		$list = static::getActionMethodsList();
 		if (is_array($list) && array_search($actionName, $list) === false) {
-			return new SourceError(ResponseCodeEnum::NOT_FOUND);
+			return $this->newResponse('Resource not found',ResponseCodeEnum::NOT_FOUND);
 		}
 
 		$list = static::getOwnMethodsList();
 		if (array_search($actionName, $list) !== false) {
-			return new SourceError(ResponseCodeEnum::NOT_FOUND);
+			return $this->newResponse('Resource not found',ResponseCodeEnum::NOT_FOUND);
 		}
 
 		if (preg_match('/^__/', $actionName)) {
-			return new SourceError(ResponseCodeEnum::NOT_FOUND);
+			return $this->newResponse('Resource not found',ResponseCodeEnum::NOT_FOUND);
 		}
 
 		$re = new \ReflectionMethod($this, $actionName);
 		if ($re->isStatic() || !$re->isPublic()) {
-			return new SourceError(ResponseCodeEnum::NOT_FOUND);
+			return $this->newResponse('Resource not found',ResponseCodeEnum::NOT_FOUND);
 		}
 
 		if ($user === null) {
@@ -84,7 +105,7 @@ class Source extends BaseObject implements SourceInterface
 
 		if ($user && $this->voter) {
 			if (!$this->voter->run($user, $actionName, $params)) {
-				return new SourceError(ResponseCodeEnum::FORBIDDEN);
+				return $this->newResponse('Resource is unavailable',ResponseCodeEnum::FORBIDDEN);
 			}
 
 			$params = $this->voter->processActionParams($user, $actionName, $params);
@@ -104,7 +125,7 @@ class Source extends BaseObject implements SourceInterface
 	 */
 	protected static function getOwnMethodsList()
 	{
-		return ['runAction'];
+		return ['runAction', 'prepareResponse', 'prepareErrorResponse'];
 	}
 
 	/**
@@ -114,4 +135,14 @@ class Source extends BaseObject implements SourceInterface
 	{
 		return null;
 	}
+
+    /**
+     * @param mixed $data
+     * @param int $code
+     * @return ResponseInterface
+     */
+    protected function newResponse($data, $code = ResponseCodeEnum::OK)
+    {
+        return $this->app->diProcessor->createByInterface(ResponseInterface::class, [$data, $code]);
+    }
 }

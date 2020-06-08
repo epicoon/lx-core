@@ -6,8 +6,9 @@ namespace lx;
  * Class ServiceConductor
  * @package lx
  */
-class ServiceConductor extends BaseObject implements ConductorInterface, FusionComponentInterface
+class ServiceConductor implements ConductorInterface, FusionComponentInterface
 {
+    use ObjectTrait;
 	use FusionComponentTrait;
 
 	/**

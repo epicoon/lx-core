@@ -6,8 +6,9 @@ namespace lx;
  * Class ApplicationLogger
  * @package lx
  */
-class ApplicationLogger extends BaseObject implements LoggerInterface, FusionComponentInterface
+class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 

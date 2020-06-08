@@ -120,7 +120,7 @@ class ErrorCollectorError implements ToStringConvertableInterface
 			$result .= $exceptionString . PHP_EOL;
 		}
 
-		return  $result;
+		return $result;
 	}
 
 	/**

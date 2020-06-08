@@ -6,8 +6,9 @@ namespace lx;
  * Class PluginConductor
  * @package lx
  */
-class PluginConductor extends BaseObject implements ConductorInterface, FusionComponentInterface
+class PluginConductor implements ConductorInterface, FusionComponentInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 

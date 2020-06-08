@@ -6,10 +6,8 @@ namespace lx;
  * Class SpecialAjaxRouter
  * @package lx
  */
-class SpecialAjaxRouter extends BaseObject
+class SpecialAjaxRouter
 {
-	use ApplicationToolTrait;
-
 	/**
 	 * Method defines if request is special AJAX
 	 *
@@ -28,7 +26,7 @@ class SpecialAjaxRouter extends BaseObject
 	 */
 	public function route()
 	{
-		switch ($this->app->dialog->getHeader('lx-type')) {
+		switch (\lx::$app->dialog->getHeader('lx-type')) {
 			case 'service': return $this->serviceAjaxResponse();
 			case 'plugin': return $this->pluginAjaxResponse();
 			case 'widget': return $this->widgetAjaxResponse();
@@ -46,14 +44,14 @@ class SpecialAjaxRouter extends BaseObject
 	 */
 	private function serviceAjaxResponse()
 	{
-		$type = $this->app->dialog->getHeader('lx-service');
+		$type = \lx::$app->dialog->getHeader('lx-service');
 
 		// AJAX-request for required modules
 		if ($type == 'get-modules') {
-			$data = $this->app->dialog->getParams();
+			$data = \lx::$app->dialog->getParams();
 			return new SourceContext([
 				'class' => JsModuleProvider::class,
-				'method' => 'getModulesCode',
+				'method' => 'getModulesRequest',
 				'params' => [$data],
 			]);
 		}
@@ -64,7 +62,7 @@ class SpecialAjaxRouter extends BaseObject
 	 */
 	private function pluginAjaxResponse()
 	{
-		$meta = $this->app->dialog->getHeader('lx-plugin');
+		$meta = \lx::$app->dialog->getHeader('lx-plugin');
 		if ($meta === null) {
 			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
@@ -75,7 +73,7 @@ class SpecialAjaxRouter extends BaseObject
 
 		$arr = explode(' ', $meta);
 		$pluginName = $arr[0];
-		$plugin = $this->app->getPlugin($pluginName);
+		$plugin = \lx::$app->getPlugin($pluginName);
 		if ($plugin === null) {
 			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
@@ -85,7 +83,7 @@ class SpecialAjaxRouter extends BaseObject
 		}
 
 		$respondentName = $arr[1] ?? null;
-		return $plugin->getSourceContext($respondentName, $this->app->dialog->getParams());
+		return $plugin->getSourceContext($respondentName, \lx::$app->dialog->getParams());
 	}
 
 	/**
@@ -93,7 +91,7 @@ class SpecialAjaxRouter extends BaseObject
 	 */
 	private function widgetAjaxResponse()
 	{
-		$meta = $this->app->dialog->getHeader('lx-widget');
+		$meta = \lx::$app->dialog->getHeader('lx-widget');
 
 		$arr = explode(':', $meta);
 		$moduleName = $arr[0];
@@ -110,7 +108,7 @@ class SpecialAjaxRouter extends BaseObject
 		}
 
 		$methodName = $arr[1];
-		$params = $this->app->dialog->getParams();
+		$params = \lx::$app->dialog->getParams();
 
 		return new SourceContext([
 			'class' => $widgetName,

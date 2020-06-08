@@ -6,10 +6,8 @@ namespace lx;
  * Class Cli
  * @package lx\
  */
-class Cli extends BaseObject
+class Cli
 {
-	use ApplicationToolTrait;
-
 	/** @var Service|null */
 	private $service = null;
 

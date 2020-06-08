@@ -6,8 +6,9 @@ namespace lx;
  * Class SnippetCacheData
  * @package lx
  */
-class SnippetCacheData extends BaseObject
+class SnippetCacheData
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 
 	/** @var SnippetBuildContext */

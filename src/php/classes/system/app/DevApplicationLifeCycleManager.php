@@ -6,10 +6,9 @@ namespace lx;
  * Class DevApplicationLifeCycleManager
  * @package lx
  */
-class DevApplicationLifeCycleManager
-	extends BaseObject
-	implements ApplicationLifeCycleManagerInterface, FusionComponentInterface
+class DevApplicationLifeCycleManager implements ApplicationLifeCycleManagerInterface, FusionComponentInterface
 {
+    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
