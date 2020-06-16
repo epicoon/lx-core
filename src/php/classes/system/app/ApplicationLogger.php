@@ -16,10 +16,24 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 	const DEFAULT_LOG_PATH = '@site/log';
 
 	/** @var string */
-	protected $logPath;
+	protected $path;
 
 	/** @var int */
 	protected $messagesCountForFile = 10000;
+
+	/** @var array|null */
+	protected $allowedCategories = null;
+
+	/** @var array */
+	protected $ignoredCategories = [];
+
+    /**
+     * @param array $config
+     */
+    public function init($config)
+    {
+        $this->path = $config['path'] ?? null;
+    }
 
 	/**
 	 * @param array|string $data
@@ -30,6 +44,14 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 		if ($category === null) {
 			$category = self::DEFAULT_CATEGORY;
 		}
+
+		if (in_array($category, $this->ignoredCategories)) {
+		    return;
+        }
+
+		if (is_array($this->allowedCategories) && !in_array($category, $this->allowedCategories)) {
+		    return;
+        }
 
 		$logDir = $this->getLogDirectory();
 		$dir = $logDir->getOrMakeDirectory($category);
@@ -55,7 +77,7 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 
 		if ($file->exists()) {
 			$tail = $file->getTail(1);
-			preg_match('/#(\d+?)\]/', $tail, $match);
+			preg_match('/#(\d+?) ---\]/', $tail, $match);
 			$messagesCount = (int)$match[1];
 
 			if ($messagesCount == $this->messagesCountForFile) {
@@ -87,7 +109,7 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 	 */
 	protected function getLogPath()
 	{
-		$path = $this->logPath ?? self::DEFAULT_LOG_PATH;
+		$path = $this->path ?? self::DEFAULT_LOG_PATH;
 		return $this->app->conductor->getFullPath($path);
 	}
 
@@ -98,14 +120,18 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 	 */
 	protected function prepareData($data, $index)
 	{
-		$result = '[[MSG_BEGIN #' . $index . ']]' . PHP_EOL;
+        $date = new \DateTime();
+        $date = $date->format('Y-m-d h:i:s');
+
+        $result = ($index > 1) ? PHP_EOL : '';
+		$result .= '[[--- MSG_BEGIN #' . $index . ' (time: ' . $date . ') ---]]' . PHP_EOL;
 
 		if (!is_string($data)) {
 			$data = json_encode($data);
 		}
 		$result .= $data . PHP_EOL;
 
-		$result .= '[[MSG_END #' . $index . ']]' . PHP_EOL;
+		$result .= '[[--- MSG_END #' . $index . ' ---]]' . PHP_EOL;
 		return $result;
 	}
 }

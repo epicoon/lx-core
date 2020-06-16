@@ -61,6 +61,12 @@ function watchForMove(event) {
 	if (!moved) return;
 	if (movedElement == null) return;
 
+	if (movedElement.moveParams.locked) {
+		moved = false;
+		movedElement = null;
+		return;
+	}
+
 	event = event || window.event;
 
 	var el = movedElement,

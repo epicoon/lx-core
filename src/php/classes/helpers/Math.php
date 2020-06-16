@@ -16,7 +16,7 @@ class Math
 	 */
 	public static function randHash()
 	{
-		return md5('' . (self::$counter++) . time() . rand(0, PHP_INT_MAX));
+		return md5('' . (self::$counter++) . '_' . time() . '_' . rand(0, PHP_INT_MAX));
 	}
 
 	/**

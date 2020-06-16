@@ -1,29 +1,23 @@
 #lx:private;
 
-let cache = {},
+let useCache = false,
+	cache = {},
 	sessionCache = {};
 
 lx.Storage = {
-	get: function(key) {
-		if (!(key in cache)) {
-			var val = localStorage.getItem(key);
-			if (val !== undefined && val !== null) {			
-				cache[key] = lx.Json.decode(val);
-			}
-		}
+	useCache: function(bool = true) {
+		useCache = bool;
+	},
 
+	get: function(key) {
+		if (!useCache) return __get(key);
+		if (!(key in cache)) cache[key] = __get(key);
 		return cache[key];
 	},
 
 	set: function(key, value) {
-		cache[key] = value;
-
-		try {
-			localStorage.setItem(key, lx.Json.encode(value));
-		} catch (e) {
-			console.log('Local storage error');
-			console.log(e);
-		}
+		if (useCache) cache[key] = value;
+		__set(key, value);
 	},
 
 	remove: function(key) {
@@ -35,26 +29,14 @@ lx.Storage = {
 	},
 
 	sessionGet: function(key) {
-		if (!(key in sessionCache)) {
-			var val = sessionStorage.getItem(key);
-			if (val !== undefined && val !== null) {			
-				sessionCache[key] = lx.Json.decode(val);
-			}
-		}
-
+		if (!useCache) return  __sessionGet(key);
+		if (!(key in sessionCache)) sessionCache[key] = __sessionGet(key);
 		return sessionCache[key];
 	},
 
 	sessionSet: function(key, value) {
-		sessionCache[key] = value;
-
-		try {
-			sessionStorage.setItem(key, lx.Json.encode(value));
-		} catch (e) {
-			if (e == QUOTA_EXCEEDED_ERR) {
-				console.log('sessionStorage is full');
-			}
-		}
+		if (useCache) sessionCache[key] = value;
+		__sessionSet(key, value);
 	},
 
 	sessionRemove: function(key) {
@@ -66,3 +48,33 @@ lx.Storage = {
 	}
 };
 
+function __get(key) {
+	var val = localStorage.getItem(key);
+	if (val !== undefined && val !== null) val = lx.Json.decode(val);
+	return val;
+}
+
+function __set(key, value) {
+	try {
+		localStorage.setItem(key, lx.Json.encode(value));
+	} catch (e) {
+		console.error('Local storage error');
+		console.log(e);
+	}
+}
+
+function __sessionGet(key) {
+	var val = sessionStorage.getItem(key);
+	if (val !== undefined && val !== null) val = lx.Json.decode(val);
+	return val;
+}
+
+function __sessionSet(key, value) {
+	try {
+		sessionStorage.setItem(key, lx.Json.encode(value));
+	} catch (e) {
+		if (e == QUOTA_EXCEEDED_ERR) {
+			console.log('sessionStorage is full');
+		}
+	}
+}

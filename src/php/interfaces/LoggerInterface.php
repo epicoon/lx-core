@@ -12,4 +12,9 @@ interface LoggerInterface {
 	 * @param string $category
 	 */
 	public function log($data, $category = null);
+
+    /**
+     * @param array $config
+     */
+	public function init($config);
 }

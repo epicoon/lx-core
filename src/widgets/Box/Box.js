@@ -858,7 +858,7 @@ class Box extends lx.Rect #lx:namespace lx {
     setPlugin(info, params = {}, func = null) {
         this.dropPlugin();
         if (!params.lxEmpty) info.clientParams = params;
-        lx.Loader.run(info, this, this.getPlugin(), func);
+        lx.Loader.run(info, __getContainer(this), this.getPlugin(), func);
     }
 
     /**

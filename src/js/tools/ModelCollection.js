@@ -4,13 +4,16 @@ class ModelCollection extends lx.Collection #lx:namespace lx {
 	}
 
 	add(data) {
+		var obj;
 		if (!data) {
-			super.add(new this.modelClass);
+			obj = new this.modelClass;
 		} else if (data.is(this.modelClass)) {
-			super.add(data);
+			obj = data;
 		} else {
-			super.add(new this.modelClass(data));
+			obj = new this.modelClass(data);
 		}
+		super.add(obj);
+		return obj;
 	}
 
 	set(i, data) {
@@ -48,6 +51,17 @@ class ModelCollection extends lx.Collection #lx:namespace lx {
 			indexes.push(index);
 		});
 		return indexes;
+	}
+
+	select(fields) {
+		var result = [];
+		this.each(elem=>{
+			for (let name in fields) {
+				if (!(name in elem) || fields[name] != elem[name]) return;
+			}
+			result.push(elem);
+		});
+		return result;
 	}
 
 	unbind() {

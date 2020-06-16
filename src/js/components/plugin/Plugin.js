@@ -89,6 +89,41 @@ class Plugin #lx:namespace lx {
 		return false;
 	}
 
+	useModule(moduleName, callback = null) {
+		this.useModules([moduleName], callback);
+	}
+
+	useModules(moduleNames, callback = null) {
+		var newForPlugin = [];
+		if (this.dependencies.modules) {
+			for (var i=0, l=moduleNames.len; i<l; i++)
+				if (!this.dependencies.modules.contains(moduleNames[i]))
+					newForPlugin.push(moduleNames[i]);
+		} else newForPlugin = moduleNames;
+
+		if (!newForPlugin.len) return;
+
+		if (!this.dependencies.modules) this.dependencies.modules = [];
+		var forLoad = lx.dependencies.defineNecessaryModules(newForPlugin);
+		if (forLoad.len) {
+			(new lx.ServiceRequest('get-modules', forLoad)).send().then(result=>{
+				if (!result) return;
+				lx.createAndCallFunction('', result);
+				newForPlugin.each(a=>this.dependencies.modules.push(a));
+				lx.dependencies.depend({
+					modules: newForPlugin
+				});
+				if (callback) callback();
+			});
+		} else {
+			newForPlugin.each(a=>this.dependencies.modules.push(a));
+			lx.dependencies.depend({
+				modules: newForPlugin
+			});
+			if (callback) callback();
+		}
+	}
+
 	/**
 	 * AJAX-запрос в пределах плагина
 	 */

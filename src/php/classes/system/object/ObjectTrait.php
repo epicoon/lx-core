@@ -169,11 +169,6 @@ trait ObjectTrait
      */
     private function validateConfig($config)
     {
-        if ($config === null) {
-            $r = 1;
-        }
-
-
         $protocol = static::getConfigProtocol();
         if (empty($protocol)) {
             return true;
@@ -208,10 +203,12 @@ trait ObjectTrait
                     ]);
                     return false;
                 }
+            } else {
+                $param = $config[$paramName];
+            }
 
-                if (property_exists($this, $paramName)) {
-                    $this->$paramName = $param;
-                }
+            if (property_exists($this, $paramName)) {
+                $this->$paramName = $param;
             }
         }
 

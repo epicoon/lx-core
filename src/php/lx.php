@@ -78,7 +78,25 @@ class lx
         }
         
         if ($async) {
-            $command .= ' > /dev/null 2>/dev/null &';
+            if (is_array($async)) {
+                if (array_key_exists('message_log', $async)) {
+                    $file = new \lx\File($async['message_log']);
+                    $file->getParentDir()->make();
+                    $msgLogPath = $file->getPath();
+                } else {
+                    $msgLogPath = '/dev/null';
+                }
+
+                if (array_key_exists('error_log', $async)) {
+                    $file = new \lx\File($async['error_log']);
+                    $file->getParentDir()->make();
+                    $errorLogPath = $file->getPath();
+                } else {
+                    $errorLogPath = '/dev/null';
+                }
+            }
+
+            $command .= " > $msgLogPath 2>$errorLogPath &";
         }
 
         return shell_exec($command);

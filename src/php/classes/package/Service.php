@@ -315,6 +315,17 @@ class Service implements FusionInterface
         if ($index !== null) {
             $processConfig['processIndex'] = $index;
         }
+
+//        $supervisor = $this->app->processSupervisor;
+//        if (!$supervisor) {
+//            return;
+//        }
+        //TODO $index надо узнавать точно. Если он неизвестен, то не факт, что это 1
+        // через processSupervisor можно сделать, но тогда ему надо вести счетчики, и, по хорошему, самому быть
+        // запущенным в виде процесса, чтобы избежать дедлока по выдаче индексов
+        if (!array_key_exists('logDirectory', $processConfig)) {
+            $processConfig['logDirectory'] = '@site/log/process/' . $name . '_' . ($index ?? 1);
+        }
         
         $args = [$processClassName];
         if (!empty($processConfig)) {
@@ -325,7 +336,10 @@ class Service implements FusionInterface
             'executor' => 'php',
             'script' => $this->conductor->getFullPath('@core/../process.php'),
             'args' => $args
-        ], true);
+        ], [
+            'message_log' => $processConfig['logDirectory'] . '/_dump.log',
+            'error_log' => $processConfig['logDirectory'] . '/_error.log',
+        ]);
     }
 
 	/**

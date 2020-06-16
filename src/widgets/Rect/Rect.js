@@ -1465,11 +1465,22 @@ class Rect #lx:namespace lx {
             parentResize : lx.getFirstDefined(this.moveParams.parentResize, config.parentResize, false),
             xLimit       : lx.getFirstDefined(this.moveParams.xLimit, config.xLimit, true),
             yLimit       : lx.getFirstDefined(this.moveParams.yLimit, config.yLimit, true),
-            moveStep     : lx.getFirstDefined(this.moveParams.moveStep, config.moveStep, 1)
+            moveStep     : lx.getFirstDefined(this.moveParams.moveStep, config.moveStep, 1),
+            locked       : false
         };
         #lx:client{ if (!this.hasTrigger('mousedown', lx.move)) this.on('mousedown', lx.move); }
         #lx:server{ this.onload('()=>this.on(\'mousedown\', lx.move);'); }
         return this;
+    }
+
+    lockMove() {
+        if (!this.moveParams) return;
+        this.moveParams.locked = true;
+    }
+
+    unlockMove() {
+        if (!this.moveParams) return;
+        this.moveParams.locked = false;
     }
 
     click(func) { this.on('click', func); return this; }

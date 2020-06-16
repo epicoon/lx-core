@@ -16,13 +16,15 @@ Object.defineProperty(Object.prototype, "lxClone", {
 		function rec(from, to) {
 			for (var i in from) {
 				var val = from[i];
-				if (val.isArray) {
+				if (val === null || val === undefined) {
+					to[i] = val;
+				} else if (val.isArray) {
 					to[i] = [];
 					rec(val, to[i]);
 				} else if (val.isObject) {
 					to[i] = {};
 					rec(val, to[i]);
-				} else to[i] = from[i];
+				} else to[i] = val;
 			}
 		}
 		rec(this, result);

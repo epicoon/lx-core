@@ -29,6 +29,14 @@ class DevLogger implements LoggerInterface
 		$this->writeFile($file, $msg);
 	}
 
+    /**
+     * @param array $config
+     */
+    public function init($config)
+    {
+        // pass
+    }
+
 	/**
 	 * Truncates count of messages in the log-file
 	 */

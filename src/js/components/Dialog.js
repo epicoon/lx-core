@@ -181,8 +181,7 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 	function handlerWrapper(request, handler) {
 		var response = request.response;
 
-		// Гостевой флаг
-		lx.isGuest = request.getResponseHeader('lx-user-status') !== null;
+		lx.User.setGuestFlag(request.getResponseHeader('lx-user-status') !== null);
 
 		// Передаем управление обработчику пользователя
 		var contentType = request.getResponseHeader('Content-Type') || '';

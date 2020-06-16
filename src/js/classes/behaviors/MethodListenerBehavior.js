@@ -120,7 +120,7 @@ function __wrapMethod(methodName) {
 					for (var i=0, l=info[methodName].before.len; i<l; i++)
 						if (info[methodName].before[i].apply(this, arguments) === false) return;
 			}
-			funcClosure.apply(this, arguments);
+			let result = funcClosure.apply(this, arguments);
 			if (thisInfo && thisInfo[methodName]) {
 				if (thisInfo[methodName].after)
 					for (var i=0, l=thisInfo[methodName].after.len; i<l; i++)
@@ -131,6 +131,7 @@ function __wrapMethod(methodName) {
 					for (var i=0, l=info[methodName].after.len; i<l; i++)
 						if (info[methodName].after[i].apply(this, arguments) === false) return;
 			}
+			return result;
 		}
 	});
 }

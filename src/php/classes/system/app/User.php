@@ -6,7 +6,7 @@ namespace lx;
  * Class User
  * @package lx
  */
-class User implements FusionComponentInterface
+class User implements UserInterface, FusionComponentInterface
 {
     use ObjectTrait;
 	use ApplicationToolTrait;

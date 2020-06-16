@@ -71,6 +71,7 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		this.map = new lx.BitMap(this.cols);
 
 		if (config.minHeight !== undefined) this.minHeight = config.minHeight;
+		if (config.minWidth !== undefined) this.minWidth = config.minWidth;
 
 		this.owner.addClass('lxps-grid-v');
 		this.owner.style('grid-template-columns', 'repeat(' + this.cols + ',1fr)');
@@ -85,6 +86,8 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		str += ';c:' + this.cols + ';t:' + this.type;
 		if (this.minHeight)
 			str += ';mh:' + this.minHeight;
+		if (this.minWidth)
+			str += ';mw:' + this.minWidth;
 		str += ';m:' + this.map.toString();
 		return str;
 	}
@@ -93,6 +96,7 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		this.cols = +config.c;
 		this.type = +config.t;
 		if (config.mh) this.minHeight = config.mh;
+		if (config.mw) this.minWidth = config.mw;
 		this.map = config.m == ''
 			? new lx.BitMap(this.cols)
 			: lx.BitMap.createFromString(config.m);
@@ -117,7 +121,7 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 			'min-width',
 			config.minWidth !== undefined
 				? config.minWidth
-				: self::COLUMN_MIN_WIDTH
+				: (this.minWidth === undefined ? self::COLUMN_MIN_WIDTH : this.minWidth)
 		);
 
 		__allocate(this, elem, config);

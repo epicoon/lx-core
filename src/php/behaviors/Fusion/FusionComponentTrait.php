@@ -23,11 +23,9 @@ trait FusionComponentTrait
 	{
 		$this->_owner = $config['__fusion__'] ?? null;
 		foreach ($config as $key => $value) {
-			if (ClassHelper::publicPropertyExists($this, $key)
-				|| ClassHelper::protectedPropertyExists($this, $key)
-			) {
-				$this->$key = $value;
-			}
+		    if (property_exists($this, $key)) {
+                $this->$key = $value;
+            }
 		}
 	}
 
