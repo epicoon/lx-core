@@ -21,6 +21,9 @@ class Dialog implements FusionComponentInterface
 	/** @var string */
 	private $_serverName;
 
+    /** @var string */
+    private $_serverAddr;
+
 	/** @var string */
 	private $_type;
 
@@ -59,6 +62,7 @@ class Dialog implements FusionComponentInterface
 	    $this->__objectConstruct($config);
 
 		$this->_serverName = $this->app->getConfig('serverName') ?? $_SERVER['SERVER_NAME'];
+		$this->_serverAddr = $this->app->getConfig('serverAddr') ?? $_SERVER['SERVER_ADDR'];
 		$this->defineType();
 		$this->defineClientIp();
 	}
@@ -379,11 +383,10 @@ class Dialog implements FusionComponentInterface
 			return;
 		}
 
-		$serverName = $this->_serverName;
 		preg_match('/[^:]+?:\/\/(.+)/', $origin, $matches);
 		$originName = $matches[1] ?? null;
 
-		if ($serverName == $originName) {
+		if ($originName == $this->_serverName || $originName == $this->_serverAddr) {
 			$this->_type = self::REQUEST_TYPE_AJAX;
 		} else {
 			$this->_type = self::REQUEST_TYPE_CORS;

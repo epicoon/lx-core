@@ -23,4 +23,9 @@ interface AuthenticationInterface extends EventListenerInterface
 	 * @return SourceContext|false
 	 */
 	public function responseToAuthenticate();
+
+    /**
+     * @return int
+     */
+    public function getProblemCode();
 }

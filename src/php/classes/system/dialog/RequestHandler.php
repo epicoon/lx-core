@@ -31,10 +31,6 @@ class RequestHandler
 	 */
 	public function send()
 	{
-	    if (!$this->sourceContext) {
-	        $r = 1;
-        }
-
         if ($this->sourceContext && $this->sourceContext->isPlugin() && $this->app->dialog->isPageLoad()) {
             $response = $this->renderPlugin();
         } else {
