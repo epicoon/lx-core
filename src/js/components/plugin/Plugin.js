@@ -11,6 +11,7 @@ class Plugin #lx:namespace lx {
 		this.widgetBasicCssList = {};
 		this.dependencies = {};
 		this.root = snippet;
+		this.destructCallbacks = [];
 
 		__init(this, info);
 	}
@@ -30,6 +31,10 @@ class Plugin #lx:namespace lx {
 		return this.isMain;
 	}
 
+	onDestruct(callback) {
+		this.destructCallbacks.push(callback);
+	}
+
 	/**
 	 * Удалить плагин - очистить корневой сниппет, удалить из реестра, удалить все связанные данные
 	 */
@@ -38,6 +43,10 @@ class Plugin #lx:namespace lx {
 		var childPlugins = this.childPlugins(true);
 		for (var i=0, l=childPlugins.len; i<l; i++)
 			childPlugins[i].del();
+
+		// Коллбэки на удаление
+		for (var i=0, l=this.destructCallbacks.len; i<l; i++)
+			lx.callFunction(this.destructCallbacks[i]);
 
 		// Клиентский метод очистки
 		if (this.destruct) this.destruct();
@@ -66,7 +75,7 @@ class Plugin #lx:namespace lx {
 		for (var i in lx.plugins) {
 			let plugin = lx.plugins[i];
 			if (all) {
-				if (plugin.haveAncestor(this))
+				if (plugin.hasAncestor(this))
 					result.push(plugin);
 			} else {
 				if (plugin.parent === this)
@@ -80,7 +89,7 @@ class Plugin #lx:namespace lx {
 	/**
 	 * Проверяет есть ли переданный плагин в иерархии родительских
 	 */
-	haveAncestor(plugin) {
+	hasAncestor(plugin) {
 		var parent = this.parent;
 		while (parent) {
 			if (parent === plugin) return true;

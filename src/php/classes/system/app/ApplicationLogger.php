@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use Exception;
+
 /**
  * Class ApplicationLogger
  * @package lx
@@ -41,6 +43,9 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 	 */
 	public function log($data, $category = null)
 	{
+	    $trace = debug_backtrace();
+        $source = $trace[1];
+
 		if ($category === null) {
 			$category = self::DEFAULT_CATEGORY;
 		}
@@ -78,7 +83,7 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 		if ($file->exists()) {
 			$tail = $file->getTail(1);
 			preg_match('/#(\d+?) ---\]/', $tail, $match);
-			$messagesCount = (int)$match[1];
+			$messagesCount = array_key_exists(1, $match) ? (int)$match[1] : 0;
 
 			if ($messagesCount == $this->messagesCountForFile) {
 				$file = new File($date . '_' . ($lastFileIndex + 1) . '.log', $dir->getPath());
@@ -89,7 +94,7 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 		}
 
 		$msgIndex = $messagesCount + 1;
-		$msg = $this->prepareData($data, $msgIndex);
+		$msg = $this->prepareData($data, $source, $msgIndex);
 
 		$file->put($msg, FILE_APPEND);
 	}
@@ -115,16 +120,20 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 
 	/**
 	 * @param array|string $data
+     * @param array $source
 	 * @param int $index
 	 * @return string
 	 */
-	protected function prepareData($data, $index)
+	protected function prepareData($data, $source, $index)
 	{
         $date = new \DateTime();
         $date = $date->format('Y-m-d h:i:s');
 
         $result = ($index > 1) ? PHP_EOL : '';
-		$result .= '[[--- MSG_BEGIN #' . $index . ' (time: ' . $date . ') ---]]' . PHP_EOL;
+		$result .= '[[--- MSG_BEGIN #' . $index
+            . ' (time: ' . $date
+            . ', source: ' . $source['file'] . '::' . $source['line']
+            . ') ---]]' . PHP_EOL;
 
 		if (!is_string($data)) {
 			$data = json_encode($data);

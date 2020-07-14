@@ -10,6 +10,8 @@ class Rect #lx:namespace lx {
         //!!!! взято с клиента, серверу может быть не надо
         if (config === false) return;
 
+        this.destructCallbacks = [];
+
         config = this.modifyConfigBeforeApply(config);
         this.defineDomElement(config);
         this.applyConfig(config);
@@ -155,11 +157,17 @@ class Rect #lx:namespace lx {
      * */
     destruct() {
         this.trigger('beforeDestruct');
+        for (var i=0, l=this.destructCallbacks.len; i<l; i++)
+            this.destructCallbacks[i].call(this);
         this.destructProcess();
         this.parent = null;
         if (this.domElem) this.domElem.clear();
         this.domElem = null;
         this.trigger('afterDestruct');
+    }
+
+    onDestruct(callback) {
+        this.destructCallbacks.push(callback);
     }
 
     destructProcess() {}
@@ -814,7 +822,7 @@ class Rect #lx:namespace lx {
         result.pH = this.geomPriorityH().lxClone();
         result.pV = this.geomPriorityV().lxClone();
         //TODO - возвращает только в пикселях, units - не работает
-        var rect = this.globalRect();
+        var rect = this.getGlobalRect();
         result[result.pH[0]] = rect[lx.Geom.geomName(result.pH[0])];
         result[result.pH[1]] = rect[lx.Geom.geomName(result.pH[1])];
         result[result.pV[0]] = rect[lx.Geom.geomName(result.pV[0])];
@@ -969,8 +977,26 @@ class Rect #lx:namespace lx {
             bottom: t + h
         }
     }
+    
+    getRectInPlugin() {
+        var globalRect = this.getGlobalRect();
+        
+        var plugin = this.getPlugin();
+        if (!plugin) return globalRect;
+        
+        var pGlobalRect = plugin.root.getGlobalRect();
 
-    globalRect() {
+        return {
+            top: globalRect.top - pGlobalRect.top,
+            left: globalRect.left - pGlobalRect.left,
+            width: globalRect.width,
+            height: globalRect.height,
+            bottom: globalRect.bottom - pGlobalRect.bottom,
+            right: globalRect.right - pGlobalRect.right,
+        };
+    }
+
+    getGlobalRect() {
         var elem = this.getDomElem();
         if (!elem) return {};
         var rect = elem.getBoundingClientRect();
@@ -981,11 +1007,11 @@ class Rect #lx:namespace lx {
             height: rect.height,
             bottom: window.screen.availHeight - rect.bottom,
             right: window.screen.availWidth - rect.right
-        }
+        };
     }
 
     containPoint(x, y) {
-        var rect = this.globalRect();
+        var rect = this.getGlobalRect();
         return (
             x >= rect.left
             && x <= (rect.left + rect.width)
@@ -999,7 +1025,7 @@ class Rect #lx:namespace lx {
             x = point.lxGetFirstDefined(['x', 'clientX'], null);
         if (x === null || y === null) return false;
 
-        var rect = this.globalRect();
+        var rect = this.getGlobalRect();
         return {
             x: x - rect.left,
             y: y - rect.top
@@ -1014,7 +1040,7 @@ class Rect #lx:namespace lx {
         if (el === null) el = this.domElem.parent;
 
         var result = {},
-            rect = this.globalRect(),
+            rect = this.getGlobalRect(),
             l = rect.left,
             r = rect.left + rect.width,
             t = rect.top,
@@ -1022,7 +1048,7 @@ class Rect #lx:namespace lx {
             p = el;
 
         while (p) {
-            var pRect = p.globalRect(),
+            var pRect = p.getGlobalRect(),
                 elem = p.getDomElem(),
                 pL = pRect.left,
                 pR = pRect.left + pRect.width + elem.clientWidth - elem.offsetWidth,
@@ -1108,7 +1134,7 @@ class Rect #lx:namespace lx {
     isDisplay() {
         if (!this.visibility()) return false;
 
-        var r = this.globalRect(),
+        var r = this.getGlobalRect(),
             w = window.screen.availWidth,
             h = window.screen.availHeight;
 
@@ -1137,7 +1163,7 @@ class Rect #lx:namespace lx {
 
         if (!step) step = 0;
         step = elem.geomPart(step, 'px', lx.Geom.directionByGeom(align));
-        var rect = elem.globalRect();
+        var rect = elem.getGlobalRect();
         switch (align) {
             case lx.TOP:
                 this.geomPriorityV(lx.TOP, lx.MIDDLE);

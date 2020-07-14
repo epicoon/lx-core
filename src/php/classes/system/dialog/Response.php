@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 /**
  * Class Response
  * @package lx
@@ -104,14 +106,14 @@ class Response implements ResponseInterface
     {
         if (!isset($this->type)) {
             switch (true) {
-                case \lx::$app->dialog->isPageLoad():
+                case lx::$app->dialog->isPageLoad():
                     $this->type = 'html';
                     break;
-                case \lx::$app->dialog->isAssetLoad():
+                case lx::$app->dialog->isAssetLoad():
                     $this->type = 'plane';
                     break;
-                case \lx::$app->dialog->isAjax():
-                case \lx::$app->dialog->isCors():
+                case lx::$app->dialog->isAjax():
+                case lx::$app->dialog->isCors():
                 default:
                     $this->type = 'json';
             }
@@ -135,12 +137,12 @@ class Response implements ResponseInterface
                 $this->fullData = $data;
             } else {
                 $data = $this->data;
-                $dump = \lx::getDump();
+                $dump = lx::getDump();
                 if ($dump != '') {
                     if (is_array($data)) {
                         $data['lxdump'] = $dump;
                     } else {
-                        if ($this->isAjax()) {
+                        if (lx::$app->dialog->isAjax()) {
                             $data .= '<lx-var-dump>' . $dump . '</lx-var-dump>';
                         } else {
                             $dumpStr = '<pre class="lx-var-dump">' . $dump . '</pre>';

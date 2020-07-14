@@ -1,5 +1,4 @@
-#lx:use lx.ColorSchema.white;
-// #lx:use lx.ColorSchema.dark;
+#lx:use #lx:php(\lx::$app->getConfig('colorSchema'));
 #lx:use lx.MainCssContext;
 
 
@@ -10,7 +9,7 @@ cssContext.addClass('lxbody', {
 	top: '0%',
 	width: '100%',
 	height: '100%',
-	overflow: 'auto',
+	overflow: 'hidden',
 	backgroundColor: mainBackgroundColor
 });
 
@@ -49,6 +48,12 @@ cssContext.addStyle('@font-face', {
 	src: 'url("font/Muli-VariableFont_wght.ttf") format("truetype")',
 	fontStyle: 'normal',
 	fontWeight: 600
+});
+
+cssContext.addClass('lx-Box', {
+	borderRadius: borderRadius,
+	boxShadow: '0 0px '+shadowSize+'px rgba(0,0,0,0.5)',
+	backgroundColor: bodyBackgroundColor
 });
 /*============================================================================*/
 
@@ -159,11 +164,7 @@ cssContext.addClass('lx-ActiveBox-move', {
 
 /*============================================================================*/
 /* MultiBox */
-cssContext.addClass('lx-MultiBox', {
-	borderRadius: borderRadius,
-	boxShadow: '0 0px '+shadowSize+'px rgba(0,0,0,0.5)',
-	backgroundColor: bodyBackgroundColor
-});
+cssContext.inheritClass('lx-MultiBox', 'lx-Box', {});
 
 cssContext.inheritClass('lx-MultiBox-mark', 'ActiveButton', {
 	backgroundColor: coldSoftColor,

@@ -74,6 +74,7 @@ let __binds = [],
  * либо непосредственно таким полем
  * */
 function __bind(obj, widget, type=lx.Binder.BIND_TYPE_FULL) {
+	if (!obj.lxHasMethod('getSetterEvents')) return;
 	var setterEvents = obj.getSetterEvents();
 	if (!setterEvents) return;
 
@@ -145,6 +146,7 @@ function __unbind(obj, widget=null) {
  * */
 function __refresh(obj, fieldName = null) {
 	if (fieldName === null) {
+		if (!obj.lxHasMethod('getSetterEvents')) return;
 		var setterEvents = obj.getSetterEvents();
 		if (!setterEvents) return;
 		var fields = setterEvents.fields;
@@ -187,6 +189,7 @@ function __bindMatrix(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 
 	c.addBehavior(lx.MethodListenerBehavior);
 	c.afterMethod('add',       __matrixHandlerOnAdd   );
+	c.afterMethod('insert',    __matrixHandlerOnInsert);
 	c.beforeMethod('removeAt', __matrixHandlerOnRemove);
 	c.beforeMethod('clear',    __matrixHandlerOnClear );
 	c.afterMethod('set',       __matrixHandlerOnSet   );
@@ -233,6 +236,7 @@ function __bindAgregation(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 	// привязка первого элемента коллекции к виджету
 	//todo практически копирует __bind()
 	function bindFirst(obj) {
+		if (!obj.lxHasMethod('getSetterEvents')) return;
 		var setterEvents = obj.getSetterEvents();
 		if (!setterEvents) return;
 
@@ -417,11 +421,16 @@ function __getMatrixCollection(widget) {
 	return __matrixBinds[widget._lxMatrixBindId].collection;
 }
 
-function __matrixNewBox(w, obj, type) {
-	let rowClass = w.lxcwb_widget || lx.Box,
-		rowConfig = w.lxcwb_config ? w.lxcwb_config.lxClone() : {}
+function __prepareMatrixNewBoxConfig(w) {
+	let rowConfig = w.lxcwb_config ? w.lxcwb_config.lxClone() : {}
 	rowConfig.key = 'r';
 	rowConfig.parent = w;
+	return rowConfig;
+}
+
+function __matrixNewBox(w, obj, type, rowConfig = null) {
+	rowConfig = rowConfig || __prepareMatrixNewBoxConfig(w);
+	let rowClass = w.lxcwb_widget || lx.Box;
 	let r = new rowClass(rowConfig);
 	r.begin();
 	w.lxcwb_itemRender(r, obj);
@@ -433,10 +442,28 @@ function __matrixNewBox(w, obj, type) {
 	r.matrixModel = function() {return __getMatrixCollection(this.parent).at(this.index || 0);};
 }
 
+function __matrixInsertNewBox(w, obj, index, type) {
+	if (index > w.childrenCount()) index = w.childrenCount();
+	if (index == w.childrenCount()) {
+		__matrixNewBox(w, obj, type);
+		return;
+	}
+
+	let rowConfig = __prepareMatrixNewBoxConfig(w);
+	rowConfig.before = w.child(index);
+	__matrixNewBox(w, obj, type, rowConfig);
+}
+
 function __matrixHandlerOnAdd(obj = null) {
 	if (this._lxMatrixBindId === undefined) return;
 	var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
 	widgets.each(w=>__matrixNewBox(w, this.last(), __matrixBinds[this._lxMatrixBindId].type));
+}
+
+function __matrixHandlerOnInsert(i, obj = null) {
+	if (this._lxMatrixBindId === undefined) return;
+	var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
+	widgets.each(w=>__matrixInsertNewBox(w, this.at(i), i, __matrixBinds[this._lxMatrixBindId].type));
 }
 
 function __matrixHandlerOnRemove(i) {

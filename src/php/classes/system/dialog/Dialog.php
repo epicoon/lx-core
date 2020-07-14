@@ -67,6 +67,14 @@ class Dialog implements FusionComponentInterface
 		$this->defineClientIp();
 	}
 
+    /**
+     * @return string
+     */
+	public function getServerName()
+    {
+        return $this->_serverName;
+    }
+
 	/**
 	 * @return string
 	 */

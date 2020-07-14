@@ -34,8 +34,8 @@ class BindableModel extends lx.Model #lx:namespace lx {
 	/**
 	 * Активно просигнализировать виджетам об изменении состояния
 	 * */
-	bindRefresh() {
-		lx.Binder.refresh(this);
+	bindRefresh(fieldName = null) {
+		lx.Binder.refresh(this, fieldNames);
 	}
 
 	/**

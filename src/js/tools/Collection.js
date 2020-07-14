@@ -363,6 +363,12 @@ class Collection extends lx.Object #lx:namespace lx {
 		return index;
 	}
 
+	insert(index, value) {
+		// изменять внутреннюю структуру содержащихся массивов можно только с копией
+		this.toCopy();
+		this.elements.splice(index, 0, value);
+	}
+
 	remove(el) {
 		// изменять внутреннюю структуру содержащихся массивов можно только с копией
 		this.toCopy();
@@ -451,7 +457,7 @@ class Collection extends lx.Object #lx:namespace lx {
 	each(func) {
 		this.stopFlag = false;
 		this.cachePosition();
-		var i = 0,
+		let i = 0,
 			el = this.first();
 		while (el && !this.stopFlag) {
 			func.call( this, el, i++ );
@@ -543,7 +549,7 @@ class Collection extends lx.Object #lx:namespace lx {
 	 * */
 	select() {
 		var amt = arguments.length;
-		if (!amt) return null;
+		if (!amt) return new lx.Collection();
 
 		if (amt == 1) {
 			var c = new lx.Collection(),

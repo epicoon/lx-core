@@ -26,6 +26,16 @@ class ModelCollection extends lx.Collection #lx:namespace lx {
 		}
 	}
 
+	insert(i, data) {
+		if (!data) {
+			super.insert(i, new this.modelClass);
+		} else if (data.is(this.modelClass)) {
+			super.insert(i, data);
+		} else {
+			super.insert(i, new this.modelClass(data));
+		}
+	}
+
 	load(list) {
 		list.each(fields=>this.add(fields));
 	}

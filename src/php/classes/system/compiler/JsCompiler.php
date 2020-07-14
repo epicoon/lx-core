@@ -172,6 +172,9 @@ class JsCompiler
 		// Удаляем директивы координации
 		$code = $this->cutCoordinationDirectives($code);
 
+        // Разрешаем макросы
+        $code = $this->processMacroses($code);
+
 		// Привести код к текущему контексту (клиент или сервер)
 		$code = $this->applyContext($code);
 
@@ -469,6 +472,30 @@ class JsCompiler
 		return implode('', $result);
 	}
 
+    /**
+     * @param string $code
+     * @return string
+     */
+	private function processMacroses($code)
+    {
+        $regexp = '/(?<!\/\/ )(?<!\/\/)#lx:macros\s+(.+?)\s+(?P<re>{((?>[^{}]+)|(?P>re))*});?/';
+
+        preg_match_all($regexp, $code, $matches);
+        if (!empty($matches[0])) {
+            foreach ($matches[1] as $i => $name) {
+                $text = preg_replace('/(?:^{|}$)/', '', $matches['re'][$i]);
+                $code = str_replace('#' . $name, $text, $code);
+            }
+        }
+        
+        $code = preg_replace($regexp, '', $code);
+        return $code;
+    }
+
+    /**
+     * @param string $code
+     * @return string
+     */
 	private function applyContext($code)
 	{
 		$regexpTail = '\s*(?P<re>{((?>[^{}]+)|(?P>re))*});?/';

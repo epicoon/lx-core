@@ -169,7 +169,7 @@ class SintaxExtender
 			} else{
 				$fields = '#lx:modelName ' . $fields;				
 			}
-			$text = "const $name = (function(){ class _am_ extends lx.BindableModel {" . $fields . ";} return new _am_; })();";
+			$text = "const $name = (function(){ class _am_ extends lx.BindableModel {" . $fields . ";} return new _am_();})();";
 			$code = str_replace($matches[0][$i], $text, $code);
 		}
 
@@ -232,11 +232,22 @@ class SintaxExtender
 
 		if (!empty($matches[0])) {
 			foreach ($matches[0] as $i => $implement) {
+			    if (preg_match('/\bclass\s+\b.+?\b\s+(?:{|#)/', $matches['re'][0])) {
+			        $processedRe = $this->applyExtendedSintaxForClasses($matches['re'][0], $path);
+			        $implementTemp = str_replace($matches['re'][0], $processedRe, $implement);
+                } else {
+                    $implementTemp = $implement;
+                }
+
 				$class = $matches[1][$i];
 				preg_match('/#lx:namespace\s+([_\w\d.]+?)[\s{]/', $matches[2][$i], $namespace);
 				$namespace = $namespace[1] ?? null;
 
-				$implementResult = preg_replace('/#lx:namespace\s+[_\w\d.]+?(\s|{)/', '$1', $implement);
+				$implementResult = preg_replace(
+				    '/#lx:namespace\s+[_\w\d.]+?(\s|{)/',
+                    '$1',
+                    $implementTemp
+                );
 
 				// 1. #lx:const NAME = value;
 				$implementResult = preg_replace_callback($this->inClassReg('const'), function ($matches) {
