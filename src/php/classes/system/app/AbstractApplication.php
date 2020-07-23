@@ -49,6 +49,9 @@ abstract class AbstractApplication implements FusionInterface
 	/** @var DependencyProcessor */
 	private $_diProcessor;
 
+	/** @var bool */
+	private $logMode;
+
 	/**
 	 * AbstractApplication constructor.
      * @param array $config
@@ -58,6 +61,8 @@ abstract class AbstractApplication implements FusionInterface
 		$this->id = Math::randHash();
 		$this->pid = getmypid();
 		$this->_sitePath = \lx::$conductor->sitePath;
+		$this->logMode = true;
+
 		$this->_conductor = new ApplicationConductor();
         \lx::$app = $this;
 
@@ -146,13 +151,23 @@ abstract class AbstractApplication implements FusionInterface
 		return $this->conductor->getFullPath($alias);
 	}
 
+    /**
+     * @param bool $value
+     */
+	public function setLogMode($value)
+    {
+        $this->logMode = $value;
+    }
+
 	/**
 	 * @param string|array $data
 	 * @param string $locationInfo
 	 */
 	public function log($data, $locationInfo = null)
 	{
-		$this->logger->log($data, $locationInfo);
+	    if ($this->logMode) {
+            $this->logger->log($data, $locationInfo);
+        }
 	}
 
 	/**

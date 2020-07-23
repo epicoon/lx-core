@@ -117,7 +117,17 @@ class JsCompiler
 	public function compileFile($path)
 	{
 		$this->dependencies = new JsCompileDependencies();
-		return $this->compileFileRe($path);
+
+        if (!$this->checkFileCompileAvailable($path)) {
+            return '';
+        }
+
+        $this->reportFileCompiled($path);
+
+        $code = file_get_contents($path);
+        $code = $this->compileCodeInnerDirectives($code, $path);
+        $code = $this->compileCodeOuterDirectives($code, $path);
+        return $code;
 	}
 
 	/**
@@ -128,7 +138,10 @@ class JsCompiler
 	public function compileCode($code, $path = null)
 	{
 		$this->dependencies = new JsCompileDependencies();
-		return $this->compileCodeProcess($code, $path);
+
+		$code = $this->compileCodeInnerDirectives($code, $path);
+		$code = $this->compileCodeOuterDirectives($code, $path);
+		return $code;
 	}
 
 
@@ -136,79 +149,93 @@ class JsCompiler
 	 * PRIVATE
 	 ******************************************************************************************************************/
 
-	/**
-	 * @param string $path
-	 * @param bool $force - compile file only once or every time
-	 * @return string
-	 */
-	private function compileFileRe($path, $force = false)
-	{
-		if (!file_exists($path)) return '';
+    /**
+     * @param string $path
+     * @param bool $force - compile file only once or every time
+     * @return bool
+     */
+	private function checkFileCompileAvailable($path, $force = false)
+    {
+        if (!file_exists($path)) {
+            return false;
+        }
 
-		if (!$force && isset($this->allCompiledFiles[$path])) return '';
+        if (!$force && isset($this->allCompiledFiles[$path])) {
+            return false;
+        }
 
-		if (preg_match('/^' . addcslashes($this->conductor->getPath(), '/') . '\//', $path)) {
-			$this->compiledFiles[] = $path;
-		}
+        return true;
+    }
 
-		$this->allCompiledFiles[$path] = 1;
-		$code = file_get_contents($path);
-		$code = $this->compileCodeProcess($code, $path);
-		return $code;
-	}
+    /**
+     * @param string $path
+     */
+    private function reportFileCompiled($path)
+    {
+        if (preg_match('/^' . addcslashes($this->conductor->getPath(), '/') . '\//', $path)
+            && !in_array($path, $this->compiledFiles)
+        ) {
+            $this->compiledFiles[] = $path;
+        }
+        $this->allCompiledFiles[$path] = 1;
+    }
 
-	/**
-	 * @param string $code
-	 * @param string $path - need for '#lx:require'
-	 * @return string
-	 */
-	private function compileCodeProcess($code, $path = null)
-	{
-		$parentDir = $path === null ? null : dirname($path) . '/';
+    /**
+     * @param string $code
+     * @param string|null $path
+     * @return string
+     */
+	private function compileCodeInnerDirectives($code, $path = null)
+    {
+        // Первым делом избавиться от комментариев
+        $code = Minimizer::cutComments($code);
 
-		// Первым делом избавиться от комментариев
-		$code = Minimizer::cutComments($code);
-
-		// Удаляем директивы координации
-		$code = $this->cutCoordinationDirectives($code);
+        // Удаляем директивы координации
+        $code = $this->cutCoordinationDirectives($code);
 
         // Разрешаем макросы
         $code = $this->processMacroses($code);
 
-		// Привести код к текущему контексту (клиент или сервер)
-		$code = $this->applyContext($code);
+        // Привести код к текущему контексту (клиент или сервер)
+        $code = $this->applyContext($code);
 
-		// Применить расширенный синтаксис
-		$code = $this->sintaxExtender->applyExtendedSintax($code, $path);
+        // Применить расширенный синтаксис
+        $code = $this->sintaxExtender->applyExtendedSintax($code, $path);
 
-		// Парсит конфиг-файлы
-		if ($parentDir) {
-			$code = $this->loadConfig($code, $parentDir);
-		}
+        // Парсит конфиг-файлы
+        $code = $this->loadConfig($code, $path);
 
-		// Ищет указания о подключении скриптов
-		$code = $this->plugScripts($code);
+        // Ищет указания о подключении скриптов
+        $code = $this->plugScripts($code);
 
-		// Приведение кода к выбранному моду
-		$code = $this->checkMode($code);
+        // Приведение кода к выбранному моду
+        $code = $this->checkMode($code);
 
-		// Проверка на объявление кода приватным
-		list($code, $private) = $this->checkPrivate($code);
+        return $code;
+    }
 
-		// Компилит вызовы кода конкатенационно
-		if ($parentDir) {
-			$code = $this->plugAllRequires($code, $parentDir);
-		}
+    /**
+     * @param string $code
+     * @param string|null $path
+     * @return string
+     */
+    private function compileCodeOuterDirectives($code, $path = null)
+    {
+        // Проверка на объявление кода приватным
+        list($code, $private) = $this->checkPrivate($code);
 
-		// Приватный код означает, что мы оборачиваем его в анонимную функцию
-		if ($private) {
-			$code = '(function(){' . $code . '})();';
-		}
+        // Компилит вызовы кода конкатенационно
+        $code = $this->plugAllRequires($code, $path);
 
-		$code = $this->plugAllModules($code);
+        // Приватный код означает, что мы оборачиваем его в анонимную функцию
+        if ($private) {
+            $code = '(function(){' . $code . '})();';
+        }
 
-		return $code;
-	}
+        $code = $this->plugAllModules($code);
+
+        return $code;
+    }
 
 	/**
 	 * Можно писать js-код под конкретный режим работы приложения при помощи директив:
@@ -258,8 +285,10 @@ class JsCompiler
 	 *    #lx:require ClassName;
 	 *    #lx:require { ClassName1, ClassName2 };
 	 * */
-	private function plugAllRequires($code, $parentDir)
+	private function plugAllRequires($code, $path)
 	{
+        $parentDir = $path === null ? null : dirname($path) . '/';
+
 		$pattern = '/(?<!\/ )(?<!\/)#lx:require(\s+-[\S]+)?\s+[\'"]?([^;]+?)[\'"]?;/';
 		$code = preg_replace_callback($pattern, function ($matches) use ($parentDir) {
 			$flags = $matches[1];
@@ -382,81 +411,79 @@ class JsCompiler
 		foreach ($fileNames as $fileName) {
 			if (!file_exists($fileName)) continue;
 
+			$originalCode = file_get_contents($fileName);
 
-			//TODO !!!!!!!!!!!!!!!!! Рефактоирнг компиляции - через анализатор
-			/*
-			проблема - выделение строк, коментов отдельно друг от друга
-			последовательно разбирать текст кода - не получается, очень медленно работает
-			только регулярки
-			*/
-			// $fa = new FileAnalyzer($fileName);
+            preg_match_all('/#lx:require [\'"]?(.+)\b/', $originalCode, $requiredFiles);
+            $required = array_merge($required, $requiredFiles[1]);
+            // Находим классы, которые в файле объявлены
+            $reg = '/class\s+(.+?)\b\s+(?:extends\s+([\w\d_.]+?)(?:\s|{))?\s*(?:#lx:namespace\s+([\w\d_.]+?)(?:\s|{))?/';
+            preg_match_all($reg, $originalCode, $matches);
 
+            $code = $this->compileCodeInnerDirectives($originalCode, $fileName);
 
-			$code = file_get_contents($fileName);
-
-			preg_match_all('/#lx:require [\'"]?(.+)\b/', $code, $requiredFiles);
-			$required = array_merge($required, $requiredFiles[1]);
-
-			// Находим классы, которые в файле объявлены
-			preg_match_all(
-				'/class (.+?)\b\s*(?:extends\s+([\w\d_.]+?)\b)?\s*(?:{|#lx:namespace\s+([\w\d_]+?)\s*{)/',
-				$code,
-				$classes
-			);
-			$classes = $classes[1];
-			$index = count($list);
+			$classes = $matches[1];
+			$namespaces = $matches[3];
 			// Формируем карту по именам классов
-			foreach ($classes as $class) {
-				if (array_key_exists($class, $classesMap)) {
-					if (array_key_exists($classesMap[$class], $list)) {
+			foreach ($classes as $i => $class) {
+			    $className = ($namespaces[$i] == '') ? $class : $namespaces[$i] . '.' . $class;
+				if (array_key_exists($className, $classesMap)) {
+					if (array_key_exists($classesMap[$className], $list)) {
 						\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 							'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-							'msg' => "Js-class $class is already defined from '"
-								. $list[$classesMap[$class]]['path']
+							'msg' => "Js-class $className is already defined from '"
+								. $list[$classesMap[$className]]['path']
 								. "'. It`s impossible to redeclare it from '$fileName'",
 						]);
 					} else {
 						\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 							'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-							'msg' => "Wrong class, name: '$class'",
+							'msg' => "Wrong class, name: '$className'",
 						]);
 					}
 				} else {
-					$classesMap[$class] = $index;
+					$classesMap[$className] = $fileName;
 				}
 			}
 
 			// Находим случаи наследования
-			preg_match_all('/extends\s+(?:.+?\.)?(.+?)\b/', $code, $extends);
+            $extends = array_diff($matches[2], ['', $fileName]);
 
-			// Формируем список инфы по файлам
-			$list[] = [
+            // Формируем список инфы по файлам
+			$list[$fileName] = [
 				'path' => $fileName,
-				'extends' => array_diff(array_unique($extends[1]), $classes),
+                'code' => $code,
+				'extends' => $extends,
 				'depends' => [],
-				'index' => $index,
 				'counter' => 0
 			];
 		}
 
 		// Расстановка зависимостей
-		foreach ($list as &$item) {
-			foreach ($item['extends'] as $extend) {
-				if (!array_key_exists($extend, $classesMap)) continue;
-				$list[$classesMap[$extend]]['depends'][] = $item['index'];
-			}
+		foreach ($list as $currentClassPath => &$item) {
+			foreach ($item['extends'] as $parentClassName) {
+				if (!array_key_exists($parentClassName, $classesMap)) {
+				    continue;
+                }
 
+                $parentClassPath = $classesMap[$parentClassName];
+				if ($parentClassPath == $currentClassPath) {
+				    continue;
+                }
+
+				$list[$parentClassPath]['depends'][] = $currentClassPath;
+			}
 		}
 		unset($item);
 
 		// Рекурсивное увеличение счетчика зависимостей
 		$re = function ($index) use (&$re, &$list) {
 			$list[$index]['counter']++;
-			foreach ($list[$index]['depends'] as $depend)
-				$re($depend);
+			foreach ($list[$index]['depends'] as $depend) {
+                $re($depend);
+            }
 		};
-		foreach ($list as $item) {
-			$re($item['index']);
+		foreach ($list as $key => $item) {
+			$re($key);
 		}
 
 		// Сортируем файлы согласно зависимостям
@@ -468,7 +495,19 @@ class JsCompiler
 
 		// Компилим итоговый код
 		$result = [];
-		foreach ($list as $item) $result[] = $this->compileFileRe($item['path'], $flags->force);
+		foreach ($list as $item) {
+		    $path = $item['path'];
+            if (!$this->checkFileCompileAvailable($path, $flags->force)) {
+                continue;
+            }
+
+            $this->reportFileCompiled($path);
+
+            $code = $item['code'];
+            $code = $this->compileCodeOuterDirectives($code, $path);
+            $result[] = $code;
+		}
+
 		return implode('', $result);
 	}
 
@@ -556,8 +595,10 @@ class JsCompiler
 	/**
 	 * Загрузка js-данных из конфиг-файла
 	 * */
-	private function loadConfig($code, $parentDir)
+	private function loadConfig($code, $path)
 	{
+        $parentDir = $path === null ? null : dirname($path) . '/';
+
 		$pattern = '/(?<!\/ )(?<!\/)#lx:load\s*\(?\s*[\'"]?(.*?)[\'"]?([;,)])/';
 		$code = preg_replace_callback($pattern, function ($matches) use ($parentDir) {
 			$path = $matches[1];
