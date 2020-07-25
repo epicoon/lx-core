@@ -10,8 +10,6 @@ class Rect #lx:namespace lx {
         //!!!! взято с клиента, серверу может быть не надо
         if (config === false) return;
 
-        this.destructCallbacks = [];
-
         config = this.modifyConfigBeforeApply(config);
         this.defineDomElement(config);
         this.applyConfig(config);
@@ -44,6 +42,7 @@ class Rect #lx:namespace lx {
     #lx:client __construct() {
         this.domElem = null;
         this.parent = null;
+        this.destructCallbacks = [];
     }
 
     static getStaticTag() {

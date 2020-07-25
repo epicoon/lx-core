@@ -19,7 +19,6 @@ class LoadContext {
 
 	parseInfo(info) {
 		var pluginsInfo;
-		var clientParams = {};
 
 		// Статика приходит строкой, ajax массивом
 
@@ -31,7 +30,6 @@ class LoadContext {
 		} else {
 			this.isAjax = true;
 			pluginsInfo = info.pluginInfo;
-			if (info.clientParams) clientParams = info.clientParams;
 
 			// Определяем какие ресурсы потребуют отдельной дозагрузки
 			if (info.modules) this.necessaryModules = lx.dependencies.defineNecessaryModules(info.modules);
@@ -61,11 +59,6 @@ class LoadContext {
 			this.plugins[info.info.anchor] = info;
 		}
 		this.rootKey = '_root_';
-		if (!clientParams.lxEmpty) {
-			if (!this.plugins[this.rootKey].info.params)
-				this.plugins[this.rootKey].info.params = {};
-			this.plugins[this.rootKey].info.params.lxMerge(clientParams, true);
-		}
 	}
 
 	run(el, parent, clientCallback) {

@@ -150,8 +150,6 @@ class RequestHandler
 		$settings = ArrayHelper::arrayToJsCode($this->app->getSettings());
 		$js = "lx.start($settings, `$modules`, `$jsBootstrap`, `$pluginInfo`, `$jsMain`);";
 
-		
-		
 		$renderer = $this->app->diProcessor->createByInterface(RendererInterface::class);
 		$result = $renderer->render('200.php', [
             'head' => new HtmlHead($pluginData['page']),

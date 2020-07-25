@@ -321,11 +321,11 @@ abstract class AbstractApplication implements FusionInterface
 
 	/**
 	 * @param string $fullPluginName
-	 * @param array $params
+	 * @param array $attributes
 	 * @param string $onload
 	 * @return Plugin|null
 	 */
-	public function getPlugin($fullPluginName, $params = [], $onload = '')
+	public function getPlugin($fullPluginName, $attributes = [], $onload = '')
 	{
 		if (is_array($fullPluginName)) {
 			return $this->getPlugin(
@@ -344,8 +344,8 @@ abstract class AbstractApplication implements FusionInterface
 		if (!$service) return null;
 
 		$plugin = $service->getPlugin($pluginName);
-		if (!empty($params)) {
-			$plugin->addParams($params);
+		if (!empty($attributes)) {
+			$plugin->addAttributes($attributes);
 		}
 
 		if ($onload != '') {

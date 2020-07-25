@@ -5,7 +5,7 @@
 class Plugin #lx:namespace lx {
 	constructor(info, snippet) {
 		this.name =  info.name;
-		this.params =  {};
+		this.attributes =  {};
 		this.instances = {};
 		this.namespaces = [];
 		this.widgetBasicCssList = {};
@@ -226,7 +226,7 @@ function __init(plugin, info) {
 
 	if (info.parent) plugin.parent = info.parent;
 	if (info.main) plugin.isMain = true;
-	if (info.params) plugin.params = info.params;
+	if (info.attributes) plugin.attributes = info.attributes;
 
 	if (info.images) plugin.images = info.images;
 

@@ -61,7 +61,7 @@
  * setIndents(config)
  *
  * * 5. Load
- * setPlugin(info, params, func)
+ * setPlugin(info, attributes, func)
  * dropPlugin()
  *
  * * 6. Js-features
@@ -217,9 +217,9 @@ class Box extends lx.Rect #lx:namespace lx {
             container.isSnippet = true;
 		}
 
-		setPlugin(name, params, onload) {
-            if (params === undefined && name.isObject) {
-                params = name.params;
+		setPlugin(name, attributes, onload) {
+            if (attributes === undefined && name.isObject) {
+                attributes = name.attributes;
                 name = name.name;
             }
 
@@ -229,7 +229,7 @@ class Box extends lx.Rect #lx:namespace lx {
             container.pluginAnchor = App.genId();
 
             var data = {name, anchor:container.pluginAnchor};
-            if (params) data.params = params;
+            if (attributes) data.attributes = attributes;
             if (onload) data.onload = onload;
             this.getSnippet().addPlugin(data);
         }
@@ -855,9 +855,12 @@ class Box extends lx.Rect #lx:namespace lx {
     /**
      * Загружает уже полученные данные о модуле в элемент
      * */
-    setPlugin(info, params = {}, func = null) {
+    setPlugin(info, attributes = {}, func = null) {
         this.dropPlugin();
-        if (!params.lxEmpty) info.clientParams = params;
+        if (!attributes.lxEmpty) {
+            if (!info.attributes) info.attributes = {};
+            info.attributes.lxMerge(attributes, true);
+        }
         lx.Loader.run(info, __getContainer(this), this.getPlugin(), func);
     }
 

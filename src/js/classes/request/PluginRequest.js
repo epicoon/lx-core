@@ -1,7 +1,7 @@
 class PluginRequest extends lx.Request #lx:namespace lx {
 	constructor(plugin, respondent, params=[]) {
 		params = {
-			params: plugin.params,
+			attributes: plugin.attributes,
 			data: params
 		};
 

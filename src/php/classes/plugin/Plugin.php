@@ -33,7 +33,7 @@ class Plugin extends Source implements FusionInterface
 	public $icon = null;
 
 	/** @var DataObject */
-	public $params;
+	public $attributes;
 
 	/** @var Service */
 	protected $service = null;
@@ -79,7 +79,7 @@ class Plugin extends Source implements FusionInterface
 		$this->service = $data['service'];
 		$this->_name = $this->service->getID() . ':' . $data['name'];
 		$this->_path = $data['path'];
-		$this->params = new DataObject();
+		$this->attributes = new DataObject();
 		$this->anchor = '_root_';
 
 		if (isset($data['prototype'])) {
@@ -352,20 +352,20 @@ class Plugin extends Source implements FusionInterface
 	/**
 	 * Define in child
 	 *
-	 * @param array $params
+	 * @param array $attributes
 	 * @return array
 	 */
-	public function beforeAddParams($params)
+	public function beforeAddAttributes($attributes)
 	{
-		return $params;
+		return $attributes;
 	}
 
 	/**
 	 * Define in child
 	 *
-	 * @param array $params
+	 * @param array $attributes
 	 */
-	public function afterAddParams($params)
+	public function afterAddAttributes($attributes)
 	{
 		// pass
 	}
@@ -484,7 +484,7 @@ class Plugin extends Source implements FusionInterface
 	 */
 	public function getSourceContext($respondent, $data)
 	{
-		if (!isset($data['params']) || !isset($data['data'])) {
+		if (!isset($data['attributes']) || !isset($data['data'])) {
 			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Wrong data in ajax-request for plugin '{$this->name}'",
@@ -492,7 +492,7 @@ class Plugin extends Source implements FusionInterface
 			return false;
 		}
 
-		$this->params->setProperties($data['params']);
+		$this->attributes->setProperties($data['attributes']);
 		$requestData = $data['data'];
 
 		if ($respondent) {
@@ -507,29 +507,29 @@ class Plugin extends Source implements FusionInterface
 	}
 
 	/**
-	 * @param array $params
+	 * @param array $attributes
 	 */
-	public function addParams($params)
+	public function addAttributes($attributes)
 	{
-		$params = $this->beforeAddParams($params);
-		if ($params === false) {
+		$attributes = $this->beforeAddAttributes($attributes);
+		if ($attributes === false) {
 			return;
 		}
 
-		foreach ($params as $key => $value) {
-			$this->addParam($key, $value);
+		foreach ($attributes as $key => $value) {
+			$this->addAttribute($key, $value);
 		}
 
-		$this->afterAddParams($params);
+		$this->afterAddAttributes($attributes);
 	}
 
 	/**
 	 * @param string $name
 	 * @param mixed $value
 	 */
-	public function addParam($name, $value)
+	public function addAttribute($name, $value)
 	{
-		$this->params->$name = $value;
+		$this->attributes->$name = $value;
 	}
 
 	/**
@@ -618,9 +618,9 @@ class Plugin extends Source implements FusionInterface
 			'icon' => $this->icon,
 		];
 
-		$params = $this->params->getProperties();
-		if (!empty($params)) {
-			$result['params'] = $params;
+		$attributes = $this->attributes->getProperties();
+		if (!empty($attributes)) {
+			$result['attributes'] = $attributes;
 		}
 
 		$widgetBasicCssList = $this->widgetBasicCssList();
@@ -644,9 +644,9 @@ class Plugin extends Source implements FusionInterface
 			$this->icon = $data['icon'];
 		}
 
-		if (isset($data['params'])) {
-			foreach ($data['params'] as $key => $value) {
-				$this->addParam($key, $value);
+		if (isset($data['attributes'])) {
+			foreach ($data['attributes'] as $key => $value) {
+				$this->addAttribute($key, $value);
 			}
 		}
 
@@ -668,9 +668,9 @@ class Plugin extends Source implements FusionInterface
 			'anchor' => $this->anchor,
 		];
 
-		$params = $this->params->getProperties();
-		if (!empty($params)) {
-			$info['params'] = $params;
+		$attributes = $this->attributes->getProperties();
+		if (!empty($attributes)) {
+			$info['attributes'] = $attributes;
 		}
 
 		if (!empty($this->onloadList)) {

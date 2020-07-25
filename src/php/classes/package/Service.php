@@ -386,10 +386,10 @@ class Service implements FusionInterface
 	 *       paramB: value2
 	 *
 	 * @param string $pluginName
-	 * @param array $argParams
+	 * @param array $attributes
 	 * @return Plugin|null
 	 */
-	public function getPlugin($pluginName, $argParams = [])
+	public function getPlugin($pluginName, $attributes = [])
 	{
 		// Dynamic plugins
 		$dynamicPlugins = $this->getConfig('service.dynamicPlugins');
@@ -422,10 +422,10 @@ class Service implements FusionInterface
 			}
 
 			$plugin = Plugin::create($this, $pluginName, $path, $info['prototype']);
-			if (isset($info['params'])) {
-				$plugin->addParams($info['params']);
+			if (isset($info['attributes'])) {
+				$plugin->addAttributes($info['attributes']);
 			}
-			$plugin->addParams($argParams);
+			$plugin->addAttributes($attributes);
 			return $plugin;
 		}
 
@@ -435,7 +435,7 @@ class Service implements FusionInterface
 			return null;
 		}
 		$plugin = Plugin::create($this, $pluginName, $pluginPath);
-		$plugin->addParams($argParams);
+		$plugin->addAttributes($attributes);
 		return $plugin;
 	}
 

@@ -15,8 +15,8 @@ class Plugin #lx:namespace lx {
             onloadList: []
         };
 
-        this._oldParams = data.params ? data.params.lxClone() : {};
-        this.params = data.params || {};
+        this._oldAttributes = data.attributes ? data.attributes.lxClone() : {};
+        this.attributes = data.attributes || {};
     }
 
     get title() {
@@ -71,14 +71,14 @@ class Plugin #lx:namespace lx {
     getResult() {
         var result = {};
 
-        var changedParams = {};
-        for (var key in this.params) {
-            if (!(key in this._oldParams) || this.params[key] != this._oldParams[key]) {
-                changedParams[key] = this.params[key];
+        var changedAttributes = {};
+        for (var key in this.attributes) {
+            if (!(key in this._oldAttributes) || this.attributes[key] != this._oldAttributes[key]) {
+                changedAttributes[key] = this.attributes[key];
             }
         }
 
-        if (!changedParams.lxEmpty) result.params = changedParams;
+        if (!changedAttributes.lxEmpty) result.attributes = changedAttributes;
         if (this._changes.onloadList.len) result.onload = this._changes.onloadList;
         if (this._changes.title) result.title = this._changes.title;
         if (this._changes.icon) result.icon = this._changes.icon;

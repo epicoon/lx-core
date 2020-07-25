@@ -29,5 +29,5 @@ function __print(msg) {
 	});
 	el.style('zIndex', 1000);
 	el->body.overflow('auto');
-	el->body.html(msg);
+	el->body.html('<pre>' + msg + '</pre>');
 }

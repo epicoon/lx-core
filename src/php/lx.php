@@ -131,11 +131,20 @@ class lx
 			return;
 		}
 
-		ob_start();
-		var_dump($data);
-		$out = ob_get_clean();
+		$out = self::getDumpString($data);
 		self::echo($out);
 	}
+
+    /**
+     * @param mixed $data
+     * @return false|string
+     */
+	public static function getDumpString($data)
+    {
+        ob_start();
+        var_dump($data);
+        return ob_get_clean();
+    }
 
 	/**
 	 * @param array|string $data

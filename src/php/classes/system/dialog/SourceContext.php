@@ -102,8 +102,8 @@ class SourceContext
 		if ( ! $this->plugin) {
 			$plugin = $this->getService()->getPlugin($this->data['plugin']);
 
-			if (isset($this->data['params'])) {
-				$plugin->addParams($this->data['params']);
+			if (isset($this->data['attributes'])) {
+				$plugin->addAttributes($this->data['attributes']);
 			}
 
 			if (isset($this->data['dependencies'])) {

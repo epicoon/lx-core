@@ -128,7 +128,12 @@ class DevLogger implements LoggerInterface
 				unset($arg);
 				$args = implode(', ', $args);
 
-				$rows[] = '- file: ' . $item['file'] . ' [line:' . $item['line'] . ']';
+				if (array_key_exists('file', $item)) {
+                    $rows[] = '- file: ' . $item['file'] . ' [line:' . $item['line'] . ']';
+                } else {
+                    $rows[] = '- file: ?';
+                }
+
 				if (array_key_exists('class', $item)) {
 					$rows[] = '  ' . $item['class'] . '::' . $item['function'] . '(' . $args . ')';
 				} else {
