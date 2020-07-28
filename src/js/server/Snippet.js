@@ -87,7 +87,7 @@ class Snippet #lx:namespace lx {
         return result;
     }
 
-    onload(code) {
+    onLoad(code) {
         var js = lx.functionToString(code);
         //TODO - есть соображение тут передавать какие-то параметры из серверного кода сниппета. Типа замыкание
         //но пока ()=> просто вырезается

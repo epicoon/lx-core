@@ -23,7 +23,7 @@ class Image extends lx.Rect #lx:namespace lx {
 		var src = config.src || null;
 		if (config.filename) src = this.imagePath(config.filename);
 
-		this.setAttribute('onload', 'this.setAttribute(\'loaded\', 1)');
+		this.setAttribute('onLoad', 'this.setAttribute(\'loaded\', 1)');
 		this.source(src);
 	}
 
@@ -85,6 +85,6 @@ class Image extends lx.Rect #lx:namespace lx {
 	}
 
 	#lx:server adapt() {
-		this.onload('.adapt');
+		this.onLoad('.adapt');
 	}
 }

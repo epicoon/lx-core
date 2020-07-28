@@ -167,8 +167,7 @@ class Box extends lx.Rect #lx:namespace lx {
     }
 
     end() {
-        if (!this.isAutoParent()) return false;
-        lx.WidgetHelper.popAutoParent();
+        lx.WidgetHelper.removeAutoParent(this);
         return true;
     }
 
@@ -217,7 +216,7 @@ class Box extends lx.Rect #lx:namespace lx {
             container.isSnippet = true;
 		}
 
-		setPlugin(name, attributes, onload) {
+		setPlugin(name, attributes, onLoad) {
             if (attributes === undefined && name.isObject) {
                 attributes = name.attributes;
                 name = name.name;
@@ -230,7 +229,7 @@ class Box extends lx.Rect #lx:namespace lx {
 
             var data = {name, anchor:container.pluginAnchor};
             if (attributes) data.attributes = attributes;
-            if (onload) data.onload = onload;
+            if (onLoad) data.onLoad = onLoad;
             this.getSnippet().addPlugin(data);
         }
 

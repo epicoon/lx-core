@@ -8,11 +8,11 @@ class Plugin #lx:namespace lx {
 
         this._title = data.title;
         this._icon = data.icon;
-        this._onloadList = [];
+        this._onLoadList = [];
         this._changes = {
             title: null,
             icon: null,
-            onloadList: []
+            onLoadList: []
         };
 
         this._oldAttributes = data.attributes ? data.attributes.lxClone() : {};
@@ -59,9 +59,9 @@ class Plugin #lx:namespace lx {
 
     }
 
-    onload(code) {
-        this._onloadList.push(lx.functionToString(code));
-        this._changes.onloadList.push(lx.functionToString(code));
+    onLoad(code) {
+        this._onLoadList.push(lx.functionToString(code));
+        this._changes.onLoadList.push(lx.functionToString(code));
     }
 
     getDependencies() {
@@ -79,7 +79,7 @@ class Plugin #lx:namespace lx {
         }
 
         if (!changedAttributes.lxEmpty) result.attributes = changedAttributes;
-        if (this._changes.onloadList.len) result.onload = this._changes.onloadList;
+        if (this._changes.onLoadList.len) result.onLoad = this._changes.onLoadList;
         if (this._changes.title) result.title = this._changes.title;
         if (this._changes.icon) result.icon = this._changes.icon;
         

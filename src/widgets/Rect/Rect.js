@@ -6,11 +6,12 @@
 class Rect #lx:namespace lx {
     constructor(config = {}) {
         this.__construct();
-        
+
         //!!!! взято с клиента, серверу может быть не надо
         if (config === false) return;
 
         config = this.modifyConfigBeforeApply(config);
+
         this.defineDomElement(config);
         this.applyConfig(config);
         this.build(config);
@@ -1494,7 +1495,7 @@ class Rect #lx:namespace lx {
             locked       : false
         };
         #lx:client{ if (!this.hasTrigger('mousedown', lx.move)) this.on('mousedown', lx.move); }
-        #lx:server{ this.onload('()=>this.on(\'mousedown\', lx.move);'); }
+        #lx:server{ this.onLoad('()=>this.on(\'mousedown\', lx.move);'); }
         return this;
     }
 
@@ -1518,7 +1519,7 @@ class Rect #lx:namespace lx {
 
     displayOnce(func) {
         #lx:server {
-            this.onload('.displayOnce', func);
+            this.onLoad('.displayOnce', func);
         };
 
         #lx:client {
@@ -1592,7 +1593,7 @@ class Rect #lx:namespace lx {
         /**
          * Просто делегирование выполнения метода на JS
          * */
-        onload(handler, args = null) {
+        onLoad(handler, args = null) {
             if (!this.forOnload) this.forOnload = [];
             this.forOnload.push(args ? [handler, args] : handler);
             return this;
@@ -1601,7 +1602,7 @@ class Rect #lx:namespace lx {
         onpostunpack(handler) {
             switch (App.getSetting('unpackType')) {
                 case lx.Application.POSTUNPACK_TYPE_IMMEDIATLY:
-                    this.onload(handler);
+                    this.onLoad(handler);
                     break;
                 case lx.Application.POSTUNPACK_TYPE_FIRST_DISPLAY:
                     this.displayOnce(handler);

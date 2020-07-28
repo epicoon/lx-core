@@ -198,6 +198,7 @@ function __setBody(self, constructor) {
 		lx.ActiveBox.INDENT + 'px',
 		lx.ActiveBox.INDENT + 'px'
 	];
+
 	var body = new constructor(config);
 	body.addClass(self.basicCss.body);
 }

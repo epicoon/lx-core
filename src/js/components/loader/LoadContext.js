@@ -148,9 +148,9 @@ class LoadContext {
 	}
 
 	hasAssets() {
-		return this.necessaryModules
+		return !!(this.necessaryModules
 			|| this.necessaryScripts
-			|| this.necessaryCss;
+			|| this.necessaryCss);
 	}
 
 	getSnippetInfo(plugin, index) {
@@ -196,9 +196,9 @@ class LoadContext {
 			+ '"];const Snippet=Plugin.root.snippet;lx.WidgetHelper.autoParent=Plugin.root;'
 
 		// Если есть код, выполняющийся при загрузке плагина - он выполняется здесь
-		if (info.onload) {
-			for (var i=0, l=info.onload.len; i<l; i++) {
-				var str = lx.parseFunctionString(info.onload[i])[1];
+		if (info.onLoad) {
+			for (var i=0, l=info.onLoad.len; i<l; i++) {
+				var str = lx.parseFunctionString(info.onLoad[i])[1];
 				if (str[str.length-1] != ';') str += ';';
 				code += str;
 			}
@@ -213,6 +213,8 @@ class LoadContext {
 
 		// Вызываем всё вместе, чтобы у сниппетов был доступ к переменным плагина
 		code += snippetsJs[1];
+
+		code += 'lx.WidgetHelper.removeAutoParent(Plugin.root);';
 		lx.createAndCallFunction(snippetsJs[0], code, null, snippetsJs[2]);
 	}
 
@@ -251,7 +253,7 @@ class LoadContext {
 		var script = document.createElement('script');
 		script.setAttribute('name', 'plugin_asset');
 		script.src = src.path;
-		if (src.onLoad) script.onload = lx.createFunction(src.onLoad).bind(script);
+		if (src.onLoad) script.onLoad = lx.createFunction(src.onLoad).bind(script);
 		if (src.onError) script.error = lx.createFunction(src.onError).bind(script);
 		return [script, location];
 	}

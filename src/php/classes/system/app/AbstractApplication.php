@@ -322,16 +322,16 @@ abstract class AbstractApplication implements FusionInterface
 	/**
 	 * @param string $fullPluginName
 	 * @param array $attributes
-	 * @param string $onload
+	 * @param string $onLoad
 	 * @return Plugin|null
 	 */
-	public function getPlugin($fullPluginName, $attributes = [], $onload = '')
+	public function getPlugin($fullPluginName, $attributes = [], $onLoad = '')
 	{
 		if (is_array($fullPluginName)) {
 			return $this->getPlugin(
 				$fullPluginName['name'] ?? $fullPluginName['plugin'] ?? '',
-				$fullPluginName['params'] ?? [],
-				$fullPluginName['onload'] ?? ''
+				$fullPluginName['attributes'] ?? [],
+				$fullPluginName['onLoad'] ?? ''
 			);
 		}
 
@@ -348,8 +348,8 @@ abstract class AbstractApplication implements FusionInterface
 			$plugin->addAttributes($attributes);
 		}
 
-		if ($onload != '') {
-			$plugin->onload($onload);
+		if ($onLoad != '') {
+			$plugin->onLoad($onLoad);
 		}
 		return $plugin;
 	}

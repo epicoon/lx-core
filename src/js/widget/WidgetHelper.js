@@ -12,20 +12,28 @@ class WidgetHelper {
 		LXID_BODY = lx\WidgetHelper::LXID_BODY;
 
 	set autoParent(val) {
+		#lx:client {
+			if (val === lx.body) return;
+		}
+
 		if (val === null) this.resetAutoParent();
-		autoParentStack.push(val);
+		if (this.autoParent !== val) autoParentStack.push(val);
 	}
 
 	get autoParent() {
 		if (!autoParentStack.length) {
 			#lx:server{ return Snippet.widget; }
-			#lx:client{ return null; }
+			#lx:client{ return lx.body; }
 		}
 		return autoParentStack.last();
 	}
 
-	popAutoParent() {
-		return autoParentStack.pop();
+	removeAutoParent(val) {
+		#lx:client {
+			if (val === lx.body) return;
+		}
+
+		if (this.autoParent === val) autoParentStack.pop();
 	}
 
 	resetAutoParent() {

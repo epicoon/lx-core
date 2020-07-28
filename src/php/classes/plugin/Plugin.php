@@ -60,7 +60,7 @@ class Plugin extends Source implements FusionInterface
 	private $dependencies = [];
 
 	/** @var array */
-	private $onloadList = [];
+	private $onLoadList = [];
 
 	/** @var array */
 	private $scripts = [];
@@ -562,9 +562,9 @@ class Plugin extends Source implements FusionInterface
 	/**
 	 * @param string $code
 	 */
-	public function onload($code)
+	public function onLoad($code)
 	{
-		$this->onloadList[] = $code;
+		$this->onLoadList[] = $code;
 	}
 
 	/**
@@ -650,9 +650,9 @@ class Plugin extends Source implements FusionInterface
 			}
 		}
 
-		if (isset($data['onload'])) {
-			foreach ($data['onload'] as $code) {
-				$this->onload($code);
+		if (isset($data['onLoad'])) {
+			foreach ($data['onLoad'] as $code) {
+				$this->onLoad($code);
 			}
 		}
 	}
@@ -673,8 +673,8 @@ class Plugin extends Source implements FusionInterface
 			$info['attributes'] = $attributes;
 		}
 
-		if (!empty($this->onloadList)) {
-			$info['onload'] = $this->onloadList;
+		if (!empty($this->onLoadList)) {
+			$info['onLoad'] = $this->onLoadList;
 		}
 
 		if (isset($config['images'])) {

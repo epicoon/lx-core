@@ -31,7 +31,7 @@ class SnippetJsNode {
 
 		var counter = 0,
 			pre = '(function(_w){const Snippet=_w.snippet;Snippet.run();lx.WidgetHelper.autoParent=_w;_w=undefined;',
-			post = 'lx.WidgetHelper.popAutoParent();',
+			post = 'lx.WidgetHelper.removeAutoParent(Snippet.widget);',
 			begin = [],
 			end = [];
 

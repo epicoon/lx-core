@@ -21,7 +21,7 @@ class HtmlHelper
 
 		if (array_key_exists('onLoad', $data)) {
 			$onLoad = preg_replace('/(?:\'|\\' . '\')/', '"', $data['onLoad']);
-			$code[] = "onload='{$onLoad}'";
+			$code[] = "onLoad='{$onLoad}'";
 		}
 
 		if (array_key_exists('onError', $data)) {
