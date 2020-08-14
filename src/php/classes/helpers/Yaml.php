@@ -623,7 +623,7 @@ class Yaml
 
 			$key = null;
 			$val = null;
-			preg_match_all('/((?:[\w_][\w\d_]*?)|(?:<<)):\s*(.+)/', $item, $matches);
+			preg_match_all('/((?:[\w_][\w\d_]*?)|(?:<<)): \s*(.+)/', $item, $matches);
 			if (empty($matches[0])) {
 				$val = $item;
 			} else {

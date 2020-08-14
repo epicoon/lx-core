@@ -76,7 +76,7 @@ Class Request
 	/**
 	 * @param array $headers
 	 */
-	public function setHeaders($headers)
+	public function addHeaders($headers)
 	{
 		foreach ($headers as $key => $value) {
 			if (is_numeric($key)) {
@@ -92,7 +92,7 @@ Class Request
 	 * @param string $header
 	 * @param string $value
 	 */
-	public function setHeader($header, $value)
+	public function addHeader($header, $value)
 	{
 		$this->headers[$header] = $value;
 	}

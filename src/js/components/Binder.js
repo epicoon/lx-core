@@ -432,14 +432,14 @@ function __matrixNewBox(w, obj, type, rowConfig = null) {
 	rowConfig = rowConfig || __prepareMatrixNewBoxConfig(w);
 	let rowClass = w.lxcwb_widget || lx.Box;
 	let r = new rowClass(rowConfig);
+	r.matrixItems = function() {return __getMatrixCollection(this.parent);};
+	r.matrixIndex = function() {return this.index || 0;};
+	r.matrixModel = function() {return __getMatrixCollection(this.parent).at(this.index || 0);};
 	r.begin();
 	w.lxcwb_itemRender(r, obj);
 	r.end();
 	__bind(obj, r, type);
 	if (w.lxcwb_afterBind) w.lxcwb_afterBind(r, obj);
-	r.matrixItems = function() {return __getMatrixCollection(this.parent);};
-	r.matrixIndex = function() {return this.index || 0;};
-	r.matrixModel = function() {return __getMatrixCollection(this.parent).at(this.index || 0);};
 }
 
 function __matrixInsertNewBox(w, obj, index, type) {
