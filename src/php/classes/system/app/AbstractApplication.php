@@ -54,35 +54,71 @@ abstract class AbstractApplication implements FusionInterface
 
 	/**
 	 * AbstractApplication constructor.
-     * @param array $config
+     * @param array|null $config
 	 */
 	public function __construct($config = [])
 	{
-		$this->id = Math::randHash();
-		$this->pid = getmypid();
-		$this->_sitePath = \lx::$conductor->sitePath;
-		$this->logMode = true;
+	    if ($config === null) {
+	        return;
+        }
 
-		$this->_conductor = new ApplicationConductor();
+        $this->baseInit($config);
+        $this->advancedInit();
+	}
+
+    /**
+     * @param array $config
+     * @return AbstractApplication
+     */
+	public static function firstConstruct($config = [])
+    {
+        $app = new static(null);
+        $app->baseInit($config);
+        (new AutoloadMapBuilder())->createCommonAutoloadMap();
+        \lx::$autoloader->map->reset();
+        $app->advancedInit();
+        (new JsModuleMapBuilder())->renewHead();
+        return $app;
+    }
+
+    /**
+     * @param array $config
+     */
+    protected function baseInit($config = [])
+    {
+        $this->id = Math::randHash();
+        $this->pid = getmypid();
+        $this->_sitePath = \lx::$conductor->sitePath;
+        $this->logMode = true;
+
+        $this->_conductor = new ApplicationConductor();
         \lx::$app = $this;
 
         if (empty($config)) {
             $this->renewConfig();
+        } elseif ($config === null) {
+            $this->_config = [];
         } else {
             $this->_config = $config;
         }
 
-		$aliases = $this->getConfig('aliases');
-		if (!$aliases) $aliases = [];
-		$this->_conductor->setAliases($aliases);
+        $aliases = $this->getConfig('aliases');
+        if (!$aliases) $aliases = [];
+        $this->_conductor->setAliases($aliases);
 
-		$this->_services = new ServicesMap();
+        $this->_services = new ServicesMap();
+    }
 
-		$diConfig = ClassHelper::prepareConfig(
+    /**
+     * @return void
+     */
+    protected function advancedInit()
+    {
+        $diConfig = ClassHelper::prepareConfig(
             $this->getConfig('diProcessor'),
             DependencyProcessor::class
         );
-		$this->_diProcessor = new $diConfig['class']($diConfig['params']);
+        $this->_diProcessor = new $diConfig['class']($diConfig['params']);
 
         $eventsConfig = ClassHelper::prepareConfig(
             $this->getConfig('eventManager'),
@@ -91,9 +127,8 @@ abstract class AbstractApplication implements FusionInterface
         $this->_events = new $eventsConfig['class']($eventsConfig['params']);
 
         $this->initFusionComponents($this->getConfig('components'), static::getDefaultComponents());
-
         $this->init();
-	}
+    }
 
     /**
      * @return array

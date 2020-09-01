@@ -1,6 +1,6 @@
 <?php
 
-namespace lx\hello\plugins\world\backend;
+namespace lx\hello\plugin\world\backend;
 
 use Exception;
 

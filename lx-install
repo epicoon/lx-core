@@ -13,8 +13,7 @@ defined('STDIN') or define('STDIN', fopen('php://stdin', 'r'));
 defined('STDOUT') or define('STDOUT', fopen('php://stdout', 'w'));
 
 require_once(__DIR__ . '/main.php');
-$app = new lx\ConsoleApplication();
-
+$app = lx\ConsoleApplication::firstConstruct();
 $site = $app->directory;
 
 // Создаем в корне папку services
@@ -89,10 +88,6 @@ if (!$data->contains('languages.php')) {
 	$languages = $data->makeFile('languages.php');
 	$languages->put(require(__DIR__ . '/install-src/data/languages.php'));
 }
-
-// Строим карту автозагрузки
-(new lx\AutoloadMapBuilder())->createCommonAutoloadMap();
-(new lx\JsModuleMapBuilder())->renewHead();
 
 // Если нет HelloWorld-ного сервиса - создадим
 if (!$app->services->exists('lx/hello')) {

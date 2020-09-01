@@ -9,11 +9,11 @@ class FileLink extends BaseFile
 	 */
 	public function create($file)
 	{
-		if ($this->exists()) {
-			$this->remove();
-		}
+        if ($this->exists()) {
+            $this->remove();
+        }
 
-		symlink($file->getPath(), $this->getPath());
+        symlink($file->getPath(), $this->getPath());
 	}
 
 	/**

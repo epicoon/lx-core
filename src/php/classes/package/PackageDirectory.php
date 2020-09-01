@@ -62,7 +62,9 @@ class PackageDirectory implements FusionComponentInterface
 		foreach ($configPathes as $configPath) {
 			$fullPath = $path . '/' . $configPath;
 			/** @var DataFileInterface $file */
-			$file = \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$fullPath]);
+			$file = \lx::$app->diProcessor
+                ? \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$fullPath])
+                : new DataFile($fullPath);
 			if ($file->exists()) {
 				return $file;
 			}
