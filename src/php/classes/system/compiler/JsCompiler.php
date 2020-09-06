@@ -523,7 +523,7 @@ class JsCompiler
         if (!empty($matches[0])) {
             foreach ($matches[1] as $i => $name) {
                 $text = preg_replace('/(?:^{|}$)/', '', $matches['re'][$i]);
-                $code = str_replace('#' . $name, $text, $code);
+                $code = preg_replace('/#\b' . $name . '\b/', $text, $code);
             }
         }
         

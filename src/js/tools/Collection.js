@@ -20,6 +20,7 @@
 	indexOf(el)
 	remove(el)
 	removeAt(k)
+	pop()
 	sub()
 	sum(method, ...args)
 	call()
@@ -385,6 +386,14 @@ class Collection extends lx.Object #lx:namespace lx {
 		if (this.actPartI >= this.elements.length)
 			this.actPartI = this.elements.length - 1;
 		return true;
+	}
+
+	pop() {
+		var elem = this.last();
+		if (!elem) return null;
+
+		this.removeAt(this.len - 1);
+		return elem;
 	}
 
 	sub(k, amt) {
