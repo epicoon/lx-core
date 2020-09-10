@@ -8,6 +8,7 @@ return [
     'ObjectReestr' => 'classes/system/object',
 
 	'AbstractApplication' => 'classes/system/app',
+    'BaseApplication' => 'classes/system/app',
 	'HttpApplication' => 'classes/system/app',
 	'ConsoleApplication' => 'classes/system/app',
 
@@ -41,6 +42,10 @@ return [
 	'ConsoleInputContext' => 'classes/system/console',
 	'Cli' => 'classes/system/console',
 	'CliProcessor' => 'classes/system/console',
+    'CliArgument' => 'classes/system/console',
+    'CliArgumentsList' => 'classes/system/console',
+    'CliCommand' => 'classes/system/console',
+    'CliCommandsList' => 'classes/system/console',
 	'ServiceCliExecutor' => 'classes/system/console',
 	'JsCompiler' => 'classes/system/compiler',
 	'JsCompileDependencies' => 'classes/system/compiler',

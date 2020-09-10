@@ -358,20 +358,20 @@ class JsCompiler
 			return $code;
 		}
 
-		$moduleMap = (new JsModuleMap())->getMap();
-		$sitePath = \lx::$app->sitePath;
+		$moduleMap = new JsModuleMap();
 		$filePathes = [];
 		foreach ($moduleNames as $moduleName) {
-			if (!array_key_exists($moduleName, $moduleMap)) {
-				continue;
-			}
+		    if (!$moduleMap->moduleExists($moduleName)) {
+		        continue;
+            }
 
-			$filePath = $moduleMap[$moduleName]['path'];
-			$filePathes[] = $sitePath . '/' . $filePath;
+		    $path = $moduleMap->getModulePath($moduleName);
+            $filePathes[] = $path;
 
-			if (isset($moduleMap[$moduleName]['data'])) {
-				$this->applyModuleData($moduleMap[$moduleName]['data'], $filePath);
-			}
+            $data = $moduleMap->getModuleData($moduleName);
+		    if (!empty($data)) {
+                $this->applyModuleData($data, $path);
+            }
 		}
 
 		$modulesCode = $this->compileFileGroup($filePathes, DataObject::create());

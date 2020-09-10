@@ -6,7 +6,7 @@ namespace lx;
  * Class ConsoleApplication
  * @package lx
  */
-class ConsoleApplication extends AbstractApplication
+class ConsoleApplication extends BaseApplication
 {
     /** @var string */
     protected $command;

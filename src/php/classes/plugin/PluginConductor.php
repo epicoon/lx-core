@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 /**
  * Class PluginConductor
  * @package lx
@@ -92,10 +94,10 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 			if (!array_key_exists($key, $map)) {
 				return '';
 			}
-			return \lx::$conductor->sitePath . $map[$key] . $match[2];
+			return lx::$conductor->sitePath . $map[$key] . $match[2];
 		} else {
 			if (array_key_exists('default', $map)) {
-				return \lx::$conductor->sitePath . $map['default'] . '/' . $fileName;
+				return lx::$conductor->sitePath . $map['default'] . '/' . $fileName;
 			}
 
 			return $this->getFullPath($fileName);
@@ -107,12 +109,10 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 	 */
 	public function getSystemPath($name = null)
 	{
-		$path = $this->getPath() . '/.system';
-		if ($name) {
-			return $path . '/' . $name;
-		}
+	    $path = lx::$conductor->getSystemPath('services') . '/'
+            . lx::$app->conductor->getRelativePath($this->getPath(), lx::$app->sitePath);
 
-		return $path;
+	    return $path;
 	}
 
 	/**
@@ -261,7 +261,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 				return [];
 			}
 
-			$relativePath = \lx::$app->conductor->getRelativePath($path);
+			$relativePath = lx::$app->conductor->getRelativePath($path);
 			$files = $d->getFiles('*.css');
 			$list = [];
 			foreach ($files as $file) {

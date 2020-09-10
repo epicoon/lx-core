@@ -331,6 +331,36 @@ class Plugin extends Source implements FusionInterface
 		return $this->prepareErrorResponse('Resource not found', ResponseCodeEnum::NOT_FOUND);
 	}
 
+    /**
+     * @return array
+     */
+	public function getCacheInfo()
+    {
+        return [
+            'type' => $this->getConfig('cacheType'),
+            'exists' => $this->cacheExists(),
+        ];
+    }
+
+    /**
+     * @return bool
+     */
+    public function cacheExists()
+    {
+        $dir = new Directory($this->conductor->getSnippetsCachePath());
+        return $dir->exists();
+    }
+
+    /**
+     * Build plugin cache if not exist
+     */
+    public function buildCache()
+    {
+        if (!$this->cacheExists()) {
+            $this->renewCache();
+        }
+    }
+
 	/**
 	 * Renew plugin cache
 	 */

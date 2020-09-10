@@ -49,7 +49,7 @@ class Cli
 	public function run()
 	{
 		$command = null;
-		while (!$this->checkCommandType($command, 'exit')) {
+		while (!$this->checkCommand($command, '\q')) {
 			$command = $this->cycle($command);
 		}
 	}
@@ -118,19 +118,19 @@ class Cli
 
 		$this->commandsHistory[] = $input;
 		$this->commandsHistoryIndex = count($this->commandsHistory);
-		list ($command, $args) = $this->parseInput($input);
+		list ($command, $args) = $this->processor->parseInput($input);
 
-		$commandType = $this->identifyCommandType($command);
-		if ($commandType == 'exit') {
-			return $command;
-		}
-		if ($commandType === false) {
-			Console::outln("Unknown command '$command'. Enter 'help' to see commands list");
+		if (!$this->validateCommandName($command)) {
+            Console::outln("Unknown command '$command'. Enter 'help' to see commands list");
+            return $command;
+        }
+
+		if ($command == '\q') {
 			return $command;
 		}
 
 		$this->args = $args;
-		$this->handleCommand($commandType);
+		$this->handleCommand($command);
 		return $command;
 	}
 
@@ -151,12 +151,12 @@ class Cli
 	}
 
 	/**
-	 * @param string $commandType
+	 * @param string $commandName
 	 */
-	private function handleCommand($commandType)
+	private function handleCommand($commandName)
 	{
 		$this->processor->setParams($this->processParams);
-		$result = $this->processor->handleCommand($commandType, $this->args, $this->service, $this->plugin);
+		$result = $this->processor->handleCommand($commandName, $this->args, $this->service, $this->plugin);
 		foreach ($result['params'] as $key => $value) {
 			$this->processParams[$key] = $value;
 		}
@@ -166,14 +166,14 @@ class Cli
 		foreach ($result['output'] as $row) {
 			if ($row[0] == 'in') {
 				$this->processParams[$result['need']] = Console::in($row[1], $row[2]);
-				$this->inProcess = $commandType;
+				$this->inProcess = $commandName;
 				return;
 			}
 			Console::{$row[0]}($row[1], $row[2]);
 		}
 
 		if ($result['keepProcess']) {
-			$this->inProcess = $commandType;
+			$this->inProcess = $commandName;
 		} else {
 			$this->inProcess = false;
 			$this->processParams = [];
@@ -184,74 +184,27 @@ class Cli
 	}
 
 	/**
-	 * Methos parses command name and arguments from console input
-	 *
-	 * Example for arguments as enumeration:
-	 * lx-cli<app>: command arg1 arg2 "arg3 by several words"
-	 *
-	 * Example for arguments by keys:
-	 * lx-cli<app>: command -k=arg1 --key="arg2 by several words"
-	 *
-	 * Enumetaion and keys don't work together. In that case will be used only arguments by keys.
-	 *
-	 * @param string $input
-	 */
-	private function parseInput($input)
-	{
-		$arr = StringHelper::smartSplit($input, ['delimiter' => ' ', 'save' => '"']);
-		$command = array_shift($arr);
-
-		$counted = [];
-		$assoc = [];
-		foreach ($arr as $item) {
-			if ($item{0} != '-') {
-				$counted[] = trim($item, '"');
-				continue;
-			}
-			$pos = strpos($item, '=');
-			$key = trim(substr($item, 0, $pos), '-');
-			$value = trim(substr($item, $pos + 1, strlen($item)), '"');
-			$assoc[$key] = $value;
-		}
-
-		$args = empty($assoc) ? $counted : $assoc;
-		return [$command, $args];
-	}
-
-	/**
-	 * Method converts command name to command key
-	 *
 	 * @param string $command
-	 * @return string|false
-	 */
-	private function identifyCommandType($command)
-	{
-		$keywords = $this->getCommandsList();
-		foreach ($keywords as $key => $value) {
-			$value = (array)$value;
-			foreach ($value as $commandName) {
-				if ($command == $commandName) {
-					return $key;
-				}
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Method checks command name due to command type
-	 *
-	 * @param string $command
-	 * @param string $commandsGroupName
 	 * @return bool
 	 */
-	private function checkCommandType($command, $commandsGroupName)
+	private function validateCommandName($command)
 	{
-		$keywords = $this->getCommandsList()[$commandsGroupName] ?? null;
-		if (is_array($keywords)) {
-			return (array_search($command, $keywords) !== false);
-		}
-		return $command == $keywords;
+	    $commands = $this->getCommandsList();
+	    return $commands->commandExists($command);
+	}
+
+	/**
+	 * @param string $command
+	 * @param string $expectedCommand
+	 * @return bool
+	 */
+	private function checkCommand($command, $expectedCommand)
+	{
+	    if ($command === null) {
+	        return false;
+        }
+
+	    return $command == $expectedCommand;
 	}
 
 	/**
@@ -269,13 +222,12 @@ class Cli
 		}
 
 		$matches = [];
-		foreach ($this->getCommandsList() as $keywords) {
-			foreach ((array)$keywords as $command) {
-				if ($command != $text && preg_match('/^' . $text . '/', $command)) {
-					$matches[] = $command;
-				}
-			}
-		}
+		$names = $this->getCommandsList()->getCommandNames();
+        foreach ($names as $command) {
+            if ($command != $text && preg_match('/^' . $text . '/', $command)) {
+                $matches[] = $command;
+            }
+        }
 
 		if (empty($matches)) {
 			return false;
@@ -302,12 +254,12 @@ class Cli
 	}
 
 	/**
-	 * @return array
+	 * @return CliCommandsList
 	 */
 	private function getCommandsList()
 	{
 		if (empty($this->commandsList)) {
-			$this->commandsList = $this->processor->getCommandsList([
+            $this->commandsList = $this->processor->getCommandsList()->getSubList([
 				CliProcessor::COMMAND_TYPE_COMMON,
 				CliProcessor::COMMAND_TYPE_CONSOLE_ONLY,
 			]);

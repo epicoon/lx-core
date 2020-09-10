@@ -95,8 +95,8 @@ class SpecialAjaxRouter
 
 		$arr = explode(':', $meta);
 		$moduleName = $arr[0];
-		$info = (new JsModuleMap())->getModuleInfo($moduleName);
-		$widgetName = $info['data']['backend'] ?? '';
+		$data = (new JsModuleMap())->getModuleData($moduleName);
+		$widgetName = $data['backend'] ?? '';
 
 		if (!ClassHelper::exists($widgetName)) {
 			return false;

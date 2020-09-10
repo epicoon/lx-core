@@ -97,6 +97,10 @@ class Console
 	 */
 	public static function normalizeTable($table, $char = ' ')
 	{
+	    if (empty($table)) {
+	        return $table;
+        }
+
 		$maxes = [];
 		reset($table);
 		$key = key($table);

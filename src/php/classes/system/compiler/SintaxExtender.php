@@ -260,6 +260,10 @@ class SintaxExtender
 
 					$code = '';
 					foreach ($constPareArray as $constPare) {
+					    if ($constPare === '') {
+					        continue;
+                        }
+
 						preg_match_all('/^([^=]+?)\s*=\s*([\w\W]+)\s*$/', $constPare, $pare);
 						$name = $pare[1][0];
 						$value = $pare[2][0];

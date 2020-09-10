@@ -75,7 +75,7 @@ class JsModuleMapBuilder
 	 */
 	public function renewCore()
 	{
-		$dir = new Directory(\lx::$app->conductor->getFullPath('@core'));
+		$dir = new Directory('@core');
 		$map = $this->makeMap($dir);
 		$mapFile = $dir->makeFile('jsModulesMap.json', DataFileInterface::class);
 		$mapFile->put($map);
@@ -114,8 +114,7 @@ class JsModuleMapBuilder
 	{
 		$files = $dir->getAllFiles('*.js');
 		$map = [];
-		$sitePath = \lx::$app->sitePath;
-		$files->each(function ($file) use ($sitePath, &$map) {
+		$files->each(function ($file) use ($dir, &$map) {
 			$code = $file->get();
 			preg_match('/(?<!\/ )(?<!\/)#lx:module\s+([^;]+?);/', $code, $matches);
 			if (empty($matches)) {
@@ -125,7 +124,7 @@ class JsModuleMapBuilder
 			//TODO нужна компиляция, список определенных классов, их расширения, зависимости от других модулей...
 			$info = [
 				'name' => $matches[1],
-				'path' => $file->getRelativePath($sitePath),
+				'path' => $file->getRelativePath($dir->getPath()),
 				//classes
 			];
 

@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 /**
  * Class CliProcessor
  * @package lx
@@ -12,43 +14,11 @@ class CliProcessor
 	const COMMAND_TYPE_CONSOLE_ONLY = 10;
 	const COMMAND_TYPE_WEB_ONLY = 15;
 
-	const SELF_COMMANDS = [
-		'exit' => '\q',
-		'help' => ['\h', 'help'],
-		'move' => ['\g', 'goto'],
-		'full_path' => ['\p', 'fullpath'],
-		'reset_autoload_map' => ['\amr', 'autoload-map-reset'],
-		'reset_js_autoload_map' => ['\amrjs', 'autoload-map-reset-js'],
-
-		'show_services' => ['\sl', 'services-list'],
-		'show_plugins' => ['\pl', 'plugins-list'],
-
-		'create_service' => ['\cs', 'create-service'],
-		'create_plugin' => ['\cp', 'create-plugin'],
-	];
-
-	const METHOD_MAP = [
-		'help' => 'showHelp',
-		'move' => 'move',
-		'full_path' => 'fullPath',
-		'reset_autoload_map' => 'resetAutoloadMap',
-		'reset_js_autoload_map' => 'resetJsAutoloadMap',
-
-		'show_services' => 'showServices',
-		'show_plugins' => 'showPlugins',
-
-		'create_service' => 'createService',
-		'create_plugin' => 'createPlugin',
-	];
+    /** @var CliCommandsList */
+    private $_commandsList;
 
 	/** @var array */
-	private $_extensions;
-
-	/** @var array */
-	private $_methodMap;
-
-	/** @var array */
-	private $servicesList;
+	private $_servicesList;
 
 	/** @var Service|null */
 	private $service;
@@ -56,7 +26,7 @@ class CliProcessor
 	/** @var Plugin|null */
 	private $plugin;
 
-	/** @var array */
+	/** @var CliArgumentsList */
 	private $args = [];
 
 	/** @var array */
@@ -77,35 +47,198 @@ class CliProcessor
 	/** @var array */
 	private $data = [];
 
+    /**
+     * @return array
+     */
+	private function getSelfCommands()
+    {
+        return [
+            [
+                'command' => ['\q'],
+                'description' => 'Exit CLI mode',
+            ],
+
+            [
+                'command' => ['\h', 'help'],
+                'description' => 'Show available commands list',
+                'arguments' => [
+                    $this->initArgument([0])
+                        ->setType(CliArgument::TYPE_INTEGER)
+                        ->setDescription('Command name'),
+                ],
+                'handler' => 'showHelp',
+            ],
+
+            [
+                'command' => ['\g', 'goto'],
+                'description' => 'Enter into service or plugin',
+                'arguments' => [
+                    $this->initArgument(['index', 'i'])
+                        ->setType(CliArgument::TYPE_INTEGER)
+                        ->setDescription('Index of service due to list returned by command "services-list"'),
+                    $this->initArgument(['service', 's'])
+                        ->setType(CliArgument::TYPE_STRING)
+                        ->setDescription('Service name'),
+                    $this->initArgument(['plugin', 'p'])
+                        ->setType(CliArgument::TYPE_STRING)
+                        ->setDescription('Plugin name'),
+                    $this->initArgument(0)
+                        ->setType(CliArgument::TYPE_STRING)
+                        ->setDescription('Service or plugin name'),
+                ],
+                'handler' => 'move',
+            ],
+
+            [
+                'command' => ['\p', 'fullpath'],
+                'description' => 'Show path to service or plugin directory',
+                'arguments' => [
+                    $this->initArgument(['service', 's'])
+                        ->setType(CliArgument::TYPE_STRING)
+                        ->setDescription('Service name'),
+                    $this->initArgument(['plugin', 'p'])
+                        ->setType(CliArgument::TYPE_STRING)
+                        ->setDescription('Plugin name'),
+                    $this->initArgument(0)
+                        ->setType(CliArgument::TYPE_STRING)
+                        ->setDescription('Service or plugin name'),
+                ],
+                'handler' => 'fullPath',
+            ],
+
+            [
+                'command' => ['\sl', 'services-list'],
+                'description' => 'Show services list',
+                'handler' => 'showServices',
+            ],
+
+            [
+                'command' => ['\pl', 'plugins-list'],
+                'description' => 'Show plugins list',
+                'arguments' => [
+                    $this->initArgument(['service', 's', 0])
+                        ->setType(CliArgument::TYPE_STRING)
+                        ->setDescription('Service name'),
+                ],
+                'handler' => 'showPlugins',
+            ],
+
+            [
+                'command' => ['\cs', 'create-service'],
+                'description' => 'Create new service',
+                'arguments' => [
+                    $this->initArgument(['name', 'n', 0])
+                        ->setType(CliArgument::TYPE_STRING)
+                        ->setDescription('New service name'),
+                ],
+                'handler' => 'createService',
+            ],
+
+            [
+                'command' => ['\cp', 'create-plugin'],
+                'description' => 'Create new plugin',
+                'arguments' => [
+                    $this->initArgument(['name', 'n', 0])
+                        ->setType(CliArgument::TYPE_STRING)
+                        ->setDescription('New plugin name'),
+                ],
+                'handler' => 'createPlugin',
+            ],
+
+            [
+                'command' => ['\amr', 'autoload-map-reset'],
+                'description' => 'Reset autoload map',
+                'handler' => 'resetAutoloadMap',
+            ],
+
+            [
+                'command' => ['\amrjs', 'autoload-map-reset-js'],
+                'description' => 'Reset js-modules autoload map',
+                'arguments' => [
+                    $this->initArgument(['mode', 'm'])
+                        ->setEnum(['core', 'head', 'all'])
+                        ->setDescription('Reset mode: "head" (reset common map) or "all" (reset services map)'),
+                    $this->initArgument(['service', 's'])
+                        ->setType(CliArgument::TYPE_STRING)
+                        ->setDescription('Service name'),
+                ],
+                'handler' => 'resetJsAutoloadMap',
+            ],
+
+            [
+                'command' => ['cache'],
+                'description' => 'Reset plugins cache',
+                'arguments' => [
+                    $this->initArgument(['service', 's'])
+                        ->setType(CliArgument::TYPE_STRING)
+                        ->setDescription('Service name'),
+                    $this->initArgument(['plugin', 'p'])
+                        ->setType(CliArgument::TYPE_STRING)
+                        ->setDescription('Plugin name'),
+                    $this->initArgument(['build', 'b'])
+                        ->setFlag()
+                        ->setDescription('Flag to build cache for plugins without cache'),
+                    $this->initArgument(['clear', 'c'])
+                        ->setFlag()
+                        ->setDescription('Flag to clear cache'),
+                    $this->initArgument(['rebuild', 'r'])
+                        ->setFlag()
+                        ->setDescription('Flag to rebuild cache'),
+                ],
+                'handler' => 'cacheManage',
+            ],
+        ];
+    }
+
+    /**
+     * @param string|integer|array $key
+     * @return CliArgument
+     */
+    public function initArgument($key = null)
+    {
+        $arg = new CliArgument();
+        if ($key !== null) {
+            $arg->setKey($key);
+        }
+
+        return $arg;
+    }
+	
 	/**
-	 * @param array $types
-	 * @param array $excludedTypes
-	 * @return array
+	 * @return CliCommandsList
 	 */
-	public function getCommandsList($types = null, $excludedTypes = null)
+	public function getCommandsList()
 	{
-		return array_merge(
-			self::SELF_COMMANDS,
-			$this->getCommandsExtensionList($types, $excludedTypes)
-		);
+	    if (!$this->_commandsList) {
+            $list = new CliCommandsList();
+
+            $list->setCommands(array_merge(
+                $this->getSelfCommands(),
+                $this->loadCommandsExtensionList()
+            ));
+
+            $this->_commandsList = $list;
+        }
+	    
+	    return $this->_commandsList;
 	}
 
 	/**
-	 * @param string $commandType
+	 * @param string $commandName
 	 * @param array $args
 	 * @param Service|null $service
 	 * @param Plugin|null $plugin
 	 * @return array
 	 */
-	public function handleCommand($commandType, $args, $service, $plugin)
+	public function handleCommand($commandName, $args, $service, $plugin)
 	{
 		$this->service = $service;
 		$this->plugin = $plugin;
-		$this->args = $args;
+		$this->args = new CliArgumentsList($args);
 		$this->consoleMap = [];
 		$this->needParam = false;
 
-		$this->invokeMethod($commandType);
+		$this->invokeCommand($commandName);
 		return $this->getResult();
 	}
 
@@ -139,10 +272,10 @@ class CliProcessor
 	 */
 	public function getServicesList()
 	{
-		if ($this->servicesList === null) {
+		if ($this->_servicesList === null) {
 			$this->resetServicesList();
 		}
-		return $this->servicesList;
+		return $this->_servicesList;
 	}
 
 	/**
@@ -191,6 +324,15 @@ class CliProcessor
 		return $this->params[$name];
 	}
 
+    /**
+     * @param string $name
+     * @return bool
+     */
+	public function hasParam($name)
+    {
+        return array_key_exists($name, $this->params);
+    }
+
 	/**
 	 * @return array
 	 */
@@ -209,15 +351,6 @@ class CliProcessor
 		}
 
 		return $result;
-	}
-
-	/**
-	 * @param string $name
-	 * @return bool
-	 */
-	public function hasParam($name)
-	{
-		return array_key_exists($name, $this->params);
 	}
 
 	/**
@@ -271,52 +404,75 @@ class CliProcessor
 
 	/**
 	 * @param string|int|array $key
+     * @param mixed $default
 	 * @return mixed|null
 	 */
-	public function getArg($key)
+	public function getArg($key, $default = null)
 	{
-		if (is_array($key)) {
-			foreach ($key as $item) {
-				if (array_key_exists($item, $this->args)) {
-					return $this->args[$item];
-				}
-			}
-			return null;
-		}
+	    if ($this->args->has($key)) {
+            return $this->args->get($key);
+        }
 
-		if (array_key_exists($key, $this->args)) {
-			return $this->args[$key];
-		}
-		return null;
+	    return $default;
 	}
 
-	/**
-	 * @param array $arr - массив вариантов значений
-	 * Ключи массива - ключи введенных аргументов, значения массива - допустимые значения для аргументов
-	 * */
+    /**
+     * Method parses command name and arguments from console input
+     *
+     * Example for arguments as enumeration:
+     * lx-cli<app>: command arg1 arg2 "arg3 by several words"
+     *
+     * Example for arguments by keys:
+     * lx-cli<app>: command -k=arg1 --key="arg2 by several words"
+     *
+     * @param string $input
+     */
+    public function parseInput($input)
+    {
+        $arr = StringHelper::smartSplit($input, ['delimiter' => ' ', 'save' => ['[]', '"']]);
+        $command = array_shift($arr);
 
-	/**
-	 * Method recieves validation map where keys are console argument keys
-	 * and values are available values for that arguments
-	 *
-	 * @param array $rulesMap
-	 * @return bool
-	 */
-	public function validateArgs($rulesMap)
-	{
-		foreach ($rulesMap as $i => $variants) {
-			$arg = $this->getArg($i);
-			if ($arg === null) {
-				continue;
-			}
+        $position = 0;
+        $argsMap = [];
+        foreach ($arr as $item) {
+            if ($item[0] == '-') {
+                $pos = strpos($item, '=');
+                if ($pos === false) {
+                    $argsMap[trim($item, '-')] = true;
+                    continue;
+                }
 
-			if (array_search($arg, $variants) === false) {
-				$this->outln("Argument [$i] = '$arg' is not valid. Available are: " . implode(', ', $variants));
-				return false;
-			}
-		}
-		return true;
-	}
+                $key = trim(substr($item, 0, $pos), '-');
+                $value = substr($item, $pos + 1, strlen($item));
+                if ($value[0] == '[') {
+                    $value = trim($value, '[]');
+                    $value = StringHelper::smartSplit($value, ['delimiter' => ',', 'save' => '"']);
+                    foreach ($value as &$i) {
+                        $i = trim($i, ' ');
+                    }
+                    unset($i);
+                } else {
+                    $value = trim($value, '"');
+                }
+                $argsMap[$key] = $value;
+                continue;
+            }
+
+            if ($item[0] == '[') {
+                $item = trim($item, '[]');
+                $item = StringHelper::smartSplit($input, ['delimiter' => ',', 'save' => '"']);
+                foreach ($item as &$i) {
+                    $i = trim($i, ' ');
+                }
+                unset($i);
+            } else {
+                $item = trim($item, '"');
+            }
+            $argsMap[$position++] = $item;
+        }
+
+        return [$command, $argsMap];
+    }
 
 
 	/*******************************************************************************************************************
@@ -328,24 +484,62 @@ class CliProcessor
 	 */
 	private function showHelp()
 	{
-		$arr = [];
-		$list = $this->getCommandsList([
-			self::COMMAND_TYPE_COMMON,
-			self::COMMAND_TYPE_CONSOLE_ONLY,
-		]);
-		foreach ($list as $key => $keywords) {
-			$key = StringHelper::camelToSnake($key);
-			$arr[] = [
-				ucfirst(str_replace('_', ' ', $key)),
-				implode(', ', (array)$keywords)
-			];
-		}
+	    if ($this->args->isEmpty()) {
+            $list = $this->getCommandsList()->getSubList([
+                self::COMMAND_TYPE_COMMON,
+                self::COMMAND_TYPE_CONSOLE_ONLY,
+            ]);
 
-		$arr = Console::normalizeTable($arr, '.');
-		foreach ($arr as $row) {
-			$this->out($row[0] . ': ', ['decor' => 'b']);
-			$this->outln($row[1]);
-		}
+            $arr = [];
+            foreach ($list->getCommands() as $command) {
+                $arr[] = [
+                    $command->getDescription(),
+                    implode(', ', $command->getNames())
+                ];
+            }
+
+            $arr = Console::normalizeTable($arr, '.');
+            foreach ($arr as $row) {
+                $this->out($row[0] . ': ', ['decor' => 'b']);
+                $this->outln($row[1]);
+            }
+        }
+
+	    $commandName = $this->args->get(0);
+	    if (!$commandName) {
+	        return;
+        }
+
+	    $command = $this->getCommandsList()->getCommand($commandName);
+	    if (!$command) {
+	        $this->outln('Unknown command name - ' . $commandName);
+	        return;
+        }
+
+	    $this->outln('Command information:', ['decor' => 'b']);
+	    $this->outln('* Commands: ' . implode(', ', $command->getNames()));
+	    $this->outln('* Description: ' . $command->getDescription());
+	    $args = $command->getArguments();
+	    if (!empty($args)) {
+	        $this->outln('* Arguments:');
+	        foreach ($args as $argument) {
+                $keys = (array)$argument->getKey();
+                $this->out('  - ' . implode(', ', $keys) . ': ');
+                if ($argument->isMandatory()) {
+                    $this->out('mandatory', ['decor' => 'b']);
+                    $this->out(', ');
+                }
+
+	            $type = $argument->getType();
+                if ($type == CliArgument::TYPE_ENUM) {
+                    $this->out('enum - [' . implode(', ', $argument->getEnum()) . ']. ');
+                } else {
+                    $this->out('type - ' . $type . '. ');
+                }
+
+                $this->outln($argument->getDescription());
+            }
+        }
 	}
 
 	/**
@@ -354,7 +548,7 @@ class CliProcessor
 	private function move()
 	{
 		// Return to application
-		if (empty($this->args)) {
+		if ($this->args->isEmpty()) {
 			$this->plugin = null;
 			$this->service = null;
 			return;
@@ -363,23 +557,36 @@ class CliProcessor
 		$name = null;
 
 		// Check named arguments
-		$index = $this->getArg(['i', 'index']);
+		$index = $this->args->get('index');
 		if ($index !== null) {
+		    $index--;
 			$services = $this->getServicesList();
 			if ($index > count($services)) {
 				$this->outln('Maximum allowable index is ' . count($services));
 				return;
 			}
 
-			$temp = array_slice($services, $index - 1, 1);
-			$service = end($temp);
-			$name = $service['name'];
+            $name = array_keys($services)[$index];
 			$this->plugin = null;
 		}
 
+		if ($name === null) {
+            $serviceName = $this->args->get('service');
+            if ($serviceName !== null && Service::exists($serviceName)) {
+                $name = $serviceName;
+            }
+        }
+
+		if ($name === null) {
+		    $pluginName = $this->args->get('plugin');
+		    if ($pluginName !== null) {
+		        $name = $pluginName;
+            }
+        }
+
 		// Check the first unnamed parameter
 		if ($name === null) {
-			$name = $this->getArg(0);
+			$name = $this->args->get(0);
 		}
 
 		if ($name === null) {
@@ -410,7 +617,7 @@ class CliProcessor
 		}
 
 		try {
-			$this->service = \lx::$app->getService($name);
+			$this->service = lx::$app->getService($name);
 		} catch (\Exception $e) {
 			$this->outln("Service '$name' not found");
 			return;
@@ -422,22 +629,39 @@ class CliProcessor
 	 */
 	private function fullPath()
 	{
-		if (empty($this->args)) {
+		if ($this->args->isEmpty()) {
 			if ($this->plugin) {
 				$this->outln('Path: ' . $this->plugin->getPath());
 			} elseif ($this->service) {
 				$this->outln('Path: ' . $this->service->getPath());
 			} else {
-				$this->outln('Path: ' . \lx::sitePath());
+				$this->outln('Path: ' . lx::$app->sitePath);
 			}
 			return;
 		}
 
-		$name = $this->getArg(0);
+		$name = null;
+
+        $serviceName = $this->args->get('service');
+        if ($serviceName !== null && Service::exists($serviceName)) {
+            $name = $serviceName;
+        }
+
+        if ($name === null) {
+            $pluginName = $this->args->get('plugin');
+            if ($pluginName !== null) {
+                $name = $pluginName;
+            }
+        }
+
+        if ($name === null) {
+            $name = $this->args->get(0);
+        }
+
 		if ($name) {
 			if (preg_match('/:/', $name)) {
 				try {
-					$path = \lx::$app->getPluginPath($name);
+					$path = lx::$app->getPluginPath($name);
 					if ($path === null) {
 						throw new \Exception('', 400);
 					}
@@ -449,7 +673,7 @@ class CliProcessor
 				}
 			} else {
 				try {
-					$service = \lx::$app->getService($name);
+					$service = lx::$app->getService($name);
 					$this->outln("Service '$name' path: " . $service->getPath());
 					return;
 				} catch (\Exception $e) {
@@ -470,40 +694,42 @@ class CliProcessor
 
 	private function resetJsAutoloadMap()
 	{
-		if ($this->getArg(0) == 'core') {
-			$this->outln('Creating core map...');
-			(new JsModuleMapBuilder())->renewCore();
-			$this->outln('Done');
-			return;
-		}
-
-        if ($this->getArg(0) == 'all') {
-            $this->outln('Creating full map...');
-            (new JsModuleMapBuilder())->renewAllServices();
-            $this->outln('Done');
-            return;
+	    switch ($this->args->get('mode')) {
+            case 'core':
+                $this->outln('Creating core map...');
+                (new JsModuleMapBuilder())->renewCore();
+                $this->outln('Done');
+                return;
+            case 'head':
+                $this->outln('Updating modules list...');
+                (new JsModuleMapBuilder())->renewHead();
+                $this->outln('Done');
+                return;
+            case 'all':
+                $this->outln('Updating modules list...');
+                (new JsModuleMapBuilder())->renewAllServices();
+                $this->outln('Done');
+                return;
         }
 
         $service = null;
-        $serviceName = $this->getArg(['s', 'service']);
+        $serviceName = $this->args->get('service');
         if ($serviceName) {
-			try {
-				$service = \lx::$app->getService($serviceName);
-			} catch (\Exception $e) {
-				$this->outln("Service '$name' not found");
-				return;
-			}
+            if (Service::exists($serviceName)) {
+                $service = lx::$app->getService($serviceName);
+            } else {
+                $this->outln("Service '$name' not found");
+                return;
+            }
 		}
 		if ($service === null) {
 			$service = $this->service;
 		}
 
 		if ($service === null) {
-			$this->outln('Updating modules list...');
-			(new JsModuleMapBuilder())->renewHead();
-			$this->outln('Done');
-			return;
-		}
+		    $this->outln('Choose service or reset mode');
+		    return;
+        }
 
 		$this->outln('Creating map for service "' . $service->name . '"...');
 		(new JsModuleMapBuilder())->renewService($service);
@@ -541,11 +767,11 @@ class CliProcessor
 	private function showPlugins()
 	{
 		$service = null;
-		$serviceName = $this->getArg(0);
+		$serviceName = $this->args->get('service');
 		if ($serviceName) {
-			try {
-				$service = \lx::$app->getService($serviceName);
-			} catch (\Exception $e) {
+		    if (Service::exists($serviceName)) {
+				$service = lx::$app->getService($serviceName);
+			} else {
 				$this->outln("Service '$name' not found");
 				return;
 			}
@@ -602,7 +828,7 @@ class CliProcessor
 
 	private function createService()
 	{
-		$dirs = \lx::$app->getConfig('packagesMap');
+		$dirs = lx::$app->getConfig('packagesMap');
 		if ($dirs) {
 			$dirs = (array)$dirs;
 		}
@@ -614,9 +840,9 @@ class CliProcessor
 		}
 
 		if (!$this->hasParam('name')) {
-			$name = $this->getArg(0);
+			$name = $this->args->get('name');
 			if (!$name) {
-				$this->in('name', 'You need to enter new service name: ', ['decor' => 'b']);
+				$this->in('name', 'You need enter new service name: ', ['decor' => 'b']);
 				return;
 			}
 			$this->setParam('name', $name);
@@ -668,15 +894,15 @@ class CliProcessor
 	private function createPlugin()
 	{
 		if ($this->service === null) {
-			$this->outln("Plugins belong to services. Enter the service");
+			$this->outln("Plugins are belonging to services. Enter the service");
 			$this->done();
 			return;
 		}
 
 		if (!$this->hasParam('name')) {
-			$name = $this->getArg(0);
+			$name = $this->args->get('name');
 			if (!$name) {
-				$this->in('name', 'You need to enter new plugin name: ', ['decor' => 'b']);
+				$this->in('name', 'You need enter new plugin name: ', ['decor' => 'b']);
 				return;
 			}
 			$this->setParam('name', $name);
@@ -736,6 +962,112 @@ class CliProcessor
 		$this->done();
 	}
 
+	private function cacheManage()
+    {
+        $plugin = null;
+        $pluginName = $this->args->get('plugin');
+        if ($pluginName) {
+            $plugin = lx::$app->getPlugin($pluginName);
+        }
+        if ($plugin === null) {
+            $plugin = $this->plugin;
+        }
+
+        $plugins = null;
+        if ($plugin) {
+            $plugins = [$plugin->getService()->name => [$plugin]];
+        } else {
+            $service = null;
+            $serviceName = $this->args->get('service');
+            if ($serviceName) {
+                if (Service::exists($serviceName)) {
+                    $service = lx::$app->getService($serviceName);
+                } else {
+                    $this->outln("Service '$name' not found");
+                    return;
+                }
+            }
+            if ($service === null) {
+                $service = $this->service;
+            }
+
+            if ($service) {
+                $plugins = [$service->name => $service->getStaticPlugins()];
+            }
+        }
+
+        if ($plugins === null) {
+            $plugins = [];
+            $servicesList = $this->getServicesList();
+            foreach ($servicesList as $serviceName => $serviceData) {
+                $service = $serviceData['object'];
+                $plugins[$service->name] = $service->getStaticPlugins();
+            }
+        }
+
+        if ($this->getArg('build', false)) {
+            foreach ($plugins as $serviceName => $servicePlugins) {
+                foreach ($servicePlugins as $plugin) {
+                    foreach ($plugins as $serviceName => $servicePlugins) {
+                        foreach ($servicePlugins as $plugin) {
+                            if ($plugin->getConfig('cacheType') != Plugin::CACHE_NONE) {
+                                $plugin->buildCache();
+                            }
+                        }
+                    }
+                }
+            }
+            $this->outln('done');
+            return;
+        }
+
+        if ($this->getArg('clear', false)) {
+            foreach ($plugins as $serviceName => $servicePlugins) {
+                foreach ($servicePlugins as $plugin) {
+                    $plugin->dropCache();
+                }
+            }
+            $this->outln('done');
+            return;
+        }
+
+        if ($this->getArg('rebuild', false)) {
+            foreach ($plugins as $serviceName => $servicePlugins) {
+                foreach ($servicePlugins as $plugin) {
+                    $cacheType = $plugin->getConfig('cacheType');
+                    if (!$cacheType || $cacheType == Plugin::CACHE_NONE) {
+                        continue;
+                    }
+                    $plugin->renewCache();
+                }
+            }
+            $this->outln('done');
+            return;
+        }
+
+        // Показать текущее состояние кэша
+        foreach ($plugins as $serviceName => $servicePlugins) {
+            $this->outln('Service ' . $serviceName . ':' , ['decor' => 'b']);
+            $data = [];
+            foreach ($servicePlugins as $plugin) {
+                $info = $plugin->getCacheInfo();
+                $data[] = [
+                    'name' => $plugin->name,
+                    'type' => $info['type'],
+                    'state' => $info['exists'] ? 'exists' : 'no',
+                ];
+            }
+            $data = Console::normalizeTable($data);
+            foreach ($data as $row) {
+                $this->out('  * ' . $row['name'] . ': ');
+                $this->out('type: ', ['decor' => 'b']);
+                $this->out($row['type'] . '  ');
+                $this->out('state: ', ['decor' => 'b']);
+                $this->outln($row['state']);
+            }
+        }
+    }
+
 
 	/*******************************************************************************************************************
 	 * PRIVATE FOR PROCESSOR INNER WORK
@@ -752,11 +1084,11 @@ class CliProcessor
 			$data[$name] = [
 				'name' => $name,
 				'path' => $path,
-				'object' => \lx::$app->getService($name),
+				'object' => lx::$app->getService($name),
 			];
 		}
 		uksort($data, 'strcasecmp');
-		$this->servicesList = $data;
+		$this->_servicesList = $data;
 	}
 
 	/**
@@ -796,165 +1128,64 @@ class CliProcessor
 	}
 
 	/**
-	 * @param string $commandType
+	 * @param string $commandName
 	 */
-	private function invokeMethod($commandType)
+	private function invokeCommand($commandName)
 	{
-		$map = $this->getMethodMap();
-		$command = $map[$commandType];
-		if (is_string($command)) {
-			if (method_exists($this, $command)) {
-				$this->{$command}();
-			} elseif (ClassHelper::implements($command, ServiceCliExecutorInterface::class)) {
-				/** @var ServiceCliExecutorInterface $object */
-				$object = new $command();
-				$object->setProcessor($this);
-				$object->run();
-			}
-		} elseif (
-			is_array($command)
-			&& ClassHelper::implements($command[0] ?? '', ServiceCliExecutorInterface::class)
-		) {
-			/** @var ServiceCliExecutorInterface $object */
-			$object = new $command[0]();
-			$method = $command[1] ?? '';
-			if (method_exists($object, $method)) {
-				$object->setProcessor($this);
-				$object->{$command[1]}();
-			}
-		}
-	}
+	    $commands = $this->getCommandsList();
+	    $command = $commands->getCommand($commandName);
 
-	/**
-	 * @param array $types
-	 * @param array $excludedTypes
-	 * @return array
-	 */
-	private function getCommandsExtensionList($types, $excludedTypes)
-	{
-		if ($this->_extensions === null) {
-			$this->loadServiceExtensions();
-		}
+	    $errorReport = $command->validateInput($this->args);
+	    if (!empty($errorReport)) {
+	        foreach ($errorReport as $row) {
+	            $this->outln($row);
+            }
 
-		return $this->extractCommandsExtensionList($types, $excludedTypes);
-	}
+	        return;
+        }
 
-	/**
-	 * @param array $types
-	 * @param array $excludedTypes
-	 * @return array
-	 */
-	private function extractCommandsExtensionList($types, $excludedTypes)
-	{
-		$result = [];
-		foreach ($this->_extensions as $serviceData) {
-			foreach ($serviceData as $commandData) {
-				if (!$this->validateCommandType($commandData, $types, $excludedTypes)) {
-					continue;
-				}
-
-				$key = $this->getExtensionKey($commandData);
-				$result[$key] = $commandData['command'];
-			}
-		}
-
-		return $result;
+	    $executor = $command->getExecutor();
+        if (is_string($executor)) {
+            if (method_exists($this, $executor)) {
+                $this->{$executor}();
+            } elseif (ClassHelper::implements($executor, ServiceCliExecutorInterface::class)) {
+                /** @var ServiceCliExecutorInterface $object */
+                $object = new $executor();
+                $object->setProcessor($this);
+                $object->run();
+            }
+        } elseif (
+            is_array($executor)
+            && ClassHelper::implements($executor[0] ?? '', ServiceCliExecutorInterface::class)
+        ) {
+            /** @var ServiceCliExecutorInterface $object */
+            $object = new $executor[0]();
+            $method = $executor[1] ?? '';
+            if (method_exists($object, $method)) {
+                $object->setProcessor($this);
+                $object->{$method}();
+            }
+        }
 	}
 
 	/**
 	 * @return array
 	 */
-	private function getMethodMap()
+	private function loadCommandsExtensionList()
 	{
-		if ($this->_methodMap === null) {
-			$this->_methodMap = array_merge(
-				self::METHOD_MAP,
-				$this->getMethodMapExtension()
-			);
-		}
+	    $result = [];
 
-		return $this->_methodMap;
-	}
+        $servicesList = $this->getServicesList();
+        foreach ($servicesList as $serviceName => $serviceData) {
+            $service = $serviceData['object'];
+            $serviceCli = $service->cli;
+            if (!$serviceCli || !$serviceCli instanceof ServiceCliInterface) {
+                continue;
+            }
 
-	/**
-	 * @return array
-	 */
-	private function getMethodMapExtension()
-	{
-		if ($this->_extensions === null) {
-			$this->loadServiceExtensions();
-		}
+            $result = array_merge($result, $serviceCli->getExtensionData());
+        }
 
-		return $this->extractMethodMapExtension();
-	}
-
-	/**
-	 * @return array
-	 */
-	private function extractMethodMapExtension()
-	{
-		$result = [];
-		foreach ($this->_extensions as $serviceData) {
-			foreach ($serviceData as $commandData) {
-				$key = $this->getExtensionKey($commandData);
-				$result[$key] = $commandData['handler'];
-			}
-		}
-
-		return $result;
-	}
-
-	/**
-	 * @param array $extension
-	 * @return string
-	 */
-	private function getExtensionKey($extension)
-	{
-		return StringHelper::snakeToCamel(trim(((array)$extension['command'])[0], '\\'), ['_', '-']);
-	}
-
-	/**
-	 * @param array $commandData
-	 * @param array $types
-	 * @param array $excludedTypes
-	 * @return bool
-	 */
-	private function validateCommandType($commandData, $types, $excludedTypes)
-	{
-		$type = $commandData['type'] ?? self::COMMAND_TYPE_COMMON;
-		$types = $types ?? [
-				self::COMMAND_TYPE_COMMON,
-				self::COMMAND_TYPE_CONSOLE_ONLY,
-				self::COMMAND_TYPE_WEB_ONLY,
-			];
-		$excludedTypes = $excludedTypes ?? [];
-
-		if (array_search($type, $excludedTypes) !== false) {
-			return false;
-		}
-
-		if (array_search($type, $types) === false) {
-			return false;
-		}
-
-		return true;
-	}
-
-	private function loadServiceExtensions()
-	{
-		if ($this->_extensions === null) {
-			$this->_extensions = [];
-		}
-
-		$servicesList = $this->getServicesList();
-		foreach ($servicesList as $serviceName => $serviceData) {
-			$service = $serviceData['object'];
-			$serviceCli = $service->cli;
-			if (!$serviceCli || !$serviceCli instanceof ServiceCliInterface) {
-				continue;
-			}
-
-			$this->_extensions[$serviceName] = $serviceCli->getExtensionData();
-		}
+        return $result;
 	}
 }
