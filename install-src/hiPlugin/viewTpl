@@ -4,9 +4,10 @@
  * @var lx.Snippet Snippet
  * */
 
+#lx:use lx.Button;
 #lx:use lx.tools.widget.LanguageSwitcher;
 
-var height = '50px';
+var height = '60px';
 
 var head = new lx.Box({height});
 head.gridProportional({indent: '10px', cols: 13});
@@ -14,9 +15,9 @@ head.fill('lightgray');
 
 head.begin();
 	var lbl = new lx.Box({width: 2});
-	var cli = new lx.Box({width: 3, key: 'cli'});
-	var doc = new lx.Box({width: 3, key: 'doc'});
-	var demo = new lx.Box({width: 3, key: 'demo'});
+	var cli = new lx.Button({width: 3, key: 'cli'});
+	var doc = new lx.Button({width: 3, key: 'doc'});
+	var demo = new lx.Button({width: 3, key: 'demo'});
 
 	if (lx.classExists('lx.tools.widget.LanguageSwitcher')) {
 		new lx.tools.widget.LanguageSwitcher({width: 2});
@@ -26,19 +27,12 @@ head.end();
 lbl.text(#lx:i18n(title));
 lbl.align(lx.LEFT, lx.MIDDLE);
 
-function editElem(elem, text) {
-	elem.fill('orange');
-	elem.roundCorners('8px');
-	elem.text(text);
-	elem.align(lx.CENTER, lx.MIDDLE);
-	elem.style('cursor', 'pointer');
-}
-editElem(cli, #lx:i18n(cli));
-editElem(doc, #lx:i18n(doc));
-editElem(demo, #lx:i18n(demo));
+cli.text(#lx:i18n(cli));
+doc.text(#lx:i18n(doc));
+demo.text(#lx:i18n(demo));
 
 var body = new lx.Box({top: height, key: 'work'});
 var fon = body.add(lx.Box, {geom:true});
 fon.slot({indent:'10px', cols:1, rows:1});
-fon.child(0).picture('/web/lx/img/icon.png');
+fon.child(0).picture('/web/css/img/icon.png');
 fon.child(0).opacity(0.3);

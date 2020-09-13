@@ -28,8 +28,9 @@ const buts = [ Plugin->>cli, Plugin->>doc, Plugin->>demo ];
 list.each((item, key)=>{
 	let but = Plugin.find(key);
 	but.click(()=>{
-		buts.each((a)=>a.fill('orange'));
-		but.fill('lightgreen');
+		buts.each((a)=>a.removeClass('lx-activeBut'));
+		but.addClass('lx-activeBut');
+
 		if (item.box) {
 			lx.WidgetHelper.bringToFront(item.box);
 			return;
@@ -46,7 +47,7 @@ function loadPlugin(name, title, boxName, data) {
 
 	list[boxName].box = new lx.ActiveBox({ parent: body, header: title, geom:true });
 	var elem = list[boxName].box;
-	elem->body.fill('white');
 	elem->body.setPlugin(data);
+	elem->body.fill('white');
 	elem->body.style('overflow', 'auto');
 }

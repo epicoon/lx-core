@@ -102,6 +102,8 @@ if (!$app->services->exists('lx/hello')) {
 	$dir = $plugin->directory;
 	$i18n = $dir->makeFile('i18n.yaml');
 	$i18n->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/i18nTpl'));
+	$css = $dir->get('assets/css/main.css');
+	$css->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/cssTpl'));
 	$view = $dir->get('snippets/_root.js');
 	$view->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/viewTpl'));
 	$frontend = $dir->get('frontend/_main.js');
