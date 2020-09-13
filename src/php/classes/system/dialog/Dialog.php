@@ -269,16 +269,24 @@ class Dialog implements FusionComponentInterface
 	 */
 	public function translateGetParams($text)
 	{
-		$result = [];
-
 		$temp = urldecode($text);
-		$temp = explode('&', $temp);
-		foreach ($temp as $value) {
-			$item = explode('=', $value);
-			$result[$item[0]] = $item[1];
-		}
+        $pairs = explode('&', $temp);
+        $params = [];
+        foreach ($pairs as $pare) {
+            list($name, $value) = explode('=', $pare, 2);
 
-		return $result;
+            if (isset($params[$name])) {
+                if (is_array($params[$name])) {
+                    $params[$name][] = $value;
+                } else {
+                    $params[$name] = [$params[$name], $value];
+                }
+            } else {
+                $params[$name] = $value;
+            }
+        }
+
+        return $params;
 	}
 
     /**
@@ -452,11 +460,11 @@ class Dialog implements FusionComponentInterface
 
 	private function retrieveParams()
 	{
-		$get = $_GET ?? [];
+		$get = [];
 		$url = $this->getUrl();
 		$temp = explode('?', $url);
 		if (count($temp) > 1) {
-			$get += $this->translateGetParams($temp[1]);
+			$get = $this->translateGetParams($temp[1]);
 		}
 
 		$method = $this->getMethod();
