@@ -487,7 +487,7 @@ class Yaml
 	{
 		$key = null;
 		$value = null;
-		preg_match_all('/((?:[\w_.!\/$\\\ -][\w\d_.!\/$\\\ -]*?)|(?:<<)):\s*(.+)/', $row, $matches);
+		preg_match_all('/((?:[\w_.!\/$\\\ -][\w\d_.!\/$\\\ :-]*?)|(?:<<)):\s+(.+)/', $row, $matches);
 		// For type 'value'
 		if (empty($matches[0])) {
 			$key = preg_replace('/:$/', '', $row);
