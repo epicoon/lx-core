@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 /**
  * Class Directory
  * @package lx
@@ -119,12 +121,16 @@ class Directory extends BaseFile
 	 */
 	public function makeFile($name, $type = null)
 	{
-		return \lx::$app->diProcessor->createByInterface(
-			$type,
-			[$this->getPath() . '/' . $name],
-			[],
-			File::class
-		);
+	    if (lx::$app && lx::$app->diProcessor) {
+            return lx::$app->diProcessor->createByInterface(
+                $type,
+                [$this->getPath() . '/' . $name],
+                [],
+                File::class
+            );
+        }
+
+	    return new File($this->getPath() . '/' . $name);
 	}
 
 	/**

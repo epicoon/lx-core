@@ -9,12 +9,15 @@
  * */
 
 // fcgi doesn't have STDIN and STDOUT defined by default
+use lx\Directory;
+use lx\ConsoleApplication;
+use lx\AssetCompiler;
+
 defined('STDIN') or define('STDIN', fopen('php://stdin', 'r'));
 defined('STDOUT') or define('STDOUT', fopen('php://stdout', 'w'));
 
 require_once(__DIR__ . '/main.php');
-$app = lx\ConsoleApplication::firstConstruct();
-$site = $app->directory;
+$site = new Directory(lx::$conductor->sitePath);
 
 // Создаем в корне папку services
 $lx = $site->getOrMakeDirectory('services');
@@ -23,12 +26,6 @@ $lx = $site->getOrMakeDirectory('services');
 $lx = $site->getOrMakeDirectory('lx');
 $system = $lx->getOrMakeDirectory('.system');
 $system->getOrMakeDirectory('temp');
-
-// Создаем в корне папку web
-$web = $site->getOrMakeDirectory('web');
-$cssCompiler = new \lx\AssetCompiler();
-$cssCompiler->copyLxCss();
-$cssCompiler->makePluginsAssetLinks();
 
 // Корректируем ".gitignore"
 $gitignore = $site->makeFile('.gitignore');
@@ -79,8 +76,6 @@ if (!$lx->contains('config')) {
 
 	$configService = $config->makeFile('service.php');
 	$configService->put($configServiceCode);
-
-	$app->renewConfig();
 }
 
 $data = $lx->getOrMakeDirectory('data');
@@ -88,6 +83,15 @@ if (!$data->contains('languages.php')) {
 	$languages = $data->makeFile('languages.php');
 	$languages->put(require(__DIR__ . '/install-src/data/languages.php'));
 }
+
+// Используем приложение
+$app = lx\ConsoleApplication::firstConstruct();
+
+// Создаем в корне папку web
+$web = $site->getOrMakeDirectory('web');
+$cssCompiler = new AssetCompiler();
+$cssCompiler->copyLxCss();
+$cssCompiler->makePluginsAssetLinks();
 
 // Если нет HelloWorld-ного сервиса - создадим
 if (!$app->services->exists('lx/hello')) {
@@ -102,7 +106,8 @@ if (!$app->services->exists('lx/hello')) {
 	$dir = $plugin->directory;
 	$i18n = $dir->makeFile('i18n.yaml');
 	$i18n->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/i18nTpl'));
-	$css = $dir->get('assets/css/main.css');
+	$cssDir = $dir->getOrMakeDirectory('assets/css', 0777, true);
+	$css = $cssDir->makeFile('main.css');
 	$css->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/cssTpl'));
 	$view = $dir->get('snippets/_root.js');
 	$view->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/viewTpl'));

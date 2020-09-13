@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 /**
  * Class AbstractApplication
  * @package lx
@@ -75,7 +77,7 @@ abstract class AbstractApplication implements FusionInterface
         $app = new static(null);
         $app->baseInit($config);
         (new AutoloadMapBuilder())->createCommonAutoloadMap();
-        \lx::$autoloader->map->reset();
+        lx::$autoloader->map->reset();
         $app->advancedInit();
         (new JsModuleMapBuilder())->renewHead();
         return $app;
@@ -88,11 +90,11 @@ abstract class AbstractApplication implements FusionInterface
     {
         $this->id = Math::randHash();
         $this->pid = getmypid();
-        $this->_sitePath = \lx::$conductor->sitePath;
+        $this->_sitePath = lx::$conductor->sitePath;
         $this->logMode = true;
 
         $this->_conductor = new ApplicationConductor();
-        \lx::$app = $this;
+        lx::$app = $this;
 
         if (empty($config)) {
             $this->renewConfig();
@@ -101,10 +103,6 @@ abstract class AbstractApplication implements FusionInterface
         } else {
             $this->_config = $config;
         }
-
-        $aliases = $this->getConfig('aliases');
-        if (!$aliases) $aliases = [];
-        $this->_conductor->setAliases($aliases);
 
         $this->_services = new ServicesMap();
     }
@@ -125,6 +123,12 @@ abstract class AbstractApplication implements FusionInterface
             EventManager::class
         );
         $this->_events = new $eventsConfig['class']($eventsConfig['params']);
+
+        $this->loadLocalConfig();
+
+        $aliases = $this->getConfig('aliases');
+        if (!$aliases) $aliases = [];
+        $this->_conductor->setAliases($aliases);
 
         $this->initFusionComponents($this->getConfig('components'), static::getDefaultComponents());
         $this->init();
@@ -237,7 +241,7 @@ abstract class AbstractApplication implements FusionInterface
 	{
 		if ($this->defaultServiceConfig === null) {
 			$this->defaultServiceConfig =
-				(new File(\lx::$conductor->getDefaultServiceConfig()))->load();
+				(new File(lx::$conductor->getDefaultServiceConfig()))->load();
 		}
 
 		return $this->defaultServiceConfig;
@@ -250,7 +254,7 @@ abstract class AbstractApplication implements FusionInterface
 	{
 		if ($this->defaultPluginConfig === null) {
 			$this->defaultPluginConfig =
-				(new File(\lx::$conductor->getDefaultPluginConfig()))->load();
+				(new File(lx::$conductor->getDefaultPluginConfig()))->load();
 		}
 
 		return $this->defaultPluginConfig;
@@ -290,7 +294,7 @@ abstract class AbstractApplication implements FusionInterface
 	 */
 	public function isProd()
 	{
-		return $this->isMode(\lx::MODE_PROD);
+		return $this->isMode(lx::MODE_PROD);
 	}
 
 	/**
@@ -298,7 +302,7 @@ abstract class AbstractApplication implements FusionInterface
 	 */
 	public function isNotProd()
 	{
-		return !$this->isMode(\lx::MODE_PROD);
+		return !$this->isMode(lx::MODE_PROD);
 	}
 
 	/**
@@ -442,13 +446,34 @@ abstract class AbstractApplication implements FusionInterface
 	/**
 	 * Reload application configuration
 	 */
-	public function renewConfig()
+	private function renewConfig()
 	{
-		$path = \lx::$conductor->getAppConfig();
+		$path = lx::$conductor->getAppConfig();
 		if (!$path) {
 			$this->_config = [];
 		} else {
 			$this->_config = require($path);
 		}
 	}
+
+	private function loadLocalConfig()
+    {
+        if (!array_key_exists('localConfig', $this->_config)) {
+            return;
+        }
+
+        $localConfig = $this->_config['localConfig'];
+        /** @var DataFileInterface $file */
+        $file = $this->diProcessor->createByInterface(DataFileInterface::class, [$localConfig]);
+        if (!$file->exists()) {
+            return;
+        }
+
+        $config = $file->get();
+        if (!is_array($config)) {
+            return;
+        }
+
+        $this->_config = ArrayHelper::mergeRecursiveDistinct($this->_config, $config, true);
+    }
 }
