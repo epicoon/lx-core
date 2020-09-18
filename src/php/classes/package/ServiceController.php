@@ -8,7 +8,7 @@ namespace lx;
  * 
  * @property-read Service $service
  */
-class ServiceController extends Source
+class ServiceController extends Resource
 {
 	/** @var Service */
 	private $_service;

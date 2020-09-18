@@ -3,20 +3,20 @@
 namespace lx;
 
 /**
- * Class Source
+ * Class Resource
  * @package lx
  */
-class Source implements SourceInterface
+class Resource implements ResourceInterface
 {
     use ObjectTrait;
 	use ApplicationToolTrait;
 	use ErrorCollectorTrait;
 
-	/** @var SourceVoterInterface */
+	/** @var ResourceVoterInterface */
 	private $voter;
 
 	/**
-	 * Source constructor.
+	 * Resource constructor.
 	 * @param array $config
 	 */
 	public function __construct($config = [])
@@ -25,7 +25,7 @@ class Source implements SourceInterface
 
 		$this->voter = $config['voter'] ?? null;
 		if ($this->voter) {
-			$this->voter->setSource($this);
+			$this->voter->setResource($this);
 		}
 	}
 
@@ -35,7 +35,7 @@ class Source implements SourceInterface
 	public static function getConfigProtocol()
 	{
 		return [
-			'voter' => SourceVoterInterface::class,
+			'voter' => ResourceVoterInterface::class,
 		];
 	}
 

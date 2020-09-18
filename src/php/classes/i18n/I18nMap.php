@@ -123,18 +123,16 @@ abstract class I18nMap implements FusionComponentInterface
 			return;
 		}
 
-		$map = $this->getMapFromFiles();
+		$mapFromMethod = $this->getMapFromMethodFiles();
+		$mapFromConfig = $this->getMapFromConfigFiles();
 
-		$filesFromConfig = $this->getFilesFromConfig();
-		$mapFromConfig = $this->getMapFromConfigFiles($filesFromConfig);
-
-		$this->map = $this->mapMerge($mapFromConfig, $map);
+		$this->map = $this->mapMerge($mapFromConfig, $mapFromMethod);
 	}
 
 	/**
 	 * @return array
 	 */
-	private function getMapFromFiles()
+	private function getMapFromMethodFiles()
 	{
 		$fileNames = $this->files();
 		$result = [];
@@ -146,12 +144,13 @@ abstract class I18nMap implements FusionComponentInterface
 	}
 
 	/**
-	 * @param array|string $filesFromConfig
 	 * @return array
 	 */
-	private function getMapFromConfigFiles($filesFromConfig)
+	private function getMapFromConfigFiles()
 	{
-		if ( ! $filesFromConfig) {
+        $filesFromConfig = $this->getFilesFromConfig();
+
+        if ( ! $filesFromConfig) {
 			$filesFromConfig = static::DEFAULT_FILE_NAME;
 		}
 

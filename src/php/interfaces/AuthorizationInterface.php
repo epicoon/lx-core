@@ -12,10 +12,10 @@ interface AuthorizationInterface extends EventListenerInterface
 {
 	/**
 	 * @param User $user
-	 * @param SourceAccessDataInterface $sourceAccessData
+	 * @param ResourceAccessDataInterface $resourceAccessData
 	 * @return mixed
 	 */
-	public function checkUserAccess($user, $sourceAccessData);
+	public function checkUserAccess($user, $resourceAccessData);
 
 	/**
 	 * @return Plugin

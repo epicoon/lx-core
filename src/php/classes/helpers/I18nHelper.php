@@ -10,10 +10,15 @@ class I18nHelper
 {
 	/**
 	 * @param string $data - text for internacionalization
-	 * @param array $map - map of translates
-	 * */
+	 * @param I18nMap|array $map - map of translates
+     * @return string
+	 */
 	public static function localize($data, $map)
 	{
+        if ($map instanceof I18nMap) {
+            $map = $map->getFullMap();
+        }
+
 		preg_match_all('/#lx:i18n([\w\W]*?)i18n:lx#/', $data, $matches);
 		$keys = array_unique($matches[1]);
 		foreach ($keys as $match) {
@@ -31,7 +36,8 @@ class I18nHelper
 				$translation = self::parseParams($translation, $params);
 			}
 
-			$data = preg_replace('/#lx:i18n' . $match . 'i18n:lx#/', $translation, $data);
+			$reg = addcslashes('/#lx:i18n' . $match . 'i18n:lx#/', '()');
+			$data = preg_replace($reg, $translation, $data);
 		}
 		return $data;
 	}
@@ -39,7 +45,8 @@ class I18nHelper
 	/**
 	 * @param Plugin $plugin - Plugin which is context for internacionalization
 	 * @param string $data - text for internacionalization
-	 * */
+     * @return string
+	 */
 	public static function localizePlugin($plugin, $data)
 	{
 		$map = $plugin->i18nMap;
@@ -49,11 +56,17 @@ class I18nHelper
 
 	/**
 	 * @param string $key - key of string to translate
-	 * @param array $map - map of translates
-	 * */
-	public static function translate($key, $map)
+	 * @param I18nMap|array $map - map of translates
+     * @param string|null $lang
+     * @return string
+	 */
+	public static function translate($key, $map, $lang = null)
 	{
-		$lang = \lx::$app->language->current;
+	    if ($map instanceof I18nMap) {
+	        $map = $map->getFullMap();
+        }
+
+		$lang = $lang ?? \lx::$app->language->current;
 
 		if (array_key_exists($lang, $map) && array_key_exists($key, $map[$lang])) {
 			return $map[$lang][$key];
@@ -65,7 +78,8 @@ class I18nHelper
 	/**
 	 * @param string $translation
 	 * @param string $params - example: 'k1: v1, k2: v2'
-	 * */
+     * @return string
+	 */
 	private static function parseParams($translation, $params)
 	{
 		$result = $translation;

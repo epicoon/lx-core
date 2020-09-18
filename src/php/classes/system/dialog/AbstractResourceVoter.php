@@ -3,31 +3,31 @@
 namespace lx;
 
 /**
- * Class AbstractSourceVoter
+ * Class AbstractResourceVoter
  * @package lx
  */
-abstract class AbstractSourceVoter implements SourceVoterInterface
+abstract class AbstractResourceVoter implements ResourceVoterInterface
 {
     use ObjectTrait;
 	use ApplicationToolTrait;
 
-	/** @var Source */
+	/** @var Resource */
 	protected $owner;
 
 	/**
-	 * @return Source
+	 * @return Resource
 	 */
-	public function getSource()
+	public function getResource()
 	{
 		return $this->owner;
 	}
 
 	/**
-	 * @param Source $source
+	 * @param Resource $resource
 	 */
-	public function setSource(Source $source)
+	public function setResource(Resource $resource)
 	{
-		$this->owner = $source;
+		$this->owner = $resource;
 	}
 
 	/**

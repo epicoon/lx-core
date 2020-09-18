@@ -9,7 +9,7 @@ namespace lx;
  * @property-read Service $service
  * @property-read Plugin $plugin
  */
-class Respondent extends Source
+class Respondent extends Resource
 {
 	/** @var Plugin */
 	private $_plugin;

@@ -16,7 +16,7 @@ class Router implements FusionComponentInterface
 	protected $routes = [];
 
 	/**
-	 * @return SourceContext|false
+	 * @return ResourceContext|false
 	 */
 	public function route()
 	{

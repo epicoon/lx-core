@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 /**
  * Class Plugin
  * @package lx
@@ -13,11 +15,11 @@ namespace lx;
  * @property-read PluginConductor $conductor
  * @property-read I18nPluginMap $i18nMap
  */
-class Plugin extends Source implements FusionInterface
+class Plugin extends Resource implements FusionInterface
 {
 	use FusionTrait;
 
-	const DEFAULT_SOURCE_METHOD = 'run';
+	const DEFAULT_RESOURCE_METHOD = 'run';
 	const AJAX_SOURCE_METHOD = 'ajaxResponse';
 
 	const CACHE_NONE = 'none';
@@ -138,7 +140,7 @@ class Plugin extends Source implements FusionInterface
 		$data = [
 			'service' => $service,
 			'name' => $pluginName,
-			'path' => \lx::$app->conductor->getRelativePath($pluginPath),
+			'path' => lx::$app->conductor->getRelativePath($pluginPath),
 			'config' => $config,
 		];
 
@@ -146,7 +148,7 @@ class Plugin extends Source implements FusionInterface
 			$data['prototype'] = $prototype;
 		}
 
-		$plugin = \lx::$app->diProcessor->create($pluginClass, $data);
+		$plugin = lx::$app->diProcessor->create($pluginClass, $data);
 
 		return $plugin;
 	}
@@ -296,6 +298,32 @@ class Plugin extends Source implements FusionInterface
 		return $this->config[$key];
 	}
 
+    /**
+     * @return string|null
+     */
+	public function getTitle()
+    {
+        $title = $this->getConfig('title');
+        if (!$title) {
+            return null;
+        }
+
+        return I18nHelper::translate($title, $this->i18nMap);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getIcon()
+    {
+        $icon = $this->getConfig('icon');
+        if (!$icon) {
+            return null;
+        }
+
+        return $this->app->conductor->getRelativePath($icon, lx::$app->sitePath);
+    }
+
 	/**
 	 * @param string $name
 	 * @return Respondent|null
@@ -306,7 +334,7 @@ class Plugin extends Source implements FusionInterface
 	}
 
 	/**
-	 * This method is used by SourceContext for return Plugin as source
+	 * This method is used by ResourceContext for return Plugin as resource
 	 *
 	 * @param array $params
 	 * @param User $user
@@ -506,16 +534,16 @@ class Plugin extends Source implements FusionInterface
 	}
 
 	/**
-	 * Method returns SourceContext for ajax-request
+	 * Method returns ResourceContext for ajax-request
 	 *
 	 * @param string $respondent
 	 * @param array $data
-	 * @return SourceContext|false
+	 * @return ResourceContext|false
 	 */
-	public function getSourceContext($respondent, $data)
+	public function getResourceContext($respondent, $data)
 	{
 		if (!isset($data['attributes']) || !isset($data['data'])) {
-			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+			lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Wrong data in ajax-request for plugin '{$this->name}'",
 			]);
@@ -529,7 +557,7 @@ class Plugin extends Source implements FusionInterface
 			return $this->ajaxResponseByRespondent($respondent, $requestData);
 		}
 
-		return new SourceContext([
+		return new ResourceContext([
 			'object' => $this,
 			'method' => self::AJAX_SOURCE_METHOD,
 			'params' => [$requestData],
@@ -843,7 +871,7 @@ class Plugin extends Source implements FusionInterface
 	/**
 	 * @param string $respondentName
 	 * @param array $respondentParams
-	 * @return SourceContext|false
+	 * @return ResourceContext|false
 	 */
 	private function ajaxResponseByRespondent($respondentName, $respondentParams)
 	{
@@ -851,7 +879,7 @@ class Plugin extends Source implements FusionInterface
 		$respondent = $this->getRespondent($respInfo[0] ?? '');
 
 		if (!$respondent) {
-			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+			lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Respondent '$respondentName' is not found",
 			]);
@@ -860,14 +888,14 @@ class Plugin extends Source implements FusionInterface
 
 		$methodName = $respInfo[1] ?? '';
 		if (!method_exists($respondent, $methodName)) {
-			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+			lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Method '$methodName' for respondent '$respondentName' is not found",
 			]);
 			return false;
 		}
 
-		return new SourceContext([
+		return new ResourceContext([
 			'object' => $respondent,
 			'method' => $methodName,
 			'params' => $respondentParams,

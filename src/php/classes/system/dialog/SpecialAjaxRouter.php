@@ -22,7 +22,7 @@ class SpecialAjaxRouter
 	}
 
 	/**
-	 * @return SourceContext|false
+	 * @return ResourceContext|false
 	 */
 	public function route()
 	{
@@ -40,7 +40,7 @@ class SpecialAjaxRouter
 	 ******************************************************************************************************************/
 
 	/**
-	 * @return SourceContext
+	 * @return ResourceContext
 	 */
 	private function serviceAjaxResponse()
 	{
@@ -49,7 +49,7 @@ class SpecialAjaxRouter
 		// AJAX-request for required modules
 		if ($type == 'get-modules') {
 			$data = \lx::$app->dialog->getParams();
-			return new SourceContext([
+			return new ResourceContext([
 				'class' => JsModuleProvider::class,
 				'method' => 'getModulesRequest',
 				'params' => [$data],
@@ -58,7 +58,7 @@ class SpecialAjaxRouter
 	}
 
 	/**
-	 * @return SourceContext|false
+	 * @return ResourceContext|false
 	 */
 	private function pluginAjaxResponse()
 	{
@@ -83,11 +83,11 @@ class SpecialAjaxRouter
 		}
 
 		$respondentName = $arr[1] ?? null;
-		return $plugin->getSourceContext($respondentName, \lx::$app->dialog->getParams());
+		return $plugin->getResourceContext($respondentName, \lx::$app->dialog->getParams());
 	}
 
 	/**
-	 * @return SourceContext|false
+	 * @return ResourceContext|false
 	 */
 	private function widgetAjaxResponse()
 	{
@@ -110,7 +110,7 @@ class SpecialAjaxRouter
 		$methodName = $arr[1];
 		$params = \lx::$app->dialog->getParams();
 
-		return new SourceContext([
+		return new ResourceContext([
 			'class' => $widgetName,
 			'method' => $methodName,
 			'params' => $params,

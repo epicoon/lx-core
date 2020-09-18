@@ -18,9 +18,9 @@ interface AuthenticationInterface extends EventListenerInterface
 	public function authenticateUser();
 
 	/**
-	 * Returns SourceContext with plugin to get attempt authenticate user from front-end
+	 * Returns ResourceContext with plugin to get attempt authenticate user from front-end
 	 *
-	 * @return SourceContext|false
+	 * @return ResourceContext|false
 	 */
 	public function responseToAuthenticate();
 

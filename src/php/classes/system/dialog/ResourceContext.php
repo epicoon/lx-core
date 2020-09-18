@@ -3,7 +3,7 @@
 namespace lx;
 
 /**
- * Requested source is plugin or action:
+ * Requested resource is plugin or action:
  * 1. Plugin - will be returned plugin rendering result.
  * Object need to know service name and plugin name.
  *	$this->data == ['service' => 'serviceName', 'plugin' => 'pluginName']
@@ -11,10 +11,10 @@ namespace lx;
  * Object need to know action class name and method name. It can also know service name.
  *	$this->data == ['service' => 'serviceName', 'class' => 'className', 'method' => 'methodName']
  *
- * Class SourceContext
+ * Class ResourceContext
  * @package lx
  */
-class SourceContext
+class ResourceContext
 {
 	/** @var array */
 	private $data;
@@ -23,7 +23,7 @@ class SourceContext
 	private $plugin;
 
 	/**
-	 * SourceContext constructor.
+	 * ResourceContext constructor.
 	 * @param array $data
 	 */
 	public function __construct($data = [])
@@ -153,7 +153,7 @@ class SourceContext
 	private function invokePlugin($methodName, $params)
 	{
 		$plugin = $this->getPlugin();
-		$methodName = $methodName ?? Plugin::DEFAULT_SOURCE_METHOD;
+		$methodName = $methodName ?? Plugin::DEFAULT_RESOURCE_METHOD;
 		if (!method_exists($plugin, $methodName)) {
             return $this->getNotFoundResponse();
 		}
@@ -165,7 +165,7 @@ class SourceContext
 	}
 
     /**
-     * @param Source $object
+     * @param Resource $object
      * @param ResponseInterface|array|string|null $result
      */
 	private function prepareResponse($object, $result)
@@ -197,7 +197,7 @@ class SourceContext
     }
 
 	/**
-	 * @return SourceInterface|null
+	 * @return ResourceInterface|null
 	 */
 	private function getObject()
 	{
@@ -213,7 +213,7 @@ class SourceContext
 			$object = \lx::$app->diProcessor->create($class, $config);
 		}
 
-		if ($object && $object instanceof SourceInterface) {
+		if ($object && $object instanceof ResourceInterface) {
 			return $object;
 		}
 

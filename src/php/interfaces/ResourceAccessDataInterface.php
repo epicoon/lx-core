@@ -3,10 +3,10 @@
 namespace lx;
 
 /**
- * Interface SourceAccessDataInterface
+ * Interface ResourceAccessDataInterface
  * @package lx
  */
-interface SourceAccessDataInterface
+interface ResourceAccessDataInterface
 {
 	/**
 	 * @return mixed

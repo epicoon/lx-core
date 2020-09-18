@@ -3,15 +3,15 @@
 namespace lx;
 
 /**
- * Interface SourceVoterInterface
+ * Interface ResourceVoterInterface
  * @package lx
  */
-interface SourceVoterInterface
+interface ResourceVoterInterface
 {
 	/**
-	 * @param Source $source
+	 * @param Resource $resource
 	 */
-	public function setSource(Source $source);
+	public function setResource(Resource $resource);
 
 	/**
 	 * @param User $user

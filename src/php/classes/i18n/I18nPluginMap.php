@@ -8,6 +8,8 @@ namespace lx;
  */
 class I18nPluginMap extends I18nMap
 {
+    const DEFAULT_FILE_NAME = 'assets/i18n/main.yaml';
+
 	/** @var array */
 	protected $fullMap;
 

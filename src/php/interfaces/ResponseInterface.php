@@ -16,6 +16,11 @@ interface ResponseInterface extends ErrorCollectorInterface
     public function getCode();
 
     /**
+     * @return bool
+     */
+    public function isForbidden();
+
+    /**
      * @return mixed
      */
     public function getData();

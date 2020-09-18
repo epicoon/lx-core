@@ -9,7 +9,7 @@ namespace lx;
  * @package lx
  * @group {i18n:widgets}
  */
-class Rect extends Source
+class Rect extends Resource
 {
 	// pass
 }

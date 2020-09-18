@@ -3,10 +3,10 @@
 namespace lx;
 
 /**
- * Interface SourceInterface
+ * Interface ResourceInterface
  * @package lx
  */
-interface SourceInterface extends ErrorCollectorInterface
+interface ResourceInterface extends ErrorCollectorInterface
 {
 	/**
 	 * @param array $params

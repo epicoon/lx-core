@@ -59,6 +59,14 @@ class Response implements ResponseInterface
     /**
      * @return bool
      */
+    public function isForbidden()
+    {
+        return $this->code == ResponseCodeEnum::FORBIDDEN;
+    }
+
+    /**
+     * @return bool
+     */
     public function isSuccessfull()
     {
         return $this->getCode() == ResponseCodeEnum::OK;

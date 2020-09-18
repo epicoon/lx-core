@@ -21,7 +21,7 @@ class ServiceRouter implements FusionComponentInterface
 
 	/**
 	 * @param array $serviceRouteData
-	 * @return SourceContext|false
+	 * @return ResourceContext|false
 	 */
 	public function route($serviceRouteData)
 	{
@@ -56,14 +56,14 @@ class ServiceRouter implements FusionComponentInterface
 	 * ]
 	 *
 	 * @param array $routeData
-	 * @return SourceContext|false
+	 * @return ResourceContext|false
 	 */
 	protected function determineRouteData($routeData)
 	{
-		$source = $routeData;
-		if (isset($source['route'])) {
-			$route = $source['route'];
-			unset($source['route']);
+		$resource = $routeData;
+		if (isset($resource['route'])) {
+			$route = $resource['route'];
+			unset($resource['route']);
 
 			$map = $this->getMap();
 			if (!array_key_exists($route, $map)) {
@@ -86,18 +86,18 @@ class ServiceRouter implements FusionComponentInterface
 					if (!$arr) {
 						return false;
 					}
-					$source['class'] = $arr[0];
-					$source['method'] = $arr[1];
+					$resource['class'] = $arr[0];
+					$resource['method'] = $arr[1];
 				} elseif (isset($data['plugin'])) {
 					if (!$this->getService()->pluginExists($data['plugin'])) {
 						return false;
 					}
-					$source['plugin'] = $data['plugin'];
+					$resource['plugin'] = $data['plugin'];
 				}
 			}
 		}
 
-		return new SourceContext($source);
+		return new ResourceContext($resource);
 	}
 
 	/**

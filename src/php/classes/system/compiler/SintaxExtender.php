@@ -216,7 +216,7 @@ class SintaxExtender
 
 		$reg = '/#lx:i18n(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/';
 		$code = preg_replace_callback($reg, function($match) {
-			return '\'#lx:i18n' . $match[2] . 'i18n:lx#\'';
+			return '\'#lx:i18n' . trim($match['therec'], '()') . 'i18n:lx#\'';
 		}, $code);
 
 		$code = $this->applyHtmlTemplater($code);

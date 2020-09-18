@@ -44,7 +44,7 @@ class HttpApplication extends BaseApplication
 
 		$this->authenticateUser();
 
-		$requestHandler = new RequestHandler();
+		$requestHandler = RequestHandler::create();
 		$requestHandler->run();
 		$requestHandler->send();
 

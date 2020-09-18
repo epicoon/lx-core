@@ -6,7 +6,7 @@ namespace lx;
  * Class JsModuleProvider
  * @package lx
  */
-class JsModuleProvider extends Source
+class JsModuleProvider extends Resource
 {
 	/**
 	 * @param array $list

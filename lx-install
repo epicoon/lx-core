@@ -104,7 +104,8 @@ if (!$app->services->exists('lx/hello')) {
     ]);
 
 	$dir = $plugin->directory;
-	$i18n = $dir->makeFile('i18n.yaml');
+    $i18nDir = $dir->getOrMakeDirectory('assets/i18n', 0777, true);
+	$i18n = $i18nDir->makeFile('main.yaml');
 	$i18n->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/i18nTpl'));
 	$cssDir = $dir->getOrMakeDirectory('assets/css', 0777, true);
 	$css = $cssDir->makeFile('main.css');
