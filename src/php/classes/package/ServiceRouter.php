@@ -33,7 +33,7 @@ class ServiceRouter implements FusionComponentInterface
 	 */
 	public function getMap()
 	{
-		$map = $this->getService()->getConfig('service.routes');
+		$map = $this->getService()->getConfig('routes');
 		return $map ?? [];
 	}
 

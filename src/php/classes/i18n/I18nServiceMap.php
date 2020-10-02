@@ -47,6 +47,6 @@ class I18nServiceMap extends I18nMap
 	 */
 	protected function getFilesFromConfig()
 	{
-		return $this->getService()->getConfig('service.i18nFile');
+		return $this->getService()->getConfig('i18nFile');
 	}
 }

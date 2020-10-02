@@ -60,7 +60,18 @@ class FusionComponentList
 	 */
 	public function load($list, $defaults = [])
 	{
-		$fullList = $list + $defaults;
+	    if (array_key_exists('modelManager', $list)) {
+	        $e = 1;
+        }
+
+	    foreach ($defaults as &$item) {
+	        if (is_string($item)) {
+	            $item = ['class' => $item];
+            }
+        }
+	    unset($item);
+
+		$fullList = ArrayHelper::mergeRecursiveDistinct($list, $defaults);
 		foreach ($fullList as $name => $config) {
 			if ( ! $config) {
 				\lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],

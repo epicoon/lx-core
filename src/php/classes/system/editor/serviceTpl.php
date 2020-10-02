@@ -5,6 +5,7 @@ name: <name>
 
 autoload:
   psr-4:
+    <nmsp>\sys: '.system'
     <nmsp>: ''
 
 service:
@@ -14,7 +15,6 @@ service:
     /: '' #TODO: must be defined
 
   plugins: <plugin>
-  models: <model>
 
 EOT;
 

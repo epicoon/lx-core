@@ -30,7 +30,7 @@ class PluginEditor
 	{
 		$servicePath = $this->service->getPath();
 		if ($path === null) {
-		    $plaginPathes = $this->service->getConfig('service.plugins');
+		    $plaginPathes = $this->service->getConfig('plugins');
 		    if (is_array($plaginPathes)) {
 		        $path = $plaginPathes[0];
             } else {

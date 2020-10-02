@@ -25,15 +25,21 @@ class I18nHelper
 			$arr = preg_split('/^([^,]+?)\s*,\s*([\w\W]+)$/', $match, null, PREG_SPLIT_DELIM_CAPTURE);
 			if (count($arr) == 1) {
 				$key = trim($arr[0], '\'"');
-				$params = null;
+				$params = [];
 			} else {
 				$key = trim($arr[1], '\'"');
-				$params = trim($arr[2], ' {}');
+				$params = self::parseParams(trim($arr[2], ' {}'));
 			}
 
 			$translation = self::translate($key, $map);
-			if ($params) {
-				$translation = self::parseParams($translation, $params);
+			if (!empty($params)) {
+                foreach ($params as $paramName => $paramValue) {
+                    $translation = str_replace(
+                        '${' . $paramName . '}',
+                        '\'+' . $paramValue . '+\'',
+                        $translation
+                    );
+                }
 			}
 
 			$reg = addcslashes('/#lx:i18n' . $match . 'i18n:lx#/', '()');
@@ -57,10 +63,11 @@ class I18nHelper
 	/**
 	 * @param string $key - key of string to translate
 	 * @param I18nMap|array $map - map of translates
+     * @param array $params
      * @param string|null $lang
      * @return string
 	 */
-	public static function translate($key, $map, $lang = null)
+	public static function translate($key, $map, $params = [], $lang = null)
 	{
 	    if ($map instanceof I18nMap) {
 	        $map = $map->getFullMap();
@@ -69,26 +76,37 @@ class I18nHelper
 		$lang = $lang ?? \lx::$app->language->current;
 
 		if (array_key_exists($lang, $map) && array_key_exists($key, $map[$lang])) {
-			return $map[$lang][$key];
+		    $str = $map[$lang][$key];
+            if (!empty($params)) {
+                foreach ($params as $paramName => $paramValue) {
+                    if (strpos($str, '^{' . $paramName . '}') !== false) {
+                        $paramValue = self::translate($paramValue, $map, [], $lang);
+                        $str = str_replace('^{' . $paramName . '}', $paramValue, $str);
+                    } else {
+                        $str = str_replace('${' . $paramName . '}', $paramValue, $str);
+                    }
+                }
+            }
+
+			return $str;
 		}
 
 		return $key;
 	}
 
 	/**
-	 * @param string $translation
 	 * @param string $params - example: 'k1: v1, k2: v2'
      * @return string
 	 */
-	private static function parseParams($translation, $params)
+	private static function parseParams($params)
 	{
-		$result = $translation;
+        $result = [];
 		$arr = preg_split('/\s*,\s*/', trim($params, ':'));
 		foreach ($arr as $item) {
 			$pare = preg_split('/\s*:\s*/', $item);
 			$key = $pare[0];
 			$value = count($pare) > 1 ? $pare[1] : $pare[0];
-			$result = str_replace('${' . $key . '}', '\'+' . $value . '+\'', $result);
+			$result[$key] = $value;
 		}
 		return $result;
 	}

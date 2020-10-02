@@ -917,7 +917,7 @@ class CliProcessor
 			return;
 		}
 
-		$pluginDirs = $this->service->getConfig('service.plugins');
+		$pluginDirs = $this->service->getConfig('plugins');
 		if ($pluginDirs) {
 			$pluginDirs = (array)$pluginDirs;
 		}

@@ -42,11 +42,11 @@ class ServiceController extends Resource
 	 */
 	public static function getConfigProtocol()
 	{
-		$protocol = parent::getConfigProtocol();
-		$protocol['service'] = [
-			'require' => true,
-			'instance' => Service::class,
-		];
-		return $protocol;
+	    return array_merge(parent::getConfigProtocol(), [
+	        'service' => [
+                'require' => true,
+                'instance' => Service::class,
+            ]
+        ]);
 	}
 }

@@ -265,7 +265,7 @@ class DependencyProcessor
 		        return null;
             }
 
-		    $map = $service->getConfig('service.diProcessor') ?? [];
+		    $map = $service->getConfig('diProcessor') ?? [];
 		    $interfaces = $map['interfaces'] ?? [];
             $classes = $map['classes'] ?? [];
             $this->interfaces = ArrayHelper::mergeRecursiveDistinct($this->interfaces, $interfaces);

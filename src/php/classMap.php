@@ -182,5 +182,7 @@ return [
 	'ModelManagerInterface' => 'interfaces/model',
 	'ModelRelationInterface' => 'interfaces/model',
 
+    'ModelManagerInterfaceNEW' => 'interfaces/model',
+
 	'ApplicationToolTrait' => 'traits',
 ];

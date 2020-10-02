@@ -89,7 +89,7 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 	 * */
 	public function getPluginPath($pluginName)
 	{
-		$pluginDirs = (array)$this->getService()->getConfig('service.plugins');
+		$pluginDirs = (array)$this->getService()->getConfig('plugins');
 		foreach ($pluginDirs as $dir) {
 			if ($dir != '' && $dir{-1} != '/') {
 				$dir .= '/';
@@ -109,7 +109,7 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 	 */
 	public function getDefaultModelPath()
 	{
-		$models = $this->getService()->getConfig('service.models');
+		$models = $this->getService()->getConfig('models');
 		if ($models === null) {
 			return false;
 		}
@@ -124,7 +124,7 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 	 */
 	public function getModelPath($name)
 	{
-		$modelsMap = $this->getService()->getConfig('service.modelsMap');
+		$modelsMap = $this->getService()->getConfig('modelsMap');
 		if ($modelsMap !== null) {
 			if (array_key_exists($name, $modelsMap)) {
 				$fullPath = $this->getFullPath($modelsMap[$name]);
@@ -134,7 +134,7 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 			}
 		}
 
-		$models = $this->getService()->getConfig('service.models');
+		$models = $this->getService()->getConfig('models');
 		if ($models === null) {
 			return false;
 		}
@@ -160,12 +160,12 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 	{
 		$result = [];
 
-		$modelsMap = $this->getService()->getConfig('service.modelsMap');
+		$modelsMap = $this->getService()->getConfig('modelsMap');
 		if ($modelsMap !== null) {
 			$result = $modelsMap;
 		}
 
-		$models = $this->getService()->getConfig('service.models');
+		$models = $this->getService()->getConfig('models');
 		if ($models === null) return $result;
 
 		$models = (array)$models;
@@ -216,7 +216,7 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 	 */
 	private function decodeAlias($path)
 	{
-		$aliases = $this->getService()->getConfig('service.aliases');
+		$aliases = $this->getService()->getConfig('aliases');
 		if (!$aliases) return $path;
 
 		$result = $path;

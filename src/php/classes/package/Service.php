@@ -2,16 +2,22 @@
 
 namespace lx;
 
+use lx;
+
 /**
  * Class Service
  * @package lx
  *
- * @property-read  string $name
+ * @property-read string $name
  * @property-read string $relativePath
+ *
  * @property-read PackageDirectory $directory
  * @property-read ServiceConductor $conductor
  * @property-read ServiceRouter $router
  * @property-read I18nServiceMap $i18nMap
+ *
+ * //TODO NEW
+ * @property-read ModelManagerInterfaceNEW $modelManager
  */
 class Service implements FusionInterface
 {
@@ -32,26 +38,50 @@ class Service implements FusionInterface
 	 * Don't use for service creation. Use Service::create() instead
 	 * 
 	 * Service constructor.
-	 * @param string $name
 	 * @param array $config
-	 * @param array $params
 	 */
-	public function __construct($name, $config, $params = [])
+	public function __construct($config)
 	{
-	    $this->__objectConstruct($params);
+	    $serviceConfig = $config['serviceConfig'] ?? [];
+	    unset($config['serviceConfig']);
+	    $this->__objectConstruct($config);
 
-		$this->setName($name);
-		$this->setConfig($config);
-		$this->init($params);
+		$this->setName($serviceConfig['name']);
+
+        $this->_config = $serviceConfig;
+        $this->initFusionComponents($this->getConfig('components'));
 	}
 
-	/**
-	 * @param array $params
-	 */
-	protected function init($params)
-	{
-		// pass
-	}
+    /**
+     * @return array
+     */
+    public function getFusionComponentsDefaultConfig()
+    {
+        return [
+            'directory' => PackageDirectory::class,
+            'conductor' => ServiceConductor::class,
+            'router' => ServiceRouter::class,
+            'i18nMap' => I18nServiceMap::class,
+            'modelManager' => ModelManagerInterfaceNEW::class,
+        ];
+    }
+
+    /**
+     * @param string $name
+     * @return mixed
+     */
+    public function __get($name)
+    {
+        switch ($name) {
+            case 'name':
+                return $this->_name;
+
+            case 'relativePath':
+                return $this->_path;
+        }
+
+        return $this->__objectGet($name);
+    }
 
 	/**
 	 * @param string $name
@@ -114,14 +144,8 @@ class Service implements FusionInterface
 			return null;
 		}
 
-		if (isset($config['service']['class'])) {
-			$data = ClassHelper::prepareConfig($config['service']['class'], self::class);
-			$className = $data['class'];
-			$params = $data['params'];
-		} else {
-			$className = self::class;
-			$params = [];
-		}
+        $config = ConfigHelper::prepareServiceConfig($name, $config);
+        $className = $config['class'] ?? self::class;
 
 		if (!ClassHelper::exists($className)) {
 			\lx::devLog(['_' => [__FILE__, __CLASS__, __METHOD__, __LINE__],
@@ -131,39 +155,13 @@ class Service implements FusionInterface
 			return null;
 		}
 
-		$service = new $className($name, $config, $params);
+		unset($config['class']);
+		$config['name'] = $name;
+		$config = ['serviceConfig' => $config];
+
+		$service = lx::$app->diProcessor->create($className, $config); // new $className($config);
 		$app->services->register($name, $service);
 		return $service;
-	}
-
-	/**
-	 * @param string $name
-	 * @return mixed
-	 */
-	public function __get($name)
-	{
-		switch ($name) {
-			case 'name':
-				return $this->_name;
-
-			case 'relativePath':
-				return $this->_path;
-		}
-
-		return $this->__objectGet($name);
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getFusionComponentsDefaultConfig()
-	{
-		return [
-			'directory' => PackageDirectory::class,
-			'conductor' => ServiceConductor::class,
-			'router' => ServiceRouter::class,
-			'i18nMap' => I18nServiceMap::class,
-		];
 	}
 
 	/**
@@ -175,18 +173,12 @@ class Service implements FusionInterface
 		if ($key === null) {
 			return $this->_config;
 		}
-
-		$keyArr = explode('.', $key);
-		$data = $this->_config;
-		foreach ($keyArr as $value) {
-			if (array_key_exists($value, $data)) {
-				$data = $data[$value];
-			} else {
-				return null;
-			}
-		}
-
-		return $data;
+		
+		if (array_key_exists($key, $this->_config)) {
+		    return $this->_config[$key];
+        }
+		
+		return null;
 	}
 
 	/**
@@ -212,7 +204,7 @@ class Service implements FusionInterface
 	 */
 	public function getFile($name)
 	{
-		$path = $this->getFullPath($name);
+		$path = $this->getFilePath($name);
 		return BaseFile::construct($path);
 	}
 
@@ -242,7 +234,7 @@ class Service implements FusionInterface
 	 */
 	public function getMode()
 	{
-		return $this->getConfig('service.mode');
+		return $this->getConfig('mode');
 	}
 
 	/**
@@ -251,7 +243,7 @@ class Service implements FusionInterface
 	 */
 	public function isMode($mode)
 	{
-		$currentMode = $this->getConfig('mode');
+		$currentMode = $this->getMode();
 		if (!$currentMode) return true;
 
 		if (is_array($mode)) {
@@ -282,7 +274,7 @@ class Service implements FusionInterface
      */
 	public function hasProcess($name)
     {
-        $processesConfig = $this->getConfig('service.processes') ?? [];
+        $processesConfig = $this->getConfig('processes') ?? [];
         return array_key_exists($name, $processesConfig);
     }
 
@@ -292,7 +284,7 @@ class Service implements FusionInterface
      */
 	public function runProcess($name, $index = null)
     {
-        $processesConfig = $this->getConfig('service.processes') ?? [];
+        $processesConfig = $this->getConfig('processes') ?? [];
         if (!array_key_exists($name, $processesConfig)) {
             \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
                 '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
@@ -349,7 +341,7 @@ class Service implements FusionInterface
 	public function pluginExists($pluginName)
 	{
 		// Dynamic plugins
-		$dynamicPlugins = $this->getConfig('service.dynamicPlugins');
+		$dynamicPlugins = $this->getConfig('dynamicPlugins');
 		if ($dynamicPlugins && array_key_exists($pluginName, $dynamicPlugins)) {
 			$info = $dynamicPlugins[$pluginName];
 			if (is_string($info)) {
@@ -392,7 +384,7 @@ class Service implements FusionInterface
 	public function getPlugin($pluginName, $attributes = [])
 	{
 		// Dynamic plugins
-		$dynamicPlugins = $this->getConfig('service.dynamicPlugins');
+		$dynamicPlugins = $this->getConfig('dynamicPlugins');
 		if ($dynamicPlugins && array_key_exists($pluginName, $dynamicPlugins)) {
 			$info = $dynamicPlugins[$pluginName];
 			if (is_string($info)) {
@@ -477,7 +469,7 @@ class Service implements FusionInterface
 	 */
 	public function getStaticPluginsDataList()
 	{
-		$plugins = (array)$this->getConfig('service.plugins');
+		$plugins = (array)$this->getConfig('plugins');
 
 		$result = [];
 		foreach ($plugins as $dirName) {
@@ -518,7 +510,7 @@ class Service implements FusionInterface
 	 */
 	public function getDynamicPluginsDataList()
 	{
-		$dynamicPlugins = $this->getConfig('service.dynamicPlugins') ?? [];
+		$dynamicPlugins = $this->getConfig('dynamicPlugins') ?? [];
 		$result = [];
 		foreach ($dynamicPlugins as $name => $data) {
 			$result[$name] = $data;
@@ -538,20 +530,5 @@ class Service implements FusionInterface
 	{
 		$this->_name = $name;
 		$this->_path = Autoloader::getInstance()->map->packages[$this->_name];
-	}
-
-	/**
-	 * @param array $config
-	 */
-	private function setConfig($config)
-	{
-		$commonConfig = $this->app->getDefaultServiceConfig();
-		ConfigHelper::prepareServiceConfig($commonConfig, $config);
-
-		$injections = $this->app->getConfig('configInjection');
-		ConfigHelper::serviceInject($this->_name, $injections, $config);
-
-		$this->_config = $config;
-		$this->initFusionComponents($this->getConfig('service.components'));
 	}
 }

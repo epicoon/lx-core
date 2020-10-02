@@ -42,12 +42,12 @@ class Respondent extends Resource
 	 */
 	public static function getConfigProtocol()
 	{
-		$protocol = parent::getConfigProtocol();
-		$protocol['plugin'] = [
-			'require' => true,
-			'instance' => Plugin::class,
-		];
-		return $protocol;
+	    return array_merge(parent::getConfigProtocol(), [
+	        'plugin' => [
+                'require' => true,
+                'instance' => Plugin::class,
+            ]
+        ]);
 	}
 
 	/**

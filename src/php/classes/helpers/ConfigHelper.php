@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 /**
  * Class ConfigHelper
  * @package lx
@@ -9,21 +11,51 @@ namespace lx;
 class ConfigHelper
 {
 	/**
-	 * @param array $commonConfig
+	 * @param string $serviceName
 	 * @param array $config
+     * @return array
 	 */
-	public static function prepareServiceConfig($commonConfig, &$config)
+	public static function prepareServiceConfig($serviceName, $config)
 	{
-		self::prepareConfig($commonConfig, $config['service']);
+	    $result = [];
+	    if ($config['autoload']['psr-4'] ?? null) {
+	        $result['autoload.psr-4'] = $config['autoload']['psr-4'];
+        }
+
+	    $result = array_merge($result, $config['service']);
+
+        $commonConfig = lx::$app->getDefaultServiceConfig();
+		self::prepareConfig($commonConfig, $result);
 
 		foreach ($commonConfig as $key => $value) {
 			if ($key == 'aliases') {
-				$config['service']['aliases'] += $value;
-			} elseif ( ! array_key_exists($key, $config['service'])) {
-				$config['service'][$key] = $value;
+				$result['aliases'] += $value;
+			} elseif ( ! array_key_exists($key, $result)) {
+				$result[$key] = $value;
 			}
 		}
+
+		$result = self::injectServiceConfig($serviceName, $result);
+
+        return $result;
 	}
+
+    /**
+     * @param string $name
+     * @param array $config
+     * @return array
+     */
+    public static function injectServiceConfig($name, $config)
+    {
+        $allInjections = lx::$app->getConfig('configInjection');
+
+        if (!is_array($allInjections) || !array_key_exists($name, $allInjections)) {
+            return $config;
+        }
+
+        $injections = $allInjections[$name];
+        return ArrayHelper::mergeRecursiveDistinct($config, $injections, true);
+    }
 
 	/**
 	 * @param array $commonConfig
@@ -40,21 +72,6 @@ class ConfigHelper
 				$config[$key] = $value;
 			}
 		}
-	}
-
-	/**
-	 * @param string $name
-	 * @param array $allInjections
-	 * @param array $config
-	 */
-	public static function serviceInject($name, $allInjections, &$config)
-	{
-		if (!is_array($allInjections) || !array_key_exists($name, $allInjections)) {
-			return;
-		}
-
-		$injections = $allInjections[$name];
-		$config['service'] = ArrayHelper::mergeRecursiveDistinct($config['service'], $injections, true);
 	}
 
 	/**
@@ -101,5 +118,12 @@ class ConfigHelper
 		} else {
 			unset($commonConfig['aliases']);
 		}
+
+		$commonComponents = $commonConfig['components'] ?? null;
+		$components = $config['components'] ?? $commonComponents;
+		if ($components) {
+		    $components = ArrayHelper::mergeRecursiveDistinct($components, $commonComponents ?? []);
+		    $config['components'] = $components;
+        }
 	}
 }

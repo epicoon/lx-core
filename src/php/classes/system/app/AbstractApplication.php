@@ -413,6 +413,11 @@ abstract class AbstractApplication implements FusionInterface
 		return $this->getService($serviceName)->conductor->getPluginPath($pluginName);
 	}
 
+
+
+
+
+	//TODO - очень нелогичный метод
 	/**
 	 * @param string $serviceName
 	 * @param string $modelName
@@ -437,6 +442,15 @@ abstract class AbstractApplication implements FusionInterface
 
 		return $service->getModelManager($modelName);
 	}
+
+
+
+
+
+
+
+
+
 
 	/**
 	 * @return void

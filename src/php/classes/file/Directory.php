@@ -167,14 +167,15 @@ class Directory extends BaseFile
 	 * @return Vector
 	 *
 	 * $rules = [
-	 *	'findType' : Directory::FIND_OBJECT | Directory::FIND_NAME - return objects or names
-	 *	'sort'     : SCANDIR_SORT_DESCENDING | SCANDIR_SORT_NONE - sort type
-	 *	'mask'     : string - example '*.(php|js)'
-	 * 	'all'      : boolean - recursuve search
-	 *	'files'    : boolean - return only files
-	 *	'dirs'     : boolean - return only directories
-	 *	'ext'      : boolean - return names with/without extensions (for name returning only)
-	 *	'fullname' : boolean - return full/self file names (for name returning only)
+	 *	'findType'  : Directory::FIND_OBJECT | Directory::FIND_NAME - return objects or names
+     *  'fileClass' : string
+	 *	'sort'      : SCANDIR_SORT_DESCENDING | SCANDIR_SORT_NONE - sort type
+	 *	'mask'      : string - example '*.(php|js)'
+	 * 	'all'       : boolean - recursuve search
+	 *	'files'     : boolean - return only files
+	 *	'dirs'      : boolean - return only directories
+	 *	'ext'       : boolean - return names with/without extensions (for name returning only)
+	 *	'fullname'  : boolean - return full/self file names (for name returning only)
 	 * ]
 	 */
 	public function getContent($rules = [])
@@ -443,7 +444,7 @@ class Directory extends BaseFile
 			? scandir($dirPath, $sort)
 			: scandir($dirPath);
 
-		if ($dirPath{-1} != '/') {
+		if ($dirPath[-1] != '/') {
 			$dirPath .= '/';
 		}
 		
@@ -455,14 +456,14 @@ class Directory extends BaseFile
 			$path = $dirPath . $value;
 			if (is_dir($path)) {
 				if (!$rules->files && $this->checkMasks($value, $masks)) {
-					$files->push($this->getItem($value, $path, $findType));
+					$files->push($this->getItem($value, $path, $findType, $rules->fileClass));
 				}
 				if ($rules->all) {
 					$this->getContentRe($path, $rules, $files);
 				}
 			} else {
 				if (!$rules->dirs && $this->checkMasks($value, $masks)) {
-					$files->push($this->getItem($value, $path, $findType));
+					$files->push($this->getItem($value, $path, $findType, $rules->fileClass));
 				}
 			}
 		}
@@ -474,12 +475,17 @@ class Directory extends BaseFile
 	 * @param string $name
 	 * @param string $fullPath
 	 * @param int $type
+     * @param string|null $fileClass
 	 * @return BaseFile|string|null
 	 */
-	private function getItem($name, $fullPath, $type)
+	private function getItem($name, $fullPath, $type, $fileClass)
 	{
 		if ($type == self::FIND_OBJECT) {
-			return BaseFile::construct($fullPath);
+		    if ($fileClass) {
+                return lx::$app->diProcessor->createByInterface($fileClass, [$fullPath]);
+            } else {
+                return BaseFile::construct($fullPath);
+            }
 		}
 
 		$thisPath = $this->path;

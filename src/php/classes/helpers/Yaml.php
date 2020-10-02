@@ -657,10 +657,19 @@ class Yaml
 		elseif ($val == 'false') $val = false;
 		elseif ($val == 'null') $val = null;
 		elseif (is_string($val)) {
-			if (preg_match('/^!!str/', $val))
-				$val = preg_replace('/^!!str\s*/', '', $val);
-			$val = preg_replace('/^[\'"]/', '', $val);
-			$val = preg_replace('/[\'"]$/', '', $val);
+			if (preg_match('/^!!str/', $val)) {
+                $val = preg_replace('/^!!str\s*/', '', $val);
+            }
+
+			$last = mb_strlen($val) - 1;
+			if ($val[0] == '"' && $val[$last] == '"') {
+                $val = preg_replace('/(^"|"$)/', '', $val);
+            }
+
+            $last = mb_strlen($val) - 1;
+            if ($val[0] == '\'' && $val[$last] == '\'') {
+                $val = preg_replace('/(^\'|\'$)/', '', $val);
+            }
 		}
 		return $val;
 	}

@@ -33,8 +33,7 @@ class ServiceEditor
 		 */
 
 		$serviceConfig = \lx::$app->getDefaultServiceConfig();
-		$pluginsDirName = $serviceConfig['plugins'] ?? 'plugin';
-		$modelsDirName = $serviceConfig['models'] ?? 'model';
+        $pluginsDirName = $serviceConfig['plugins'] ?? 'plugins';
 
 		$namespace = $this->defineNamespace($name);
 		$serviceName = $namespace . '\\Service';
@@ -45,7 +44,6 @@ class ServiceEditor
 		$configCode = str_replace('<nmsp>', $namespace . '\\', $configCode);
 		$configCode = str_replace('<service>', $serviceName, $configCode);
 		$configCode = str_replace('<plugin>', $pluginsDirName, $configCode);
-		$configCode = str_replace('<model>', $modelsDirName, $configCode);
 		$config = $serviceDir->makeFile('lx-config.yaml');
 		$config->put($configCode);
 

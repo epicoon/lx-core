@@ -81,7 +81,7 @@ trait ObjectTrait
      */
     protected function __objectConstruct($config = [])
     {
-        if ($this->validateConfig($config)) {
+        if ($this->applyConfig($config)) {
             $traits = ObjectReestr::getTraitMap(static::class);
             foreach ($traits as $traitName) {
                 $trait = ObjectReestr::getTraitInfo($traitName);
@@ -167,7 +167,7 @@ trait ObjectTrait
      * @param array $config
      * @return bool
      */
-    private function validateConfig($config)
+    private function applyConfig($config)
     {
         $protocol = static::getConfigProtocol();
         if (empty($protocol)) {
@@ -176,10 +176,6 @@ trait ObjectTrait
 
         foreach ($protocol as $paramName => $paramDescr) {
             $required = $paramDescr['required'] ?? false;
-            $class = is_string($paramDescr)
-                ? $paramDescr
-                : ($paramDescr['instance'] ?? null);
-
             if ( ! array_key_exists($paramName, $config)) {
                 if ($required) {
                     $className = static::class;
@@ -193,6 +189,9 @@ trait ObjectTrait
                 continue;
             }
 
+            $class = is_string($paramDescr)
+                ? $paramDescr
+                : ($paramDescr['instance'] ?? null);
             if ($class) {
                 $param = $config[$paramName];
                 if (!($param instanceof $class)) {
@@ -207,11 +206,35 @@ trait ObjectTrait
                 $param = $config[$paramName];
             }
 
-            if (property_exists($this, $paramName)) {
-                $this->$paramName = $param;
-            }
+            $this->setParameter($paramName, $param);
+            unset($config[$paramName]);
+        }
+
+        foreach ($config as $paramName => $value) {
+            $this->setParameter($paramName, $value);
         }
 
         return true;
+    }
+
+    /**
+     * @param string $name
+     * @param mixed $value
+     */
+    private function setParameter($name, $value)
+    {
+        $setterName = 'init' . ucfirst($name);
+        if (method_exists($this, $setterName)) {
+            $this->$setterName($value);
+            return;
+        }
+
+        if (ClassHelper::privatePropertyExists($this, $name)) {
+            return;
+        }
+
+        if (property_exists($this, $name)) {
+            $this->$name = $value;
+        }
     }
 }
