@@ -5,8 +5,8 @@ name: <name>
 
 autoload:
   psr-4:
-    <nmsp>\sys: '.system'
     <nmsp>: ''
+    <nmsp>sys\: '.system'
 
 service:
   class: <service>
