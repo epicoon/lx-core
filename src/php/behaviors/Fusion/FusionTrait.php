@@ -21,7 +21,7 @@ trait FusionTrait
 	{
 		$allDefaults = ArrayHelper::mergeRecursiveDistinct(
 			$defaults,
-			$this->getFusionComponentsDefaultConfig()
+			$this->getDefaultFusionComponents()
 		);
 
 		$this->fusionComponentList = new FusionComponentList($this);
@@ -45,7 +45,7 @@ trait FusionTrait
 	/**
 	 * @return array
 	 */
-	public function getFusionComponentsDefaultConfig()
+	public function getDefaultFusionComponents()
 	{
 		return [];
 	}

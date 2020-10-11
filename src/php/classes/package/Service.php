@@ -55,7 +55,7 @@ class Service implements FusionInterface
     /**
      * @return array
      */
-    public function getFusionComponentsDefaultConfig()
+    public function getDefaultFusionComponents()
     {
         return [
             'directory' => PackageDirectory::class,
@@ -200,12 +200,17 @@ class Service implements FusionInterface
 
 	/**
 	 * @param string $name
+     * @param string $fileClass
 	 * @return BaseFile|null
 	 */
-	public function getFile($name)
+	public function getFile($name, $fileClass = null)
 	{
 		$path = $this->getFilePath($name);
-		return BaseFile::construct($path);
+		if ($fileClass) {
+		    return lx::$app->diProcessor->create($fileClass, [$path]);
+        } else {
+            return BaseFile::construct($path);
+        }
 	}
 
 	/**

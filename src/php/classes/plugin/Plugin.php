@@ -176,7 +176,7 @@ class Plugin extends Resource implements FusionInterface
 	/**
 	 * @return array
 	 */
-	public function getFusionComponentsDefaultConfig()
+	public function getDefaultFusionComponents()
 	{
 		return [
 			'directory' => PluginDirectory::class,

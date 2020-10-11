@@ -223,4 +223,54 @@ class ArrayHelper
 		$result = $rec($array);
 		return $result;
 	}
+
+    /**
+     * @param array $array
+     * @param integer $level
+     * @return string
+     */
+	public static function arrayToPhpCode($value, $level = 0)
+    {
+        if (empty($value)) {
+            return '[]';
+        }
+
+        if (!is_array($value)) {
+            return "'" .  addslashes($value) . "'";
+        }
+
+        $out = '';
+        $tab = '    ';
+        $margin = str_repeat($tab, $level++);
+
+        $out .= '[' . PHP_EOL;
+        foreach ($value as $key => $row) {
+            $out .= $margin . $tab;
+            if (is_numeric($key)) {
+                $out .= $key . ' => ';
+            } else {
+                $out .= "'" . $key . "' => ";
+            }
+
+            if (is_array($row)) {
+                $out .= self::arrayToPhpCode($row, $level);
+            } elseif (is_null($row)) {
+                $out .= 'null';
+            } elseif (is_numeric($row)) {
+                $out .= $row;
+            } elseif ($row === true) {
+                $out .= 'true';
+            } elseif ($row === false) {
+                $out .= 'false';
+            } else {
+                $out .= "'" . addslashes($row) . "'";
+            }
+
+            $out .= ',' . PHP_EOL;
+        }
+
+        $out .= $margin . ']';
+
+        return $out;
+    }
 }

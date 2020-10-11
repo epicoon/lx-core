@@ -23,5 +23,5 @@ interface FusionInterface
 	/**
 	 * @return array
 	 */
-	public function getFusionComponentsDefaultConfig();
+	public function getDefaultFusionComponents();
 }

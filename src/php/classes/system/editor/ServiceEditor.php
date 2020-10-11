@@ -52,7 +52,6 @@ class ServiceEditor
 		$serviceFile->put($serviceCode);
 
 		$serviceDir->makeDirectory($pluginsDirName);
-		$serviceDir->makeDirectory($modelsDirName);
 
 		(new AutoloadMapBuilder())->createCommonAutoloadMap();
 		Autoloader::getInstance()->map->reset();
