@@ -194,14 +194,14 @@ class DBmysql extends DB {
 	/**
 	 *
 	 * */
-	public function tableRenameColumn($tableName, $oldName, $newName) {
+	public function renameTableColumn($tableName, $oldName, $newName) {
 		
 	}
 
 	/**
 	 *
 	 * */
-	public function tableAddColumn($tableName, $name, $definition) {
+	public function addTableColumn($tableName, $name, $definition) {
 		/*
 		Для внешнего ключа
 
@@ -268,7 +268,7 @@ class DBmysql extends DB {
 	/**
 	 *
 	 * */
-	public function tableDropColumn($tableName, $name) {
+	public function dropTableColumn($tableName, $name) {
 
 	}
 

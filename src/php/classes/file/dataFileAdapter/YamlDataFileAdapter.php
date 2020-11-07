@@ -59,7 +59,9 @@ class YamlDataFileAdapter extends DataFileAdapter
 			$first = true;
 			foreach ($arr as $key => $value) {
 				if (is_array($value)) {
-					if (ArrayHelper::isAssoc($value)) {
+				    if (empty($value)) {
+				        $result[] = $innerStep . $key . ': []';
+                    } elseif (ArrayHelper::isAssoc($value)) {
 						$result[] = $innerStep . $key . ':' . PHP_EOL . $pack($value, $step . self::getStep());
 					} else {
 						$str = [$innerStep . $key . ':'];

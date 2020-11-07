@@ -2,14 +2,13 @@
 
 class Snippet #lx:namespace lx {
     constructor(data = {}) {
-        if (data.renderParams) __extractRenderParams(data.renderParams);
-        
         this.filePath = data.filePath || '';
-        this.clientParams = __extractClientParams(data.clientParams);
+        this.attributes = __extractAttributes(data.attributes);
         this.metaData = {};
 
         // Коробка, представляющая сниппет
         this._widget = new lx.Box({parent: null});
+        this._widget = this;
 
         this.selfData = {};  // информация для коробки сниппета
         this.htmlContent = '';  // строка html сниппета
@@ -35,7 +34,10 @@ class Snippet #lx:namespace lx {
         this.plugins.push(data);
     }
 
-    addSnippet(snippetPath, config = {}, renderParams = {}, clientParams = {}) {
+    addSnippet(snippetPath, config = {}) {
+        var widgetClass = config.widget || lx.Box;
+        var attributes = snippetConfig.lxExtract('attributes') || {};
+        var config = (snippetConfig.config) ? snippetConfig.config : snippetConfig;
         if (!config.key) {
             // слэши заменяются, т.к. в имени задается путь и может их содержать, а ключ должен быль одним словом
             config.key = snippetPath.isString
@@ -43,15 +45,13 @@ class Snippet #lx:namespace lx {
                 : snippetPath.snippet.replace('/', '_');
         }
 
-        var widgetClass = config.widget || lx.Box;
-        var snippet = new widgetClass(config);
+        var widget = new widgetClass(config);
 
-        snippet.setSnippet({
+        widget.setSnippet({
             path: snippetPath,
-            renderParams,
-            clientParams
+            attributes
         });
-        return snippet;
+        return widget.snippet;
     }
 
     addSnippets(list, commonPath = '') {
@@ -73,15 +73,13 @@ class Snippet #lx:namespace lx {
                 if (!snippetConfig.isObject) snippetConfig = {};
             }
 
-            var renderParams = snippetConfig.lxExtract('renderParams') || {};
-            var clientParams = snippetConfig.lxExtract('clientParams') || {};
-            var config = (snippetConfig.config) ? snippetConfig.config : snippetConfig;
-            if (!config.key) config.key = path;
+            if (snippetConfig.config) snippetConfig.config.key = path;
+            else snippetConfig.key = path;
 
             var snippetPath = path.isString
                 ? commonPath + path
                 : path;
-            result.push(this.addSnippet(snippetPath, config, renderParams, clientParams));
+            result.push(this.addSnippet(snippetPath, snippetConfig));
         }
 
         return result;
@@ -112,7 +110,7 @@ class Snippet #lx:namespace lx {
         __prepareSelfData(this);
         __renderContent(this);
         return {
-            clientParams: this.clientParams,
+            attributes: this.attributes,
             selfData: this.selfData,
             html: this.htmlContent,
             lx: this.lx,
@@ -127,14 +125,7 @@ class Snippet #lx:namespace lx {
  * PRIVATE
  **********************************************************************************************************************/
 
-function __extractRenderParams(params) {
-    if (params.isArray && !params.len) return;
-
-    for (var name in params)
-        lx.globalContext[name] = params[name];
-}
-
-function __extractClientParams(params) {
+function __extractAttributes(params) {
     if (!params) return {};
     var result = {};
     if (params.isArray)

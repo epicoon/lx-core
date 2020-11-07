@@ -31,7 +31,19 @@ lx.callFunction = function(data, args = []) {
  * */
 lx.createAndCallFunction = function(args, code, context=null, params=[]) {
 	var f = lx.createFunction(args, code);
-	f.apply(context, params);
+	return f.apply(context, params);
+};
+
+lx.createAndCallFunctionWithArguments = function(args, code, context=null) {
+    code = code.replace(/(^[^{]+?{|}\s*$)/g, '');
+    var kstl = '}';
+    var argsArr = [];
+    var argNamesArr = [];
+    for (var name in args) {
+    	argsArr.push(args[name]);
+    	argNamesArr.push(name);
+    }
+    return lx.createAndCallFunction(argNamesArr.join(','), code, null, argsArr);
 };
 
 /**

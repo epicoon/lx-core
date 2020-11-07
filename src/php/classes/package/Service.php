@@ -189,6 +189,17 @@ class Service implements FusionInterface
 		return $this->directory->getPath();
 	}
 
+    /**
+     * @return string
+     */
+	public function getCategory()
+    {
+        $packages = lx::$autoloader->map->packages;
+        $path = $packages[$this->name];
+        $category = (explode('/' . $this->name, $path))[0];
+        return $category;
+    }
+
 	/**
 	 * @param string $name
 	 * @return string

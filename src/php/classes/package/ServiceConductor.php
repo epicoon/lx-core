@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 /**
  * Class ServiceConductor
  * @package lx
@@ -83,6 +85,17 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 		return $path;
 	}
 
+    /**
+     * @return string
+     */
+    public function getLocalSystemPath($name = null)
+    {
+        $path = lx::$conductor->getSystemPath('services') . '/'
+            . lx::$app->conductor->getRelativePath($this->getPath(), lx::$app->sitePath);
+
+        return $path;
+    }
+
 	/**
 	 * @param string $pluginName
 	 * @return string|null
@@ -104,6 +117,35 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 		return null;
 	}
 
+    /**
+     * @return Directory
+     */
+    public function getModuleMapDirectory()
+    {
+        $dir = new Directory($this->getSystemPath('modules'));
+        $dir->make();
+        return $dir;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //TODO группа методов под удаление
 	/**
 	 * @return string|false
 	 */
@@ -200,15 +242,14 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 		return $dir;
 	}
 
-	/**
-	 * @return Directory
-	 */
-	public function getModuleMapDirectory()
-	{
-		$dir = new Directory($this->getSystemPath('modules'));
-		$dir->make();
-		return $dir;
-	}
+
+
+
+
+
+
+
+
 
 	/**
 	 * @param string $path

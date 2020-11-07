@@ -221,7 +221,7 @@ class Directory extends BaseFile
 		}
 
 		$path = $this->path . '/' . $name;
-		if ($cond == self::FIND_NAME) {
+		if ($cond === self::FIND_NAME) {
 			return $path;
 		}
 

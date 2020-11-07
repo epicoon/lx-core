@@ -109,18 +109,31 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 	 */
 	public function getSystemPath($name = null)
 	{
-	    $path = lx::$conductor->getSystemPath('services') . '/'
+        $path = $this->getPath() . '/.system';
+        if ($name) {
+            return $path . '/' . $name;
+        }
+
+        return $path;
+	}
+
+    /**
+     * @return string
+     */
+    public function getLocalSystemPath($name = null)
+    {
+        $path = lx::$conductor->getSystemPath('services') . '/'
             . lx::$app->conductor->getRelativePath($this->getPath(), lx::$app->sitePath);
 
-	    return $path;
-	}
+        return $path;
+    }
 
 	/**
 	 * @return string
 	 */
 	public function getSnippetsCachePath()
 	{
-		return $this->getSystemPath() . '/snippet_cache';
+		return $this->getLocalSystemPath() . '/snippet_cache';
 	}
 
 	/**

@@ -6,12 +6,14 @@ namespace lx;
  * Class DbConnector
  * @package lx
  */
-class DbConnector implements FusionComponentInterface
+class DbConnector implements FusionComponentInterface, DbConnectorInterface
 {
     use ObjectTrait;
 	use FusionComponentTrait;
 
 	const DEFAULT_DB_CONNECTION_KEY = 'db';
+	const MAIN_DB_CONNECTION_KEY = 'main';
+	const REPLICA_DB_CONNECTION_KEY = 'replica';
 
 	/** @var array */
 	private $config = [];
@@ -22,27 +24,38 @@ class DbConnector implements FusionComponentInterface
 	public function __construct($config = [])
 	{
 	    $this->__objectConstruct($config);
-		$this->parseConfig($config);
+		$this->config = $config;
 	}
+
+    /**
+     * @param string $db
+     * @return boolean
+     */
+    public function hasConnection($db)
+    {
+        return array_key_exists($db, $this->config);
+    }
 
 	/**
 	 * @param string $db
-	 * @return resource|null
+	 * @return DB|null
 	 */
-	public function getConnection($db = self::DEFAULT_DB_CONNECTION_KEY)
+	public function getConnection($db = null)
 	{
-		if (!array_key_exists($db, $this->connections)) {
-			$dbList = $this->config;
+	    if ($db === null) {
+	        $db = self::DEFAULT_DB_CONNECTION_KEY;
+        }
 
-			if (!isset($dbList[$db])) {
+		if (!array_key_exists($db, $this->connections)) {
+			if (!array_key_exists($db, $this->config)) {
 				\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 					'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-					'msg' => "There are no settings to connect to DB '$db'",
+					'msg' => "There are no settings for connection to DB '$db'",
 				]);
 				return null;
 			}
 
-			$dbConfig = $dbList[$db];
+			$dbConfig = $this->config[$db];
 			$connection = DB::create($dbConfig);
 			if (!$connection) {
 				return null;
@@ -55,36 +68,42 @@ class DbConnector implements FusionComponentInterface
 		return $this->connections[$db];
 	}
 
+    /**
+     * @return DB|null
+     */
+	public function getMainConnection()
+    {
+        if ($this->hasConnection(self::MAIN_DB_CONNECTION_KEY)) {
+            return $this->getConnection(self::MAIN_DB_CONNECTION_KEY);
+        }
+
+        return $this->getConnection(self::DEFAULT_DB_CONNECTION_KEY);
+    }
+
+    /**
+     * @return DB|null
+     */
+    public function getReplicaConnection()
+    {
+        if ($this->hasConnection(self::REPLICA_DB_CONNECTION_KEY)) {
+            return $this->getConnection(self::REPLICA_DB_CONNECTION_KEY);
+        }
+
+        return $this->getConnection(self::DEFAULT_DB_CONNECTION_KEY);
+    }
+
 	/**
 	 * @param string $db
 	 */
-	public function closeConnection($db = self::DEFAULT_DB_CONNECTION_KEY)
+	public function closeConnection($db = null)
 	{
+        if ($db === null) {
+            $db = self::DEFAULT_DB_CONNECTION_KEY;
+        }
+
 		if (isset($this->connections[$db])) {
 			$this->connections[$db]->close();
 			unset($this->connections[$db]);
 		}
-	}
-
-	/**
-	 * Config can have 'db' key with value which is single (default) connection settings
-	 * Config can have 'dbList' key with value which is array with list of connection settings
-	 *
-	 * @param array $config
-	 */
-	private function parseConfig($config)
-	{
-		$dbList = [];
-		if (isset($config['db'])) {
-			$dbList['db'] = $config['db'];
-			unset($config['db']);
-		}
-		if (isset($config['dbList'])) {
-			$dbList += $config['dbList'];
-            unset($config['dbList']);
-		}
-		$dbList += $config;
-
-		$this->config = $dbList;
 	}
 }

@@ -127,6 +127,7 @@ class JsCompiler
         $code = file_get_contents($path);
         $code = $this->compileCodeInnerDirectives($code, $path);
         $code = $this->compileCodeOuterDirectives($code, $path);
+        $code = $this->compileExtensions($code, $path);
         return $code;
 	}
 
@@ -141,9 +142,20 @@ class JsCompiler
 
 		$code = $this->compileCodeInnerDirectives($code, $path);
 		$code = $this->compileCodeOuterDirectives($code, $path);
+        $code = $this->compileExtensions($code, $path);
 		return $code;
 	}
 
+
+    /**
+     * @param string $code
+     * @param string|null $path
+     * @return string
+     */
+    protected function compileExtensions($code, $path = null)
+    {
+        return $code;
+    }
 
 	/*******************************************************************************************************************
 	 * PRIVATE

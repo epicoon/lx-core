@@ -198,8 +198,7 @@ class SnippetBuildContext implements ContextTreeInterface
 				'pluginBuildContext' => $this->pluginBuildContext,
 				'snippetData' => [
 					'path' => $plugin->getFilePath($data['path']),
-					'renderParams' => $data['renderParams'] ?? [],
-					'clientParams' => $data['clientParams'] ?? [],
+					'attributes' => $data['attributes'] ?? [],
 				],
 				'key' => $key,
 			]);

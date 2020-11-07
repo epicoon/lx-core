@@ -182,34 +182,21 @@ class Box extends lx.Rect #lx:namespace lx {
     /* 2. Content managment */
 
     #lx:server {
-		setSnippet(config, renderParams = null, clientParams = null) {
+		setSnippet(config, attributes = null) {
 			if (config.isString) {
 				config = {path: config};
-				if (renderParams !== null) {
-					config.renderParams = renderParams;
-				}
-                if (clientParams !== null) {
-                    config.clientParams = clientParams;
-                }
+				if (attributes !== null) config.attributes = attributes;
 			}
 
-			if (!config.renderParams) {
-				config.renderParams = {};
-			}
-
-			if (!config.clientParams) {
-				config.clientParams = {};
-			}
-			
-			if (!config.path) return;
+            if (!config.path) return;
+			if (!config.attributes) config.attributes = {};
 
 			var container = __getContainer(this);
 
 			// inner snippet
             container.snippetInfo = {
 			    path: config.path,
-                renderParams: config.renderParams,
-                clientParams: config.clientParams
+                attributes: config.attributes
 			};
 
 			// флаг, который будет и на стороне клиента
@@ -238,6 +225,29 @@ class Box extends lx.Rect #lx:namespace lx {
     }
 
     #lx:client {
+        setSnippet(config, attributes = null) {
+            if (config.isString) {
+                config = {path: config};
+                if (attributes !== null) config.attributes = attributes;
+            }
+
+            if (!config.path) return;
+            if (!config.attributes) config.attributes = {};
+
+            var container = __getContainer(this);
+            container.isSnippet = true;
+
+            var snippet = new lx.Snippet(this, config);
+            var maker = lx.SnippetMap.getSnippetMaker(config.path);
+
+            this.useRenderCache();
+            this.begin();
+            maker(this.getPlugin(), snippet);
+            snippet.setLoaded();
+            this.end();
+            this.applyRenderCache();
+        }
+
         useRenderCache() {
             if (this.renderCacheStatus === undefined) {
                 this.renderCacheStatus = true;

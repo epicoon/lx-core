@@ -12,10 +12,7 @@ class Snippet
 	private $file;
 
 	/** @var array */
-	private $renderParams = [];
-
-	/** @var array */
-	private $clientParams = [];
+	private $attributes = [];
 
 	/** @var array */
 	private $metaData = [];
@@ -57,8 +54,7 @@ class Snippet
 		$this->snippetBuildContext = $context;
 		$this->pluginBuildContext = $context->getPluginBuildContext();
 		$this->parent = false;
-		$this->renderParams = $data['renderParams'] ?? [];
-		$this->clientParams = $data['clientParams'] ?? [];
+		$this->attributes = $data['attributes'] ?? [];
 		$this->renderIndex = $data['index'];
 
 		$this->retrieveFile($data);
@@ -121,17 +117,9 @@ class Snippet
 	/**
 	 * @return array
 	 */
-	public function getRenderParams()
+	public function getAttributes()
 	{
-		return $this->renderParams;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getClientParams()
-	{
-		return $this->clientParams;
+		return $this->attributes;
 	}
 
 	/**
@@ -183,8 +171,7 @@ class Snippet
 	{
 		return [
 			'filePath' => $this->file->getPath(),
-			'renderParams' => $this->renderParams,
-			'clientParams' => $this->clientParams,
+			'attributes' => $this->attributes,
 		];
 	}
 
@@ -193,8 +180,8 @@ class Snippet
 	 */
 	public function applyBuildData($data)
 	{
-		if (!empty($data['clientParams'])) {
-			$this->clientParams += $data['clientParams'];
+		if (!empty($data['attributes'])) {
+			$this->attributes += $data['attributes'];
 		}
 
 		$this->self = $data['selfData'];
@@ -218,7 +205,7 @@ class Snippet
 		};
 
 		$result = [];
-		if ($hasContent($this->clientParams)) $result['params'] = $this->clientParams;
+		if ($hasContent($this->attributes)) $result['attributes'] = $this->attributes;
 		if ($hasContent($this->self)) $result['self'] = $this->self;
 		if ($hasContent($this->htmlContent)) $result['html'] = $this->htmlContent;
 		if ($hasContent($this->lx)) $result['lx'] = $this->lx;
@@ -278,8 +265,7 @@ class Snippet
 	private function addInnerSnippet($snippetInfo)
 	{
 		$path = $snippetInfo['path'];
-		$renderParams = $snippetInfo['renderParams'];
-		$clientParams = $snippetInfo['clientParams'];
+		$attributes = $snippetInfo['attributes'];
 
 		if (is_string($path)) {
 			$fullPath = $this->getPlugin()
@@ -307,8 +293,7 @@ class Snippet
 
 		$snippet = $this->snippetBuildContext->addSnippet([
 			'path' => $fullPath,
-			'renderParams' => $renderParams,
-			'clientParams' => $clientParams,
+			'attributes' => $attributes,
 		]);
 		$this->innerSnippetKeys[] = $snippet->getRenderIndex();
 

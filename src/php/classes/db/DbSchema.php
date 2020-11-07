@@ -2,6 +2,11 @@
 
 namespace lx;
 
+/**
+ * @deprecated
+ * Class DbSchema
+ * @package lx
+ */
 class DbSchema
 {
 	private $pkName;

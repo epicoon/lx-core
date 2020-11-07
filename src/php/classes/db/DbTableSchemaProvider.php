@@ -2,6 +2,11 @@
 
 namespace lx;
 
+/**
+ * @deprecated
+ * Class DbTableSchemaProvider
+ * @package lx
+ */
 class DbTableSchemaProvider {
 	private static $map = [];
 

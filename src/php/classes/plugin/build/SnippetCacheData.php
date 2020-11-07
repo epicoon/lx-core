@@ -131,11 +131,8 @@ class SnippetCacheData
 				'files' => $snippet->getFileDependencies(),
 				'snippets' => $snippet->getInnerSnippetKeys(),
 			];
-			if (!empty($snippet->getRenderParams())) {
-				$data['renderParams'] = $snippet->getRenderParams();
-			}
-			if (!empty($snippet->getClientParams())) {
-				$data['clientParams'] = $snippet->getClientParams();
+			if (!empty($snippet->getAttributes())) {
+				$data['attributes'] = $snippet->getAttributes();
 			}
 			$map['map'][$key] = $data;
 		}
@@ -217,11 +214,8 @@ class SnippetCacheData
 				'files' => $snippet->getFileDependencies(),
 				'snippets' => $snippet->getInnerSnippetKeys(),
 			];
-			if (!empty($snippet->getRenderParams())) {
-				$data['renderParams'] = $snippet->getRenderParams();
-			}
-			if (!empty($snippet->getClientParams())) {
-				$data['clientParams'] = $snippet->getClientParams();
+			if (!empty($snippet->getAttributes())) {
+				$data['attributes'] = $snippet->getAttributes();
 			}
 			$map['map'][$key] = $data;
 		}

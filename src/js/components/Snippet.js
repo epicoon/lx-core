@@ -4,7 +4,7 @@ class Snippet #lx:namespace lx {
     constructor(widget, info) {
         this.widget = widget;
         widget.snippet = this;
-        this.clientParams = info.params || {};
+        this.attributes = info.attributes || {};
         if (info.meta) __setMeta(this, info.meta);
     }
 
@@ -21,10 +21,73 @@ class Snippet #lx:namespace lx {
         return this.widget.find(key);
     }
 
+    addSnippet(snippetPath, config = {}) {
+        var widgetClass = config.widget || lx.Box;
+        var attributes = config.lxExtract('attributes') || {};
+        var config = (config.config) ? config.config : config;
+        if (!config.key) {
+            // слэши заменяются, т.к. в имени задается путь и может их содержать, а ключ должен быль одним словом
+            config.key = snippetPath.isString
+                ? snippetPath.replace('/', '_')
+                : snippetPath.snippet.replace('/', '_');
+        }
+
+        var widget = new widgetClass(config);
+
+        widget.setSnippet({
+            path: snippetPath,
+            attributes
+        });
+        return widget.snippet;
+    }
+
+    addSnippets(list, commonPath = '') {
+        var result = [];
+        for (var key in list) {
+            var snippetConfig = list[key],
+                path = '';
+
+            if (key.isNumber) {
+                if (snippetConfig.isObject) {
+                    if (!snippetConfig.path) continue;
+                    path = snippetConfig.path;
+                } else if (snippetConfig.isString) {
+                    path = snippetConfig;
+                    snippetConfig = {};
+                } else continue;
+            } else if (key.isString) {
+                path = key;
+                if (!snippetConfig.isObject) snippetConfig = {};
+            }
+
+            if (snippetConfig.config) snippetConfig.config.key = path;
+            else snippetConfig.key = path;
+
+            var snippetPath = path.isString
+                ? commonPath + path
+                : path;
+            result.push(this.addSnippet(snippetPath, snippetConfig));
+        }
+
+        return result;
+    }
+
     setScreenModes(map) {
         __setScreenModes(this, map);
     }
 
+    onLoad(callback) {
+        this.onLoadCallback = callback;
+    }
+
+    setLoaded() {
+        var code = this.onLoadCallback.toString();
+        delete this.onLoadCallback;
+        lx.createAndCallFunctionWithArguments({
+            Plugin: this.widget.getPlugin(),
+            Snippet: this
+        }, code);
+    }
 }
 
 function __setMeta(self, meta) {

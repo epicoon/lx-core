@@ -66,7 +66,7 @@ class PluginBuildContext implements ContextTreeInterface
 
 		$this->plugin = $config['plugin'];
 		$this->compiled = false;
-		$this->jsCompiler = new JsCompiler($this->getPlugin()->conductor);
+		$this->jsCompiler = new PluginFrontendJsCompiler($this->getPlugin());
 
 		$moduleDependencies = $this->plugin->getModuleDependencies();
 		if (!empty($moduleDependencies)) {
@@ -88,14 +88,6 @@ class PluginBuildContext implements ContextTreeInterface
 	public function getCacheType()
 	{
 		return $this->cacheType ?? $this->getPlugin()->getConfig('cacheType') ?? Plugin::CACHE_NONE;
-	}
-
-	/**
-	 * @return JsCompiler
-	 */
-	public function getJsCompiler()
-	{
-		return $this->jsCompiler;
 	}
 
 	/**

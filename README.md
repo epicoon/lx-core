@@ -86,7 +86,7 @@ This repository contains platform core. The core is enough for web application d
     * If it is in a directory (for example web), you need to correct the path
     */
    require_once __DIR__ . '/vendor/lx/core/main.php';
-   $app = new lx\Application();
+   $app = new lx\HttpApplication();
    $app->run();
    ```
 4. If in the browser on the domain specified in the server configuration and the file `/etc/hosts` you see the page:
@@ -303,11 +303,11 @@ Of all the elements of the architecture a service and a plugin are configurable 
   Three context variables are available while writing snippet code:
   * App - the application object
   * Plugin - the plugin object to which the snippet belongs
-  * Snippet - snippet object. It has property `widget` which is the instance of the `lx.Box` class. It also has the `clientParams` property, a JS-object that will be available on the client side.
+  * Snippet - snippet object. It has property `widget` which is the instance of the `lx.Box` class. It also has the `attributes` property, a JS-object that will be available on the client side.
 
   Two context variables are available while writing functoion for client-side snippet code:
   * Plugin - the plugin object to which the snippet belongs
-  * Snippet - snippet object. It has property `widget` which is the instance of the `lx.Box` class. It also has the `clientParams` property, a JS-object that can contain fields defined on the server side.
+  * Snippet - snippet object. It has property `widget` which is the instance of the `lx.Box` class. It also has the `attributes` property, a JS-object that can contain fields defined on the server side.
 
   Snippets are built from widgets. Snippets can include other snippets. Example:
   ```js
@@ -333,14 +333,11 @@ Of all the elements of the architecture a service and a plugin are configurable 
 
   // Insert one more snippet and specify the configuration
   // @param path - the same path as in the previous case
-  // @param renderParams - array of parameters that will be available as variables
-  //                       in the file describing the embed snippet
-  // @param clientParams - array of parameters that will be available in the 
-  //                       snippet code by property [[Snippet.clientParams]]
+  // @param attributes - array of parameters that will be available in the 
+  //                     snippet code by property [[Snippet.attributes]]
   box2.setSnippet({
     path: 'snippetName2',
-    renderParams: {},
-    clientParams: {},
+    attributes: {},
   });
 
   // Snippet adding: $snippetName - the snippet name, $config - configuration for widget
@@ -360,15 +357,13 @@ Of all the elements of the architecture a service and a plugin are configurable 
       path: 'pathToSnippet1',
       widget: lx.ActiveBox,
       // ... конфигурирование виджета
-      renderParams: {/*...*/},
-      clientParams: {/*...*/}
+      attributes: {/*...*/}
     },
     {
       path: 'pathToSnippet2',
       widget: lx.ActiveBox,
       // ... конфигурирование виджета
-      renderParams: {/*...*/},
-      clientParams: {/*...*/}
+      attributes: {/*...*/}
     }
   ]);
 
@@ -391,11 +386,6 @@ Of all the elements of the architecture a service and a plugin are configurable 
   * The widget instance can be created both on the server side and on the client side
   * Creating a widget on the server side, initiates the creation of an instance on the client side
   * The widget code may contain fragments compiled only for the server, or only for the client
-  * The file with the widget code can be located in the directory. Example:
-    * path/to/widget/MyWidget/MyWidget.js
-    or:
-    * path/to/widget/MyWidget/\_MyWidget.js
-    The class name of such widget must match the directory name `MyWidget`.
   * It is recommended to define the widget code as a JS-module so that it is convenient to include it in snippet code. [JS-module details](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/doc/js-modules.md)
     Example:
     ```js

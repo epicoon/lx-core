@@ -26,15 +26,4 @@ interface ConductorInterface
 	 * @return string
 	 */
 	public function getRelativePath($path, $defaultLocation = null);
-
-	/**
-	 * @param string $name
-	 * @return BaseFile|null
-	 */
-	public function getFile($name);
-
-	/**
-	 * @return string
-	 */
-	public function getSystemPath($name = null);
 }

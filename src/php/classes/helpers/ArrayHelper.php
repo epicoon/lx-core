@@ -139,7 +139,7 @@ class ArrayHelper
 	{
 		$counter = 0;
 		foreach ($array as $key => $value) {
-			if ($key != $counter++) {
+			if ($key !== $counter++) {
 				return true;
 			}
 		}

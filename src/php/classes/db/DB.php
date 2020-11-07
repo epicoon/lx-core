@@ -43,7 +43,17 @@ abstract class DB {
 		$this->connection = $connection;
 	}
 
-	abstract public function newTableQuery($name, $columns);
+
+    abstract public function getTableSchema($tableName);
+    abstract public function getCreateTableQuery($schema);
+    abstract public function getAddColumnQuery($schema, $fieldName);
+    abstract public function getDelColumnQuery($schema, $fieldName);
+    abstract public function getChangeColumnQuery($schema, $fieldName);
+    abstract public function getRenameColumnQuery($schema, $oldFieldName, $newFieldName);
+
+    //!!!!!!!!!!!!
+    abstract public function newTableQuery($name, $columns);
+
 	abstract public function query($query);
 	abstract public function select($query);
 	abstract public function insert($query, $returnId);
@@ -51,9 +61,9 @@ abstract class DB {
 	abstract public function tableExists($name);  // Проверка существования таблицы
 	abstract public function tableSchema($name, $fields=null);  // Схема таблицы
 	abstract public function renameTable($oldName, $newName);
-	abstract public function tableRenameColumn($tableName, $oldName, $newName);
-	abstract public function tableAddColumn($tableName, $name, $definition);
-	abstract public function tableDropColumn($tableName, $name);
+	abstract public function renameTableColumn($tableName, $oldName, $newName);
+	abstract public function addTableColumn($tableName, $name, $definition);
+	abstract public function dropTableColumn($tableName, $name);
 	abstract public function tableName($name);
 
 	public function getName() {
@@ -98,6 +108,30 @@ abstract class DB {
 		self::$connection->drop($this->settings);
 		$this->connection = null;
 	}
+
+    /**
+     * @return void
+     */
+	public function transactionBegin()
+    {
+        $this->query('BEGIN;');
+    }
+
+    /**
+     * @return void
+     */
+    public function transactionRollback()
+    {
+        $this->query('ROLLBACK;');
+    }
+
+    /**
+     * @return void
+     */
+    public function transactionCommit()
+    {
+        $this->query('COMMIT;');
+    }
 
 	/**
 	 * Создание новой таблицы

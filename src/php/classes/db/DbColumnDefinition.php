@@ -2,6 +2,11 @@
 
 namespace lx;
 
+/**
+ * @deprecated
+ * Class DbColumnDefinition
+ * @package lx
+ */
 class DbColumnDefinition {
 	public
 		$type = null,
