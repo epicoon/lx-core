@@ -173,6 +173,26 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 		return null;
 	}
 
+    /**
+     * @return Directory[]
+     */
+	public function getSnippetDirectories()
+    {
+        $snippetDirs = $this->getPlugin()->getConfig('snippets');
+        if (!$snippetDirs) {
+            return [];
+        }
+
+        $result = [];
+        foreach ((array)$snippetDirs as $snippetDir) {
+            $dir = $this->getFile($snippetDir);
+            if ($dir && $dir->isDir()) {
+                $result[] = $dir;
+            }
+        }
+        return $result;
+    }
+
 	/**
 	 * @param string $name
 	 * @return Respondent|null

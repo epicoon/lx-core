@@ -76,6 +76,7 @@ cssContext.addClass('lx-Box', {
 /* TreeBox */
 /* Paginator */
 /* TableManager */
+/* EggMenu */
 /*============================================================================*/
 
 
@@ -502,5 +503,32 @@ cssContext.addClasses({
 /* TableManager */
 /*============================================================================*/
 
+
+/*============================================================================*/
+/* EggMenu */
+cssContext.addClass('lx-EggMenu', {
+	overflow: 'visible',
+	borderRadius: '25px',
+	boxShadow: '0 '+abShadowShift+'px '+abShadowSize+'px rgba(0,0,0,0.5)'
+});
+
+cssContext.addClass('lx-EggMenu-top', {
+	backgroundColor: bodyBackgroundColor,
+	borderTopLeftRadius: '25px',
+	borderTopRightRadius: '25px'
+});
+
+cssContext.addClass('lx-EggMenu-bottom', {
+	backgroundColor: checkedSoftColor,
+	borderBottomLeftRadius: '25px',
+	borderBottomRightRadius: '25px'
+});
+
+cssContext.addClass('lx-EggMenu-move', {
+	marginTop: '-2px',
+	boxShadow: '0 '+(Math.round(abShadowShift*1.5))+'px '+(Math.round(abShadowSize*1.5))+'px rgba(0,0,0,0.5)'
+});
+/* EggMenu */
+/*============================================================================*/
 
 return cssContext.toString();

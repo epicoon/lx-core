@@ -245,6 +245,10 @@ class SnippetBuildContext implements ContextTreeInterface
 			'@core/js/classes/bit/BitLine',
 			'@core/js/classes/bit/BitMap',
 			'@core/js/components/Date',
+
+            '@core/js/classes/css/Color',
+            '@core/js/classes/css/Css',
+            '@core/js/classes/css/CssContext',
 		];
 		$modules = array_merge([
 			'lx.Box',

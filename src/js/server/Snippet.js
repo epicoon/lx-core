@@ -8,7 +8,7 @@ class Snippet #lx:namespace lx {
 
         // Коробка, представляющая сниппет
         this._widget = new lx.Box({parent: null});
-        this._widget = this;
+        this._widget.snippet = this;
 
         this.selfData = {};  // информация для коробки сниппета
         this.htmlContent = '';  // строка html сниппета
@@ -36,8 +36,8 @@ class Snippet #lx:namespace lx {
 
     addSnippet(snippetPath, config = {}) {
         var widgetClass = config.widget || lx.Box;
-        var attributes = snippetConfig.lxExtract('attributes') || {};
-        var config = (snippetConfig.config) ? snippetConfig.config : snippetConfig;
+        var attributes = config.lxExtract('attributes') || {};
+        var config = (config.config) ? config.config : config;
         if (!config.key) {
             // слэши заменяются, т.к. в имени задается путь и может их содержать, а ключ должен быль одним словом
             config.key = snippetPath.isString
@@ -146,7 +146,7 @@ function __prepareSelfData(self) {
     self.widget.beforePack();
     var props = {};
     for (var name in self.widget) {
-        if (name == '__self') continue;
+        if (name == '__self' || name == 'snippet') continue;
         props[name] = self.widget[name];
     }
 

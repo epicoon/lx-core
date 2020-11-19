@@ -9,89 +9,124 @@ class EggMenu extends lx.Box #lx:namespace lx {
 		return config;
 	}
 
+	getBasicCss() {
+		return {
+			main: 'lx-EggMenu',
+			top: 'lx-EggMenu-top',
+			bottom: 'lx-EggMenu-bottom',
+			onMove: 'lx-EggMenu-move',
+		}
+	}
+
+	getZShift() {
+		return 200;
+	}
+
 	build(config) {
 		super.build(config);
 
 		this.style('positioning', 'fixed');
-		this.style('overflow', 'visible');
-		this.roundCorners(20);
-		this.border();
 		this.add(lx.Rect, {
+			key: 'top',
 			height:'25px',
-			style:{fill:'white'}
-		}).roundCorners({value:20, side:'t'})
-			.move({parentMove: true});
+			css: this.basicCss.top
+		}).move({parentMove: true});
 		this.add(lx.Rect, {
 			key: 'switcher',
 			top:'25px',
 			height:'25px',
-			style:{fill:'green'}
-		}).roundCorners({value:20, side:'b'});
+			css: this.basicCss.bottom
+		});
 
-		var pult = {};
-		if (config.pultBox) pult.widget = config.pultBox;
-		if (config.pultRender) pult.construction = config.pultRender;
-		this.buildPult(pult);
+		var menu = {};
+		if (config.menuWidget) menu.widget = config.menuWidget;
+		if (config.menuRenderer) menu.renderer = config.menuRenderer;
+		this.buildMenu(menu);
 	}
 
-	buildPult(pultInfo) {
-		if (pultInfo.lxEmpty) return;
+	buildMenu(menuInfo) {
+		if (menuInfo.lxEmpty) return;
 
-		var widget = pultInfo.widget || lx.Box,
+		var widget = menuInfo.widget || lx.Box,
 			config = {},
-			construction = pultInfo.construction;
+			menuRenderer = menuInfo.menuRenderer;
 		if (widget.isArray) {
 			config = widget[1];
 			widget = widget[0];
 		}
 		config.parent = this;
-		config.key = 'pult';
+		config.key = 'menuBox';
+		config.geom = true;
 
-		var pult = new widget(config);
+		var menu = new widget(config);
 
-		construction(pult);
-		pult.hide();
+		if (menuRenderer) menuRenderer(menu);
+		menu.hide();
 	}
 
 	#lx:client {
 		postBuild(config) {
 			super.postBuild(config);
+
+			if (this.basicCss.onMove) {
+				this->top.on('moveBegin', ()=>{
+					this.addClass(this.basicCss.onMove);
+				});
+				this->top.on('moveEnd', ()=>{
+					this.removeClass(this.basicCss.onMove);
+				});
+			}
+
 			this.on('move', ()=>this.holdPultVisibility());
 			this->switcher.click(self::switchOpened);
 		}
 
 		open() {
-			var pult = this->pult;
-			if (!pult) return;
-			pult.show();
-			pult.left(this.width('px') + 'px');
+			var menu = this->menuBox;
+			if (!menu) return;
+			menu.show();
+			menu.left(this.width('px') + 'px');
 			this.holdPultVisibility();
 		}
 
 		close() {
-			var pult = this->pult;
-			if (!pult) return;
-			pult.hide();
+			var menu = this->menuBox;
+			if (!menu) return;
+			menu.hide();
 		}
 
 		holdPultVisibility() {
-			var pult = this->pult;
-			if (!pult) return;
-			var out = pult.isOutOfVisibility(this.parent);
-			pult.geomPriorityH(lx.WIDTH);
-			if (out.left) pult.left(this.width('px') + 'px');
-			if (out.right) pult.right(this.width('px') + 'px');
-			pult.geomPriorityV(lx.HEIGHT);
-			if (out.top) pult.top('0px');
-			if (out.bottom) pult.bottom('0px');
+			var menu = this->menuBox;
+			if (!menu) return;
+			var out = menu.isOutOfVisibility(this.parent);
+
+			if (out.left) {
+				menu.right(null);
+				menu.left(this.width('px') + 'px');
+			}
+
+			if (out.right) {
+				menu.left(null);
+				menu.right(this.width('px') + 'px');
+			}
+
+			if (out.top) {
+				menu.bottom(null);
+				menu.top('0px');
+			}
+
+			if (out.bottom) {
+				menu.top(null);
+				menu.bottom('0px');
+			}
 		}
 
 		static switchOpened() {
 			var menu = this.parent,
-				pult = menu->pult;
-			if (!pult) return;
+				menuBox = menu->menuBox;
+			if (!menuBox) return;
 
-			if (pult.visibility()) menu.close();
+			if (menuBox.visibility()) menu.close();
 			else menu.open();
 		}
 	}

@@ -163,8 +163,8 @@ class Dropbox extends lx.Box #lx:namespace lx {
 	function _handler_checkOutclick(event) {
 		if (!__opened) return;
 
-		if (__opened.containPoint(event.clientX, event.clientY)
-			|| __options.containPoint(event.clientX, event.clientY)
+		if (__opened.containGlobalPoint(event.clientX, event.clientY)
+			|| __options.containGlobalPoint(event.clientX, event.clientY)
 		) return;
 
 		if (__opened) __opened.close();

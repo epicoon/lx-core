@@ -54,7 +54,7 @@ function resetMovedElement(event) {
 	movedElement = null;
 
 	el.trigger('moveEnd', event);
-	if (el.moveParams.parentResize) el.parent.trigger('resizeEnd', event);
+	if (el.moveParams.parentResize && el.parent) el.parent.trigger('resizeEnd', event);
 }
 
 function watchForMove(event) {

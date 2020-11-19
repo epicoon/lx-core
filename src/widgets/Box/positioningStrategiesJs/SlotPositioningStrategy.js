@@ -97,8 +97,8 @@ class SlotPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 				k = this.k,
 				r = this.getIndents(),
 				align = this.align || null,
-				step = r.step,
-				marg = r.padding,
+				step = [r.stepX, r.stepY],
+				marg = [[r.paddingLeft, r.paddingRight], [r.paddingTop, r.paddingBottom]],
 				axe = (k*this.cols/rows > sz[0]/sz[1]) ? 0 : 1,
 				axe2 = +!axe,
 				cellSz = [0, 0];

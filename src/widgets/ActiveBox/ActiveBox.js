@@ -23,6 +23,10 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 		}
 	}
 
+	getZShift() {
+		return 100;
+	}
+
 	/**
 	 * config = {
 	 * 	header: string

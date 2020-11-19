@@ -107,13 +107,13 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		postUnpack(config) {
 			super.postUnpack(config);
 
-			if (this.data) {
+			if (this.data && this.data.isString) {
 				var tree = new lx.Tree();
 				tree.fromJSON(this.data);
 				this.data = tree;
 			}
 
-			if (this.leafConstructor)
+			if (this.leafConstructor && this.leafConstructor.isString)
 				this.leafConstructor = this.unpackFunction(this.leafConstructor);
 
 			this->work.clear();
@@ -408,6 +408,10 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			tw.trigger('afterDel', event);
 			tw.renew();
 		};
+	}
+
+	setLeafConstructor(leafConstructor) {
+		this.leafConstructor = leafConstructor;
 	}
 }
 

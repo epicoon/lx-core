@@ -2,7 +2,6 @@
 
 let autoParentStack = [];
 
-let frontStart = 100;
 let frontMap = [];
 
 class WidgetHelper {
@@ -133,7 +132,7 @@ class WidgetHelper {
 
 			if (el.getDomElem() && el.getDomElem().offsetParent) {
 				el.__frontIndex = frontMap.len;
-				el.style('z-index', el.__frontIndex + frontStart);
+				el.style('z-index', el.__frontIndex + el.getZShift());
 				frontMap.push(el);
 			}
 		}
@@ -141,8 +140,10 @@ class WidgetHelper {
 		removeFromFrontMap(el) {
 			if (el.__frontIndex !== undefined) {
 				for (var i = el.__frontIndex + 1, l = frontMap.len; i < l; i++) {
-					frontMap[i].__frontIndex = i - 1;
-					frontMap[i].style('z-index', i - 1 + frontStart);
+					if (frontMap[i].getZShift() == el.getZShift()) {
+						frontMap[i].__frontIndex = i - 1;
+						frontMap[i].style('z-index', i - 1 + el.getZShift());
+					}
 				}
 				frontMap.splice(el.__frontIndex, 1);
 			}
@@ -155,7 +156,7 @@ class WidgetHelper {
 				if (frontMap[i].getDomElem() && frontMap[i].getDomElem().offsetParent) {
 					var elem = frontMap[i];
 					elem.__frontIndex = shown;
-					elem.style('z-index', frontMap[i].__frontIndex + frontStart);
+					elem.style('z-index', frontMap[i].__frontIndex + elem.getZShift());
 					newMap.push(elem);
 					shown++;
 				}

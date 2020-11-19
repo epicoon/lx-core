@@ -13,9 +13,13 @@ class IndentData #lx:namespace lx
 	#lx:server {
 		pack() {
 			var indents = this.get();
-			return indents.step.join(',')
-				+ ',' + indents.padding[0].join(',')
-				+ ',' + indents.padding[1].join(',');
+			return indents.stepX
+				+ ',' + indents.stepY
+				+ ',' + indents.paddingLeft
+				+ ',' + indents.paddingRight
+				+ ',' + indents.paddingTop
+				+ ',' + indents.paddingBottom
+			;
 		}
 	}
 
@@ -70,8 +74,6 @@ class IndentData #lx:namespace lx
 			]; 
 
 		return {
-			step,
-			padding,
 			stepX: step[0],
 			stepY: step[1],
 			paddingLeft: padding[0][0],

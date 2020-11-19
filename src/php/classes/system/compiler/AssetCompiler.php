@@ -172,7 +172,7 @@ class AssetCompiler
 		}
 
 		$cssJsFile = new File($path . '/main.css.js');
-		if ($cssJsFile->exists() && $cssJsFile->isNewer($cssFile)) {
+		if ($cssJsFile->exists() && (!$cssFile->exists() || $cssJsFile->isNewer($cssFile))) {
 		    $compiler = new JsCompiler();
 		    $compiler->setBuildModules(true);
 			$exec = new NodeJsExecutor($compiler);

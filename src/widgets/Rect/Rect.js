@@ -18,6 +18,7 @@ class Rect #lx:namespace lx {
 
         #lx:client { this.postBuild(config); };
 
+        if (this.getZShift()) this.style('z-index', this.getZShift());
         this.type = this.lxClassName;
         var namespace = this.lxNamespace;
         if (namespace != 'lx') this._namespace = namespace;
@@ -241,6 +242,10 @@ class Rect #lx:namespace lx {
         if (bool) this.domElem.setAttribute('disabled', '');
         else this.domElem.removeAttribute('disabled');
         return this;
+    }
+
+    getZShift() {
+        return 0;
     }
 
     /* 2. Common */
@@ -629,7 +634,7 @@ class Rect #lx:namespace lx {
         if (!elem) return null;
 
         if (!this.domElem.parent) return undefined;
-        pElem = this.domElem.parent.getDomElem();
+        var pElem = this.domElem.parent.getDomElem();
         if (!pElem) return undefined;
         if (elem.style.right != '') {
             var b = lx.Geom.splitGeomValue(elem.style.right);
@@ -1011,6 +1016,16 @@ class Rect #lx:namespace lx {
     }
 
     containPoint(x, y) {
+        var rect = this.rect();
+        return (
+            x >= rect.left
+            && x <= (rect.left + rect.width)
+            && y >= rect.top
+            && y <= (rect.top + rect.height)
+        );
+    }
+
+    containGlobalPoint(x, y) {
         var rect = this.getGlobalRect();
         return (
             x >= rect.left
@@ -1477,13 +1492,14 @@ class Rect #lx:namespace lx {
     }
 
     move(config={}) {
+        this.off('mousedown', lx.move);
+        this.moveParams = {};
+
         if (config === false) {
-            this.off('mousedown', lx.move);
             return;
         }
 
         if (config.parentMove && config.parentResize) delete config.parentMove;
-        if (this.moveParams === undefined) this.moveParams = {};
         this.moveParams = {
             xMove        : lx.getFirstDefined(this.moveParams.xMove, config.xMove, true),
             yMove        : lx.getFirstDefined(this.moveParams.yMove, config.yMove, true),

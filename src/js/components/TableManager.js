@@ -324,7 +324,7 @@ lx.TableManager = {
 	outclick: function(event) {
 		if (!this.activeTable) return;
 		event = event || window.event;
-		if ( this.activeTable.containPoint(event.clientX, event.clientY) ) return;
+		if ( this.activeTable.containGlobalPoint(event.clientX, event.clientY) ) return;
 		this.unselect();
 	}
 };
