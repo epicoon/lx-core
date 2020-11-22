@@ -49,7 +49,7 @@ class EggMenu extends lx.Box #lx:namespace lx {
 
 		var widget = menuInfo.widget || lx.Box,
 			config = {},
-			menuRenderer = menuInfo.menuRenderer;
+			menuRenderer = menuInfo.renderer;
 		if (widget.isArray) {
 			config = widget[1];
 			widget = widget[0];
