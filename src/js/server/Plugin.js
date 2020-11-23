@@ -73,7 +73,9 @@ class Plugin #lx:namespace lx {
 
         var changedAttributes = {};
         for (var key in this.attributes) {
-            if (!(key in this._oldAttributes) || this.attributes[key] != this._oldAttributes[key]) {
+            if (!(key in this._oldAttributes)
+                || (!this.attributes[key].lxCompare(this._oldAttributes[key]))
+            ) {
                 changedAttributes[key] = this.attributes[key];
             }
         }
