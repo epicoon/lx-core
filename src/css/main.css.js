@@ -10,6 +10,7 @@ cssContext.addClass('lxbody', {
 	width: '100%',
 	height: '100%',
 	overflow: 'hidden',
+	color: textColor,
 	backgroundColor: mainBackgroundColor
 });
 
@@ -40,7 +41,7 @@ cssContext.addStyle('div', {
 	overflow: 'visible',
 	visibility: 'inherit',
 	boxSizing: 'border-box',
-	color: textColor
+	color: 'inherit'
 });
 
 cssContext.addStyle('@font-face', {

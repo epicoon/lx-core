@@ -44,6 +44,7 @@ cssContext.addAbstractClass('Button', {
     borderRadius: borderRadius,
     boxShadow: '0 '+butShadowShift+'px '+butShadowSize+'px rgba(0,0,0,0.5)',
     cursor: 'pointer',
+    color: textColor,
     backgroundColor: widgetBackgroundColor,
 });
 
