@@ -18,7 +18,8 @@ class Rect #lx:namespace lx {
 
         #lx:client { this.postBuild(config); };
 
-        if (this.getZShift()) this.style('z-index', this.getZShift());
+        if (this.getZShift() && this.style('z-index') === null)
+            this.style('z-index', this.getZShift());
         this.type = this.lxClassName;
         var namespace = this.lxNamespace;
         if (namespace != 'lx') this._namespace = namespace;

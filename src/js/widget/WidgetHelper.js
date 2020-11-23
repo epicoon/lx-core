@@ -2,7 +2,7 @@
 
 let autoParentStack = [];
 
-let frontMap = [];
+let frontMap = {};
 
 class WidgetHelper {
 	#lx:const
@@ -125,43 +125,58 @@ class WidgetHelper {
 		}
 
 		bringToFront(el) {
+			var zShift = el.getZShift() || 0;
+			var key = 's' + zShift;
+			if (frontMap[key] === undefined) frontMap[key] = [];
+
 			if (el.__frontIndex !== undefined) {
-				if (el.__frontIndex == frontMap.len - 1) return;
+				if (el.__frontIndex == frontMap[key].len - 1) return;
 				this.removeFromFrontMap(el);
 			}
 
+			var map = frontMap[key];
+
 			if (el.getDomElem() && el.getDomElem().offsetParent) {
-				el.__frontIndex = frontMap.len;
+				el.__frontIndex = map.len;
 				el.style('z-index', el.__frontIndex + el.getZShift());
-				frontMap.push(el);
+				map.push(el);
 			}
 		}
 
 		removeFromFrontMap(el) {
-			if (el.__frontIndex !== undefined) {
-				for (var i = el.__frontIndex + 1, l = frontMap.len; i < l; i++) {
-					if (frontMap[i].getZShift() == el.getZShift()) {
-						frontMap[i].__frontIndex = i - 1;
-						frontMap[i].style('z-index', i - 1 + el.getZShift());
-					}
-				}
-				frontMap.splice(el.__frontIndex, 1);
+			if (el.__frontIndex === undefined) return;
+
+			var zShift = el.getZShift() || 0;
+			var key = 's' + zShift;
+			if (frontMap[key] === undefined) frontMap[key] = [];
+			var map = frontMap[key];
+
+			for (var i = el.__frontIndex + 1, l = map.len; i < l; i++) {
+				map[i].__frontIndex = i - 1;
+				map[i].style('z-index', i - 1 + el.getZShift());
 			}
+			map.splice(el.__frontIndex, 1);
 		}
 
 		checkFrontMap() {
 			var shown = 0,
-				newMap = [];
-			for (var i = 0, l = frontMap.len; i < l; i++) {
-				if (frontMap[i].getDomElem() && frontMap[i].getDomElem().offsetParent) {
-					var elem = frontMap[i];
-					elem.__frontIndex = shown;
-					elem.style('z-index', frontMap[i].__frontIndex + elem.getZShift());
-					newMap.push(elem);
-					shown++;
+				newFrontMap = {};
+			for (var key in frontMap) {
+				var map = frontMap[key];
+				var newMap = [];
+				for (var i = 0, l = map.len; i < l; i++) {
+					if (map[i].getDomElem() && map[i].getDomElem().offsetParent) {
+						var elem = map[i];
+						elem.__frontIndex = shown;
+						elem.style('z-index', map[i].__frontIndex + elem.getZShift());
+						newMap.push(elem);
+						shown++;
+					}
 				}
+				newFrontMap[key] = newMap;
 			}
-			frontMap = newMap;
+
+			frontMap = newFrontMap;
 		}
 	}
 }
