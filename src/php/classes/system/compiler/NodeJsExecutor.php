@@ -93,7 +93,9 @@ class NodeJsExecutor
             $this->filePath = $path->getPath();
             $code = $path->get();
             $code = $this->useJsCompiler($code, $requires, $modules, $prevCode, $postCode);
-            $code = I18nHelper::localize($code, $this->i18nMap);
+            if (!empty($this->i18nMap)) {
+                $code = I18nHelper::localize($code, $this->i18nMap);
+            }
         } else {
 			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),

@@ -30,6 +30,7 @@ class HttpApplication extends BaseApplication
 	protected static function getDefaultComponents()
     {
         return array_merge(parent::getDefaultComponents(), [
+            'assets' => HttpAssetsManager::class,
             'router' => Router::class,
             'dialog' => Dialog::class,
             'user' => User::class,

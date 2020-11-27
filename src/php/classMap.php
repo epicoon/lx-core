@@ -12,6 +12,7 @@ return [
 	'HttpApplication' => 'classes/system/app',
 	'ConsoleApplication' => 'classes/system/app',
 
+    'HttpAssetsManager' => 'classes/system/app',
 	'DevApplicationLifeCycleManager' => 'classes/system/app',
 	'ApplicationConductor' => 'classes/system/app',
 	'ApplicationLogger' => 'classes/system/app',

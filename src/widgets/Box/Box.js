@@ -97,6 +97,8 @@ class Box extends lx.Rect #lx:namespace lx {
         }
 
         destructProcess() {
+            this.unbind();
+
             var container = __getContainer(this);
             container.dropPlugin();
 
@@ -891,6 +893,10 @@ class Box extends lx.Rect #lx:namespace lx {
     /* 6. Client-features */
     bind(model, type=lx.Binder.BIND_TYPE_FULL) {
         model.bind(this, type);
+    }
+
+    unbind() {
+            lx.Binder.unbindWidget(this);
     }
 
     /**

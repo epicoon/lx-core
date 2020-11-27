@@ -28,6 +28,10 @@ class BindManager {
 		return __unbind(obj, widget);
 	}
 
+	unbindWidget(widget) {
+		__unbindWidget(widget);
+	}
+
 	/**
 	 * Объект сигнализирует активно, что он обновился - все виджеты обновляются
 	 * */
@@ -396,7 +400,7 @@ function __unbindWidget(widget) {
 }
 
 // Привязывает виджет по определенному id, если по такому id связи нет, она будет создана
-function bindWidget(widget, id) {
+function __bindWidget(widget, id) {
 	__unbindWidget(widget);
 	widget.lxBindId = id;
 	if (!(id in __binds))
@@ -414,7 +418,7 @@ function __bindProcess(obj, name, widgets) {
 		__binds[obj.lxBindId] = [];
 	if (!(name in __binds[obj.lxBindId]))
 		__binds[obj.lxBindId][name] = [];
-	widgets.each((a)=> bindWidget(a, obj.lxBindId));
+	widgets.each((a)=>__bindWidget(a, obj.lxBindId));
 }
 
 function __getMatrixCollection(widget) {

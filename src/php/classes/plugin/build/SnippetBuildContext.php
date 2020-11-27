@@ -271,7 +271,6 @@ class SnippetBuildContext implements ContextTreeInterface
 		$compiler = new JsCompiler($plugin->conductor);
 		$compiler->setBuildModules(true);
 		$executor = new NodeJsExecutor($compiler);
-        $executor->setI18nMap($plugin->i18nMap);
 		$res = $executor->run([
 			'file' => $snippet->getFile(),
 			'requires' => $requires,

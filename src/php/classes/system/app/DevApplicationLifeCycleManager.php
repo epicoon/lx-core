@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 /**
  * Class DevApplicationLifeCycleManager
  * @package lx
@@ -22,7 +24,7 @@ class DevApplicationLifeCycleManager implements ApplicationLifeCycleManagerInter
 		$compiler->compileLxCss();
 
 		$coreCode = $compiler->compileJsCore();
-		$file = new File(\lx::$conductor->webJs . '/core.js');
+		$file = new File(lx::$conductor->webJs . '/core.js');
 		$file->put($coreCode);
 	}
 

@@ -1,4 +1,4 @@
-#lx:use #lx:php(\lx::$app->getConfig('colorSchema'));
+#lx:use #lx:php(\lx::$app->assets->getCssColorSchema());
 #lx:use lx.MainCssContext;
 
 
