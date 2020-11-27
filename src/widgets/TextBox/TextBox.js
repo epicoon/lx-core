@@ -56,6 +56,8 @@ class TextBox extends lx.Rect #lx:namespace lx {
 	}
 
 	#lx:client {
+
+		//TODO работает неправильно
 		adapt() {
 			if (!this.parent) return this;
 
@@ -65,12 +67,11 @@ class TextBox extends lx.Rect #lx:namespace lx {
 			text.domElem.style('top', 0);
 			text.domElem.style('left', 0);
 
+			var cH = ctx.domElem.param('clientHeight');
 			var lastSz = window.screen.height,
 				res = lx.Math.halfDivisionMethod(0, lastSz, function(res) {
 					text.domElem.style('fontSize', Math.floor(res) + 'px');
-
-					var tH = text.domElem.param('clientHeight'),
-						cH = ctx.domElem.param('clientHeight');
+					var tH = text.domElem.param('clientHeight');
 					if ( Math.floor(lastSz) == Math.floor(res) ) return 0;
 					lastSz = res;
 

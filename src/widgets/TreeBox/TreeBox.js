@@ -463,8 +463,8 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		createButton(config={}) {
 			if (config instanceof Function) config = {click: config};
 
-			config.key = 'button';
-			config.type = lx.Rect;
+			if (config.key === undefined) config.key = 'button';
+			if (config.type === undefined) config.type = lx.Rect;
 			return this.createChild(config);
 		}
 

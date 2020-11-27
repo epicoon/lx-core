@@ -6,27 +6,42 @@ namespace lx;
  * Class NodeJsExecutor
  * @package lx
  */
-class NodeJsExecutor {
+class NodeJsExecutor
+{
 	/** @var string */
     private $filePath = null;
 
 	/** @var JsCompiler */
     private $compiler;
 
+    /** @var I18nMap|array */
+    private $i18nMap;
+
 	/**
 	 * NodeJsExecutor constructor.
 	 * @param JsCompiler $compiler
 	 */
-    public function __construct($compiler = null) {
+    public function __construct($compiler = null)
+    {
 		$this->compiler = $compiler ?? new JsCompiler();
+		$this->i18nMap = [];
 	}
 
 	/**
 	 * @param JsCompiler $compiler
 	 */
-	public function setCompiler($compiler) {
+	public function setCompiler($compiler)
+    {
     	$this->compiler = $compiler;
 	}
+
+    /**
+     * @param I18nMap|array $i18nMap
+     */
+	public function setI18nMap($i18nMap)
+    {
+        $this->i18nMap = $i18nMap;
+    }
 
 	/**
 	 * @return JsCompiler
@@ -39,7 +54,8 @@ class NodeJsExecutor {
 	 * @param array $config
 	 * @return array|string|false
 	 */
-    public function run($config) {
+    public function run($config)
+    {
 		if (isset($config['code'])) {
 			return $this->runCode($config);
 		}
@@ -59,7 +75,8 @@ class NodeJsExecutor {
 	 * @param string $postCode
 	 * @return array|string|false
 	 */
-    public function runFile($path, $requires = [], $modules = [], $prevCode = '', $postCode = '') {
+    public function runFile($path, $requires = [], $modules = [], $prevCode = '', $postCode = '')
+    {
     	if (is_array($path)) {
     		return $this->runFile(
     			$path['file'] ?? $path['path'],
@@ -76,6 +93,7 @@ class NodeJsExecutor {
             $this->filePath = $path->getPath();
             $code = $path->get();
             $code = $this->useJsCompiler($code, $requires, $modules, $prevCode, $postCode);
+            $code = I18nHelper::localize($code, $this->i18nMap);
         } else {
 			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
@@ -94,7 +112,8 @@ class NodeJsExecutor {
 	 * @param string $filePath
 	 * @return array|string|false
 	 */
-    public function runCode($code, $requires = [], $modules = [], $filePath = null) {
+    public function runCode($code, $requires = [], $modules = [], $filePath = null)
+    {
     	if (is_array($code)) {
     		return $this->runCode(
     			$code['code'],
@@ -113,7 +132,8 @@ class NodeJsExecutor {
 	 * @param string $code
 	 * @return array|string|false
 	 */
-	public function runCodeForce($code) {
+	public function runCodeForce($code)
+    {
 		$file = \lx::$conductor->getTempFile('js');
 		$file->put($code);
 		$command = 'node ' . $this->getExecJs() . ' "' . $file->getPath() . '"';
@@ -151,7 +171,8 @@ class NodeJsExecutor {
 	 * @param string $postCode
 	 * @return string
 	 */
-	private function useJsCompiler($code, $requires = [], $modules = [], $prevCode = '', $postCode = '') {
+	private function useJsCompiler($code, $requires = [], $modules = [], $prevCode = '', $postCode = '')
+    {
         $compilerContext = $this->compiler->getContext();
         $this->compiler->setContext(JsCompiler::CONTEXT_SERVER);
 
@@ -177,7 +198,8 @@ class NodeJsExecutor {
 	 * @param string $text
 	 * @return string
 	 */
-    private function normalizeQuotes($text) {
+    private function normalizeQuotes($text)
+    {
         $result = preg_replace_callback('/\'[^\']*?"[^\']*?\'/', function($matches) {
             $str = $matches[0];
             $str = preg_replace('/"/', '#lx:dqm;', $str);
@@ -207,7 +229,8 @@ class NodeJsExecutor {
 	 * @param array $errorData
 	 * @param File $file
 	 */
-	private function processError($errorCode, $errorData, $file) {
+	private function processError($errorCode, $errorData, $file)
+    {
 		$msg = 'Error ';
 		if ($errorCode == 1) {
 			$errorCase = 'while JS-code executed';

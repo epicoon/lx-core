@@ -50,7 +50,7 @@ class Tree #lx:namespace lx {
 		return 'node' + this.keys.length;
 	}
 
-	homeRoot() {
+	rootNode() {
 		if (!this.root) return this;
 		var root = this;
 		while (root.root) {
@@ -60,7 +60,7 @@ class Tree #lx:namespace lx {
 	}
 
 	nthRoot(num) {
-		if (num === 0) return this.homeRoot();
+		if (num === 0) return this.rootNode();
 		if (!this.root) return null;
 
 		var arr = [],

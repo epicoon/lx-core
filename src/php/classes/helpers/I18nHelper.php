@@ -42,7 +42,7 @@ class I18nHelper
                 }
 			}
 
-			$reg = addcslashes('/#lx:i18n' . $match . 'i18n:lx#/', '()');
+			$reg = addcslashes('/#lx:i18n' . $match . 'i18n:lx#/', '()?{}[]');
 			$data = preg_replace($reg, $translation, $data);
 		}
 		return $data;
