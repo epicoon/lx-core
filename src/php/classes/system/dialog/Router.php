@@ -101,8 +101,8 @@ class Router implements FusionComponentInterface
 				'service' => $matches[1][0],
 				'plugin' => $matches[2][0],
 			];
-			if (isset($routeData['params'])) {
-				$result['params'] = $routeData['params'];
+			if (isset($routeData['attributes'])) {
+				$result['attributes'] = $routeData['attributes'];
 			}
 			if (isset($routeData['dependencies'])) {
 				$result['dependencies'] = $routeData['dependencies'];
