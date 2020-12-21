@@ -622,7 +622,10 @@ class JsCompiler
 
 			$data = $file->get();
 			$result = ArrayHelper::arrayToJsCode($data);
-			return "$result{$matches[2]}";
+
+			return $matches[2] == ')'
+                ? $result
+                : "$result{$matches[2]}";
 		}, $code);
 
 		return $code;

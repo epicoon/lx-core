@@ -72,6 +72,16 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 
 		if (config.minHeight !== undefined) this.minHeight = config.minHeight;
 		if (config.minWidth !== undefined) this.minWidth = config.minWidth;
+		if (config.maxHeight !== undefined) this.maxHeight = config.maxHeight;
+		if (config.maxWidth !== undefined) this.maxWidth = config.maxWidth;
+		if (config.height !== undefined) {
+			this.minHeight = config.height;
+			this.maxHeight = config.height;
+		}
+		if (config.width) {
+			this.minWidth = config.width;
+			this.maxWidth = config.width;
+		}
 
 		this.owner.addClass('lxps-grid-v');
 		this.owner.style('grid-template-columns', 'repeat(' + this.cols + ',1fr)');
@@ -88,6 +98,10 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 			str += ';mh:' + this.minHeight;
 		if (this.minWidth)
 			str += ';mw:' + this.minWidth;
+		if (this.maxHeight)
+			str += ';mxh:' + this.maxHeight;
+		if (this.maxWidth)
+			str += ';mxw:' + this.maxWidth;
 		str += ';m:' + this.map.toString();
 		return str;
 	}
@@ -97,6 +111,8 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		this.type = +config.t;
 		if (config.mh) this.minHeight = config.mh;
 		if (config.mw) this.minWidth = config.mw;
+		if (config.mxh) this.maxHeight = config.mxh;
+		if (config.mxw) this.maxWidth = config.mxw;
 		this.map = config.m == ''
 			? new lx.BitMap(this.cols)
 			: lx.BitMap.createFromString(config.m);
@@ -123,6 +139,8 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 				? config.minWidth
 				: (this.minWidth === undefined ? self::COLUMN_MIN_WIDTH : this.minWidth)
 		);
+		if (this.maxHeight) elem.style('max-height', this.maxHeight);
+		if (this.maxWidth) elem.style('max-width', this.maxWidth);
 
 		__allocate(this, elem, config);
 	}
