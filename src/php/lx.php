@@ -79,21 +79,25 @@ class lx
         
         if ($async) {
             if (is_array($async)) {
-                if (array_key_exists('message_log', $async)) {
-                    $file = new \lx\File($async['message_log']);
+                if (array_key_exists('message_log_file', $async)) {
+                    $file = new \lx\File($async['message_log_file']);
                     $file->getParentDir()->make();
                     $msgLogPath = $file->getPath();
-                } else {
-                    $msgLogPath = '/dev/null';
+                } elseif (array_key_exists('message_log', $async)) {
+                    $msgLogPath = $async['message_log'];
                 }
 
-                if (array_key_exists('error_log', $async)) {
-                    $file = new \lx\File($async['error_log']);
+                if (array_key_exists('error_log_file', $async)) {
+                    $file = new \lx\File($async['error_log_file']);
                     $file->getParentDir()->make();
                     $errorLogPath = $file->getPath();
-                } else {
-                    $errorLogPath = '/dev/null';
+                } elseif (array_key_exists('error_log', $async)) {
+                    $errorLogPath = $async['error_log'];
                 }
+
+            } else {
+                $msgLogPath = '/dev/null';
+                $errorLogPath = '/dev/null';
             }
 
             $command .= " > $msgLogPath 2>$errorLogPath &";

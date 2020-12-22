@@ -302,7 +302,7 @@ class Service implements FusionInterface
     {
         $processesConfig = $this->getConfig('processes') ?? [];
         if (!array_key_exists($name, $processesConfig)) {
-            \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+            \lx::devLog(['_' => [__FILE__,__CLASS__,__METHOD__,__LINE__],
                 '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
                 'msg' => "Service process '$name' does not exist",
             ]);
@@ -328,26 +328,44 @@ class Service implements FusionInterface
 //        if (!$supervisor) {
 //            return;
 //        }
+
+        $async = [];
+        if (array_key_exists('out', $processConfig)) {
+            $out = $processConfig['out'];
+            unset($processConfig['out']);
+            $async = [
+                'message_log' => $out,
+                'error_log' => $out,
+            ];
+        }
+
         //TODO $index надо узнавать точно. Если он неизвестен, то не факт, что это 1
         // через processSupervisor можно сделать, но тогда ему надо вести счетчики, и, по хорошему, самому быть
         // запущенным в виде процесса, чтобы избежать дедлока по выдаче индексов
         if (!array_key_exists('logDirectory', $processConfig)) {
             $processConfig['logDirectory'] = '@site/log/process/' . $name . '_' . ($index ?? 1);
         }
-        
+
+        if (empty($async)) {
+            $async = [
+                'message_log_file' => $processConfig['logDirectory'] . '/_dump.log',
+                'error_log_file' => $processConfig['logDirectory'] . '/_error.log',
+            ];
+        }
+
         $args = [$processClassName];
         if (!empty($processConfig)) {
             $args[] = json_encode($processConfig);
         }
         
-        \lx::exec([
-            'executor' => 'php',
-            'script' => $this->conductor->getFullPath('@core/../process.php'),
-            'args' => $args
-        ], [
-            'message_log' => $processConfig['logDirectory'] . '/_dump.log',
-            'error_log' => $processConfig['logDirectory'] . '/_error.log',
-        ]);
+        \lx::exec(
+            [
+                'executor' => 'php',
+                'script' => $this->conductor->getFullPath('@core/../process.php'),
+                'args' => $args
+            ],
+            $async
+        );
     }
 
 	/**
