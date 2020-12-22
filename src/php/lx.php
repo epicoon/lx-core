@@ -78,6 +78,9 @@ class lx
         }
         
         if ($async) {
+            $msgLogPath = '/dev/null';
+            $errorLogPath = '/dev/null';
+
             if (is_array($async)) {
                 if (array_key_exists('message_log_file', $async)) {
                     $file = new \lx\File($async['message_log_file']);
@@ -94,10 +97,6 @@ class lx
                 } elseif (array_key_exists('error_log', $async)) {
                     $errorLogPath = $async['error_log'];
                 }
-
-            } else {
-                $msgLogPath = '/dev/null';
-                $errorLogPath = '/dev/null';
             }
 
             $command .= " > $msgLogPath 2>$errorLogPath &";

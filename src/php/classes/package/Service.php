@@ -333,10 +333,12 @@ class Service implements FusionInterface
         if (array_key_exists('out', $processConfig)) {
             $out = $processConfig['out'];
             unset($processConfig['out']);
-            $async = [
-                'message_log' => $out,
-                'error_log' => $out,
-            ];
+            if ($out) {
+                $async = [
+                    'message_log' => $out,
+                    'error_log' => $out,
+                ];
+            }
         }
 
         //TODO $index надо узнавать точно. Если он неизвестен, то не факт, что это 1
