@@ -212,7 +212,7 @@ class ArrayHelper
 						return $val;
 					}
 				}
-				if ($val{0} != '\'') return "'$val'";
+				if ($val[0] != '\'') return "'$val'";
 			}
 			if ($val === true) return 'true';
 			if ($val === false) return 'false';

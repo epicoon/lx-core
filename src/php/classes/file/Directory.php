@@ -73,7 +73,7 @@ class Directory extends BaseFile
 
 		$dirPath = $dir->getPath();
 		$selfPath = $this->getPath();
-		if ($selfPath{-1} != '/') {
+		if ($selfPath[-1] != '/') {
 			$selfPath .= '/';
 		}
 		$files = $dir->getAllFiles();
@@ -193,7 +193,7 @@ class Directory extends BaseFile
 			}
 
 			$dirPath = $this->path;
-			if ($dirPath{-1} != '/') $dirPath .= '/';
+			if ($dirPath[-1] != '/') $dirPath .= '/';
 			if ($rules->fullname) {
 				$files->each(function($file, $i, $t) use ($dirPath) {
 					$file = $dirPath . $file;
@@ -390,7 +390,7 @@ class Directory extends BaseFile
 		}
 
 		$files = array_diff(scandir($dirName), ['.', '..']);
-		if ($dirName{-1} != '/') $dirName .= '/';
+		if ($dirName[-1] != '/') $dirName .= '/';
 		foreach ($files as $f) {
 			$path = $dirName . $f;
 			if ($f == $fileName) return $path;
@@ -412,8 +412,8 @@ class Directory extends BaseFile
 	{
 		if (!file_exists($dirName)) return false;
 		$files = array_diff(scandir($dirName), ['.', '..']);
-		if ($dirName{-1} != '/') $dirName .= '/';
-		if ($medDirName{-1} != '/') $medDirName .= '/';
+		if ($dirName[-1] != '/') $dirName .= '/';
+		if ($medDirName[-1] != '/') $medDirName .= '/';
 		foreach ($files as $f) {
 			$path = $dirName . $f;
 			if ($f == $medDirName) {
@@ -489,7 +489,7 @@ class Directory extends BaseFile
 		}
 
 		$thisPath = $this->path;
-		if ($thisPath{-1} != '/') $thisPath .= '/';
+		if ($thisPath[-1] != '/') $thisPath .= '/';
 		$path = str_replace($thisPath, '', $fullPath);
 		return $path;
 	}

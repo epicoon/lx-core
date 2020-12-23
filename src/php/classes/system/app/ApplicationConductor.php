@@ -65,23 +65,23 @@ class ApplicationConductor implements ConductorInterface
 	 */
 	public function getFullPath($path, $defaultLocation = null)
 	{
-		if ($path{0} == '/') {
+		if ($path[0] == '/') {
 			if (preg_match('/^' . str_replace('/', '\/', $this->sitePath) . '/', $path)) {
 				return $path;
 			}
 			return $this->sitePath . $path;
 		}
 
-		if ($path{0} == '@') {
+		if ($path[0] == '@') {
 			return $this->decodeAlias($path);
 		}
 
-		if ($path{0} == '{') {
+		if ($path[0] == '{') {
 			return $this->getStuffPath($path);
 		}
 
 		if ($defaultLocation === null) $defaultLocation = $this->sitePath;
-		if ($defaultLocation{-1} != '/') $defaultLocation .= '/';
+		if ($defaultLocation[-1] != '/') $defaultLocation .= '/';
 		return $defaultLocation . $path;
 	}
 
@@ -191,7 +191,7 @@ class ApplicationConductor implements ConductorInterface
 		$alias .= $arr[2][0];
 		$path = str_replace($mask, $alias, $path);
 
-		if ($path{0} == '@') {
+		if ($path[0] == '@') {
 			return $this->decodeAlias($path);
 		}
 		return $path;

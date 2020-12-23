@@ -161,12 +161,12 @@ class SintaxExtender
 			$name = $matches[1][$i];
 			$fields = $matches[2][$i];
 			$fields = trim($fields, ' ');
-			if ($fields{0} == '{') {
+			if ($fields[0] == '{') {
 				if (preg_match('/^{/', $fields)) $fields = preg_replace('/^{/', '', $fields);
 				if (preg_match('/}$/', $fields)) $fields = preg_replace('/}$/', '', $fields);
 				$fields = trim($fields, ' ');
 				$fields = '#lx:schema ' . $fields;
-			} else{
+			} else {
 				$fields = '#lx:modelName ' . $fields;				
 			}
 			$text = "const $name = (function(){ class _am_ extends lx.BindableModel {" . $fields . ";} return new _am_();})();";
@@ -196,7 +196,7 @@ class SintaxExtender
 			$name = $matches[1][$i];
 			$fields = $matches[2][$i];
 			$fields = trim($fields, ' ');
-			if ($fields{0} == '{') {
+			if ($fields[0] == '{') {
 				$fields = preg_replace('/^{/', '', $fields);
 				$fields = preg_replace('/}$/', '', $fields);
 				$fields = preg_replace('/(\n\r|\r\n|\r|\n)$/', '', $fields);
@@ -267,7 +267,7 @@ class SintaxExtender
 						preg_match_all('/^([^=]+?)\s*=\s*([\w\W]+)\s*$/', $constPare, $pare);
 						$name = $pare[1][0];
 						$value = $pare[2][0];
-						if ($value{0} != '\'' && $value{0} != '"' && preg_match('/::/', $value)) {
+						if ($value[0] != '\'' && $value{0} != '"' && preg_match('/::/', $value)) {
 							$value = eval('return ' . $value . ';');
 							if (is_string($value)) $value = "'$value'";
 							else if (is_array($value)) $value = json_encode($value);
@@ -427,7 +427,7 @@ class SintaxExtender
 			$cutNext = function($str) use (&$tags, &$content, &$counter, &$result) {
 				$str = preg_replace('/^\s*/', '', $str);
 
-				if ($str{0} == '<') {
+				if ($str[0] == '<') {
 					if ($counter > -1) {
 						$result .= '<' . end($tags);
 						if ($content[$counter]['id']) {
@@ -471,7 +471,7 @@ class SintaxExtender
 					$tags[] = $tag;
 					return $newStr;
 				}
-				if ($str{0} == '>') {
+				if ($str[0] == '>') {
 					$newStr = preg_replace('/^>/', '', $str);
 
 					$tag = array_pop($tags);
@@ -504,8 +504,8 @@ class SintaxExtender
 
 					return $newStr;
 				}
-				if ($str{0} == '#') {
-					if ($str{1} == '{') {
+				if ($str[0] == '#') {
+					if ($str[1] == '{') {
 						$reg = '/^#(?P<re>{((?>[^{}]+)|(?P>re))*})/';
 						$arr = preg_split($reg, $str, 0, PREG_SPLIT_DELIM_CAPTURE);
 						$idCode = preg_replace('/(^{|}$)/', '', $arr[1]);
@@ -520,8 +520,8 @@ class SintaxExtender
 						return $newStr;
 					}
 				}
-				if ($str{0} == ':') {
-					if ($str{1} == '{') {
+				if ($str[0] == ':') {
+					if ($str[1] == '{') {
 						$reg = '/^:(?P<re>{((?>[^{}]+)|(?P>re))*})/';
 						$arr = preg_split($reg, $str, 0, PREG_SPLIT_DELIM_CAPTURE);
 						$nameCode = preg_replace('/(^{|}$)/', '', $arr[1]);
@@ -536,8 +536,8 @@ class SintaxExtender
 						return $newStr;
 					}
 				}
-				if ($str{0} == '.') {
-					if ($str{1} == '{') {
+				if ($str[0] == '.') {
+					if ($str[1] == '{') {
 						$reg = '/^\.(?P<re>{((?>[^{}]+)|(?P>re))*})/';
 						$arr = preg_split($reg, $str, 0, PREG_SPLIT_DELIM_CAPTURE);
 						$cssCode = preg_replace('/(^{|}$)/', '', $arr[1]);
@@ -552,14 +552,14 @@ class SintaxExtender
 						return $newStr;
 					}
 				}
-				if ($str{0} == '"') {
+				if ($str[0] == '"') {
 					$arr = preg_split('/^("[^"]*?")/', $str, 0, PREG_SPLIT_DELIM_CAPTURE);
 					$style = $arr[1];
 					$newStr = $arr[2];
 					$content[$counter]['style'] = $style;
 					return $newStr;
 				}
-				if ($str{0} == '[') {
+				if ($str[0] == '[') {
 					$reg = '/^(?P<re>\[((?>[^\[\]]+)|(?P>re))*\])/';
 					$arr = preg_split($reg, $str, 0, PREG_SPLIT_DELIM_CAPTURE);
 					$data = preg_replace('/(^\[|\]$)/', '', $arr[1]);
@@ -572,12 +572,12 @@ class SintaxExtender
 					$content[$counter]['data'] = $data;
 					return $newStr;
 				}
-				if ($str{0} == '=') {
+				if ($str[0] == '=') {
 					$reg = '/^=(?P<re>\(((?>[^\(\)]+)|(?P>re))*\))/';
 					$arr = preg_split($reg, $str, 0, PREG_SPLIT_DELIM_CAPTURE);
 					$text = preg_replace('/(^\(|\)$)/', '', $arr[1]);
 					$newStr = $arr[3];
-					if ($text{0} == '{') {
+					if ($text[0] == '{') {
 						$text = preg_replace('/(^{|}$)/', '', $text);
 						$content[$counter]['text'] = "'+$text+'";
 					} else {

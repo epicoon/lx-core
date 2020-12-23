@@ -43,7 +43,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 	 */
 	public function getFullPath($fileName, $relativePath = null)
 	{
-		if ($fileName{0} == '@') {
+		if ($fileName[0] == '@') {
 			$fileName = $this->decodeAlias($fileName);
 		}
 
@@ -85,7 +85,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 	public function getImagePath($fileName)
 	{
 		$map = $this->getImagePathesInSite();
-		if ($fileName{0} == '@') {
+		if ($fileName[0] == '@') {
 			preg_match('/^@([^\/]+?)(\/.+)$/', $fileName, $match);
 			if (empty($match)) {
 				return '';

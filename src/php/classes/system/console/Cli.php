@@ -217,7 +217,7 @@ class Cli
 	private function autoCompleteCommand($text)
 	{
 		$len = mb_strlen($text);
-		if ($len == 0 || $text{0} == '\\') {
+		if ($len == 0 || $text[0] == '\\') {
 			return false;
 		}
 
@@ -241,7 +241,7 @@ class Cli
 			$latter = $matches[0]{$i};
 			foreach ($matches as $command) {
 				if ($i >= mb_strlen($command)) break(2);
-				if ($latter != $command{$i}) break(2);
+				if ($latter != $command[$i]) break(2);
 			}
 			$commonPart .= $latter;
 			$i++;

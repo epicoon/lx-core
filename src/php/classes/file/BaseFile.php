@@ -36,7 +36,7 @@ class BaseFile
 	 */
 	public function setPath($path)
 	{
-        if ($path{0} == '@') {
+        if ($path[0] == '@') {
             $path = \lx::$app->conductor->getFullPath($path);
         }
 
@@ -119,7 +119,7 @@ class BaseFile
 			return null;
 		}
 
-		if ($path{0} != '/') {
+		if ($path[0] != '/') {
 			$path = $this->getParentDirPath() . '/' . $path;
 		}
 

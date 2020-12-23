@@ -36,7 +36,7 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 	 */
 	public function getFullPath($fileName, $relativePath = null)
 	{
-		if ($fileName{0} == '@') {
+		if ($fileName[0] == '@') {
 			$fileName = $this->decodeAlias($fileName);
 		}
 
@@ -104,7 +104,7 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 	{
 		$pluginDirs = (array)$this->getService()->getConfig('plugins');
 		foreach ($pluginDirs as $dir) {
-			if ($dir != '' && $dir{-1} != '/') {
+			if ($dir != '' && $dir[-1] != '/') {
 				$dir .= '/';
 			}
 			$fullPath = $this->getPath() . '/' . $dir . $pluginName;

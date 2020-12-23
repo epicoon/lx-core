@@ -30,7 +30,7 @@ class File extends BaseFile
 			$path = $path->getPath();
 		}
 		
-		if ($path{-1} != '/') {
+		if ($path[-1] != '/') {
 			$path .= '/';
 		}
 		
@@ -237,7 +237,7 @@ class File extends BaseFile
 			return false;
 		}
 		
-		if ($pattern{0} != '/') {
+		if ($pattern[0] != '/') {
 			$pattern = '/' . $pattern . '/';
 		}
 		
@@ -257,7 +257,7 @@ class File extends BaseFile
 		}
 		
 		$text = file_get_contents($this->path);
-		if ($pattern{0} != '/') {
+		if ($pattern[0] != '/') {
 			$pattern = '/' . $pattern . '/';
 		}
 		$text = preg_replace($pattern, $replacement, $text);

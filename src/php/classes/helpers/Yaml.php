@@ -222,12 +222,12 @@ class Yaml
 		};
 
 		foreach ($arr as $i => $row) {
-			if ($row == '' || $row == ']' || $row{0} == '#') continue;
+			if ($row == '' || $row == ']' || $row[0] == '#') continue;
 			$spacesCount = 0;
-			while ($row{$spacesCount++} == ' ') {
+			while ($row[$spacesCount++] == ' ') {
 			}
 			$row = preg_replace('/^ */', '', $row);
-			if ($row == '' || $row == ']' || $row{0} == '#') continue;
+			if ($row == '' || $row == ']' || $row[0] == '#') continue;
 
 			if ($modeConcat != 0) {
 				if ($spacesCount != $concatSpacesCount) $dropModeConcat();
@@ -247,11 +247,11 @@ class Yaml
 			}
 
 			$len = strlen($row);
-			if ($row{$len - 1} == '|' || ($len > 1 && $row{$len - 1} == '-' && $row{$len - 2} == '|')) {
+			if ($row[$len - 1] == '|' || ($len > 1 && $row[$len - 1] == '-' && $row[$len - 2] == '|')) {
 				$currentSource['row'] = [preg_replace('/:[^:]+$/', ':', $row)];
 				$modeConcat = 1;
 				$concatSpacesCount = $spacesCount + $spacesStep;
-			} elseif ($row{$len - 1} == '>' || ($len > 1 && $row{$len - 1} == '-' && $row{$len - 2} == '>')) {
+			} elseif ($row[$len - 1] == '>' || ($len > 1 && $row[$len - 1] == '-' && $row[$len - 2] == '>')) {
 				$currentSource['row'] = [preg_replace('/:[^:]+$/', ':', $row)];
 				$modeConcat = 2;
 				$concatSpacesCount = $spacesCount + $spacesStep;
@@ -355,7 +355,7 @@ class Yaml
 	private function applyTemplates($arr)
 	{
 		foreach ($arr as $key => $item) {
-			if (is_string($item) && strlen($item) && $item{0} == '*') {
+			if (is_string($item) && strlen($item) && $item[0] == '*') {
 				$template = substr($item, 1);
 				if (!array_key_exists($template, $this->templates)) continue;
 				$arr[$key] = $this->templates[$template];
@@ -363,7 +363,7 @@ class Yaml
 			if (is_array($item)) {
 				if (array_key_exists('<<', $item)) {
 					$template = $item['<<'];
-					if (!is_string($template) || $template{0} != '*') continue;
+					if (!is_string($template) || $template[0] != '*') continue;
 					$template = substr($template, 1);
 					if (!array_key_exists($template, $this->templates)) continue;
 					$template = $this->templates[$template];
@@ -389,7 +389,7 @@ class Yaml
 		$content = $source['source'];
 		$row = $this->rowCutComments($source['row']);
 
-		if ($row{0} == '-') {
+		if ($row[0] == '-') {
 			list($key, $value) = $this->translateEnumElement($row, $content);
 		} else {
 			list($key, $value) = $this->translateNotEnumElement($row, $content);
@@ -428,7 +428,7 @@ class Yaml
 		$value = null;
 		$row = preg_replace('/^-\s*/', '', $sourceRow);
 
-		if ($row != '' && ($row{0} == '[' || $row{0} == '{')) {
+		if ($row != '' && ($row[0] == '[' || $row[0] == '{')) {
 			return [null, $this->translateString($row)];
 		}
 
@@ -504,12 +504,12 @@ class Yaml
 		// If the value exists
 		} else {
 			// If the value starts with '&', this is a template-link
-			if ($value{0} == '&') {
+			if ($value[0] == '&') {
 				$template = substr($value, 1);
 				$value = $this->translateSource($content);
 			// If the content exists, this is a multi-line text or an array
 			} elseif (!empty($content)) {
-				if ($value{0} == '[') {
+				if ($value[0] == '[') {
 					$temp = [];
 					foreach ($content as $item) $temp[] = $item['row'];
 					$temp = implode(',', $temp);
@@ -583,16 +583,16 @@ class Yaml
 		$str = $sourceString;
 		if ($str == '') return $sourceString;
 
-		if ($str{0} == '{' || $str{0} == '[') {
+		if ($str[0] == '{' || $str[0] == '[') {
 			$str = str_replace('{', '[', $str);
 			$str = str_replace('}', ']', $str);
 		}
-		if ($str{0} != '[') return $sourceString;
+		if ($str[0] != '[') return $sourceString;
 
 		$parts = $this->splitJsonLikeString($str);
 		$result = [];
 		foreach ($parts as $part) {
-			if (strlen($part) > 0 && $part{0} == '[') {
+			if (strlen($part) > 0 && $part[0] == '[') {
 				$result[] = $this->translateString($part);
 			} elseif (preg_match('/^\s*\b.+?\b\s*:\s*\[/', $part)) {
 				preg_match_all('/^\s*(\b.+?\b)\s*:\s*(\[.*)/', $part, $matches);

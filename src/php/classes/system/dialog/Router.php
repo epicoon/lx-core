@@ -137,7 +137,7 @@ class Router implements FusionComponentInterface
 		}
 
 		$serviceRoute = $route;
-		if ($routeKey{0} == '!') {
+		if ($routeKey[0] == '!') {
 			$serviceRoute = preg_replace('/^!/', '', $routeKey);
 			if ($serviceRoute != '') {
 				$serviceRoute = (explode($serviceRoute, $route))[1];
@@ -158,12 +158,12 @@ class Router implements FusionComponentInterface
 	 */
 	private function validateRouteKey($routeKey, $route)
 	{
-		if ($routeKey{0} == '~') {
+		if ($routeKey[0] == '~') {
 			$reg = preg_replace('/^~/', '/', str_replace('/', '\/', $routeKey)) . '/';
 			return preg_match($reg, $route);
 		}
 
-		if ($routeKey{0} == '!') {
+		if ($routeKey[0] == '!') {
 			$reg = preg_replace('/^!/', '/^', str_replace('/', '\/', $routeKey)) . '/';
 			return preg_match($reg, $route);
 		}

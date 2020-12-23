@@ -61,7 +61,7 @@ class BitMap
 		$map = new self($x, $y);
 		foreach ($arr as $i => $line) {
 			for ($j=0; $j<$x; $j++) {
-				if ((int)$line{$j}) $map->setBit($j, $i);
+				if ((int)$line[$j]) $map->setBit($j, $i);
 			}
 		}
 

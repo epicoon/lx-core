@@ -65,7 +65,7 @@ class Minimizer
 		];
 		foreach ($parts as $i => $part) {
 			if ($i % 2) {
-				$quote = $part{0};
+				$quote = $part[0];
 				if ($quote == '\'') {
 					$maskedText .= '#lx:_mstr[1,' . count($stringsMap['1']) . ']';
 					$stringsMap['1'][] = $part;

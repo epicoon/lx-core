@@ -329,7 +329,7 @@ class JsCompiler
 			: [$requireName];
 		$filePathes = [];
 		foreach ($dirPathes as $dirPath) {
-			if ($dirPath{-1} != '/') {
+			if ($dirPath[-1] != '/') {
 				if (!preg_match('/.js$/', $dirPath)) $dirPath .= '.js';
 				$filePathes[] = $this->conductor->getFullPath($dirPath, $parentDir);
 				continue;

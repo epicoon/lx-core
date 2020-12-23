@@ -186,7 +186,7 @@ class Autoloader
 			$basePath = $this->sitePath . '/' . $this->map->packages[$data['package']] . '/';
 			foreach ($data['pathes'] as $innerPath) {
 				$path = $basePath . $innerPath;
-				if ($path{-1} != '/') $path .= '/';
+				if ($path[-1] != '/') $path .= '/';
 
 				// Стандартная логика автозагрузки - имя файла соответствует имени класса
 				$fullPath = $path . $relativePath . '.php';

@@ -436,7 +436,7 @@ class Dialog implements FusionComponentInterface
 			$url = substr($url, 0, $pos);
 		}
 		$url = urldecode($url);
-		if (strlen($url) > 1 && $url{0} == '/') {
+		if (strlen($url) > 1 && $url[0] == '/') {
 			$url = substr($url, 1);
 		}
 		$this->_route = $url;
