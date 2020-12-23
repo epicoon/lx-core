@@ -5,6 +5,11 @@ class Model extends lx.Object #lx:namespace lx {
 		super();
 
 		this.__init(data);
+		this.init();
+	}
+
+	init() {
+		// pass
 	}
 
 	getPk() {
@@ -166,15 +171,15 @@ class Model extends lx.Object #lx:namespace lx {
 	 * На основании схемы создаются поля
 	 * */
 	__init(data={}) {
-		if (data === false) return;
-
 		var schema = self::__schema;
 		if (!schema) return;
 
+		this.ignoreSetterListener(true);
 		schema.eachField((field, name)=>{
 			if (field.ref) return;
 			if (data[name] !== undefined) this[name] = data[name];
 			else this.resetField(name);
 		});
+		this.ignoreSetterListener(false);
 	}
 }

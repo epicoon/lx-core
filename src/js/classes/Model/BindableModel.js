@@ -1,12 +1,4 @@
 class BindableModel extends lx.Model #lx:namespace lx {
-	constructor(data) {
-		super(false);
-		if (!self::__schema) return;
-		this.ignoreSetterListener(true);
-		this.__init(data);
-		this.ignoreSetterListener(false);
-	}
-
 	/**
 	 * Связать модель с виджетами
 	 * */

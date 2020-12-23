@@ -18,6 +18,11 @@ interface DataFileInterface
 	 */
 	public function get();
 
+    /**
+     * @return string
+     */
+    public function getText();
+
 	/**
 	 * @param array $data
 	 * @param int $style

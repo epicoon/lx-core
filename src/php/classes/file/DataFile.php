@@ -142,6 +142,14 @@ class DataFile extends File implements DataFileInterface
 		return $adapter->parse();
 	}
 
+    /**
+     * @return string
+     */
+    public function getText()
+    {
+        return parent::get();
+    }
+
 	/**
 	 * @param array $data
 	 * @param int $style

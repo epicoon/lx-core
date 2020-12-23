@@ -460,7 +460,7 @@ class CliProcessor
 
             if ($item[0] == '[') {
                 $item = trim($item, '[]');
-                $item = StringHelper::smartSplit($input, ['delimiter' => ',', 'save' => '"']);
+                $item = StringHelper::smartSplit($item, ['delimiter' => ',', 'save' => '"']);
                 foreach ($item as &$i) {
                     $i = trim($i, ' ');
                 }
