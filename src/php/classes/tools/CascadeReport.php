@@ -73,6 +73,35 @@ abstract class CascadeReport
     }
 
     /**
+     * @return bool
+     */
+    public function isEmpty()
+    {
+        foreach ($this->data as $value) {
+            if (!empty($value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param string $name
+     * @return array
+     */
+    public function extract($name)
+    {
+        if (!array_key_exists($name, $this->data)) {
+            return [];
+        }
+
+        $result = $this->data[$name];
+        unset($this->data[$name]);
+        return $result;
+    }
+
+    /**
      * @return array
      */
     public function toArray()

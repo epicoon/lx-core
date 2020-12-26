@@ -170,6 +170,7 @@ return [
 	 ******************************************************************************************************************/
 	'ApplicationLifeCycleManagerInterface' => 'interfaces',
 	'ConductorInterface' => 'interfaces',
+    'FileInterface' => 'interfaces',
 	'DataFileInterface' => 'interfaces',
     'ResponseInterface' => 'interfaces',
     'RendererInterface' => 'interfaces',

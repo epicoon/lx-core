@@ -6,7 +6,7 @@ namespace lx;
  * Class BaseFile
  * @package lx
  */
-class BaseFile
+class BaseFile implements FileInterface
 {
 	const WRONG = 0;
 	const DIR = 1;
@@ -113,6 +113,10 @@ class BaseFile
 		return file_exists($this->path);
 	}
 
+    /**
+     * @param string $path
+     * @return FileLink|null
+     */
 	public function createLink($path)
 	{
 		if (!$this->exists()) {

@@ -896,7 +896,7 @@ class Box extends lx.Rect #lx:namespace lx {
     }
 
     unbind() {
-            lx.Binder.unbindWidget(this);
+        lx.Binder.unbindWidget(this);
     }
 
     /**

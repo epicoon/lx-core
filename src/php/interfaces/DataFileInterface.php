@@ -6,29 +6,17 @@ namespace lx;
  * Interface DataFileInterface
  * @package lx
  */
-interface DataFileInterface
+interface DataFileInterface extends FileInterface
 {
-	/**
-	 * @return bool
-	 */
-	public function exists();
-
-	/**
-	 * @return array
-	 */
-	public function get();
+    /**
+     * @return mixed
+     */
+    public function get();
 
     /**
      * @return string
      */
     public function getText();
-
-	/**
-	 * @param array $data
-	 * @param int $style
-	 * @return File|false
-	 */
-	public function put($data, $style);
 
 	/**
 	 * @param string $name
