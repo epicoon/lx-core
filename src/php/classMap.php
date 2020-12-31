@@ -110,6 +110,8 @@ return [
 	'Request' => 'classes/tools',
 	'Vector' => 'classes/tools',
     'CascadeReport' => 'classes/tools',
+    'FlightRecorder' => 'classes/tools/flightRecorder',
+    'FlightRecorderHolderTrait' => 'classes/tools/flightRecorder',
 
 	'BaseFile' => 'classes/file',
 	'File' => 'classes/file',
