@@ -28,6 +28,15 @@ trait FusionTrait
 		$this->fusionComponentList->load($list ?? [], $allDefaults);
 	}
 
+    /**
+     * @param string $name
+     * @return bool
+     */
+	public function hasFusionComponent($name)
+    {
+        return $this->fusionComponentList->has($name);
+    }
+
 	/**
 	 * @magic __get
 	 * @param string $name

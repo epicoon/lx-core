@@ -60,10 +60,6 @@ class FusionComponentList
 	 */
 	public function load($list, $defaults = [])
 	{
-	    if (array_key_exists('modelManager', $list)) {
-	        $e = 1;
-        }
-
 	    foreach ($defaults as &$item) {
 	        if (is_string($item)) {
 	            $item = ['class' => $item];

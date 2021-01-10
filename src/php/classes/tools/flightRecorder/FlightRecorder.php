@@ -20,6 +20,14 @@ class FlightRecorder
     }
 
     /**
+     * @param array $records
+     */
+    public function addRecords($records)
+    {
+        $this->records += $records;
+    }
+
+    /**
      * @return array
      */
     public function getRecords()

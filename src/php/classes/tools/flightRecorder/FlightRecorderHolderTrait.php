@@ -38,4 +38,12 @@ trait FlightRecorderHolderTrait
     {
         $this->getFlightRecorder()->addRecord($record);
     }
+
+    /**
+     * @param array $records
+     */
+    public function addFlightRecords($records)
+    {
+        $this->getFlightRecorder()->addRecords($records);
+    }
 }
