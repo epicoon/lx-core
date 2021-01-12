@@ -296,7 +296,7 @@ class Service implements FusionInterface
 
     /**
      * @param string $name
-     * @param integer $index
+     * @param int $index
      */
 	public function runProcess($name, $index = null)
     {

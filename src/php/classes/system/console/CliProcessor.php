@@ -191,7 +191,7 @@ class CliProcessor
     }
 
     /**
-     * @param string|integer|array $key
+     * @param string|int|array $key
      * @return CliArgument
      */
     public function initArgument($key = null)

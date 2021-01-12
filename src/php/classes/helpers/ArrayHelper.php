@@ -226,7 +226,7 @@ class ArrayHelper
 
     /**
      * @param array $array
-     * @param integer $level
+     * @param int $level
      * @return string
      */
 	public static function arrayToPhpCode($value, $level = 0)

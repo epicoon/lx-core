@@ -24,7 +24,7 @@ abstract class AbstractApplication implements FusionInterface
 	/** @var string */
 	private $id;
 
-	/** @var integer */
+	/** @var int */
 	private $pid;
 
 	/** @var string */

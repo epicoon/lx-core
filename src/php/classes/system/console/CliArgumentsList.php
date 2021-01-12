@@ -52,7 +52,7 @@ class CliArgumentsList
     }
 
     /**
-     * @param string|integer|array $key
+     * @param string|int|array $key
      * @return bool
      */
     public function has($key)
@@ -64,7 +64,7 @@ class CliArgumentsList
     }
 
     /**
-     * @param string|integer $key
+     * @param string|int $key
      * @return mixed|null
      */
     public function get($key)

@@ -24,7 +24,7 @@ class DbTableField
     /** @var string */
     private $type;
 
-    /** @var integer */
+    /** @var int */
     private $size;
 
     /** @var boolean */

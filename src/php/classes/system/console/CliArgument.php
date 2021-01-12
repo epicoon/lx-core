@@ -51,7 +51,7 @@ class CliArgument
     }
 
     /**
-     * @param string|integer|array $key
+     * @param string|int|array $key
      * @return $this
      */
     public function setKey($key)
@@ -108,7 +108,7 @@ class CliArgument
     }
 
     /**
-     * @return string|integer|array
+     * @return string|int|array
      */
     public function getKey()
     {

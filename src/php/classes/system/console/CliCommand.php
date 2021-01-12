@@ -30,7 +30,7 @@ class CliCommand
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getType()
     {
