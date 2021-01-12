@@ -275,7 +275,7 @@ class Yaml
 				//     en: 'Basic'
 				if (isset($routerStack[$spacesCount - $spacesStep * 2])) {
 					$sourceBaseX2 = &$routerStack[$spacesCount - $spacesStep * 2];
-					if ($sourceBaseX2['num'] > $x1num && $sourceBaseX2['row']{0} == '-') {
+					if ($sourceBaseX2['num'] > $x1num && $sourceBaseX2['row'][0] == '-') {
 						$sourceBaseX2['row'] = [$sourceBaseX2['row'], $currentSource['row']];
 						$modeConcat = 3;
 						$concatSpacesCount = $spacesCount;
@@ -447,7 +447,7 @@ class Yaml
 		if ($key === null) {
 			// If content is exist, this is a multi-line text or an array
 			if (!empty($content)) {
-				if ($content[0]['row']{0} == '-') {
+				if ($content[0]['row'][0] == '-') {
 					$value = '[';
 					$temp = [];
 					foreach ($content as $item) $temp[] = trim($item['row'], '- ');

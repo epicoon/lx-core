@@ -267,7 +267,7 @@ class SintaxExtender
 						preg_match_all('/^([^=]+?)\s*=\s*([\w\W]+)\s*$/', $constPare, $pare);
 						$name = $pare[1][0];
 						$value = $pare[2][0];
-						if ($value[0] != '\'' && $value{0} != '"' && preg_match('/::/', $value)) {
+						if ($value[0] != '\'' && $value[0] != '"' && preg_match('/::/', $value)) {
 							$value = eval('return ' . $value . ';');
 							if (is_string($value)) $value = "'$value'";
 							else if (is_array($value)) $value = json_encode($value);
