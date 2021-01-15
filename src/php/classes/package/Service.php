@@ -15,9 +15,6 @@ use lx;
  * @property-read ServiceConductor $conductor
  * @property-read ServiceRouter $router
  * @property-read I18nServiceMap $i18nMap
- *
- * //TODO NEW
- * @property-read ModelManagerInterfaceNEW $modelManager
  */
 class Service implements FusionInterface
 {
@@ -62,7 +59,6 @@ class Service implements FusionInterface
             'conductor' => ServiceConductor::class,
             'router' => ServiceRouter::class,
             'i18nMap' => I18nServiceMap::class,
-            'modelManager' => ModelManagerInterfaceNEW::class,
         ];
     }
 

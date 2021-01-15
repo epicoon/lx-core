@@ -45,8 +45,8 @@ class DbTableBuilder
     }
 
     /**
-     * @param boolean $rewrite
-     * @return boolean
+     * @param bool $rewrite
+     * @return bool
      */
     public function createTable($rewrite = false)
     {
@@ -80,7 +80,7 @@ class DbTableBuilder
 
     /**
      * @param array $definition
-     * @return boolean
+     * @return bool
      */
     public function addField($definition)
     {
@@ -92,7 +92,7 @@ class DbTableBuilder
 
     /**
      * @param string $fieldName
-     * @return boolean
+     * @return bool
      */
     public function delField($fieldName)
     {
@@ -104,7 +104,7 @@ class DbTableBuilder
     /**
      * @param string $oldFieldName
      * @param string $newFieldName
-     * @return boolean
+     * @return bool
      */
     public function renameField($oldFieldName, $newFieldName)
     {
@@ -115,7 +115,7 @@ class DbTableBuilder
 
     /**
      * @param array $newDefinition
-     * @return boolean
+     * @return bool
      */
     public function changeField($newDefinition)
     {

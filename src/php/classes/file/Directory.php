@@ -171,11 +171,11 @@ class Directory extends BaseFile
      *  'fileClass' : string
 	 *	'sort'      : SCANDIR_SORT_DESCENDING | SCANDIR_SORT_NONE - sort type
 	 *	'mask'      : string - example '*.(php|js)'
-	 * 	'all'       : boolean - recursuve search
-	 *	'files'     : boolean - return only files
-	 *	'dirs'      : boolean - return only directories
-	 *	'ext'       : boolean - return names with/without extensions (for name returning only)
-	 *	'fullname'  : boolean - return full/self file names (for name returning only)
+	 * 	'all'       : bool - recursuve search
+	 *	'files'     : bool - return only files
+	 *	'dirs'      : bool - return only directories
+	 *	'ext'       : bool - return names with/without extensions (for name returning only)
+	 *	'fullname'  : bool - return full/self file names (for name returning only)
 	 * ]
 	 */
 	public function getContent($rules = [])

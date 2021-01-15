@@ -27,7 +27,7 @@ class DbTableField
     /** @var int */
     private $size;
 
-    /** @var boolean */
+    /** @var bool */
     private $isNullable;
 
     /** @var mixed */
@@ -131,7 +131,7 @@ class DbTableField
 
     /**
      * @param DbTableField $field
-     * @return boolean
+     * @return bool
      */
     public function hasEqualDefinition($field)
     {

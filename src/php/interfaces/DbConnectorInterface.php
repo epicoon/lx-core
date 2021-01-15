@@ -10,7 +10,7 @@ interface DbConnectorInterface
 {
     /**
      * @param string $db
-     * @return boolean
+     * @return bool
      */
     public function hasConnection($db);
 

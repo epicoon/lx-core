@@ -29,11 +29,31 @@ class DbConnector implements FusionComponentInterface, DbConnectorInterface
 
     /**
      * @param string $db
-     * @return boolean
+     * @return bool
      */
     public function hasConnection($db)
     {
         return array_key_exists($db, $this->config);
+    }
+
+    /**
+     * @param string|null $dbKey
+     * @return string|null
+     */
+    public function getConnectionKey($dbKey = null)
+    {
+        if ($dbKey === null) {
+            $dbKey = ($this->hasConnection(self::MAIN_DB_CONNECTION_KEY))
+                ? self::MAIN_DB_CONNECTION_KEY
+                : self::DEFAULT_DB_CONNECTION_KEY;
+        }
+
+        if (!array_key_exists($dbKey, $this->config)) {
+            return null;
+        }
+
+        $settings = $this->config[$dbKey];
+        return $settings['hostname'] . '_' . $settings['username'] . '_' . $settings['dbName'];
     }
 
 	/**

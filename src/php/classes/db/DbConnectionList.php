@@ -21,15 +21,15 @@ class DbConnectionList
 		if (array_key_exists($key, $this->list)) {
 			$this->list[$key]['count']++;
 		} else {
-			$connect = $this->tryConnect($settings);
+			$connection = $this->tryConnect($settings);
 
-			if (!$connect) {
+			if (!$connection) {
 				return false;
 			}
 
 			$this->list[$key] = [
-				'type' => $connect['type'],
-				'connection' => $connect['connection'],
+				'type' => $connection['type'],
+				'connection' => $connection['connection'],
 				'count' => 1,
 			];
 		}
