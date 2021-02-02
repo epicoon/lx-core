@@ -611,7 +611,7 @@ class JsCompiler
 	{
         $parentDir = $path === null ? null : dirname($path) . '/';
 
-		$pattern = '/(?<!\/ )(?<!\/)#lx:load\s*\(?\s*[\'"]?(.*?)[\'"]?([;,)])/';
+		$pattern = '/(?<!\/ )(?<!\/)#lx:load\s*\(\s*[\'"]?(.*?)[\'"]?\)/';
 		$code = preg_replace_callback($pattern, function ($matches) use ($parentDir) {
 			$path = $matches[1];
 			$fullPath = $this->conductor->getFullPath($path, $parentDir);
@@ -623,9 +623,7 @@ class JsCompiler
 			$data = $file->get();
 			$result = ArrayHelper::arrayToJsCode($data);
 
-			return $matches[2] == ')'
-                ? $result
-                : "$result{$matches[2]}";
+			return $result;
 		}, $code);
 
 		return $code;

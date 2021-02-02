@@ -45,6 +45,9 @@ class DbTableField
         $this->name = $definition['name'];
         $this->type = $definition['type'] ?? self::TYPE_STRING;
         $this->size = $definition['size'] ?? null;
+        if ($this->size !== null) {
+            $this->size = (int)$this->size;
+        }
         $this->isNullable = $definition['nullable'] ?? true;
         $this->defailt = $definition['default'] ?? null;
     }
