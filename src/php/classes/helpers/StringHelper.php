@@ -31,7 +31,7 @@ class StringHelper
 		}
 
 		return preg_replace_callback('/' . $delimiter . '(.)/', function ($match) {
-			return strtoupper($match[2]);
+			return strtoupper($match[1]);
 		}, $string);
 	}
 

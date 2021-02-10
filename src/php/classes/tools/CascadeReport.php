@@ -17,10 +17,7 @@ abstract class CascadeReport
     /** @var array */
     private $data = [];
 
-    /**
-     * @return array
-     */
-    abstract protected function getDataComponents();
+    abstract protected function getDataComponents(): array;
 
     /**
      * @param string $name
@@ -72,10 +69,7 @@ abstract class CascadeReport
         }
     }
 
-    /**
-     * @return bool
-     */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         foreach ($this->data as $value) {
             if (!empty($value)) {
@@ -101,10 +95,7 @@ abstract class CascadeReport
         return $result;
     }
 
-    /**
-     * @return array
-     */
-    public function toArray()
+    public function toArray(): array
     {
         return $this->data;
     }
