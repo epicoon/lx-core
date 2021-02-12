@@ -198,6 +198,7 @@ abstract class DB {
 	}
 
 	/**
+     * @deprecated
 	 * Сформировать новый DbColumnDefinition для внешнего ключа
 	 * */
 	public function foreignKeyDefinition($conf=[]) {

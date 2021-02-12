@@ -131,17 +131,4 @@ class DbTableField
     {
         return $this->isNullable;
     }
-
-    /**
-     * @param DbTableField $field
-     * @return bool
-     */
-    public function hasEqualDefinition($field)
-    {
-        return ($this->getType() === $field->getType()
-            && $this->getSize() === $field->getSize()
-            && $this->getDefault() === $field->getDefault()
-            && $this->isNullable() === $field->isNullable()
-        );
-    }
 }
