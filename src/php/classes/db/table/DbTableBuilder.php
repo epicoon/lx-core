@@ -74,6 +74,61 @@ class DbTableBuilder
             return false;
         }
 
+        foreach ($this->schema->getFields() as $field) {
+            if ($field->isFk()) {
+                $fk = $field->getDefinition()['fk'];
+                $query = $db->getAddForeignKeyQuery(
+                    $this->schema->getName(),
+                    $field->getName(),
+                    $fk['table'],
+                    $fk['field']
+                );
+                $result = $db->query($query);
+                if (!$result) {
+                    $db->transactionRollback();
+                    return false;
+                }
+            }
+        }
+
+        $db->transactionCommit();
+        return true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function dropTable()
+    {
+        if (!$this->schema) {
+            return false;
+        }
+
+        $db = $this->getDb();
+        $db->transactionBegin();
+
+        foreach ($this->schema->getFields() as $field) {
+            if ($field->isFk()) {
+                $fk = $field->getDefinition()['fk'];
+                $query = $db->getDropForeignKeyQuery(
+                    $this->schema->getName(),
+                    $field->getName(),
+                    $fk['name'] ?? null
+                );
+                $result = $db->query($query);
+                if (!$result) {
+                    $db->transactionRollback();
+                    return false;
+                }
+            }
+        }
+
+        $result = $db->dropTable($this->schema->getName());
+        if (!$result) {
+            $db->transactionRollback();
+            return false;
+        }
+
         $db->transactionCommit();
         return true;
     }

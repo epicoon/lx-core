@@ -25,10 +25,14 @@ class DBpostgres extends DB
     {
         if (preg_match('/\./', $tableName)) {
             $arr = explode('.', $tableName);
+            $schemaName = $arr[0];
+            $shortTableName = $arr[1];
             $fields = $this->select("
-                SELECT * FROM information_schema.columns WHERE table_schema='{$arr[0]}' AND table_name='{$arr[1]}'
+                SELECT * FROM information_schema.columns WHERE table_schema='{$schemaName}' AND table_name='{$shortTableName}'
             ");
         } else {
+            $schemaName = 'public';
+            $shortTableName = $tableName;
             $fields = $this->select("
                 SELECT * FROM information_schema.columns WHERE table_name='$tableName'
             ");
@@ -78,6 +82,34 @@ class DBpostgres extends DB
             'name' => $tableName,
             'fields' => $fieldDefinitions,
         ];
+
+        $fks = $this->select("
+			SELECT
+			    tc.constraint_name,
+                kcu.column_name as column_name,
+                ccu.table_schema,
+                ccu.table_name,
+                ccu.column_name as rel_column_name
+			FROM information_schema.table_constraints as tc
+                LEFT JOIN information_schema.key_column_usage AS kcu
+                    ON tc.constraint_name = kcu.constraint_name
+                    AND tc.table_schema = kcu.table_schema
+			    LEFT JOIN information_schema.constraint_column_usage AS ccu
+                    ON ccu.constraint_name = tc.constraint_name
+                    AND ccu.table_schema = tc.table_schema
+			WHERE tc.constraint_type='FOREIGN KEY'
+				AND tc.table_schema='$schemaName'
+				AND tc.table_name='$shortTableName';
+		");
+        foreach ($fks as $fk) {
+            $fieldName = $fk['column_name'];
+            $config['fields'][$fieldName]['fk'] = [
+                'table' => $fk['table_schema'] . '.' . $fk['table_name'],
+                'field' => $fk['rel_column_name'],
+                'name' => $fk['constraint_name'],
+            ];
+        }
+
         $schema = DbTableSchema::createByConfig($this, $config);
         if ($pkName !== null) {
             $schema->setPK($pkName);
@@ -109,11 +141,13 @@ class DBpostgres extends DB
             unset($fields[$pkName]);
         }
 
-        //TODO сделано под одиночный целочисленный первичный ключ
-        $pKeyName = str_replace('.', '_', $name) . '_pkey';
-        $cols = [
-            "{$pkFields[0]->getName()} serial not null constraint $pKeyName primary key"
-        ];
+        if (!empty($pkFields)) {
+            //TODO сделано под одиночный целочисленный первичный ключ
+            $pKeyName = str_replace('.', '_', $name) . '_pkey';
+            $cols = [
+                "{$pkFields[0]->getName()} serial not null constraint $pKeyName primary key"
+            ];
+        }
 
         foreach ($fields as $fieldName => $fieldDefinition) {
             $str = $this->fieldToString($fieldDefinition);
@@ -205,7 +239,40 @@ class DBpostgres extends DB
         return "ALTER TABLE {$schema->getName()} RENAME COLUMN $oldFieldName TO $newFieldName;";
     }
 
-	/**
+    public function getAddForeignKeyQuery(
+        string $table,
+        string $field,
+        string $relTable,
+        string $relField
+    ): string
+    {
+        $tableKey = str_replace('.', '_', $table);
+        $fkName = "fk__{$tableKey}__$field";
+        
+        //TODO ON DELETE|UPDATE CASCADE|RESTRICT
+        return "ALTER TABLE {$table} ADD CONSTRAINT $fkName FOREIGN KEY ({$field})
+			REFERENCES {$relTable}({$relField});
+		";
+    }
+
+    public function getDropForeignKeyQuery(
+        string $table, string $field,
+        ?string $constraintName = null
+    ): string
+    {
+        if ($constraintName === null) {
+            $tableKey = str_replace('.', '_', $table);
+            $constraintName = "fk__{$tableKey}__$field";
+        }
+        
+        return"ALTER TABLE $table DROP CONSTRAINT $constraintName;";
+    }
+
+
+
+
+
+    /**
 	 * Запрос строкой с SQL-кодом
 	 * */
 	public function query($query) {
@@ -556,6 +623,47 @@ class DBpostgres extends DB
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function checkForeignKeyExists($tableName, $name)
+    {
+        if (preg_match('/\./', $tableName)) {
+            list($schema, $table) = explode('.', $tableName);
+            $fkName = "fk__{$schema}_{$table}__$name";
+        } else {
+            $schema = 'public';
+            $table = $tableName;
+            $fkName = "fk__{$table}__$name";
+        }
+
+        $fk = $this->select("
+			SELECT * FROM information_schema.table_constraints
+			WHERE constraint_type='FOREIGN KEY'
+				AND table_schema='$schema'
+				AND table_name='$table'
+				AND constraint_name='$fkName';
+		");
+
+        return !empty($fk);
+    }
+
+    /**
+     * @deprecated
+     * @param $config
+     * @return bool
+     */
 	public function addForeignKey($config)
 	{
 		if (is_string($config)) {
@@ -583,29 +691,12 @@ class DBpostgres extends DB
 			$definition
 		);
 	}
-
-	public function checkForeignKeyExists($tableName, $name)
-	{
-		if (preg_match('/\./', $tableName)) {
-			list($schema, $table) = explode('.', $tableName);
-			$fkName = "fk__{$schema}_{$table}__$name";
-		} else {
-			$schema = 'public';
-			$table = $tableName;
-			$fkName = "fk__{$table}__$name";
-		}
-
-		$fk = $this->select("
-			SELECT * FROM information_schema.table_constraints
-			WHERE constraint_type='FOREIGN KEY'
-				AND table_schema='$schema'
-				AND table_name='$table'
-				AND constraint_name='$fkName';
-		");
-
-		return !empty($fk);
-	}
-
+	
+    /**
+     * @deprecated
+     * @param $config
+     * @return bool
+     */
 	public function dropForeignKey($config)
 	{
 		if (is_string($config)) {

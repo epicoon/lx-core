@@ -45,25 +45,36 @@ abstract class DB {
 
 
     abstract public function getTableSchema($tableName);
+
+	//TODO отвязать от $schema
     abstract public function getCreateTableQuery($schema);
     abstract public function getAddColumnQuery($schema, $fieldName);
     abstract public function getDelColumnQuery($schema, $fieldName);
     abstract public function getChangeColumnQuery($schema, $fieldName);
     abstract public function getRenameColumnQuery($schema, $oldFieldName, $newFieldName);
+    abstract public function getAddForeignKeyQuery(
+        string $table, string $field,
+        string $relTable, string $relField
+    ): string;
+    abstract public function getDropForeignKeyQuery(
+        string $table, string $field,
+        ?string $constraintName = null
+    ): string;
 
-    //!!!!!!!!!!!!
+    //TODO deprecated
     abstract public function newTableQuery($name, $columns);
+    abstract public function tableSchema($name, $fields=null);  // Схема таблицы
+    abstract public function renameTableColumn($tableName, $oldName, $newName);
+    abstract public function addTableColumn($tableName, $name, $definition);
+    abstract public function dropTableColumn($tableName, $name);
+    abstract protected function definitionToString($definition);
 
 	abstract public function query($query);
 	abstract public function select($query);
 	abstract public function insert($query, $returnId);
 	abstract public function massUpdate($table, $rows);
 	abstract public function tableExists($name);  // Проверка существования таблицы
-	abstract public function tableSchema($name, $fields=null);  // Схема таблицы
 	abstract public function renameTable($oldName, $newName);
-	abstract public function renameTableColumn($tableName, $oldName, $newName);
-	abstract public function addTableColumn($tableName, $name, $definition);
-	abstract public function dropTableColumn($tableName, $name);
 	abstract public function tableName($name);
 
 	public function getName() {
@@ -294,6 +305,4 @@ abstract class DB {
 		}
 		return $row;
 	}
-
-	abstract protected function definitionToString($definition);
 }
