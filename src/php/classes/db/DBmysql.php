@@ -106,7 +106,7 @@ class DBmysql extends DB {
 	/**
 	 * Массовый апдейт
 	 * */
-	public function massUpdate($table, $rows) {
+	public function massUpdate($tableName, $rows) {
 		//todo
 
 		/*

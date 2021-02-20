@@ -11,7 +11,7 @@ interface ArrayInterface extends \ArrayAccess, \IteratorAggregate
 	/**
 	 * @param array $array
 	 */
-	public function constructArray($array);
+	public function __constructArray($array);
 
 	/**
 	 * @return int
@@ -61,12 +61,23 @@ interface ArrayInterface extends \ArrayAccess, \IteratorAggregate
 	 */
 	public function getKeyByValue($value);
 
+    /**
+     * @param mixed $value
+     */
+	public function removeValue($value);
+
 	/**
 	 * @param mixed $value
 	 * @return bool
 	 */
 	public function contains($value);
 
+    /**
+     * @param iterable $array
+     * @return iterable
+     */
+	public function merge($array);
+	
 	/**
 	 * @return array
 	 */

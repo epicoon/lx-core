@@ -9,25 +9,38 @@ namespace lx;
 trait ArrayTrait
 {
 	/** @var int */
-	protected $arrayNumericIndexCounter;
+	protected $arrayNumericIndexCounter = 0;
 
 	/** @var array */
-	protected $arrayValue;
+	protected $arrayValue = [];
 
 	/** @var bool */
-	protected $arrayIsAssoc;
+	protected $arrayIsAssoc = true;
+
+	public function __construct()
+    {
+        $this->constructArray([]);
+    }
 
 	/**
 	 * @magic __construct
-	 * @param array|mixed $array
+	 * @param iterable $array
 	 */
-	public function constructArray($array)
+	public function __constructArray($array = [])
 	{
-		if ( ! is_array($array)) {
-			$this->arrayValue = [$array];
-			$this->arrayNumericIndexCounter = 1;
-			$this->arrayIsAssoc = false;
-		} elseif (empty($array)) {
+		if (!is_array($array)) {
+		    if (is_object($array) && method_exists($array, 'toArray')) {
+		        $array = $array->toArray();
+            } else {
+		        $temp = [];
+		        foreach ($array as $key => $value) {
+		            $temp[$key] = $value;
+                }
+		        $array = $temp;
+            }
+		}
+		
+		if (empty($array)) {
 			$this->arrayValue = [];
 			$this->arrayNumericIndexCounter = 0;
 			$this->arrayIsAssoc = false;
@@ -38,7 +51,7 @@ trait ArrayTrait
 			$currentKey = 0;
 			$isAssoc = false;
 			foreach ($array as $key => $value) {
-				if ($key != $currentKey) {
+				if ($key !== $currentKey) {
 					$isAssoc = true;
 				}
 				$currentKey++;
@@ -101,6 +114,7 @@ trait ArrayTrait
 		if ($this->isEmpty()) {
 			return null;
 		}
+		
 		return array_pop($this->arrayValue);
 	}
 
@@ -112,6 +126,7 @@ trait ArrayTrait
 		if ($this->isEmpty()) {
 			return null;
 		}
+
 		return array_shift($this->arrayValue);
 	}
 
@@ -158,14 +173,50 @@ trait ArrayTrait
 		return array_search($value, $this->arrayValue);
 	}
 
+    /**
+     * @param mixed $value
+     */
+    public function removeValue($value)
+    {
+        $key = $this->getKeyByValue($value);
+        if ($key === false) {
+            return;
+        }
+
+        $this->offsetUnsetProcess($key);
+        if (!$this->isAssoc()) {
+            $this->arrayValue = array_values($this->arrayValue);
+        }
+    }
+
 	/**
 	 * @param mixed $value
 	 * @return bool
 	 */
 	public function contains($value)
 	{
-		return $this->getKeyByValue($elem) !== false;
+		return $this->getKeyByValue($value) !== false;
 	}
+
+    /**
+     * @param iterable $iterable
+     * @return iterable
+     */
+    public function merge($iterable)
+    {
+        if (is_object($iterable) && method_exists($iterable, 'toArray')) {
+            $iterable = $iterable->toArray();
+        } elseif (!is_array($iterable)) {
+            $temp = [];
+            foreach ($iterable as $key => $value) {
+                $temp[$key] = $value;
+            }
+            $iterable = $temp;
+        }
+
+        $this->arrayValue = array_merge($this->arrayValue, $iterable);
+        return $this;
+    }
 
 	/**
 	 * @return array
@@ -198,12 +249,42 @@ trait ArrayTrait
 			$offset = $this->arrayNumericIndexCounter++;
 		}
 
-		$this->arrayValue[$offset] = $value;
-		//TODO - числовое значение за пределами текущего размера может превратить перечислимы массив в ассоциативный
-		if (is_string($offset)) {
-			$this->arrayIsAssoc = true;
-		}
+		if ($this->beforeSet($offset, $value) === false) {
+		    return;
+        }
+		$this->offsetSetProcess($offset, $value);
+        $this->afterSet($offset, $value);
 	}
+
+    /**
+     * @param mixed $offset
+     * @param mixed $value
+     */
+	protected function offsetSetProcess($offset, $value)
+    {
+        $this->arrayValue[$offset] = $value;
+        if (is_string($offset)) {
+            $this->arrayIsAssoc = true;
+        }
+    }
+
+    /**
+     * @param mixed $key
+     * @param mixed $value
+     */
+	protected function beforeSet($key, $value)
+    {
+        return true;
+    }
+
+    /**
+     * @param mixed $key
+     * @param mixed $value
+     */
+    protected function afterSet($key, $value)
+    {
+        // pass
+    }
 
 	/**
 	 * @param mixed $offset
@@ -219,9 +300,45 @@ trait ArrayTrait
 	 */
 	public function offsetUnset($offset)
 	{
-		unset($this->arrayValue[$offset]);
+	    if (!array_key_exists($offset, $this->arrayValue)) {
+	        return;
+        }
+	    
+	    $value = $this->arrayValue[$offset];
+	    if ($this->beforeUnset($offset, $value) === false) {
+	        return;
+        }
+        $this->offsetUnsetProcess($offset);
+	    $this->afterUnset($offset, $value);
+	    
 		//TODO - проверка на ансет из середины перечислимого массива, чтобы сменить его на ассоциативный
 	}
+
+    /**
+     * @param mixed $offset
+     */
+	protected function offsetUnsetProcess($offset)
+    {
+        unset($this->arrayValue[$offset]);
+    }
+
+    /**
+     * @param mixed $key
+     * @param mixed $value
+     */
+    protected function beforeUnset($key, $value)
+    {
+        return true;
+    }
+
+    /**
+     * @param mixed $key
+     * @param mixed $value
+     */
+    protected function afterUnset($key, $value)
+    {
+        // pass
+    }
 
 	/**
 	 * @return Iterator

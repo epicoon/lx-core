@@ -45,6 +45,7 @@ abstract class DB {
 
 
     abstract public function getTableSchema($tableName);
+	abstract public function getContrForeignKeysInfo($tableName);
 
 	//TODO отвязать от $schema
     abstract public function getCreateTableQuery($schema);
@@ -54,7 +55,8 @@ abstract class DB {
     abstract public function getRenameColumnQuery($schema, $oldFieldName, $newFieldName);
     abstract public function getAddForeignKeyQuery(
         string $table, string $field,
-        string $relTable, string $relField
+        string $relTable, string $relField,
+        ?string $constraintName = null
     ): string;
     abstract public function getDropForeignKeyQuery(
         string $table, string $field,
@@ -72,7 +74,7 @@ abstract class DB {
 	abstract public function query($query);
 	abstract public function select($query);
 	abstract public function insert($query, $returnId);
-	abstract public function massUpdate($table, $rows);
+	abstract public function massUpdate($tableName, $rows);
 	abstract public function tableExists($name);  // Проверка существования таблицы
 	abstract public function renameTable($oldName, $newName);
 	abstract public function tableName($name);

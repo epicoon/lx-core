@@ -37,10 +37,7 @@ class ServiceController extends Resource
 		return parent::__get($name);
 	}
 	
-	/**
-	 * @return array
-	 */
-	public static function getConfigProtocol()
+	public static function getConfigProtocol(): array
 	{
 	    return array_merge(parent::getConfigProtocol(), [
 	        'service' => [

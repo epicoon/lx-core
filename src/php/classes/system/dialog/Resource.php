@@ -29,10 +29,7 @@ class Resource implements ResourceInterface
 		}
 	}
 
-	/**
-	 * @return array
-	 */
-	public static function getConfigProtocol()
+	public static function getConfigProtocol(): array
 	{
 		return [
 			'voter' => ResourceVoterInterface::class,

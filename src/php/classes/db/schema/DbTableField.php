@@ -33,6 +33,9 @@ class DbTableField
     /** @var mixed */
     private $defailt;
 
+    /** @var bool */
+    private $pk;
+
     /** @var array|null */
     private $fk;
 
@@ -54,6 +57,7 @@ class DbTableField
         $this->isNullable = $definition['nullable'] ?? true;
         $this->defailt = $definition['default'] ?? null;
 
+        $this->pk = $definition['pk'] ?? false;
         $this->fk = $definition['fk'] ?? null;
     }
 
@@ -80,6 +84,10 @@ class DbTableField
         $isNullable = $this->isNullable();
         if (!$isNullable) {
             $result['nullable'] = $isNullable;
+        }
+        
+        if ($this->pk) {
+            $result['pk'] = true;
         }
         
         if ($this->fk) {
@@ -141,6 +149,14 @@ class DbTableField
         return $this->isNullable;
     }
 
+    /**
+     * @return bool
+     */
+    public function isPk()
+    {
+        return $this->pk;
+    }
+    
     /**
      * @return bool
      */

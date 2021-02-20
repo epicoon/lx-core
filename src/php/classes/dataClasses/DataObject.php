@@ -33,12 +33,7 @@ class DataObject
 	 */
 	public function __set($prop, $val)
 	{
-		if (property_exists($this, $prop)) {
-			$this->$prop = $val;
-			return;
-		}
-
-		$this->_prop[$prop] = $val;
+		$this->setProperty($prop, $val);
 	}
 
 	/**
@@ -47,15 +42,7 @@ class DataObject
 	 */
 	public function &__get($prop)
 	{
-		if (property_exists($this, $prop)) {
-			return $this->$prop;
-		}
-
-		if (array_key_exists($prop, $this->_prop)) {
-			return $this->_prop[$prop];
-		}
-
-		return $this->null();
+	    return $this->getProperty($prop);
 	}
 
 	/**
@@ -84,6 +71,36 @@ class DataObject
 	{
 		return (array_key_exists($name, $this->_prop) && $this->_prop[$name] === null);
 	}
+
+    /**
+     * @param string $prop
+     * @param mixed $val
+     */
+    public function setProperty($prop, $val)
+    {
+        $this->_prop[$prop] = $val;
+    }
+
+    /**
+     * @param string $name
+     * @return mixed|null
+     */
+	public function &getProperty($name)
+    {
+        if (array_key_exists($name, $this->_prop)) {
+            return $this->_prop[$name];
+        }
+
+        return $this->null();
+    }
+
+    /**
+     * @param string $name
+     */
+	public function dropProperty($name)
+    {
+        unset($this->_prop[$name]);
+    }
 
 	/**
 	 * Returns a dynamic property and deletes it from the object

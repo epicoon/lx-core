@@ -11,18 +11,12 @@ trait ObjectTrait
     /** @var array */
     private $delegateList = [];
 
-    /**
-     * @return array
-     */
-    public static function getConfigProtocol()
+    public static function getConfigProtocol(): array
     {
         return [];
     }
 
-    /**
-     * @return array
-     */
-    public static function diMap()
+    public static function diMap(): array
     {
         return [];
     }

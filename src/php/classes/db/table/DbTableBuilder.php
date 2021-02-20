@@ -140,9 +140,35 @@ class DbTableBuilder
     public function addField($definition)
     {
         $field = $this->schema->addField($definition);
+
         $db = $this->getDb();
+        $db->transactionBegin();
+
         $query = $db->getAddColumnQuery($this->schema, $field->getName());
-        return $db->query($query);
+        $result = $db->query($query);
+        if (!$result) {
+            $db->transactionRollback();
+            return false;
+        }
+
+        if ($field->isFk()) {
+            $fk = $field->getDefinition()['fk'];
+            $query = $db->getAddForeignKeyQuery(
+                $this->schema->getName(),
+                $field->getName(),
+                $fk['table'],
+                $fk['field'],
+                $fk['name'] ?? null
+            );
+            $result = $db->query($query);
+            if (!$result) {
+                $db->transactionRollback();
+                return false;
+            }
+        }
+
+        $db->transactionCommit();
+        return true;
     }
 
     /**
@@ -152,8 +178,32 @@ class DbTableBuilder
     public function delField($fieldName)
     {
         $db = $this->getDb();
+        $db->transactionBegin();
+
+        $field = $this->schema->getField($fieldName);
+        if ($field->isFk()) {
+            $fk = $field->getDefinition()['fk'];
+            $query = $db->getDropForeignKeyQuery(
+                $this->schema->getName(),
+                $field->getName(),
+                $fk['name'] ?? null
+            );
+            $result = $db->query($query);
+            if (!$result) {
+                $db->transactionRollback();
+                return false;
+            }
+        }
+
         $query = $db->getDelColumnQuery($this->schema, $fieldName);
-        return $db->query($query);
+        $result = $db->query($query);
+        if (!$result) {
+            $db->transactionRollback();
+            return false;
+        }
+
+        $db->transactionCommit();
+        return true;
     }
 
     /**

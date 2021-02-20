@@ -28,7 +28,7 @@ class Vector implements ArrayInterface
 			$arr = $args;
 		}
 
-		$this->constructArray($arr);
+		$this->__constructArray($arr);
 	}
 
 	/**
@@ -61,18 +61,12 @@ class Vector implements ArrayInterface
 	}
 
 	/**
-	 * @param ArrayInterface|array $elems
-	 * @return Vector
+	 * @param iterable $elems
+	 * @return iterable
 	 */
 	public function merge($elems)
 	{
-		if ($elems instanceof ArrayInterface) {
-			return $this->insert($this->len(), $elems->toArray());
-		}
-
-		if (is_array($elems)) {
-			return $this->insert($this->len(), $elems);
-		}
+        return $this->insert($this->len(), $elems);
 	}
 
 	/**
@@ -99,26 +93,32 @@ class Vector implements ArrayInterface
 	/**
 	 * @param int $index
 	 * @param int $count
-	 * @param ArrayInterface|array $replacement
+	 * @param iterable $replacement
 	 * @return $this
 	 */
 	public function splice($index, $count = 1, $replacement = [])
 	{
-		if ($replacement instanceof ArrayInterface) {
-			$replacement = $replacement->toArray();
-		}
-
-		if (!is_array($replacement)) {
-			$replacement = [$replacement];
-		}
-
+	    if (!empty($replacement)) {
+            if (is_object($replacement) && method_exists($replacement, 'toArray')) {
+                $replacement = array_values($replacement->toArray());
+            } elseif (is_array($replacement)) {
+                $replacement = array_values($replacement);
+            } else {
+                $temp = [];
+                foreach ($replacement as $elem) {
+                    $temp[] = $elem;
+                }
+                $replacement = $temp;
+            }
+        }
+	    
 		array_splice($this->arrayValue, $index, $count, $replacement);
 		return $this;
 	}
 
 	/**
 	 * @param int $index
-	 * @param ArrayInterface|array $elems
+	 * @param iterable $elems
 	 * @return $this
 	 */
 	public function insert($index, $elems)

@@ -41,7 +41,7 @@ abstract class I18nMap implements FusionComponentInterface
 	}
 
 	/**
-	 * @param array|ArrayInterface $map
+	 * @param iterable $map
 	 * @param bool $rewrite
 	 */
 	public function add($map, $rewrite = false)

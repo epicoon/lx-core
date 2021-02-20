@@ -28,10 +28,7 @@ class User implements UserInterface, FusionComponentInterface
 		$this->delegateMethodsCall('userModel');
 	}
 
-    /**
-     * @return array
-     */
-    public static function getConfigProtocol()
+    public static function getConfigProtocol(): array
     {
         return [
             'userModel' => ModelInterface::class,

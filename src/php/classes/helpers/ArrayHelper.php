@@ -8,6 +8,39 @@ namespace lx;
  */
 class ArrayHelper
 {
+    /**
+     * @param mixed|null $array
+     * @return bool
+     */
+    public static function isEmpty($array)
+    {
+        if ($array === null || $array === '') {
+            return true;
+        }
+
+        if (is_array($array)) {
+            return empty($array);
+        }
+
+        if ($array instanceof ArrayInterface) {
+            return $array->isEmpty();
+        }
+        
+        if (is_object($array) && method_exists($array, 'toArray')) {
+            return empty($array->toArray());
+        }
+        
+        if ($array instanceof iterable) {
+            foreach ($array as $item) {
+                return false;
+            }
+            
+            return true;
+        }
+        
+        return false;
+    }
+
 	/**
 	 * @param array $array
 	 * @param string $field
@@ -41,6 +74,22 @@ class ArrayHelper
 		unset($array[$key]);
 		return $result;
 	}
+
+    /**
+     * @param array $array
+     * @param string $columnName
+     * @return array
+     */
+	public static function getColumn($array, $columnName)
+    {
+        $result = [];
+        foreach ($array as $row) {
+            if (is_array($row) && array_key_exists($columnName, $row)) {
+                $result[] = $row[$columnName];
+            }
+        }
+        return $result;
+    }
 
 	/**
 	 * @param array $array
@@ -148,7 +197,7 @@ class ArrayHelper
 	}
 
 	/**
-	 * Method recieves array of accosiated arrays wirh the same keys
+	 * Method recieves array of accosiated arrays with same keys
 	 * Extract keys in the individual field
 	 * Transfer arrays to countable with values order according to keys order
 	 *

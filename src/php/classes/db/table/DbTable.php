@@ -4,34 +4,31 @@ namespace lx;
 
 class DbTable
 {
-    protected
-        $db,
-        $name,
-        $_pkName = null;
+    private $db;
+    private $name;
+    private $_pkName = null;
 
-    public function __construct($name, $db) {
+    public function __construct($name, $db)
+    {
         $this->name = $name;
         $this->db = $db;
     }
 
-    /**
-     *
-     * */
-    public function getDb() {
+    public function getDb()
+    {
         return $this->db;
     }
 
-    /**
-     *
-     * */
-    public function getName() {
+    public function getName()
+    {
         return $this->name;
     }
 
     /**
-     *
-     * */
-    public function schema($columns = DB::SHORT_SCHEMA) {
+     * @deprecated
+     */
+    public function schema($columns = DB::SHORT_SCHEMA)
+    {
         if ($columns == DB::SHORT_SCHEMA) {
             return DbTableSchemaProvider::get($this);
         }
@@ -40,9 +37,10 @@ class DbTable
     }
 
     /**
-     *
-     * */
-    public function pkName() {
+     * @deprecated
+     */
+    public function pkName()
+    {
         if ($this->_pkName === null) {
             $this->_pkName = $this->schema()->getPk();
         }
@@ -51,16 +49,15 @@ class DbTable
     }
 
     /**
-     *
-     * */
-    public function setPkName($name) {
+     * @deprecated
+     */
+    public function setPkName($name)
+    {
         $this->_pkName = $name;
     }
 
-    /**
-     *
-     * */
-    public function select($fields = '*', $condition = null) {
+    public function select($fields = '*', $condition = null)
+    {
         if (is_array($fields)) $fields = implode(',', $fields);
         $query = "SELECT $fields FROM {$this->name}";
         $condition = $this->parseCondition($condition);
@@ -71,10 +68,8 @@ class DbTable
         return $result;
     }
 
-    /**
-     *
-     * */
-    public function selectColumn($columnName, $condition = null) {
+    public function selectColumn($columnName, $condition = null)
+    {
         $data = $this->select($columnName, $condition);
         $result = [];
         foreach ($data as $row) {
@@ -84,10 +79,8 @@ class DbTable
         return $result;
     }
 
-    /**
-     *
-     * */
-    public function insert($fields, $values=null, $returnId=true) {
+    public function insert($fields, $values=null, $returnId=true)
+    {
         if ($values === null || is_bool($values)) {
             $returnId = $values === null ? true : $values;
             $values = array_values($fields);
@@ -108,10 +101,8 @@ class DbTable
         return $this->db->insert($query, $returnId);
     }
 
-    /**
-     *
-     * */
-    public function update($sets, $condition=null) {
+    public function update($sets, $condition=null)
+    {
         $temp = [];
         foreach ($sets as $field => $value) {
             $temp[] = $field . ' = ' . DB::valueForQuery($value);
@@ -126,10 +117,8 @@ class DbTable
         return $res;
     }
 
-    /**
-     *
-     * */
-    public function delete($condition=null) {
+    public function delete($condition=null)
+    {
         $condition = $this->parseCondition($condition);
         $query = 'DELETE FROM ' . $this->name;
         if ($condition !== null) $query .= $condition;
@@ -138,9 +127,15 @@ class DbTable
     }
 
     /**
-     * Парсим условие
-     * */
-    protected function parseCondition($condition) {
+     * @param array $rows
+     */
+    public function massUpdate($rows)
+    {
+        return $this->db->massUpdate($this->getName(), $rows);
+    }
+
+    protected function parseCondition($condition)
+    {
         if ($condition === null) return '';
 
         $data = new DataObject();

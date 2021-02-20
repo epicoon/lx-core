@@ -126,4 +126,12 @@ class DbTableSchema
     {
         $this->pkNames = (array)$name;
     }
+
+    /**
+     * @return array
+     */
+    public function getContrForeignKeysInfo()
+    {
+        return $this->getDb()->getContrForeignKeysInfo($this->getName());
+    }
 }

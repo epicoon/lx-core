@@ -23,20 +23,12 @@ class DBpostgres extends DB
      */
     public function getTableSchema($tableName)
     {
-        if (preg_match('/\./', $tableName)) {
-            $arr = explode('.', $tableName);
-            $schemaName = $arr[0];
-            $shortTableName = $arr[1];
-            $fields = $this->select("
-                SELECT * FROM information_schema.columns WHERE table_schema='{$schemaName}' AND table_name='{$shortTableName}'
-            ");
-        } else {
-            $schemaName = 'public';
-            $shortTableName = $tableName;
-            $fields = $this->select("
-                SELECT * FROM information_schema.columns WHERE table_name='$tableName'
-            ");
-        }
+        list($schemaName, $shortTableName) = $this->splitTableName($tableName);
+        $fields = $this->select("
+            SELECT *
+            FROM information_schema.columns
+            WHERE table_schema='{$schemaName}' AND table_name='{$shortTableName}'
+        ");
 
         if (empty($fields)) {
             return null;
@@ -83,9 +75,10 @@ class DBpostgres extends DB
             'fields' => $fieldDefinitions,
         ];
 
-        $fks = $this->select("
+        $constraintKeys = $this->select("
 			SELECT
 			    tc.constraint_name,
+                tc.constraint_type,
                 kcu.column_name as column_name,
                 ccu.table_schema,
                 ccu.table_name,
@@ -97,17 +90,21 @@ class DBpostgres extends DB
 			    LEFT JOIN information_schema.constraint_column_usage AS ccu
                     ON ccu.constraint_name = tc.constraint_name
                     AND ccu.table_schema = tc.table_schema
-			WHERE tc.constraint_type='FOREIGN KEY'
+			WHERE (tc.constraint_type='FOREIGN KEY' OR tc.constraint_type='PRIMARY KEY')
 				AND tc.table_schema='$schemaName'
 				AND tc.table_name='$shortTableName';
 		");
-        foreach ($fks as $fk) {
-            $fieldName = $fk['column_name'];
-            $config['fields'][$fieldName]['fk'] = [
-                'table' => $fk['table_schema'] . '.' . $fk['table_name'],
-                'field' => $fk['rel_column_name'],
-                'name' => $fk['constraint_name'],
-            ];
+        foreach ($constraintKeys as $key) {
+            $fieldName = $key['column_name'];
+            if ($key['constraint_type'] == 'FOREIGN KEY') {
+                $config['fields'][$fieldName]['fk'] = [
+                    'table' => $key['table_schema'] . '.' . $key['table_name'],
+                    'field' => $key['rel_column_name'],
+                    'name' => $key['constraint_name'],
+                ];
+            } else {
+                $config['fields'][$fieldName]['pk'] = true;
+            }
         }
 
         $schema = DbTableSchema::createByConfig($this, $config);
@@ -116,6 +113,32 @@ class DBpostgres extends DB
         }
 
         return $schema;
+    }
+
+    /**
+     * @param string $tableName
+     * @return array
+     */
+    public function getContrForeignKeysInfo($tableName)
+    {
+        list($schemaName, $shortTableName) = $this->splitTableName($tableName);
+        return $this->select("
+            SELECT
+                kcu.table_schema || '.' || kcu.table_name as table,
+                kcu.column_name as field,
+                tc.constraint_name as name
+            FROM information_schema.table_constraints as tc
+                LEFT JOIN information_schema.key_column_usage AS kcu
+                    ON tc.constraint_name = kcu.constraint_name
+                    AND tc.table_schema = kcu.table_schema
+                LEFT JOIN information_schema.constraint_column_usage AS ccu
+                    ON ccu.constraint_name = tc.constraint_name
+                    AND ccu.table_schema = tc.table_schema
+            WHERE tc.constraint_type='FOREIGN KEY'
+                AND ccu.table_schema='$schemaName'
+                AND ccu.table_name='$shortTableName'
+                AND ccu.column_name='id';
+        ");//TODO AND ccu.colimn_name='id' захардкожена завязка на конкретный первичный ключ
     }
 
     /**
@@ -243,14 +266,17 @@ class DBpostgres extends DB
         string $table,
         string $field,
         string $relTable,
-        string $relField
+        string $relField,
+        ?string $constraintName = null
     ): string
     {
-        $tableKey = str_replace('.', '_', $table);
-        $fkName = "fk__{$tableKey}__$field";
+        if ($constraintName === null) {
+            $tableKey = str_replace('.', '_', $table);
+            $constraintName = "fk__{$tableKey}__$field";
+        }
         
         //TODO ON DELETE|UPDATE CASCADE|RESTRICT
-        return "ALTER TABLE {$table} ADD CONSTRAINT $fkName FOREIGN KEY ({$field})
+        return "ALTER TABLE {$table} ADD CONSTRAINT $constraintName FOREIGN KEY ({$field})
 			REFERENCES {$relTable}({$relField});
 		";
     }
@@ -342,13 +368,16 @@ class DBpostgres extends DB
 		while ($row = pg_fetch_array($res)) $arr[] = $row[0];
 		pg_free_result($res);
 		if (count($arr) == 1) return $arr[0];
+        sort($arr);
 		return $arr;
 	}
 
 	/**
 	 * Массовый апдейт
-	 * */
-	public function massUpdate($table, $rows) {
+     * @return bool
+	 */
+	public function massUpdate($tableName, $rows)
+    {
 		/*
 		--Такой запрос работает:
 		UPDATE table_name SET
@@ -363,43 +392,43 @@ class DBpostgres extends DB
 		WHERE table_name.id = t.id;
 		*/
 
-		//todo - схема кэшируется. Подумать оставять так или нет
-		$schema = $table->schema();
-		$pk = $schema->getPk();
-		$fields = $schema->getFields();
-		$set = [];
-		$values = [];
-		foreach ($fields as $field) {
-			$vals = [];
-			foreach ($rows as $row) {
-				$val = DB::valueForQuery($row[$field]);
-				if ($val == 'NULL' && $schema->getType($field) != DB::TYPE_STRING) {
-					$val .= '::' . $schema->getType($field);
-				}
-				$vals[] = $val;
-			}
-			$vals = implode(', ', $vals);
-			$values[] = "unnest(array[$vals]) as $field";
+        $schema = $this->getTableSchema($tableName);
 
-			if ($field == $pk) continue;
-			$set[] = "$field = t.$field";
-		}
-		$set = implode(', ', $set);
-		$values = implode(', ', $values);
+        $set = [];
+        $values = [];
+        foreach ($schema->getFields() as $fieldName => $field) {
+            $vals = [];
+            foreach ($rows as $row) {
+                $val = DB::valueForQuery($row[$fieldName] ?? null);
+                if ($val == 'NULL' && $field->getType() != DbTableField::TYPE_STRING) {
+                    $val .= '::' . $field->getType();
+                }
+                $vals[] = $val;
+            }
+            $vals = implode(', ', $vals);
+            $values[] = "unnest(array[{$vals}]) as {$fieldName}";
 
-		$query = "UPDATE {$table->getName()} SET $set FROM (SELECT $values) as t WHERE {$table->getName()}.$pk = t.$pk";
-		$result;
-		$res = pg_query($this->connection, $query);
-		if ($res === false) {
-			$this->error = pg_last_error($this->connection);
-			return false;
-		}
+            if ($field->isPk()) {
+                continue;
+            }
+            
+            $set[] = "{$fieldName} = t.{$fieldName}";
+        }
+        $set = implode(', ', $set);
+        $values = implode(', ', $values);
 
-		$result = 'done';
+        $query = "UPDATE {$tableName} SET $set FROM (SELECT $values) as t WHERE {$tableName}.id = t.id";
+        //TODO первичный ключ захардкожен id
 
-		pg_free_result($res);
-		return $result;
-	}
+        $res = pg_query($this->connection, $query);
+        if ($res === false) {
+            $this->error = pg_last_error($this->connection);
+            return false;
+        }
+
+        pg_free_result($res);
+        return true;
+    }
 
 	/**
 	 * Проверяет существование таблицы
@@ -752,6 +781,7 @@ class DBpostgres extends DB
 	}
 
     /**
+     * @deprecated
      * @param string $tableName
      * @param string $name
      * @param $definition
@@ -776,6 +806,25 @@ class DBpostgres extends DB
 		return true;
 	}
 
+
+    /**
+     * @param string $tableName
+     * @return array [schemaName, shortTableName]
+     */	
+	private function splitTableName($tableName)
+    {
+        if (preg_match('/\./', $tableName)) {
+            $arr = explode('.', $tableName);
+            $schemaName = $arr[0];
+            $shortTableName = $arr[1];
+        } else {
+            $schemaName = 'public';
+            $shortTableName = $tableName;
+        }
+
+        return [$schemaName, $shortTableName];
+    }
+    
     /**
      * @param DbTableField $field
      * @return string
