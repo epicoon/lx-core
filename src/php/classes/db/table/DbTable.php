@@ -58,7 +58,9 @@ class DbTable
 
     public function select($fields = '*', $condition = null)
     {
-        if (is_array($fields)) $fields = implode(',', $fields);
+        if (is_array($fields)) {
+            $fields = implode(',', $fields);
+        }
         $query = "SELECT $fields FROM {$this->name}";
         $condition = $this->parseCondition($condition);
         if ($condition) $query .= $condition;
