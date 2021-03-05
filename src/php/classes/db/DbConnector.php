@@ -21,7 +21,7 @@ class DbConnector implements FusionComponentInterface, DbConnectorInterface
 	/** @var array */
 	private $connections = [];
 
-	public function __construct($config = [])
+	public function __construct(array $config = [])
 	{
 	    $this->__objectConstruct($config);
 		$this->config = $config;

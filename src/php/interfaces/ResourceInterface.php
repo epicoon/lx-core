@@ -10,7 +10,7 @@ interface ResourceInterface extends ErrorCollectorInterface
 {
 	/**
 	 * @param array $params
-	 * @param User $user
+	 * @param UserInterface $user
 	 * @return ResponseInterface
 	 */
 	public function run($params, $user = null);
@@ -18,7 +18,7 @@ interface ResourceInterface extends ErrorCollectorInterface
 	/**
 	 * @param string $actionName
 	 * @param array $params
-	 * @param User $user
+	 * @param UserInterface $user
 	 * @return ResponseInterface
 	 */
 	public function runAction($actionName, $params, $user = null);

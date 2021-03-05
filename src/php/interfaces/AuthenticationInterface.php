@@ -3,19 +3,14 @@
 namespace lx;
 
 /**
- * This interface for authentication gate realisation
+ * This interface for authentication gate implementation
  *
  * Interface AuthenticationInterface
  * @package lx
  */
 interface AuthenticationInterface extends EventListenerInterface
 {
-	/**
-	 * Try to authenticate user
-	 * 
-	 * @return bool
-	 */
-	public function authenticateUser();
+	public function authenticateUser(?array $authData = null): ?UserInterface;
 
 	/**
 	 * Returns ResourceContext with plugin to get attempt authenticate user from front-end

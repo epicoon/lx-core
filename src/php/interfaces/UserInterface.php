@@ -8,28 +8,10 @@ namespace lx;
  */
 interface UserInterface
 {
-    /**
-     * @return bool
-     */
-    public function isGuest();
-
-    /**
-     * @return bool
-     */
-    public function isAvailable();
-
-    /**
-     * @param string $name
-     */
-    public function setAuthFieldName($name);
-
-    /**
-     * @return string
-     */
-    public function getAuthFieldName();
-
-    /**
-     * @return string
-     */
-    public function getAuthField();
+    public function isGuest(): bool;
+    public function setModel(ModelInterface $userModel): void;
+    public function getModel(): ?ModelInterface;
+    public function setAuthFieldName(string $name): void;
+    public function getAuthFieldName(): string;
+    public function getAuthValue(): string;
 }

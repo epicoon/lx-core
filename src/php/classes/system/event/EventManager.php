@@ -12,14 +12,9 @@ class EventManager implements FusionComponentInterface
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
-	/** @var array */
-	private $list;
+	private array $list;
 
-	/**
-	 * EventManager constructor.
-	 * @param array $config
-	 */
-	public function __construct($config = [])
+	public function __construct(array $config = [])
 	{
 	    $this->__objectConstruct($config);
 		$this->list = [];

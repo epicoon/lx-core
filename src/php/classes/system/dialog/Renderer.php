@@ -10,10 +10,7 @@ class Renderer implements RendererInterface
 {
     use ObjectTrait;
 
-    /**
-     * @return bool
-     */
-    public static function isSingleton()
+    public static function isSingleton(): bool
     {
         return true;
     }

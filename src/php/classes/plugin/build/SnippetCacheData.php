@@ -29,11 +29,7 @@ class SnippetCacheData
 	/** @var array */
 	private $map;
 
-	/**
-	 * SnippetCacheData constructor.
-	 * @param SnippetBuildContext $snippetBuildContext
-	 */
-	public function __construct($snippetBuildContext)
+	public function __construct(SnippetBuildContext $snippetBuildContext)
 	{
 		$this->snippetBuildContext = $snippetBuildContext;
 		$this->map = null;

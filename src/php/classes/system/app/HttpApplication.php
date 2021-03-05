@@ -8,7 +8,7 @@ namespace lx;
  *
  * @property-read Router $router
  * @property-read Dialog $dialog
- * @property-read User $user
+ * @property-read UserInterface $user
  */
 class HttpApplication extends BaseApplication
 {
@@ -33,7 +33,7 @@ class HttpApplication extends BaseApplication
             'assets' => HttpAssetsManager::class,
             'router' => Router::class,
             'dialog' => Dialog::class,
-            'user' => User::class,
+            'user' => UserInterface::class,
         ]);
     }
 
@@ -79,7 +79,7 @@ class HttpApplication extends BaseApplication
 	 */
 	private function authenticateUser()
 	{
-		if ($this->user && $this->authenticationGate) {
+		if ($this->user && $this->userManager && $this->authenticationGate) {
 			$this->authenticationGate->authenticateUser();
 		}
 	}

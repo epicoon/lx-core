@@ -11,41 +11,22 @@ abstract class AbstractResourceVoter implements ResourceVoterInterface
     use ObjectTrait;
 	use ApplicationToolTrait;
 
-	/** @var Resource */
-	protected $owner;
+	protected Resource $owner;
 
-	/**
-	 * @return Resource
-	 */
-	public function getResource()
+	public function getResource(): Resource
 	{
 		return $this->owner;
 	}
 
-	/**
-	 * @param Resource $resource
-	 */
 	public function setResource(Resource $resource)
 	{
 		$this->owner = $resource;
 	}
 
-	/**
-	 * @param User $user
-	 * @param string $actionName
-	 * @param array $params
-	 * @return array
-	 */
-	public function processActionParams(User $user, $actionName, $params)
+	public function processActionParams(UserInterface $user, string $actionName, array $params): array
 	{
 		return $params;
 	}
 
-	/**
-	 * @param User $user
-	 * @param string $actionName
-	 * @param array $params
-	 * @return bool
-	 */
-	abstract public function run(User $user, $actionName, $params);
+	abstract public function run(UserInterface $user, string $actionName, array $params): bool;
 }

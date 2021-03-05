@@ -15,11 +15,7 @@ class CorsProcessor implements FusionComponentInterface
 	/** @var array - can be redefined by application components configuration */
 	protected $originMap = [];
 
-	/**
-	 * CorsProcessor constructor.
-	 * @param array $config
-	 */
-	public function __construct($config = [])
+	public function __construct(array $config = [])
 	{
 	    $this->__objectConstruct($config);
 

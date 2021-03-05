@@ -27,7 +27,7 @@ class StringHelper
 	public static function snakeToCamel($string, $delimiter = '_')
 	{
 		if (is_array($delimiter)) {
-			$delimiter = '(' . implode('|', $delimiter) . ')';
+			$delimiter = '(?:' . implode('|', $delimiter) . ')';
 		}
 
 		return preg_replace_callback('/' . $delimiter . '(.)/', function ($match) {

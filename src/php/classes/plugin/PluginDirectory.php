@@ -14,10 +14,10 @@ class PluginDirectory implements FusionComponentInterface
 	/** @var Directory */
 	protected $dir;
 
-	/**
-	 * PackageDirectory constructor.
-	 * @param array $config
-	 */
+    /**
+     * PluginDirectory constructor.
+     * @param array|string $config
+     */
 	public function __construct($config = [])
 	{
 		if (is_string($config)) {

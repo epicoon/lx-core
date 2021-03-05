@@ -337,7 +337,7 @@ class Plugin extends Resource implements FusionInterface
 	 * This method is used by ResourceContext for return Plugin as resource
 	 *
 	 * @param array $params
-	 * @param User $user
+	 * @param UserInterface $user
 	 * @return ResponseInterface
 	 */
 	public function run($params = [], $user = null)

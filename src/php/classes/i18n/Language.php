@@ -22,11 +22,7 @@ class Language implements FusionComponentInterface
 	/** @var string */
 	private $_current;
 
-	/**
-	 * Language constructor.
-	 * @param array $config
-	 */
-	public function __construct($config = [])
+	public function __construct(array $config = [])
 	{
 	    $this->__objectConstruct($config);
 

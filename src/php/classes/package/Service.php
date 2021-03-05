@@ -37,7 +37,7 @@ class Service implements FusionInterface
 	 * Service constructor.
 	 * @param array $config
 	 */
-	public function __construct($config)
+	public function __construct(array $config)
 	{
 	    $serviceConfig = $config['serviceConfig'] ?? [];
 	    unset($config['serviceConfig']);

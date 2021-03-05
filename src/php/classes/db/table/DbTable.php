@@ -160,12 +160,12 @@ class DbTable
                 $data->order = $condition['ORDER BY'];
             }
 
-            if (array_key_exists('OFFSET', $condition)) {
+            if (array_key_exists('OFFSET', $condition) && $condition['OFFSET'] != 0) {
                 $isMap = true;
                 $data->offset = $condition['OFFSET'];
             }
 
-            if (array_key_exists('LIMIT', $condition)) {
+            if (array_key_exists('LIMIT', $condition) && $condition['LIMIT'] !== null) {
                 $isMap = true;
                 $data->limit = $condition['LIMIT'];
             }

@@ -15,11 +15,7 @@ class Resource implements ResourceInterface
 	/** @var ResourceVoterInterface */
 	private $voter;
 
-	/**
-	 * Resource constructor.
-	 * @param array $config
-	 */
-	public function __construct($config = [])
+	public function __construct(array $config = [])
 	{
 	    $this->__objectConstruct($config);
 
@@ -57,7 +53,7 @@ class Resource implements ResourceInterface
 
 	/**
 	 * @param array $params
-	 * @param User $user
+	 * @param UserInterface $user
 	 * @return ResponseInterface
 	 */
 	public function run($params, $user = null)
@@ -68,7 +64,7 @@ class Resource implements ResourceInterface
 	/**
 	 * @param string $actionName
 	 * @param array $params
-	 * @param User $user
+	 * @param UserInterface $user
 	 * @return ResponseInterface
 	 */
 	public function runAction($actionName, $params, $user = null)

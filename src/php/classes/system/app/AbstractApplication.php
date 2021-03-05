@@ -54,11 +54,7 @@ abstract class AbstractApplication implements FusionInterface
 	/** @var bool */
 	private $logMode;
 
-	/**
-	 * AbstractApplication constructor.
-     * @param array|null $config
-	 */
-	public function __construct($config = [])
+	public function __construct(?array $config = [])
 	{
 	    if ($config === null) {
 	        return;

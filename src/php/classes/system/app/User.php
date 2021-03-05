@@ -12,39 +12,29 @@ class User implements UserInterface, FusionComponentInterface
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
-    /** @var ModelInterface */
-    private $userModel = null;
+    private ?ModelInterface $userModel = null;
+    private ?string $authFieldName = null;
 
-	/** @var string */
-	private $authFieldName = null;
-
-	/**
-	 * User constructor.
-	 * @param array $config
-	 */
-	public function __construct($config = [])
+	public function __construct(array $config = [])
 	{
 	    $this->__objectConstruct($config);
 		$this->delegateMethodsCall('userModel');
 	}
-
-    public static function getConfigProtocol(): array
-    {
-        return [
-            'userModel' => ModelInterface::class,
-        ];
-    }
-
+	
 	/**
 	 * @param string $name
 	 * @return mixed|null
 	 */
-	public function __get($name)
+	public function __get(string $name)
 	{
 		if ($this->userModel) {
 			if ($this->userModel->hasField($name)) {
-				return $this->userModel->$name;
+				return $this->userModel->getField($name);
 			}
+
+            if ($this->userModel->hasRelation($name)) {
+                return $this->userModel->getRelated($name);
+            }
 		}
 
 		return $this->__objectGet($name);
@@ -58,57 +48,36 @@ class User implements UserInterface, FusionComponentInterface
 	{
 		if ($this->userModel) {
 			if ($this->userModel->hasField($name)) {
-				$this->userModel->$name = $value;
+				$this->userModel->setField($name, $value);
 			}
+
+            if ($this->userModel->hasRelation($name)) {
+                $this->userModel->setRelated($name, $value);
+            }
 		}
 	}
-
-	/**
-	 * @return bool
-	 */
-	public function isGuest()
+	
+	public function isGuest(): bool
 	{
-		if ($this->isAvailable() || $this->authFieldName) {
-			$authFieldName = $this->userModel->{$this->authFieldName};
-			return !($authFieldName && $authFieldName != '');
-		}
-
-		return true;
+	    return ($this->userModel === null);
 	}
+	
+    public function setModel(ModelInterface $userModel): void
+    {
+        $this->userModel = $userModel;
+    }
 
-	/**
-	 * @return bool
-	 */
-	public function isAvailable()
-	{
-		return $this->userModel !== null;
-	}
+    public function getModel(): ?ModelInterface
+    {
+        return $this->userModel;
+    }
 
-	/**
-	 * TODO - need some interface for $userData?
-	 * @param $userData
-	 */
-	public function set($userData)
-	{
-		if (!$this->isAvailable()) {
-			return;
-		}
-
-		$this->userModel->setData($userData);
-	}
-
-    /**
-     * @param string $name
-     */
-    public function setAuthFieldName($name)
+    public function setAuthFieldName(string $name): void
     {
         $this->authFieldName = $name;
     }
 
-    /**
-     * @return string
-     */
-    public function getAuthFieldName()
+    public function getAuthFieldName(): string
     {
         if ($this->isGuest()) {
             return '';
@@ -117,11 +86,12 @@ class User implements UserInterface, FusionComponentInterface
         return $this->authFieldName;
     }
 
-	/**
-	 * @return string
-	 */
-	public function getAuthField()
+	public function getAuthValue(): string
 	{
-		return $this->{$this->authFieldName};
+	    if ($this->isGuest()) {
+	        return '';
+        }
+	    
+		return $this->userModel->getField($this->authFieldName);
 	}
 }

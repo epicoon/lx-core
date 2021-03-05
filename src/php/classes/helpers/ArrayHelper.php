@@ -8,6 +8,28 @@ namespace lx;
  */
 class ArrayHelper
 {
+    public static function iterableToArray(iterable $iterable): array
+    {
+        if (is_array($iterable)) {
+            return $iterable;
+        }
+
+        if ($iterable instanceof ArrayInterface) {
+            return $iterable->toArray();
+        }
+
+        if (is_object($iterable) && method_exists($iterable, 'toArray')) {
+            return $iterable->toArray();
+        }
+
+        $result = [];
+        foreach ($iterable as $key => $item) {
+            $result[$key] = $value;
+
+        }
+        return $result;
+    }
+    
     /**
      * @param mixed|null $array
      * @return bool
@@ -39,6 +61,14 @@ class ArrayHelper
         }
         
         return false;
+    }
+    
+    public static function merge(iterable $arr1, iterable $arr2): array
+    {
+        return array_merge(
+            self::iterableToArray($arr1),
+            self::iterableToArray($arr2)
+        );
     }
 
 	/**

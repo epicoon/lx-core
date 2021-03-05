@@ -174,12 +174,14 @@ class Model extends lx.Object #lx:namespace lx {
 		var schema = self::__schema;
 		if (!schema) return;
 
-		this.ignoreSetterListener(true);
+		if (this.ignoreSetterListener)
+			this.ignoreSetterListener(true);
 		schema.eachField((field, name)=>{
 			if (field.ref) return;
 			if (data[name] !== undefined) this[name] = data[name];
 			else this.resetField(name);
 		});
-		this.ignoreSetterListener(false);
+		if (this.ignoreSetterListener)
+			this.ignoreSetterListener(false);
 	}
 }

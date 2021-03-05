@@ -176,7 +176,7 @@ return [
 	'DataFileInterface' => 'interfaces',
     'ResponseInterface' => 'interfaces',
     'RendererInterface' => 'interfaces',
-    'UserProcessorInterface' => 'interfaces',
+    'UserManagerInterface' => 'interfaces',
 	'UserInterface' => 'interfaces',
 	'AuthenticationInterface' => 'interfaces',
 	'AuthorizationInterface' => 'interfaces',

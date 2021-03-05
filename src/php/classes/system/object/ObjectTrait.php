@@ -21,19 +21,12 @@ trait ObjectTrait
         return [];
     }
 
-    /**
-     * @return bool
-     */
-    public static function isSingleton()
+    public static function isSingleton(): bool
     {
         return false;
     }
 
-    /**
-     * ObjectTrait constructor.
-     * @param array $config
-     */
-    public function __construct($config = [])
+    public function __construct(array $config = [])
     {
         $this->__objectConstruct($config);
     }

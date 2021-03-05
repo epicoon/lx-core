@@ -180,8 +180,12 @@ class Directory extends BaseFile
 	 */
 	public function getContent($rules = [])
 	{
+        $files = new Vector();
+        if (!$this->exists()) {
+            return $files;
+        }
+        
 		$rules = DataObject::create($rules);
-		$files = new Vector();
 		$this->getContentRe($this->path, $rules, $files);
 
 		if ($rules->findType != self::FIND_OBJECT) {

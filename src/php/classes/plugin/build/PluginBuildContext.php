@@ -56,11 +56,7 @@ class PluginBuildContext implements ContextTreeInterface
 	/** @var array */
 	private $commonModuleDependencies = [];
 
-	/**
-	 * PluginBuildContext constructor.
-	 * @param array $config
-	 */
-	public function __construct($config = [])
+	public function __construct(array $config = [])
 	{
 	    $this->__objectConstruct($config);
 

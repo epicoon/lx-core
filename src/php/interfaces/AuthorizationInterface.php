@@ -3,7 +3,7 @@
 namespace lx;
 
 /**
- * This interface for authorization gate realisation
+ * This interface for authorization gate implementation
  *
  * Interface AuthorizationInterface
  * @package lx
@@ -11,7 +11,7 @@ namespace lx;
 interface AuthorizationInterface extends EventListenerInterface
 {
 	/**
-	 * @param User $user
+	 * @param UserInterface $user
 	 * @param ResourceAccessDataInterface $resourceAccessData
 	 * @return mixed
 	 */

@@ -40,6 +40,7 @@ class DependencyProcessor
             DataFileInterface::class => DataFile::class,
             ResponseInterface::class => Response::class,
             RendererInterface::class => Renderer::class,
+            UserInterface::class => User::class,
         ]);
 	}
 

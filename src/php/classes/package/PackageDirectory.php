@@ -14,15 +14,15 @@ class PackageDirectory implements FusionComponentInterface
 	/** @var Directory */
 	protected $dir;
 
-	/**
-	 * PackageDirectory constructor.
-	 * @param array $config
-	 */
-	public function __construct($config = [])
+    /**
+     * PackageDirectory constructor.
+     * @param string|array $config
+     */
+	public function __construct($config)
 	{
-		if (is_string($config)) {
-			$config = ['path' => $config];
-		}
+	    if (is_string($config)) {
+            $config = ['path' => $config];
+        }
 
 		$this->__objectConstruct($config);
 

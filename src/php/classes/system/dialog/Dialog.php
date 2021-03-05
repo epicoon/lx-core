@@ -57,7 +57,7 @@ class Dialog implements FusionComponentInterface
 	/**
 	 * Dialog constructor.
 	 */
-	public function __construct($config = [])
+	public function __construct(array $config = [])
 	{
 	    $this->__objectConstruct($config);
 
