@@ -390,18 +390,20 @@ class SintaxExtender
 					function ($matches) use ($path) {
 						$modelName = $matches[1];
 
-						$manager = \lx::$app->getModelManager($modelName);
-						if ( ! $manager) {
-							$service = $this->getCurrentService($path);
-							if (!$service) {
-								return '';
-							}
+                        $service = $this->getCurrentService($path);
+                        if (!$service) {
+                            return '';
+                        }
 
-							$manager = $service->getModelManager($modelName);
-						}
+                        $manager = $service->modelManager;
+                        if (!$manager) {
+                            return '';
+                        }
 
-						$schema = $manager->getSchema();
-						$fieldCode = 'static __setSchema(){this.initSchema(' . $schema->toStringForClient() . ');}';
+                        $schema = $manager->getModelSchema($modelName);
+                        $schemaArray = $schema->toArray();
+                        $schemaString = ArrayHelper::arrayToJsCode($schemaArray);
+						$fieldCode = "static __setSchema(){this.initSchema($schemaString);}";
 						return $fieldCode;
 					},
 					$implementResult

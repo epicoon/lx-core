@@ -79,12 +79,6 @@ return [
 
 	// Service components
 	'components' => [
-		// You have to install 'lx/model' service to use this model provider
-		// 'modelProvider' => [
-		//	'class' => 'lx\model\ModelProvider',
-		//	'crudAdapter' => 'lx\model\CRUD\db\DbCrudAdapter',
-		// ],
-
 		// You can define db-connector component for your service
 		// 'dbConnector' => [
 		//	'class' => 'lx\DbConnector',

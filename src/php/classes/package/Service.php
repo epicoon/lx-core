@@ -15,6 +15,7 @@ use lx;
  * @property-read ServiceConductor $conductor
  * @property-read ServiceRouter $router
  * @property-read I18nServiceMap $i18nMap
+ * @property-read ModelManagerInterface|null $modelManager
  */
 class Service implements FusionInterface
 {
@@ -59,6 +60,7 @@ class Service implements FusionInterface
             'conductor' => ServiceConductor::class,
             'router' => ServiceRouter::class,
             'i18nMap' => I18nServiceMap::class,
+            'modelManager' => ModelManagerInterface::class,
         ];
     }
 
@@ -218,19 +220,6 @@ class Service implements FusionInterface
         } else {
             return BaseFile::construct($path);
         }
-	}
-
-	/**
-	 * @param string $modelName
-	 * @return ModelManagerInterface
-	 */
-	public function getModelManager($modelName)
-	{
-		if (!$this->modelProvider) {
-			return null;
-		}
-
-		return $this->modelProvider->getManager($modelName);
 	}
 
 	/**

@@ -57,7 +57,6 @@ class Respondent extends Resource
 			'getService',
 			'getRootPlugin',
 			'getRootService',
-			'getModelManager',
 		]);
 	}
 
@@ -91,14 +90,5 @@ class Respondent extends Resource
 	public function getRootService()
 	{
 		return $this->getPlugin()->getRootService();
-	}
-
-	/**
-	 * @param string $name
-	 * @return ModelManagerInterface
-	 */
-	public function getModelManager($name)
-	{
-		return $this->getService()->getModelManager($name);
 	}
 }

@@ -189,10 +189,8 @@ return [
 	'ResourceAccessDataInterface' => 'interfaces',
     'DbConnectorInterface' => 'interfaces',
 	'ModelInterface' => 'interfaces/model',
-	'ModelManagerInterface' => 'interfaces/model',
-	'ModelRelationInterface' => 'interfaces/model',
-
-    'ModelManagerInterfaceNEW' => 'interfaces/model',
+    'ModelManagerInterface' => 'interfaces/model',
+    'ModelSchemaInterface' => 'interfaces/model',
 
 	'ApplicationToolTrait' => 'traits',
 ];

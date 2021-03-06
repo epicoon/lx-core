@@ -409,45 +409,6 @@ abstract class AbstractApplication implements FusionInterface
 		return $this->getService($serviceName)->conductor->getPluginPath($pluginName);
 	}
 
-
-
-
-
-	//TODO - очень нелогичный метод
-	/**
-	 * @param string $serviceName
-	 * @param string $modelName
-	 * @return ModelManagerInterface|null
-	 */
-	public function getModelManager($serviceName, $modelName = null)
-	{
-		if ($modelName === null) {
-			$arr = explode('.', $serviceName);
-			if (count($arr) != 2) {
-				return null;
-			}
-
-			$serviceName = $arr[0];
-			$modelName = $arr[1];
-		}
-
-		$service = $this->getService($serviceName);
-		if (!$service) {
-			return null;
-		}
-
-		return $service->getModelManager($modelName);
-	}
-
-
-
-
-
-
-
-
-
-
 	/**
 	 * @return void
 	 */
