@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 /**
  * Class ServiceCliExecutor
  * @package lx
@@ -65,5 +67,31 @@ class ServiceCliExecutor implements ServiceCliExecutorInterface
         }
 
         return true;
+    }
+
+    public function sendPlugin(array $config): void
+    {
+        $processor = $this->processor;
+
+        $pluginName = $config['name'] ?? null;
+        if ($pluginName === null) {
+            $processor->outln('Wrong request config');
+            return;
+        }
+
+        $plugin = lx::$app->getPlugin($pluginName);
+        if ($plugin === null) {
+            $processor->outln("Plugin $pluginName not found");
+            return;
+        }
+
+        $processor->setData([
+            'code' => 'ext',
+            'type' => 'plugin',
+            'message' => $config['message'] ?? 'Plugin loaded',
+            'header' => $config['header'] ?? "Plugin $pluginName",
+            'plugin' => $plugin->run()->getData(),
+        ]);
+        $processor->done();
     }
 }
