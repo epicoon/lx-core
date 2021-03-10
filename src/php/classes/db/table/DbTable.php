@@ -42,7 +42,8 @@ class DbTable
     public function pkName()
     {
         if ($this->_pkName === null) {
-            $this->_pkName = $this->schema()->getPk();
+            //TODO
+            $this->_pkName = 'id';
         }
 
         return $this->_pkName;

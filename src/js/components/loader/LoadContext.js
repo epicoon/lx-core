@@ -18,7 +18,8 @@ class LoadContext {
 	}
 
 	parseInfo(info) {
-		var pluginsInfo;
+		var pluginsInfo,
+			rootAttr;
 
 		// Статика приходит строкой, ajax массивом
 
@@ -39,6 +40,7 @@ class LoadContext {
 				if (info.page.scripts)
 					this.necessaryScripts = lx.dependencies.defineNecessaryScripts(info.page.scripts);
 			}
+			if (info.attributes) rootAttr = info.attributes;
 		}
 
 		// Парсим инфу по модулям
@@ -48,15 +50,21 @@ class LoadContext {
 		while (match = reg.exec(pluginsInfo)) {
 			var key = match[1],
 				pluginString = pluginsInfo.match(new RegExp('<plugin '+key+'>([\\w\\W]*?)</plugin '+key+'>'))[1];
-			var info = {
+			var pluginInfo = {
 				key,
 				info: lx.Json.parse(pluginString.match(new RegExp('<mi '+key+'>([\\w\\W]*?)</mi '+key+'>'))[1]),
 				bootstrapJs: pluginString.match(new RegExp('<bs '+key+'>([\\w\\W]*?)</bs '+key+'>'))[1],
 				snippets: lx.Json.parse(pluginString.match(new RegExp('<bl '+key+'>([\\w\\W]*?)</bl '+key+'>'))[1]),
 				mainJs: pluginString.match(new RegExp('<mj '+key+'>([\\w\\W]*?)</mj '+key+'>'))[1]
 			};
-			if (!this.isAjax && info.info.anchor == '_root_') info.isMain = 1;
-			this.plugins[info.info.anchor] = info;
+			if (pluginInfo.info.anchor == '_root_') {
+				if (!this.isAjax) pluginInfo.isMain = 1;
+				if (rootAttr) {
+					if (!pluginInfo.info.attributes) pluginInfo.info.attributes = {};
+					pluginInfo.info.attributes.lxMerge(rootAttr, true);
+				}
+			}
+			this.plugins[pluginInfo.info.anchor] = pluginInfo;
 		}
 		this.rootKey = '_root_';
 	}

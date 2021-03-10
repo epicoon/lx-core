@@ -43,7 +43,6 @@ abstract class DB {
 		$this->connection = $connection;
 	}
 
-
     abstract public function getTableSchema($tableName);
 	abstract public function getContrForeignKeysInfo($tableName);
 
@@ -63,14 +62,6 @@ abstract class DB {
         ?string $constraintName = null
     ): string;
 
-    //TODO deprecated
-    abstract public function newTableQuery($name, $columns);
-    abstract public function tableSchema($name, $fields=null);  // Схема таблицы
-    abstract public function renameTableColumn($tableName, $oldName, $newName);
-    abstract public function addTableColumn($tableName, $name, $definition);
-    abstract public function dropTableColumn($tableName, $name);
-    abstract protected function definitionToString($definition);
-
 	abstract public function query($query);
 	abstract public function select($query);
 	abstract public function insert($query, $returnId);
@@ -78,6 +69,9 @@ abstract class DB {
 	abstract public function tableExists($name);  // Проверка существования таблицы
 	abstract public function renameTable($oldName, $newName);
 	abstract public function tableName($name);
+
+    //TODO deprecated
+    abstract public function tableSchema($name, $fields=null);  // Схема таблицы
 
 	public function getName() {
 		return $this->settings['dbName'];
@@ -102,9 +96,6 @@ abstract class DB {
 		return $this->error;
 	}
 
-	/**
-	 * Соединение, выбор базы данных
-	 * */
 	public function connect() {
 		if ($this->connection !== null) return;
 
@@ -147,28 +138,6 @@ abstract class DB {
     }
 
 	/**
-	 * Создание новой таблицы
-	 * @param $name - имя новой таблицы
-	 * @param $column - массив DbColumnDefinition
-	 * @param $rewrite - флаг, показывающий можно ли пересоздать таблицу, если таблица с таким именем уже существует
-	 * */
-	public function newTable($name, $columns, $rewrite=false) {
-		$name = $this->tableName($name);
-
-		if ($rewrite) {
-			$this->query("DROP TABLE IF EXISTS $name");
-		} else {
-			if ($this->tableExists($name)) {				
-				return false;
-			}
-		}
-
-		$query = $this->newTableQuery($name, $columns);
-		$res = $this->query($query);
-		return $res;
-	}
-
-	/**
 	 * Удаление таблицы
 	 * */
 	public function dropTable($name) {
@@ -191,88 +160,6 @@ abstract class DB {
 		$name = $this->tableName($name);
 		$res = $this->query("SELECT * FROM $name LIMIT 1;");
 		return empty($res);
-	}
-
-	/**
-	 * Сформировать новый DbColumnDefinition по строковому обозначению типа
-	 * */
-	public function type($conf) {
-		if (is_string($conf)) $conf = ['type' => $conf];
-		return new DbColumnDefinition($conf);
-	}
-
-	/**
-	 * Сформировать новый DbColumnDefinition для первичного ключа
-	 * */
-	public function primaryKeyDefinition($conf=[]) {
-		$conf['type'] = '';
-		$conf['isPK'] = true;
-		return new DbColumnDefinition($conf);
-	}
-
-	/**
-     * @deprecated
-	 * Сформировать новый DbColumnDefinition для внешнего ключа
-	 * */
-	public function foreignKeyDefinition($conf=[]) {
-		$conf['type'] = 'integer';
-		$conf['isFK'] = [
-			'table' => $conf['table'] ?? $conf[0],
-			'field' => $conf['field'] ?? $conf[1],
-			'refTable' => $conf['refTable'] ?? $conf[2] ?? '',
-			'refField' => $conf['refField'] ?? $conf[3] ?? '',
-		];
-		return new DbColumnDefinition($conf);
-	}
-
-	/**
-	 * Сформировать новый DbColumnDefinition для целого числа
-	 * */
-	public function integer($conf=[]) {
-		$size = 0;
-		if (is_numeric($conf)) {
-			$size = $conf;
-			$conf = [];
-		} else if (isset($conf['size'])) {
-			$size = $conf['size'];
-			unset($conf['size']);
-		}
-		switch ($size) {
-			case 2:
-				$conf['type'] = 'smallint';
-				break;
-			case 8:
-				$conf['type'] = 'bigint';
-				break;
-			default:
-				$conf['type'] = 'integer';
-				break;
-		}
-		return new DbColumnDefinition($conf);
-	}
-
-	/**
-	 * Сформировать новый DbColumnDefinition для текста
-	 * */
-	public function varchar($conf=[]) {
-		if (is_numeric($conf)) $conf = ['size' => $conf];
-		$conf['type'] = 'varchar';
-		if (!isset($conf['size'])) $conf['size'] = 255;
-		return new DbColumnDefinition($conf);
-	}
-
-	/**
-	 * Сформировать новый DbColumnDefinition для булева поля
-	 * */
-	public function boolean($conf=[]) {
-		if (is_bool($conf)) {
-			if ($conf) $conf = ['default' => 'true'];
-			else $conf = ['default' => 'false'];
-		} else if ($conf == 'true' || $conf == 'false') {
-			$conf = ['default' => $conf];
-		}
-		$conf['type'] = 'boolean';
-		return new DbColumnDefinition($conf);
 	}
 
 	/**

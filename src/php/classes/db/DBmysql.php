@@ -2,6 +2,8 @@
 
 namespace lx;
 
+//TODO сотояние кода устарело
+
 class DBmysql extends DB {
 	/**
 	 * Имя таблицы с учетом схемы
@@ -10,10 +12,9 @@ class DBmysql extends DB {
 		return str_replace('.', '__', $name);
 	}
 
-	/**
-	 * Формирует запрос для создания новой таблицы
-	 * */
-	public function newTableQuery($name, $columns) {
+    public function getCreateTableQuery($schema) {
+	    //TODO - раньше были аргументы ($name, $columns)
+
 		$query = '';
 		if (preg_match('/\./', $name)) {
 			$name = $this->tableName($name);
@@ -191,17 +192,8 @@ class DBmysql extends DB {
 
 	}
 
-	/**
-	 *
-	 * */
-	public function renameTableColumn($tableName, $oldName, $newName) {
-		
-	}
-
-	/**
-	 *
-	 * */
-	public function addTableColumn($tableName, $name, $definition) {
+    public function getAddColumnQuery($schema, $fieldName) {
+	    //TODO
 		/*
 		Для внешнего ключа
 
@@ -266,29 +258,10 @@ class DBmysql extends DB {
 	}
 
 	/**
-	 *
-	 * */
-	public function dropTableColumn($tableName, $name) {
-
-	}
-
-	/**
 	 * Дефиниция для таймштампа без временной зоны
 	 * */
 	public function timestamp($conf=[]) {
 		$conf['type'] = 'timestamp';
 		return new DbColumnDefinition($conf);
-	}
-
-	/**
-	 * Преобразует объект дефиниции поля в строку
-	 * */
-	public function definitionToString($definition) {
-		$str = $definition->type;
-		if ($definition->size !== null) $str .= "({$definition->size})";
-		if ($definition->notNull) $str .= ' not null';
-		if ($definition->isPK) $str .= 'INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (#key#)';
-		if ($definition->default !== null) $str .= " default {$definition->default}";
-		return $str;
 	}
 }

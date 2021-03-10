@@ -103,7 +103,6 @@ return [
     'DbTable' => 'classes/db/table',
     'DbTableBuilder' => 'classes/db/table',
     //deprecated
-    'DbColumnDefinition' => 'classes/db',
     'DbTableSchemaProvider' => 'classes/db',
     'DbSchema' => 'classes/db',
 

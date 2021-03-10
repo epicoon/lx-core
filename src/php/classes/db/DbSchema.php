@@ -28,11 +28,6 @@ class DbSchema
 	{
 		return in_array($name, $this->fields);
 	}
-	
-	public function getPk()
-	{
-		return $this->pkName;
-	}
 
 	public function getFields()
 	{

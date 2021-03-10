@@ -204,13 +204,6 @@ class DBpostgres extends DB
      */
     public function getDelColumnQuery($schema, $fieldName)
     {
-        //TODO
-//        if ($this->checkForeignKeyExists($tableName, $columnName)) {
-//            $table = str_replace('.','_', $tableName);
-//            $fkName = "fk__{$table}__$columnName";
-//            $this->query("ALTER TABLE $tableName DROP CONSTRAINT $fkName;");
-//        }
-
         return "ALTER TABLE {$schema->getName()} DROP COLUMN $fieldName;";
     }
 
@@ -455,102 +448,6 @@ class DBpostgres extends DB
         $this->query("ALTER TABLE $oldName RENAME TO $newName;");
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
-     * @deprecated
-     * @param string $tableName
-     * @param string $oldName
-     * @param string $newName
-     */
-    public function renameTableColumn($tableName, $oldName, $newName)
-    {
-        $this->query("ALTER TABLE $tableName RENAME COLUMN $oldName TO $newName;");
-    }
-
-    /**
-     * @deprecated
-     * @param $tableName
-     * @param $columnName
-     * @param $definition
-     * @return bool
-     */
-    public function addTableColumn($tableName, $columnName, $definition)
-    {
-        $definitionString = $this->definitionToString($definition);
-        $this->query("ALTER TABLE $tableName ADD COLUMN $columnName $definitionString;");
-
-        if ($definition->isFK) {
-            return $this->addForeignKeyProcess($tableName, $columnName, $definition);
-        }
-
-        return true;
-    }
-
-    /**
-     * @deprecated
-     * @param $tableName
-     * @param $columnName
-     */
-    public function dropTableColumn($tableName, $columnName)
-    {
-        if ($this->checkForeignKeyExists($tableName, $columnName)) {
-            $table = str_replace('.','_', $tableName);
-            $fkName = "fk__{$table}__$columnName";
-            $this->query("ALTER TABLE $tableName DROP CONSTRAINT $fkName;");
-        }
-
-        $this->query("ALTER TABLE $tableName DROP COLUMN $columnName;");
-    }
-
-    /**
-     * @deprecated
-     * Формирует запрос для создания новой таблицы
-     * */
-    public function newTableQuery($name, $columns)
-    {
-        $query = '';
-        if (preg_match('/\./', $name)) {
-            $arr = explode('.', $name);
-            $query = "CREATE SCHEMA IF NOT EXISTS {$arr[0]};";
-        }
-
-        $query .= "CREATE TABLE IF NOT EXISTS $name (";
-        $cols = [];
-        foreach ($columns as $colName => $definition) {
-            if (is_array($definition)) {
-                $definition = new DbColumnDefinition($definition);
-            }
-
-            $str = $this->definitionToString($definition);
-            $str = str_replace('#key#', $colName, $str);
-            $cols[] = "$colName $str";
-        }
-        $cols = implode(', ', $cols);
-        $cols = str_replace('#pkey#', str_replace('.', '_', $name), $cols);
-        $query .= "$cols);";
-        return $query;
-    }
-
 	/**
      * @deprecated
 	 * Схема таблицы
@@ -612,149 +509,24 @@ class DBpostgres extends DB
 		return $result;
 	}
 
-    /**
-     * @deprecated
-     * Преобразует объект дефиниции поля в строку
-     * */
-    public function definitionToString($definition) {
-        $str = $definition->type;
-        if ($definition->size !== null) $str .= "({$definition->size})";
-        if ($definition->notNull) $str .= ' not null';
-        if ($definition->isPK) $str .= 'serial not null constraint #pkey#_pkey primary key';
-        if ($definition->default !== null) $str .= " default {$definition->default}";
-        return $str;
-    }
-
-    /**
-     * ?????? надо что-то с ними решать
-     * Дефиниция для таймштампа без временной зоны
-     * */
-    public function timestamp($conf=[]) {
-        $conf['type'] = 'timestamp without time zone';
-        return new DbColumnDefinition($conf);
-    }
-
-    /**
-     * ?????? надо что-то с ними решать
-     * Дефиниция для таймштампа с временной зоной
-     * */
-    public function timestampTZ($conf=[]) {
-        $conf['type'] = 'timestamp with time zone';
-        return new DbColumnDefinition($conf);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public function checkForeignKeyExists($tableName, $name)
-    {
-        if (preg_match('/\./', $tableName)) {
-            list($schema, $table) = explode('.', $tableName);
-            $fkName = "fk__{$schema}_{$table}__$name";
-        } else {
-            $schema = 'public';
-            $table = $tableName;
-            $fkName = "fk__{$table}__$name";
-        }
-
-        $fk = $this->select("
-			SELECT * FROM information_schema.table_constraints
-			WHERE constraint_type='FOREIGN KEY'
-				AND table_schema='$schema'
-				AND table_name='$table'
-				AND constraint_name='$fkName';
-		");
-
-        return !empty($fk);
-    }
-
-    /**
-     * @deprecated
-     * @param $config
-     * @return bool
-     */
-	public function addForeignKey($config)
-	{
-		if (is_string($config)) {
-			preg_match_all('/\b[\w\d_]+?\b/', $config, $matches);
-			if (count($matches[0]) < 4) {
-				$this->error = 'Wrong data for foreign key: "'. $config .'"';
-				return false;
-			}
-			$config = $matches[0];
-		}
-
-		$definition = $this->foreignKeyDefinition($config);
-		$schema = $this->table($definition->isFK['table'])->schema();
-		if ($schema->hasField($definition->isFK['field'])) {
-			return $this->addForeignKeyProcess(
-				$definition->isFK['table'],
-				$definition->isFK['field'],
-				$definition
-			);
-		}
-
-		return $this->addTableColumn(
-			$definition->isFK['table'],
-			$definition->isFK['field'],
-			$definition
-		);
-	}
-	
-    /**
-     * @deprecated
-     * @param $config
-     * @return bool
-     */
-	public function dropForeignKey($config)
-	{
-		if (is_string($config)) {
-			preg_match_all('/\b[\w\d_]+?\b/', $config, $matches);
-			if (count($matches[0]) != 2) {
-				$this->error = 'Wrong data for drop foreign key: "'. $config .'"';
-				return false;
-			}
-			$config = $matches[0];
-		}
-
-		$definition = $this->foreignKeyDefinition($config);
-		$this->dropTableColumn(
-			$definition->isFK['table'],
-			$definition->isFK['field']
-		);
-
-		return true;
-	}
-
-
-
-
-
-
-
-
-
-
+	//TODO
+//    /**
+//     * ?????? надо что-то с ними решать
+//     * Дефиниция для таймштампа без временной зоны
+//     * */
+//    public function timestamp($conf=[]) {
+//        $conf['type'] = 'timestamp without time zone';
+//        return new DbColumnDefinition($conf);
+//    }
+//
+//    /**
+//     * ?????? надо что-то с ними решать
+//     * Дефиниция для таймштампа с временной зоной
+//     * */
+//    public function timestampTZ($conf=[]) {
+//        $conf['type'] = 'timestamp with time zone';
+//        return new DbColumnDefinition($conf);
+//    }
 
 	/**
 	 * Postgresql все подряд загружает как строки, нам надо нормально
@@ -779,33 +551,6 @@ class DBpostgres extends DB
 		unset($row);
 		return $rows;
 	}
-
-    /**
-     * @deprecated
-     * @param string $tableName
-     * @param string $name
-     * @param $definition
-     * @return bool
-     */
-	private function addForeignKeyProcess($tableName, $name, $definition)
-    {
-		if ($this->checkForeignKeyExists($tableName, $name)) {
-			$this->error = 'Foreign key for "'. $tableName . '.' . $name .'" already exists';
-			return false;
-		}
-
-		$table = str_replace('.','_', $tableName);
-		$fkName = "fk__{$table}__$name";
-
-		//TODO ON DELETE|UPDATE CASCADE|RESTRICT
-		$this->query("
-			ALTER TABLE $tableName ADD CONSTRAINT $fkName FOREIGN KEY ($name)
-			REFERENCES {$definition->isFK['refTable']}({$definition->isFK['refField']});
-		");
-
-		return true;
-	}
-
 
     /**
      * @param string $tableName
