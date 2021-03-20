@@ -200,6 +200,7 @@ class SintaxExtender
 				$fields = preg_replace('/^{/', '', $fields);
 				$fields = preg_replace('/}$/', '', $fields);
 				$fields = preg_replace('/(\n\r|\r\n|\r|\n)$/', '', $fields);
+				$fields = preg_replace('/(\r|\n|\t)/', '', $fields);
 				$fields = trim($fields, ' ');
 				$fields = '#lx:schema ' . $fields;
 			} else {

@@ -134,7 +134,7 @@ class Tree #lx:namespace lx {
 	deep() {
 		var deep = 0,
 			root = this.root;
-		while (root && root.root) {
+		while (root) {
 			deep++;
 			root = root.root;
 		}
@@ -214,6 +214,9 @@ class Tree #lx:namespace lx {
 	add() {
 		var args = arguments,
 			result = [];
+
+		if (!args.length)
+			return this.add(this.genKey());
 
 		if (args[0].isArray) args = args[0];
 

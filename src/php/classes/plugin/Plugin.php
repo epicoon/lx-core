@@ -259,6 +259,16 @@ class Plugin extends Resource implements FusionInterface
 		return $this->conductor->getFullPath($fileName);
 	}
 
+    /**
+     * @param string $name
+     * @return File
+     */
+    public function createFile($name)
+    {
+        $fullName = $this->conductor->getFullPath($name);
+        return new File($fullName);
+    }
+
 	/**
 	 * @param string $name
 	 * @return BaseFile|null
@@ -268,6 +278,15 @@ class Plugin extends Resource implements FusionInterface
 		return $this->conductor->getFile($name);
 	}
 
+    /**
+     * @param string $name
+     * @return File
+     */
+    public function prepareFile($name)
+    {
+        return $this->getFile($name) ?? $this->createFile($name);
+    }
+
 	/**
 	 * @param string $name
 	 * @return BaseFile|null
@@ -276,16 +295,6 @@ class Plugin extends Resource implements FusionInterface
 	{
 		return $this->directory->find($name);
 	}
-
-    /**
-     * @param string $name
-     * @return File
-     */
-	public function createFile($name)
-    {
-        $fullName = $this->conductor->getFullPath($name);
-        return new File($fullName);
-    }
 
 	/**
 	 * @param string $key

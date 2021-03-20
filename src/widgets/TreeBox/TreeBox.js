@@ -43,7 +43,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 	 *	leafHeight: 18,
 	 *	labelWidth: 250,
 	 *	add: 0|1|2,  // 0 - без возможности добавления, 1 - простое добавление с автоключом, 2 - добавление, требующее введения ключа
-	 *	leaf: function  // описывает поведение листа при его создании - как и что в нем дополнительно отображать
+	 *	leaf: function(TreeLeaf)  // описывает поведение листа при его создании - как и что в нем дополнительно отображать
 	 * }
 	 * */
 	build(config) {
@@ -278,7 +278,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			this.useRenderCache();
 			var leafs = this.createLeafs(node, leaf.nextSibling());
 			leafs.each((a)=> {
-				var shift = this.step + (this.step + this.leafHeight) * (node.deep() + 1);
+				var shift = this.step + (this.step + this.leafHeight) * (node.deep());
 				a->open.left(shift + 'px');
 				a->label.left(shift + this.step + this.leafHeight + 'px');
 			});
@@ -323,23 +323,43 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		 * без явного кода как этот текст использовать, он никуда не пойдет
 		 * */
 		addProcess(parentNode, text) {
-			var boof = {
-				node: {},  // поля, которые будут добавлены новому узлу
+			var info = {
+				newNodeData: {},  // поля, которые будут добавлены новому узлу
 				parentNode,
-				text
+				text,
+				event
 			};
-			if ( this.trigger('beforeAdd', event, boof) === false ) return;
+			if ( this.trigger('beforeAdd', event, info) === false ) return;
 
-			if (parentNode.root) this.leafByNode(parentNode)->open.opened = true;
+			this.add(info);
 
-			var key = boof.node.key || parentNode.genKey(),
-				newBr = parentNode.add(key);
+			// if (parentNode.root) this.leafByNode(parentNode)->open.opened = true;
+
+			// var key = boof.newNodeData.key || parentNode.genKey(),
+			// 	newBr = parentNode.add(key);
+
+			// // Поле data как раз для прикрепленных данных, поэтому может быть переопределено в 'beforeAdd',
+			// // остальные поля, которые уже есть у узла, надо защитить от перезаписи
+			// for (var f in boof.newNodeData)
+			// 	if (f == 'data' || !(f in newBr)) newBr[f] = boof.newNodeData[f];
+			// this.trigger('afterAdd', event, newBr);
+			// this.renew();
+		}
+
+		/**
+		 * {Object} info : {newNodeData<Object>, parentNode<lx.Tree>, text<string>}
+		 */
+		add(info) {
+			if (info.parentNode.root) this.leafByNode(info.parentNode)->open.opened = true;
+
+			var key = info.newNodeData.key || info.parentNode.genKey(),
+				newBr = info.parentNode.add(key);
 
 			// Поле data как раз для прикрепленных данных, поэтому может быть переопределено в 'beforeAdd',
 			// остальные поля, которые уже есть у узла, надо защитить от перезаписи
-			for (var f in boof.node)
-				if (f == 'data' || !(f in newBr)) newBr[f] = boof.node[f];
-			this.trigger('afterAdd', event, newBr);
+			for (var f in info.newNodeData)
+				if (f == 'data' || !(f in newBr)) newBr[f] = info.newNodeData[f];
+			this.trigger('afterAdd', info.event, newBr);
 			this.renew();
 		}
 
