@@ -40,7 +40,7 @@ class ClassHelper
 	 * @param array|string $interfaces
 	 * @return bool
 	 */
-	public function implements($className, $interfaces)
+	public static function implements($className, $interfaces)
 	{
 		if (!self::exists($className)) {
 			return false;
