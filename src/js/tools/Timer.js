@@ -1,23 +1,22 @@
 #lx:private;
 
 class Timer #lx:namespace lx {
-	constructor(p=0) {
-		if (p.isNumber || p.isArray) p = {period: p};
+	constructor(config=0) {
+		if (config.isNumber || config.isArray) config = {period: config};
 
-		this.inAction = false;
-		this.startTime = (new Date).getTime();
-
-		this.counterOn = true;
-		this.periodCounter = 0;
-		// this.periodDuration может быть массивом - длительности будут чередоваться
-		this.periodDuration = p.period;  // milliseconds
-		this.periodIndex = 0;
+		// может быть массивом - длительности будут чередоваться
+		this.periodDuration = config.period;  // milliseconds
 
 		// Функции, вызываемые при каждом обновлении фрейма
 		// this.actions может быть массивом функций - они будут вызываться последовательно
-		this.actions = p.action || p.actions || null;
-		this.actionIndex = 0;
+		this.actions = config.action || config.actions || null;
 
+		this.inAction = false;
+		this.startTime = (new Date).getTime();
+		this.periodCounter = 0;
+		this.periodIndex = 0;
+		this.actionIndex = 0;
+		
 		this._action = function(){};
 		this._iteration = function(){};
 	}
@@ -75,6 +74,10 @@ class Timer #lx:namespace lx {
 	resetCounter() {
 		this.periodCounter = 0;
 	}
+	
+	getCounter() {
+		return this.periodCounter;
+	}
 
 	/**
 	 * Относительное смещение во времени от начала периода до текущего момента - значение от 0 до 1
@@ -111,7 +114,7 @@ class Timer #lx:namespace lx {
 		if (action && action.isFunction) action.call(this);
 
 		if (this.periodEnds()) {
-			if (this.counterOn) this.periodCounter++;
+			this.periodCounter++;
 			this._iteration();
 
 			if (this.periodDuration && this.periodDuration.isArray) {
