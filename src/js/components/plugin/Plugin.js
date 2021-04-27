@@ -1,6 +1,7 @@
 #lx:private;
 
 #lx:require AjaxGet;
+#lx:require PluginEvent;
 
 class Plugin #lx:namespace lx {
 	constructor(info, snippet) {
@@ -13,6 +14,8 @@ class Plugin #lx:namespace lx {
 		this.root = snippet;
 		this.destructCallbacks = [];
 
+		this._eventDispatcher = null;
+
 		__init(this, info);
 	}
 
@@ -22,6 +25,21 @@ class Plugin #lx:namespace lx {
 
 	get title() {
 		return document.title;
+	}
+
+	get eventDispatcher() {
+		if (!this._eventDispatcher)
+			this._eventDispatcher = new lx.LocalEventSupervisor();
+		return this._eventDispatcher;
+	}
+
+	on(eventName, callback) {
+		this.eventDispatcher.subscribe(eventName, callback);
+	}	
+
+	trigger(eventName, data) {
+		var event = new lx.PluginEvent(this, data);
+		this.eventDispatcher.trigger(eventName, event);
 	}
 
 	/**

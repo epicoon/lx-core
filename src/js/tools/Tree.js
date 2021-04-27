@@ -12,6 +12,29 @@ class Tree #lx:namespace lx {
 		for (var i=0; i<args.length; i++) this.add( args[i] );
 	}
 
+	static createFromObject(obj) {
+		var counter = 0;
+		function re(node, obj) {
+			if (obj === null || obj === undefined) return;
+
+			if (obj.isArray || obj.isObject) {
+				for (let key in obj) {
+					var newNode = node.add('k' + (counter++));
+					let value = obj[key];
+					if (value.isArray || value.isObject) {
+						newNode.data = {key};
+						re(newNode, value);
+					} else newNode.data = {key, value};
+				}
+			}
+		}
+
+		var tree = new this();
+		re(tree, obj);
+		return tree;
+	}
+
+	//TODO переименовать, раскопать что в коде метода делает url - ему явно тут не место
 	static create(treeData, itemsFiled) {
 		var counter = 0;
 		function re(node, obj) {

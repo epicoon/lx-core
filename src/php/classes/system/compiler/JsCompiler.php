@@ -14,6 +14,9 @@ class JsCompiler
 	const CONTEXT_CLIENT = 'client';
 	const CONTEXT_SERVER = 'server';
 
+	private static $extensionsLoaded = false;
+	private static $extensions = [];
+
 	/** @var string */
 	private $context;
 
@@ -191,6 +194,22 @@ class JsCompiler
         }
         $this->allCompiledFiles[$path] = 1;
     }
+    
+    private function getExtensions(): array
+    {
+        if (self::$extensionsLoaded === false) {
+            $services = PackageBrowser::getServicesList();
+            foreach ($services as $service) {
+                $jsCompiler = $service->jsCompiler;
+                if ($jsCompiler && $jsCompiler instanceof JsCompilerExtensionInterafce) {
+                    self::$extensions[] = $jsCompiler;
+                }
+            }
+            self::$extensionsLoaded = true;
+        }
+
+        return self::$extensions;
+    }
 
     /**
      * @param string $code
@@ -199,8 +218,21 @@ class JsCompiler
      */
 	private function compileCodeInnerDirectives($code, $path = null)
     {
-        // Первым делом избавиться от комментариев
+        // Применяем расширения компилятора
+        $extensions = $this->getExtensions();
+        /** @var JsCompilerExtensionInterafce $extension */
+        foreach ($extensions as $extension) {
+            $extension->setConductor($this->conductor);
+            $code = $extension->beforeCutComments($code, $path);
+        }
+
+        // Избавиться от комментариев
         $code = Minimizer::cutComments($code);
+
+        /** @var JsCompilerExtensionInterafce $extension */
+        foreach ($extensions as $extension) {
+            $code = $extension->afterCutComments($code, $path);
+        }
 
         // Удаляем директивы координации
         $code = $this->cutCoordinationDirectives($code);

@@ -257,7 +257,15 @@ lx.classExists = function(name) {
 	return !!lx.getClassConstructor(name);
 };
 
-lx.createObject = function(fullClassName, args = null) {
+lx.createObject = function(fullClassName, args = undefined) {
+	if (fullClassName.isFunction) {
+		if (args === undefined) return new fullClassName();
+		return new (Function.prototype.bind.apply(
+			fullClassName,
+			[null].lxMerge(args)
+		));
+	}
+	
 	var arr = fullClassName.isString
 		? fullClassName.split(/[.\\]/)
 		: (fullClassName.isArray ? fullClassName : null);
@@ -268,7 +276,7 @@ lx.createObject = function(fullClassName, args = null) {
 		if (temp[arr[i]] === undefined) return null;
 
 		if (i == l - 1) {
-			if (args) {
+			if (args !== undefined) {
 				return new (Function.prototype.bind.apply(
 					temp[arr[i]],
 					[null].lxMerge(args)
