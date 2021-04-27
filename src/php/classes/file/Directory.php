@@ -417,11 +417,10 @@ class Directory extends BaseFile
 		if (!file_exists($dirName)) return false;
 		$files = array_diff(scandir($dirName), ['.', '..']);
 		if ($dirName[-1] != '/') $dirName .= '/';
-		if ($medDirName[-1] != '/') $medDirName .= '/';
 		foreach ($files as $f) {
 			$path = $dirName . $f;
 			if ($f == $medDirName) {
-				$fullPath = $path . $fileName;
+				$fullPath = $path . '/' . $fileName;
 				if (file_exists($fullPath)) {
 					return $fullPath;
 				}

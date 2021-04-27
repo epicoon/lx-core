@@ -4,6 +4,10 @@
 #lx:use lx.Box;
 
 class EggMenu extends lx.Box #lx:namespace lx {
+	getContainer() {
+		return this->menuBox.getContainer();
+	}
+
 	modifyConfigBeforeApply(config={}) {
 		config.size = ['40px', '50px'];
 		return config;
@@ -25,6 +29,7 @@ class EggMenu extends lx.Box #lx:namespace lx {
 	build(config) {
 		super.build(config);
 
+		this.setBuildMode(true);
 		this.style('positioning', 'fixed');
 		this.add(lx.Rect, {
 			key: 'top',
@@ -37,9 +42,11 @@ class EggMenu extends lx.Box #lx:namespace lx {
 			height:'25px',
 			css: this.basicCss.bottom
 		});
+		this.setBuildMode(false);
 
 		var menu = {};
 		if (config.menuWidget) menu.widget = config.menuWidget;
+		if (config.menuConfig) menu.config = config.menuConfig;
 		if (config.menuRenderer) menu.renderer = config.menuRenderer;
 		this.buildMenu(menu);
 	}
@@ -47,21 +54,26 @@ class EggMenu extends lx.Box #lx:namespace lx {
 	buildMenu(menuInfo) {
 		if (menuInfo.lxEmpty) return;
 
+		this.setBuildMode(true);
 		var widget = menuInfo.widget || lx.Box,
-			config = {},
+			config = menuInfo.config || {},
 			menuRenderer = menuInfo.renderer;
-		if (widget.isArray) {
-			config = widget[1];
-			widget = widget[0];
-		}
 		config.parent = this;
 		config.key = 'menuBox';
-		config.geom = true;
+		if (!config.geom) config.geom = true;
 
 		var menu = new widget(config);
+		//TODO некрасиво, но это частый класс для меню
+		if (menu.lxFullClassName == 'lx.ActiveBox')
+	        menu->resizer.move({
+	            parentResize: true,
+	            xLimit: false,
+	            yLimit: false
+	        });
 
 		if (menuRenderer) menuRenderer(menu);
 		menu.hide();
+		this.setBuildMode(false);
 	}
 
 	#lx:client {
