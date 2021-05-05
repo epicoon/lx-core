@@ -2,23 +2,18 @@
 
 namespace lx;
 
-/**
- * Class ApplicationConductor
- * @package lx
- */
 class ApplicationConductor implements ConductorInterface
 {
     use ObjectTrait;
 	use ApplicationToolTrait;
 
-	/** @var array */
-	private $aliases = [];
+	private array $aliases = [];
 
 	/**
 	 * @param string $name
 	 * @return string|array|null
 	 */
-	public function __get($name)
+	public function __get(string $name)
 	{
 		$result = $this->__objectGet($name);
 		if ($result !== null) {
@@ -42,10 +37,7 @@ class ApplicationConductor implements ConductorInterface
 		return $alias;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getPath()
+	public function getPath(): string
 	{
 		return \lx::$conductor->sitePath;
 	}
@@ -58,12 +50,8 @@ class ApplicationConductor implements ConductorInterface
 	 * If the path begins with '{plugin:plugin-name}' it will be completed relative to plugin
 	 * If the path is relative it will be completed with $defaultLocation
 	 * If the $defaultLocation is not defined the path will be completed with site path
-	 *
-	 * @param string $path
-	 * @param string $defaultLocation
-	 * @return string|false
 	 */
-	public function getFullPath($path, $defaultLocation = null)
+	public function getFullPath(string $path, ?string $defaultLocation = null): ?string
 	{
 		if ($path[0] == '/') {
 			if (preg_match('/^' . str_replace('/', '\/', $this->sitePath) . '/', $path)) {
@@ -85,12 +73,7 @@ class ApplicationConductor implements ConductorInterface
 		return $defaultLocation . $path;
 	}
 
-	/**
-	 * @param string $path
-	 * @param string $defaultLocation
-	 * @return string|false
-	 */
-	public function getRelativePath($path, $defaultLocation = null)
+	public function getRelativePath(string $path, ?string $defaultLocation = null): string
 	{
 		$fullPath = $this->getFullPath($path, $defaultLocation);
 		if (!$fullPath) {
@@ -100,11 +83,7 @@ class ApplicationConductor implements ConductorInterface
 		return explode($this->sitePath . '/', $fullPath)[1];
 	}
 
-	/**
-	 * @param string $name
-	 * @return BaseFile|null
-	 */
-	public function getFile($name)
+	public function getFile(string $name): ?BaseFile
 	{
 		$path = $this->getFullPath($name);
 		if (!$path) {
@@ -114,39 +93,25 @@ class ApplicationConductor implements ConductorInterface
 		return BaseFile::construct($path);
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getSystemPath($name = null)
+	public function getSystemPath(?string $name = null)
 	{
 		return \lx::$conductor->getSystemPath($name);
 	}
 
-	/**
-	 * @param array $arr
-	 */
-	public function setAliases($arr)
+	public function setAliases(array $arr)
 	{
 		$this->aliases = [];
 		$this->addAliases($arr);
 	}
 
-	/**
-	 * @param array $arr
-	 */
-	public function addAliases($arr)
+	public function addAliases(array $arr)
 	{
 		foreach ($arr as $name => $path) {
 			$this->addAlias($name, $path);
 		}
 	}
 
-	/**
-	 * @param string $name
-	 * @param string $path
-	 * @param bool $rewrite
-	 */
-	public function addAlias($name, $path, $rewrite = false)
+	public function addAlias(string $name, string $path, bool $rewrite = false): void
 	{
 		if (array_key_exists($name, $this->aliases) && !$rewrite) {
 			return;
@@ -160,11 +125,7 @@ class ApplicationConductor implements ConductorInterface
 	 * PRIVATE
 	 ******************************************************************************************************************/
 
-	/**
-	 * @param string $path
-	 * @return string|false
-	 */
-	private function decodeAlias($path)
+	private function decodeAlias(string $path): ?string
 	{
 		preg_match_all('/^@([_\w][_\-\w\d]*?)(\/|$)/', $path, $arr);
 		if (empty($arr[0])) {
@@ -185,7 +146,7 @@ class ApplicationConductor implements ConductorInterface
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Can't decode alias '$path'",
 			]);
-			return false;
+			return null;
 		}
 
 		$alias .= $arr[2][0];
@@ -197,11 +158,7 @@ class ApplicationConductor implements ConductorInterface
 		return $path;
 	}
 
-	/**
-	 * @param string $path
-	 * @return string|false
-	 */
-	private function getStuffPath($path)
+	private function getStuffPath(string $path): ?string
 	{
 		preg_match_all('/^{([^:]+?):([^}]+?)}\/?(.+?)$/', $path, $matches);
 		if (empty($matches[1])) {
@@ -209,7 +166,7 @@ class ApplicationConductor implements ConductorInterface
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Wrong stuff path '$path'",
 			]);
-			return false;
+			return null;
 		}
 
 		$key = $matches[1][0];
@@ -222,7 +179,7 @@ class ApplicationConductor implements ConductorInterface
 					'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 					'msg' => "Package '$name' is not found for '$path'",
 				]);
-				return false;
+				return null;
 			}
 
 			return $packagePath . '/' . $relativePath;
@@ -235,7 +192,7 @@ class ApplicationConductor implements ConductorInterface
 					'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 					'msg' => "Service '$name' is not found for '$path'",
 				]);
-				return false;
+				return null;
 			}
 
 			return $service->getFilePath($relativePath);
@@ -248,7 +205,7 @@ class ApplicationConductor implements ConductorInterface
 					'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 					'msg' => "Plugin '$name' is not found for '$path'",
 				]);
-				return false;
+				return null;
 			}
 
 			return $plugin->getFilePath($relativePath);

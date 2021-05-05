@@ -14,10 +14,7 @@ abstract class BaseApplication extends AbstractApplication
     /** @var array */
     protected $settings;
 
-    /**
-     * @return array
-     */
-    protected static function getDefaultComponents()
+    protected static function getDefaultComponents(): array
     {
         return array_merge(parent::getDefaultComponents(), [
             'language' => Language::class,

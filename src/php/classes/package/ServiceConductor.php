@@ -4,37 +4,22 @@ namespace lx;
 
 use lx;
 
-/**
- * Class ServiceConductor
- * @package lx
- */
 class ServiceConductor implements ConductorInterface, FusionComponentInterface
 {
     use ObjectTrait;
 	use FusionComponentTrait;
 
-	/**
-	 * @return Service
-	 */
-	public function getService()
+	public function getService(): Service
 	{
 		return $this->owner;
 	}
 
-	/**
-	 * @return string
-	 * */
-	public function getPath()
+	public function getPath(): string
 	{
 		return $this->getService()->directory->getPath();
 	}
 
-	/**
-	 * @param string $fileName - path relative to the service root
-	 * @param string $relativePath
-	 * @return string
-	 */
-	public function getFullPath($fileName, $relativePath = null)
+	public function getFullPath(string $fileName, ?string $relativePath = null): ?string
 	{
 		if ($fileName[0] == '@') {
 			$fileName = $this->decodeAlias($fileName);
@@ -47,22 +32,13 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 		return $this->getService()->app->conductor->getFullPath($fileName, $relativePath);
 	}
 
-	/**
-	 * @param string $path
-	 * @param string $defaultLocation
-	 * @return string
-	 */
-	public function getRelativePath($path, $defaultLocation = null)
+	public function getRelativePath(string $path, ?string $defaultLocation = null): string
 	{
 		$fullPath = $this->getFullPath($path, $defaultLocation);
 		return explode($this->getPath() . '/', $fullPath)[1];
 	}
 
-	/**
-	 * @param string $name
-	 * @return BaseFile|null
-	 */
-	public function getFile($name)
+	public function getFile(string $name): ?BaseFile
 	{
 		$path = $this->getFullPath($name);
 		if (!$path) {
@@ -72,10 +48,7 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 		return BaseFile::construct($path);
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getSystemPath($name = null)
+	public function getSystemPath(?string $name = null): string
 	{
 		$path = $this->getPath() . '/.system';
 		if ($name) {
@@ -85,10 +58,7 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 		return $path;
 	}
 
-    /**
-     * @return string
-     */
-    public function getLocalSystemPath($name = null)
+    public function getLocalSystemPath(?string $name = null): string
     {
         $path = lx::$conductor->getSystemPath('services') . '/'
             . lx::$app->conductor->getRelativePath($this->getPath(), lx::$app->sitePath);
@@ -96,11 +66,7 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
         return $path;
     }
 
-	/**
-	 * @param string $pluginName
-	 * @return string|null
-	 * */
-	public function getPluginPath($pluginName)
+	public function getPluginPath(string $pluginName): ?string
 	{
 		$pluginDirs = (array)$this->getService()->getConfig('plugins');
 		foreach ($pluginDirs as $dir) {
@@ -117,145 +83,14 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 		return null;
 	}
 
-    /**
-     * @return Directory
-     */
-    public function getModuleMapDirectory()
+    public function getModuleMapDirectory(): Directory
     {
         $dir = new Directory($this->getSystemPath('modules'));
         $dir->make();
         return $dir;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //TODO группа методов под удаление
-	/**
-	 * @return string|false
-	 */
-	public function getDefaultModelPath()
-	{
-		$models = $this->getService()->getConfig('models');
-		if ($models === null) {
-			return false;
-		}
-
-		$models = (array)$models;
-		return $this->getFullPath($models[0]);
-	}
-
-	/**
-	 * @param string $name
-	 * @return string|false
-	 */
-	public function getModelPath($name)
-	{
-		$modelsMap = $this->getService()->getConfig('modelsMap');
-		if ($modelsMap !== null) {
-			if (array_key_exists($name, $modelsMap)) {
-				$fullPath = $this->getFullPath($modelsMap[$name]);
-				if (file_exists($fullPath)) {
-					return $fullPath;
-				}
-			}
-		}
-
-		$models = $this->getService()->getConfig('models');
-		if ($models === null) {
-			return false;
-		}
-
-		$models = (array)$models;
-
-		foreach ($models as $dir) {
-			$path = $this->getFullPath($dir);
-			$d = new Directory($path);
-			$f = $d->find($name . '.yaml', Directory::FIND_NAME);
-			if ($f) {
-				return $f;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getModelsPath()
-	{
-		$result = [];
-
-		$modelsMap = $this->getService()->getConfig('modelsMap');
-		if ($modelsMap !== null) {
-			$result = $modelsMap;
-		}
-
-		$models = $this->getService()->getConfig('models');
-		if ($models === null) return $result;
-
-		$models = (array)$models;
-
-		foreach ($models as $dir) {
-			$path = $this->getFullPath($dir);
-			if (!file_exists($path)) {
-				continue;
-			}
-			$d = new Directory($path);
-
-			$ff = $d->getContent([
-				'findType' => Directory::FIND_NAME,
-				'mask' => '*.yaml',
-				'ext' => false
-			]);
-			$ff->each(function ($a) use ($path, &$result) {
-				$result[$a] = "$path/$a.yaml";
-			});
-		}
-
-		return $result;
-	}
-
-	/**
-	 * @return Directory
-	 */
-	public function getMigrationDirectory()
-	{
-		$dir = new Directory($this->getSystemPath('migrations'));
-		$dir->make();
-		return $dir;
-	}
-
-
-
-
-
-
-
-
-
-
-	/**
-	 * @param string $path
-	 * @return string
-	 */
-	private function decodeAlias($path)
+    
+	private function decodeAlias(string $path): string
 	{
 		$aliases = $this->getService()->getConfig('aliases');
 		if (!$aliases) return $path;
@@ -263,11 +98,15 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 		$result = $path;
 		while (true) {
 			preg_match_all('/^@([_\w][_\-\w\d]*?)(\/|$)/', $result, $arr);
-			if (empty($arr) || empty($arr[0])) return $result;
+			if (empty($arr) || empty($arr[0])) {
+			    return $result;
+            }
 
 			$mask = $arr[0][0];
 			$alias = $arr[1][0];
-			if (!array_key_exists($alias, $aliases)) return $result;
+			if (!array_key_exists($alias, $aliases)) {
+			    return $result;
+            }
 
 			$alias = $aliases[$alias] . $arr[2][0];
 			$result = str_replace($mask, $alias, $result);

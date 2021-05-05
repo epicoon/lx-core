@@ -14,34 +14,20 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
-	/** @var array */
-	private $imageMap;
+	private array $imageMap;
+	private array $cssMap;
 
-	/** @var array */
-	private $cssMap;
-
-	/**
-	 * @return Plugin
-	 */
-	public function getPlugin()
+	public function getPlugin(): Plugin
 	{
 		return $this->owner;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getPath()
+	public function getPath(): string
 	{
 		return $this->getPlugin()->directory->getPath();
 	}
 
-	/**
-	 * @param string $fileName
-	 * @param string $relativePath
-	 * @return string
-	 */
-	public function getFullPath($fileName, $relativePath = null)
+	public function getFullPath(string $fileName, ?string $relativePath = null): ?string
 	{
 		if ($fileName[0] == '@') {
 			$fileName = $this->decodeAlias($fileName);
@@ -54,22 +40,13 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 		return $this->app->conductor->getFullPath($fileName, $relativePath);
 	}
 
-	/**
-	 * @param string $path
-	 * @param string $defaultLocation
-	 * @return string
-	 */
-	public function getRelativePath($path, $defaultLocation = null)
+	public function getRelativePath(string $path, ?string $defaultLocation = null): string
 	{
 		$fullPath = $this->getFullPath($path, $defaultLocation);
 		return explode($this->getPath() . '/', $fullPath)[1];
 	}
 
-	/**
-	 * @param string $name
-	 * @return BaseFile|null
-	 */
-	public function getFile($name)
+	public function getFile(string $name): ?BaseFile
 	{
 		$path = $this->getFullPath($name);
 		if (!$path) {
@@ -79,10 +56,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 		return BaseFile::construct($path);
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getImagePath($fileName)
+	public function getImagePath(string $fileName): ?string
 	{
 		$map = $this->getImagePathesInSite();
 		if ($fileName[0] == '@') {
@@ -104,10 +78,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 		}
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getSystemPath($name = null)
+	public function getSystemPath(string $name = null): string
 	{
         $path = $this->getPath() . '/.system';
         if ($name) {
@@ -117,41 +88,28 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
         return $path;
 	}
 
-    /**
-     * @return string
-     */
-    public function getLocalSystemPath($name = null)
+    public function getLocalSystemPath(string $name = null): string
     {
         $path = lx::$conductor->getSystemPath('services') . '/'
             . lx::$app->conductor->getRelativePath($this->getPath(), lx::$app->sitePath);
 
-        return $path;
+        return $name ? "$path/$name" : $path;
     }
 
-	/**
-	 * @return string
-	 */
-	public function getSnippetsCachePath()
+	public function getSnippetsCachePath(): string
 	{
 		return $this->getLocalSystemPath() . '/snippet_cache';
 	}
 
-	/**
-	 * @param string $path
-	 * @return bool
-	 */
-	public function pluginContains($path)
+	public function pluginContains(string $path): bool
 	{
 		return $this->getPlugin()->directory->contains($path);
 	}
 
 	/**
-	 * If $name isn't defined path to the root snippet will be returned
-	 *
-	 * @param string $name
-	 * @return string|null
+	 * If [[$name]] isn't defined path to the root snippet will be returned
 	 */
-	public function getSnippetPath($name = null)
+	public function getSnippetPath(?string $name = null): ?string
 	{
 		if ($name === null) {
 			return $this->getFullPath($this->getPlugin()->getConfig('rootSnippet'));
@@ -174,9 +132,9 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 	}
 
     /**
-     * @return Directory[]
+     * @return array<Directory>
      */
-	public function getSnippetDirectories()
+	public function getSnippetDirectories(): array
     {
         $snippetDirs = $this->getPlugin()->getConfig('snippets');
         if (!$snippetDirs) {
@@ -193,11 +151,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
         return $result;
     }
 
-	/**
-	 * @param string $name
-	 * @return Respondent|null
-	 */
-	public function getRespondent($name)
+	public function getRespondent(string $name): ?Respondent
 	{
 		$plugin = $this->getPlugin();
 
@@ -220,10 +174,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 		return $respondent;
 	}
 
-	/**
-	 * @return File|null
-	 */
-	public function getJsMain()
+	public function getJsMain(): ?File
 	{
 		$jsMain = $this->getPlugin()->getConfig('jsMain');
 		if (!$jsMain) {
@@ -238,10 +189,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 		return null;
 	}
 
-	/**
-	 * @return File|null
-	 */
-	public function getJsBootstrap()
+	public function getJsBootstrap(): ?File
 	{
 		$jsBootstrap = $this->getPlugin()->getConfig('jsBootstrap');
 		if (!$jsBootstrap) {
@@ -256,11 +204,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 		return null;
 	}
 
-	/**
-	 * @param string $name
-	 * @return string
-	 */
-	public function getAssetPath($name)
+	public function getAssetPath(string $name): string
 	{
 		if (preg_match('/^http/', $name) || preg_match('/^\//', $name)) {
 			return $name;
@@ -269,10 +213,10 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 		return '/' . $this->app->conductor->getRelativePath($this->getFullPath($name));
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getCssAssets()
+    /**
+     * @return array<string>
+     */
+	public function getCssAssets(): array
 	{
 		$appCycler = $this->app->lifeCycle;
 		if ($appCycler) {
@@ -308,9 +252,9 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 	}
 
 	/**
-	 * @return array
+	 * @return array<string>
 	 */
-	public function getImagePathesInSite()
+	public function getImagePathesInSite(): array
 	{
 		$images = $this->getPlugin()->getConfig('images');
 		if ($images === null) {
@@ -334,11 +278,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 	 * PRIVATE
 	 ******************************************************************************************************************/
 
-	/**
-	 * @param string $path
-	 * @return string
-	 */
-	private function decodeAlias($path)
+	private function decodeAlias(string $path): string
 	{
 		$aliases = $this->getPlugin()->getConfig('aliases');
 		if (!$aliases) {

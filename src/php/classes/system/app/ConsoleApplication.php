@@ -24,7 +24,7 @@ class ConsoleApplication extends BaseApplication
         $this->args = $argv;
     }
 
-	public function run()
+	public function run(): void
 	{
 		if (!isset($this->command)) {
 			return;

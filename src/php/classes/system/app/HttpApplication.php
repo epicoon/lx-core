@@ -24,10 +24,7 @@ class HttpApplication extends BaseApplication
 		];
 	}
 
-    /**
-     * @return array
-     */
-	protected static function getDefaultComponents()
+	protected static function getDefaultComponents(): array
     {
         return array_merge(parent::getDefaultComponents(), [
             'assets' => HttpAssetsManager::class,
@@ -37,7 +34,7 @@ class HttpApplication extends BaseApplication
         ]);
     }
 
-	public function run()
+	public function run(): void
 	{
 		if ($this->lifeCycle) {
 			$this->lifeCycle->beforeRun();

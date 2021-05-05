@@ -16,11 +16,8 @@ class Language implements FusionComponentInterface
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
-	/** @var array */
-	protected $_list = [];
-
-	/** @var string */
-	private $_current;
+	protected array $_list = [];
+	private string $_current;
 
 	public function __construct(array $config = [])
 	{
@@ -40,7 +37,7 @@ class Language implements FusionComponentInterface
 	 * @param string $name
 	 * @return mixed
 	 */
-	public function __get($name)
+	public function __get(string $name)
 	{
 		switch ($name) {
 			case 'list':
@@ -54,10 +51,7 @@ class Language implements FusionComponentInterface
 		return $this->__objectGet($name);
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getCurrentData()
+	public function getCurrentData(): array
 	{
 		return [
 			'key' => $this->current,
@@ -65,10 +59,7 @@ class Language implements FusionComponentInterface
 		];
 	}
 
-	/**
-	 * @return string
-	 */
-	protected function retrieveCurrentLanguage()
+	protected function retrieveCurrentLanguage(): string
 	{
 		if (isset($_COOKIE['lang'])) {
 			return $_COOKIE['lang'];

@@ -76,9 +76,13 @@ class PackageBrowser
 		if (!$directory->exists()) {
 			return false;
 		}
-		$configFile = $directory->getConfigFile();
-		$config = $configFile->get();
 
+		$configFile = $directory->getConfigFile();
+		if (!$configFile) {
+		    return false;
+        }
+
+		$config = $configFile->get();
 		return array_key_exists('service', $config);
 	}
 

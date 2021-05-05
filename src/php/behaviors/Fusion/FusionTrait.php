@@ -51,10 +51,7 @@ trait FusionTrait
 		return null;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getDefaultFusionComponents()
+	public function getDefaultFusionComponents(): array
 	{
 		return [];
 	}

@@ -8,18 +8,19 @@ namespace lx;
  */
 class StringHelper
 {
-	/**
-	 * @param string $string
-	 * @return string
-	 */
-	public static function camelToSnake($string)
+	public static function camelToSnake(string $string): string
 	{
 		return lcfirst(preg_replace_callback('/(.)([A-Z])/', function ($match) {
 			return $match[1] . '_' . strtolower($match[2]);
 		}, $string));
 	}
 
-	public static function snakeToCamel(string $string, string $delimiter = '_'): string
+    /**
+     * @param string $string
+     * @param string|array $delimiter
+     * @return string
+     */
+	public static function snakeToCamel(string $string, $delimiter = '_'): string
 	{
 		if (is_array($delimiter)) {
 			$delimiter = '(?:' . implode('|', $delimiter) . ')';

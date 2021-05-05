@@ -35,7 +35,7 @@ trait ObjectTrait
      * @param string $name
      * @return mixed|null
      */
-    public function __get($name)
+    public function __get(string $name)
     {
         return $this->__objectGet($name);
     }
@@ -45,15 +45,12 @@ trait ObjectTrait
      * @param array $arguments
      * @return mixed|null
      */
-    public function __call($name, $arguments)
+    public function __call(string $name, array $arguments)
     {
         return $this->__objectCall($name, $arguments);
     }
 
-    /**
-     * @return bool
-     */
-    public function isLxObject()
+    public function isLxObject(): bool
     {
         return true;
     }
@@ -66,7 +63,7 @@ trait ObjectTrait
     /**
      * @param array $config
      */
-    protected function __objectConstruct($config = [])
+    protected function __objectConstruct(array $config = []): void
     {
         if ($this->applyConfig($config)) {
             $traits = ObjectReestr::getTraitMap(static::class);
@@ -83,7 +80,7 @@ trait ObjectTrait
      * @param string $name
      * @return mixed|null
      */
-    protected function __objectGet($name)
+    protected function __objectGet(string $name)
     {
         $traits = ObjectReestr::getTraitMap(static::class);
         foreach ($traits as $traitName) {
@@ -107,7 +104,7 @@ trait ObjectTrait
      * @param array $arguments
      * @return mixed|null
      */
-    protected function __objectCall($name, $arguments)
+    protected function __objectCall(string $name, array $arguments)
     {
         if (ClassHelper::publicMethodExists($this, $name)) {
             return call_user_func_array([$this, $name], $arguments);
@@ -139,7 +136,7 @@ trait ObjectTrait
     /**
      * @param array|string $fields
      */
-    protected function delegateMethodsCall($fields)
+    protected function delegateMethodsCall($fields): void
     {
         if (is_string($fields)) {
             $fields = [$fields];
@@ -150,11 +147,7 @@ trait ObjectTrait
         }
     }
 
-    /**
-     * @param array $config
-     * @return bool
-     */
-    private function applyConfig($config)
+    private function applyConfig(array $config): bool
     {
         $protocol = static::getConfigProtocol();
         if (empty($protocol)) {
@@ -208,7 +201,7 @@ trait ObjectTrait
      * @param string $name
      * @param mixed $value
      */
-    private function setParameter($name, $value)
+    private function setParameter(string $name, $value): void
     {
         $setterName = 'init' . ucfirst($name);
         if (method_exists($this, $setterName)) {

@@ -21,38 +21,17 @@ abstract class AbstractApplication implements FusionInterface
     use ObjectTrait;
     use FusionTrait;
 
-	/** @var string */
-	private $id;
-
-	/** @var int */
-	private $pid;
-
-	/** @var string */
-	private $_sitePath;
-
-	/** @var array */
-	private $_config;
-
-	/** @var array */
-	private $defaultServiceConfig;
-
-	/** @var array */
-	private $defaultPluginConfig;
-
-	/** @var ApplicationConductor */
-	private $_conductor;
-
-	/** @var ServicesMap */
-	private $_services;
-
-	/** @var EventManager */
-	private $_events;
-
-	/** @var DependencyProcessor */
-	private $_diProcessor;
-
-	/** @var bool */
-	private $logMode;
+	private string $id;
+	private int $pid;
+	private string $_sitePath;
+	private array $_config;
+	private ?array $defaultServiceConfig = null;
+	private ?array $defaultPluginConfig = null;
+	private ApplicationConductor $_conductor;
+	private ServicesMap $_services;
+	private EventManager $_events;
+	private DependencyProcessor $_diProcessor;
+	private bool $logMode;
 
 	public function __construct(?array $config = [])
 	{
@@ -64,11 +43,7 @@ abstract class AbstractApplication implements FusionInterface
         $this->advancedInit();
 	}
 
-    /**
-     * @param array $config
-     * @return AbstractApplication
-     */
-	public static function firstConstruct($config = [])
+	public static function firstConstruct(array $config = []): AbstractApplication
     {
         $app = new static(null);
         $app->baseInit($config);
@@ -79,10 +54,7 @@ abstract class AbstractApplication implements FusionInterface
         return $app;
     }
 
-    /**
-     * @param array $config
-     */
-    protected function baseInit($config = [])
+    protected function baseInit(array $config = []): void
     {
         $this->id = Math::randHash();
         $this->pid = getmypid();
@@ -103,10 +75,7 @@ abstract class AbstractApplication implements FusionInterface
         $this->_services = new ServicesMap();
     }
 
-    /**
-     * @return void
-     */
-    protected function advancedInit()
+    protected function advancedInit(): void
     {
         $diConfig = ClassHelper::prepareConfig(
             $this->getConfig('diProcessor'),
@@ -130,17 +99,14 @@ abstract class AbstractApplication implements FusionInterface
         $this->init();
     }
 
-    /**
-     * @return array
-     */
-    protected static function getDefaultComponents()
+    protected static function getDefaultComponents(): array
     {
         return [
             'logger' => ApplicationLogger::class,
         ];
     }
 
-    protected function init()
+    protected function init(): void
     {
         // pass
     }
@@ -149,7 +115,7 @@ abstract class AbstractApplication implements FusionInterface
 	 * @param $name string
 	 * @return mixed
 	 */
-	public function __get($name)
+	public function __get(string $name)
 	{
 		switch ($name) {
 			case 'sitePath':
@@ -169,27 +135,17 @@ abstract class AbstractApplication implements FusionInterface
 		return $this->__objectGet($name);
 	}
 
-    /**
-     * @return int
-     */
-	public function getPid()
+	public function getPid(): int
     {
         return $this->pid;
     }
 
-	/**
-	 * @param string $alias
-	 * @return string
-	 */
-	public function getFullPath($alias)
+	public function getFullPath(string $alias): string
 	{
 		return $this->conductor->getFullPath($alias);
 	}
 
-    /**
-     * @param bool $value
-     */
-	public function setLogMode($value)
+	public function setLogMode(bool $value)
     {
         $this->logMode = $value;
     }
@@ -198,17 +154,14 @@ abstract class AbstractApplication implements FusionInterface
 	 * @param string|array $data
 	 * @param string $locationInfo
 	 */
-	public function log($data, $locationInfo = null)
+	public function log($data, ?string $locationInfo = null)
 	{
 	    if ($this->logMode) {
             $this->logger->log($data, $locationInfo);
         }
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getId()
+	public function getId(): string
 	{
 		return $this->id;
 	}
@@ -217,7 +170,7 @@ abstract class AbstractApplication implements FusionInterface
 	 * @param string|null $param
 	 * @return mixed
 	 */
-	public function getConfig($param = null)
+	public function getConfig(?string $param = null)
 	{
 		if ($param === null) {
 			return $this->_config;
@@ -230,10 +183,7 @@ abstract class AbstractApplication implements FusionInterface
 		return null;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getDefaultServiceConfig()
+	public function getDefaultServiceConfig(): array
 	{
 		if ($this->defaultServiceConfig === null) {
 			$this->defaultServiceConfig =
@@ -243,10 +193,7 @@ abstract class AbstractApplication implements FusionInterface
 		return $this->defaultServiceConfig;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getDefaultPluginConfig()
+	public function getDefaultPluginConfig(): array
 	{
 		if ($this->defaultPluginConfig === null) {
 			$this->defaultPluginConfig =
@@ -256,10 +203,7 @@ abstract class AbstractApplication implements FusionInterface
 		return $this->defaultPluginConfig;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getMode()
+	public function getMode(): string
 	{
 		return $this->getConfig('mode');
 	}
@@ -268,7 +212,7 @@ abstract class AbstractApplication implements FusionInterface
 	 * @param string|array $mode
 	 * @return bool
 	 */
-	public function isMode($mode)
+	public function isMode($mode): bool
 	{
 		$currentMode = $this->getMode();
 		if (!$currentMode) return true;
@@ -285,27 +229,17 @@ abstract class AbstractApplication implements FusionInterface
 		return $mode == $currentMode;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isProd()
+	public function isProd(): bool
 	{
 		return $this->isMode(lx::MODE_PROD);
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isNotProd()
+	public function isNotProd(): bool
 	{
 		return !$this->isMode(lx::MODE_PROD);
 	}
 
-	/**
-	 * @param string $name
-	 * @return Service|null
-	 */
-	public function getService($name)
+	public function getService(string $name): ?Service
 	{
 		if (Service::exists($name)) {
 			return $this->services->get($name);
@@ -318,7 +252,7 @@ abstract class AbstractApplication implements FusionInterface
 	 * @param string|File $file
 	 * @return Service|null
 	 */
-	public function getServiceByFile($file)
+	public function getServiceByFile($file): ?Service
 	{
 		if (is_string($file)) {
 			$filePath = $this->conductor->getFullPath($file);
@@ -339,28 +273,18 @@ abstract class AbstractApplication implements FusionInterface
 		return null;
 	}
 
-	/**
-	 * @param string $name
-	 * @return string|false
-	 */
-	public function getPackagePath($name)
+	public function getPackagePath(string $name): ?string
 	{
 		$map = Autoloader::getInstance()->map;
 		if (!array_key_exists($name, $map->packages)) {
-			return false;
+			return null;
 		}
 
 		$path = $map->packages[$name];
 		return $this->conductor->getFullPath($path);
 	}
 
-	/**
-	 * @param string $fullPluginName
-	 * @param array $attributes
-	 * @param string $onLoad
-	 * @return Plugin|null
-	 */
-	public function getPlugin($fullPluginName, $attributes = [], $onLoad = '')
+	public function getPlugin(string $fullPluginName, array $attributes = [], string $onLoad = ''): ?Plugin
 	{
 		if (is_array($fullPluginName)) {
 			return $this->getPlugin(
@@ -389,12 +313,7 @@ abstract class AbstractApplication implements FusionInterface
 		return $plugin;
 	}
 
-	/**
-	 * @param string $serviceName
-	 * @param string $pluginName
-	 * @return string|null
-	 */
-	public function getPluginPath($serviceName, $pluginName = null)
+	public function getPluginPath(string $serviceName, ?string $pluginName = null): ?string
 	{
 		if (!$serviceName) {
 			return null;
@@ -409,15 +328,9 @@ abstract class AbstractApplication implements FusionInterface
 		return $this->getService($serviceName)->conductor->getPluginPath($pluginName);
 	}
 
-	/**
-	 * @return void
-	 */
-	abstract public function run();
+	abstract public function run(): void;
 
-	/**
-	 * Reload application configuration
-	 */
-	private function renewConfig()
+	private function renewConfig(): void
 	{
 		$path = lx::$conductor->getAppConfig();
 		if (!$path) {
@@ -427,7 +340,7 @@ abstract class AbstractApplication implements FusionInterface
 		}
 	}
 
-	private function loadLocalConfig()
+	private function loadLocalConfig(): void
     {
         if (!array_key_exists('localConfig', $this->_config)) {
             return;

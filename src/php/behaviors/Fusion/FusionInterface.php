@@ -20,8 +20,5 @@ interface FusionInterface
 	 */
 	public function getFusionComponent($name);
 
-	/**
-	 * @return array
-	 */
-	public function getDefaultFusionComponents();
+	public function getDefaultFusionComponents(): array;
 }

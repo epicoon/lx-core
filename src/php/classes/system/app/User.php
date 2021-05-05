@@ -44,7 +44,7 @@ class User implements UserInterface, FusionComponentInterface
 	 * @param string $name
 	 * @param mixed $value
 	 */
-	public function __set($name, $value)
+	public function __set(string $name, $value)
 	{
 		if ($this->userModel) {
 			if ($this->userModel->hasField($name)) {

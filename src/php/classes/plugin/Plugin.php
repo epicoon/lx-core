@@ -173,10 +173,7 @@ class Plugin extends Resource implements FusionInterface
 		return $this->__objectGet($name);
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getDefaultFusionComponents()
+	public function getDefaultFusionComponents(): array
 	{
 		return [
 			'directory' => PluginDirectory::class,
