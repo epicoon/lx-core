@@ -272,7 +272,7 @@ trait ArrayTrait
      * @param mixed $key
      * @param mixed $value
      */
-	protected function beforeSet($key, $value)
+	protected function beforeSet($key, $value): bool
     {
         return true;
     }
@@ -326,7 +326,7 @@ trait ArrayTrait
      * @param mixed $key
      * @param mixed $value
      */
-    protected function beforeUnset($key, $value)
+    protected function beforeUnset($key, $value): bool
     {
         return true;
     }

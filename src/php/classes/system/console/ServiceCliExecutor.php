@@ -4,48 +4,29 @@ namespace lx;
 
 use lx;
 
-/**
- * Class ServiceCliExecutor
- * @package lx
- */
 class ServiceCliExecutor implements ServiceCliExecutorInterface
 {
-	/** @var CliProcessor */
-	protected $processor;
+	protected CliProcessor $processor;
+	protected ?Service $service = null;
 
-	/** @var Service */
-	protected $service = null;
-
-	/**
-	 * @param $processor CliProcessor
-	 */
-	public function setProcessor($processor)
+	public function setProcessor(CliProcessor $processor): void
 	{
 		$this->processor = $processor;
 	}
 
-	/**
-	 * @return void
-	 */
-	public function run()
+	public function run(): void
 	{
 		$this->processor->done();
 	}
 
-    /**
-     * @return CliArgument
-     */
-	public static function getServiceArgument()
+	public static function getServiceArgument(): CliArgument
     {
         return (new CliArgument())->setKey(['service', 's', 0])
             ->setType(CliArgument::TYPE_STRING)
             ->setDescription('Service name');
     }
 
-    /**
-     * @return bool
-     */
-    public function defineService()
+    public function defineService(): bool
     {
         if ($this->service) {
             return true;

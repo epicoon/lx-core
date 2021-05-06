@@ -5,7 +5,10 @@ $respondentCode = <<<EOT
 
 namespace;
 
-class RespondentName extends \lx\Respondent {
+use lx\Respondent as lxRespondent;
+
+class RespondentName extends lxRespondent
+{
 
 }
 
@@ -44,7 +47,10 @@ $pluginCode = <<<EOT
 
 namespace ;
 
-class Plugin extends \lx\Plugin {
+use lx\Plugin as lxPlugin;
+
+class Plugin extends lxPlugin
+{
 
 }
 

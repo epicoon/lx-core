@@ -43,7 +43,6 @@ lx.keydown = function(key, func) {
 };
 
 lx.keydownOff = function(key, func) {
-	return;
 	key = key.isNumber ? 'k_' + key : 'c_' + key;
 	if (!keydownHandlers[key]) return;
 

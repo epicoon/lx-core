@@ -2,14 +2,7 @@
 
 namespace lx;
 
-/**
- * Interface ServiceCliInterface
- * @package lx
- */
 interface ServiceCliInterface
 {
-	/**
-	 * @return array
-	 */
-	public function getExtensionData();
+	public function getExtensionData(): array;
 }

@@ -2,20 +2,11 @@
 
 namespace lx;
 
-/**
- * Trait EventListenerTrait
- * @package lx
- */
 trait EventListenerTrait
 {
-	/** @var EventManager */
-	private $eventManager;
+	private EventManager $eventManager;
 
-	/**
-	 * @magic __construct
-	 * @param EventManager $eventManager
-	 */
-	public function constructEventListener($eventManager = null)
+	public function constructEventListener(?EventManager $eventManager = null): void
 	{
 		if ($eventManager instanceof EventManager) {
 			$this->eventManager = $eventManager;
@@ -33,18 +24,12 @@ trait EventListenerTrait
 		}
 	}
 
-	/**
-	 * @return array
-	 */
-	public static function getEventHandlersMap()
+	public static function getEventHandlersMap(): array
 	{
 		return [];
 	}
 
-	/**
-	 * @param string $eventName
-	 */
-	public function subscribe($eventName)
+	public function subscribe(string $eventName): void
 	{
 		if (!$this->eventManager) {
 			return;
@@ -53,11 +38,7 @@ trait EventListenerTrait
 		$this->eventManager->subscribe($eventName, $this);
 	}
 
-	/**
-	 * @param string $eventName
-	 * @param array $params
-	 */
-	public function trigger($eventName, $params = [])
+	public function trigger(string $eventName, array $params = []): void
 	{
 		$map = static::getEventHandlersMap();
 

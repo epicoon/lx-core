@@ -8,24 +8,8 @@ namespace lx;
  */
 interface EventListenerInterface
 {
-	/**
-	 * @param EventManager $eventManager
-	 */
-	public function constructEventListener($eventManager);
-
-	/**
-	 * @return array
-	 */
-	public static function getEventHandlersMap();
-
-	/**
-	 * @param string $eventName
-	 */
-	public function subscribe($eventName);
-
-	/**
-	 * @param string $eventName
-	 * @param array $params
-	 */
-	public function trigger($eventName, $params = []);
+	public function constructEventListener(EventManager $eventManager): void;
+	public static function getEventHandlersMap(): array;
+	public function subscribe(string $eventName): void;
+	public function trigger(string $eventName, array $params = []): void;
 }

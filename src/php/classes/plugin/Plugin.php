@@ -99,10 +99,7 @@ class Plugin extends Resource implements FusionInterface
 		$this->init();
 	}
 
-	/**
-	 * Define in child
-	 */
-	protected function init()
+	protected function init(): void
 	{
 		// pass
 	}
