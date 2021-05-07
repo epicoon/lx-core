@@ -161,9 +161,19 @@ class DependencyProcessor
 					? $parameter->getDefaultValue()
 					: null;
 				continue;
-			}
+			} elseif ($this->typeIsPrimitive($type)) {
+                $default = $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : new Undefined();
+                if ($default instanceof Undefined) {
+                    throw new \Exception("DI-processor can't create an instance of the $name"
+                        .": typed parameter {$parameter->getName()} has to have default value");
+                }
+			    
+			    $finalParams[$i] = $default;
+                continue;
+            }
 
 			$typeName = $type->getName();
+			
 			$typeRe = new \ReflectionClass($typeName);
 			if ($typeRe->isInterface()) {
 				if (array_key_exists($typeName, $dependencies)) {
@@ -346,5 +356,22 @@ class DependencyProcessor
                 $this->interfaces[$interface] = $class;
             }
         }
+    }
+
+    private function typeIsPrimitive(string $name): bool
+    {
+        return in_array($name, [
+            'bool',
+            'boolen',
+            'int',
+            'integer',
+            'float',
+            'string',
+            'array',
+            'callable',
+            'iterable',
+            'resource',
+            'mixed',
+        ]) !== false;
     }
 }

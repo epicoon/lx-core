@@ -4,8 +4,6 @@ require_once(__DIR__ . '/PlatformConductor.php');
 
 /**
  * Static environment for application
- *
- * Class lx
  */
 class lx
 {
@@ -35,7 +33,7 @@ class lx
 	/** @var lx\PlatformConductor */
 	public static $conductor;
 
-	/** @var \lx\HttpApplication|\lx\ConsoleApplication|\lx\ProcessApplication */
+	/** @var \lx\AbstractApplication */
 	public static $app;
 
 	/** @var string */
@@ -59,11 +57,11 @@ class lx
 	}
 
     /**
-     * @param string $command
-     * @param bool $async
+     * @param string|array $command
+     * @param bool|array $async
      * @return string|null
      */
-	public static function exec($command, $async = false)
+	public static function exec($command, $async = false): ?string
     {
         if (is_array($command)) {
             $str = $command['executor'] . ' ' . $command['script'];
@@ -110,7 +108,7 @@ class lx
 	 *
 	 * @param mixed $data
 	 */
-	public static function echo($data)
+	public static function echo($data): void
 	{
 		if (self::$app->isMode(self::MODE_PROD)) {
 			return;
@@ -128,7 +126,7 @@ class lx
 	 *
 	 * @param mixed $data
 	 */
-	public static function dump($data)
+	public static function dump($data): void
 	{
 		if (self::$app->isMode(self::MODE_PROD)) {
 			return;
@@ -152,7 +150,7 @@ class lx
 	/**
 	 * @param array|string $data
 	 */
-	public static function devLog($data)
+	public static function devLog($data): void
 	{
 		if (self::$app->isMode(self::MODE_PROD)) {
 			return;
@@ -169,10 +167,8 @@ class lx
 	/**
 	 * Method for recieving dumped data while response preparing
 	 * You don't need to use this method
-	 *
-	 * @return string
 	 */
-	public static function getDump()
+	public static function getDump(): string
 	{
 		return self::$dump;
 	}

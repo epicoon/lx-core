@@ -23,63 +23,25 @@ namespace lx;
  */
 class PlatformConductor
 {
-	/** @var string */
-	private $_sitePath;
+	private string $_sitePath;
+	private string $_web;
+	private string $_webCss;
+	private string $_webJs;
+	private string $_core;
+	private string $_jsCore;
+	private string $_jsNode;
+	private string $_stdResponses;
+	private string $_lxFiles;
+	private string $_system;
+	private string $_lxData;
+	private string $_clientConfig;
+	private string $_devLog;
+	private string $_defaultServiceConfig;
+	private string $_defaultPluginConfig;
+	private array $_lxPackageConfig;
+	private array $_packageConfig;
+	private array $publicFields;
 
-	/** @var string */
-	private $_web;
-
-	/** @var string */
-	private $_webCss;
-
-    /** @var string */
-    private $_webJs;
-
-	/** @var string */
-	private $_core;
-
-	/** @var string */
-	private $_jsCore;
-
-	/** @var string */
-	private $_jsNode;
-
-	/** @var string */
-	private $_stdResponses;
-
-	/** @var string */
-	private $_lxFiles;
-
-	/** @var string */
-	private $_system;
-
-	/** @var string */
-	private $_lxData;
-
-	/** @var string */
-	private $_clientConfig;
-
-	/** @var string */
-	private $_devLog;
-
-	/** @var string */
-	private $_defaultServiceConfig;
-
-	/** @var string */
-	private $_defaultPluginConfig;
-
-	/** @var array */
-	private $_lxPackageConfig;
-
-	/** @var array */
-	private $_packageConfig;
-
-	/** @var array */
-	private $publicFields;
-
-	/**
-	 * PlatformConductor constructor.
-	 */
 	public function __construct()
 	{
 		$this->_sitePath = dirname(__DIR__, 5);
@@ -117,11 +79,7 @@ class PlatformConductor
 		];
 	}
 
-	/**
-	 * @param string $name
-	 * @return string|array
-	 */
-	public function __get($name)
+	public function __get(string $name): ?string
 	{
 		if ($name == 'site' || $name == 'sitePath') {
 			return $this->_sitePath;
@@ -131,22 +89,15 @@ class PlatformConductor
 			return $this->{'_' . $name};
 		}
 
-		return false;
+		return null;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getPath()
+	public function getPath(): string
 	{
 		return $this->_sitePath;
 	}
 
-	/**
-	 * @param $name
-	 * @return string|array|bool
-	 */
-	public function getSystemPath($name = null)
+	public function getSystemPath(?string $name = null): string
 	{
 		if ($name) {
 			return $this->_system . '/' . $name;
@@ -155,10 +106,7 @@ class PlatformConductor
 		return $this->_system;
 	}
 
-	/**
-	 * @return string|null
-	 */
-	public function getAppConfig()
+	public function getAppConfig(): ?string
 	{
 		$config = $this->_clientConfig;
 		if (file_exists($config . '/main.php')) {
@@ -171,43 +119,27 @@ class PlatformConductor
 		return null;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getDefaultServiceConfig()
+	public function getDefaultServiceConfig(): string
 	{
 		return $this->_defaultServiceConfig;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getDefaultPluginConfig()
+	public function getDefaultPluginConfig(): string
 	{
 		return $this->_defaultPluginConfig;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getPackageConfigNames()
+	public function getPackageConfigNames(): array
 	{
 		return $this->_packageConfig;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getLxPackageConfigNames()
+	public function getLxPackageConfigNames(): array
 	{
 		return $this->_lxPackageConfig;
 	}
 
-	/**
-	 * @param string|null $extension
-	 * @return File
-	 */
-	public function getTempFile($extension = null)
+	public function getTempFile(?string $extension = null): File
 	{
         $tempPath = $this->getSystemPath('temp')
             . '/'

@@ -2,10 +2,6 @@
 
 namespace lx;
 
-/**
- * Class Renderer
- * @package lx
- */
 class Renderer implements RendererInterface
 {
     use ObjectTrait;
@@ -15,12 +11,7 @@ class Renderer implements RendererInterface
         return true;
     }
 
-    /**
-     * @param string $template
-     * @param array $params
-     * @return string
-     */
-    public function render($template, $params = [])
+    public function render(string $template, array $params = []): string
     {
         if (!file_exists($template)) {
             $template = \lx::$conductor->stdResponses . '/' . $template;

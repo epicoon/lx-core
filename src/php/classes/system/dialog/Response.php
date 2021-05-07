@@ -4,32 +4,22 @@ namespace lx;
 
 use lx;
 
-/**
- * Class Response
- * @package lx
- */
 class Response implements ResponseInterface
 {
     use ErrorCollectorTrait;
 
-    /** @var int */
-    private $code;
-
-    /** @var string */
-    private $type;
-
+    private int $code;
+    private bool $isWarning = false;
+    private string $type;
     /** @var mixed */
     private $data;
-
-    /** @var mixed */
+    /** @var array|string */
     private $fullData;
 
     /**
-     * Response constructor.
      * @param mixed $data
-     * @param int $code
      */
-    public function __construct($data, $code = ResponseCodeEnum::OK)
+    public function __construct($data, int $code = ResponseCodeEnum::OK)
     {
         $this->code = $code;
 
@@ -41,33 +31,29 @@ class Response implements ResponseInterface
             }
         }
     }
-    
-    public function applyResponseParams()
+
+    public function setWarning(): void
+    {
+        $this->isWarning = true;
+    }
+
+    public function applyResponseParams(): void
     {
         http_response_code($this->getCode());
         header("Content-Type: text/{$this->getType()}; charset=utf-8");
     }
 
-    /**
-     * @return int
-     */
-    public function getCode()
+    public function getCode(): int
     {
         return $this->code;
     }
 
-    /**
-     * @return bool
-     */
-    public function isForbidden()
+    public function isForbidden(): bool
     {
         return $this->code == ResponseCodeEnum::FORBIDDEN;
     }
 
-    /**
-     * @return bool
-     */
-    public function isSuccessfull()
+    public function isSuccessfull(): bool
     {
         return $this->getCode() == ResponseCodeEnum::OK;
     }
@@ -80,10 +66,7 @@ class Response implements ResponseInterface
         return $this->data;
     }
 
-    /**
-     * @return string
-     */
-    public function getDataString()
+    public function getDataString(): string
     {
         $data = $this->getFullData();
         $type = $this->getType();
@@ -94,7 +77,10 @@ class Response implements ResponseInterface
         //TODO сериалайзер
         if ($this->getType() == 'json') {
             $result = $this->isSuccessfull()
-                ? $data
+                ? [
+                    'success' => !$this->isWarning,
+                    'data' => $data,
+                ]
                 : [
                     'success' => false,
                     'error_code' => $this->getCode(),
@@ -107,10 +93,7 @@ class Response implements ResponseInterface
         return '';
     }
 
-    /**
-     * @return string
-     */
-    public function getType()
+    public function getType(): string
     {
         if (!isset($this->type)) {
             switch (true) {
@@ -131,7 +114,7 @@ class Response implements ResponseInterface
     }
 
     /**
-     * @return mixed
+     * @return array|string
      */
     private function getFullData()
     {

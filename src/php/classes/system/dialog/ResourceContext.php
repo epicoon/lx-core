@@ -16,11 +16,9 @@ namespace lx;
  */
 class ResourceContext
 {
-	/** @var array */
-	private $data;
-
-	/** @var Plugin */
-	private $plugin;
+	private array $data;
+	private Plugin $plugin;
+	private ?ResourceInterface $resource;
 
 	/**
 	 * ResourceContext constructor.
@@ -95,11 +93,11 @@ class ResourceContext
 	 */
 	public function getPlugin()
 	{
-		if ( ! $this->isPlugin()) {
+		if (!$this->isPlugin()) {
 			return null;
 		}
 
-		if ( ! $this->plugin) {
+		if (!isset($this->plugin)) {
 			$plugin = $this->getService()->getPlugin($this->data['plugin']);
 
 			if (isset($this->data['attributes'])) {
@@ -115,6 +113,33 @@ class ResourceContext
 
 		return $this->plugin;
 	}
+	
+	public function getResource(): ?ResourceInterface
+    {
+        if ($this->isPlugin()) {
+            return $this->getPlugin();
+        }
+        
+        if (!isset($this->resource)) {
+            $object = null;
+            if (isset($this->data['object'])) {
+                $object = $this->data['object'];
+            } elseif (isset($this->data['class'])) {
+                $class = $this->data['class'];
+                $config = [];
+                if (isset($this->data['service'])) {
+                    $config['service'] = $this->getService();
+                }
+                $object = \lx::$app->diProcessor->create($class, $config);
+            }
+
+            if ($object && $object instanceof ResourceInterface) {
+                $this->resource = $object;
+            }
+        }
+        
+        return $this->resource;
+    }
 
 
 	/*******************************************************************************************************************
@@ -128,7 +153,7 @@ class ResourceContext
 	 */
 	private function invokeAction($methodName, $params)
 	{
-		$object = $this->getObject();
+		$object = $this->getResource();
 		if (!$object) {
 			return $this->getNotFoundResponse();
 		}
@@ -195,31 +220,7 @@ class ResourceContext
         ]);
         return $this->getNotFoundResponse();
     }
-
-	/**
-	 * @return ResourceInterface|null
-	 */
-	private function getObject()
-	{
-		$object = null;
-		if (isset($this->data['object'])) {
-			$object = $this->data['object'];
-		} elseif (isset($this->data['class'])) {
-			$class = $this->data['class'];
-			$config = [];
-			if (isset($this->data['service'])) {
-				$config['service'] = $this->getService();
-			}
-			$object = \lx::$app->diProcessor->create($class, $config);
-		}
-
-		if ($object && $object instanceof ResourceInterface) {
-			return $object;
-		}
-
-		return null;
-	}
-
+    
     /**
      * @return ResponseInterface
      */

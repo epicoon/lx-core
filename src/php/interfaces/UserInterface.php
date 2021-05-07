@@ -2,10 +2,6 @@
 
 namespace lx;
 
-/**
- * Interface UserInterface
- * @package lx
- */
 interface UserInterface
 {
     public function isGuest(): bool;

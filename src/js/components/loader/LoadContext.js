@@ -29,6 +29,7 @@ class LoadContext {
 			pluginsInfo = info;
 		// Это ajax - если ресурсы пришли, их надо собирать здесь
 		} else {
+			info = info.data ? info.data : info;
 			this.isAjax = true;
 			pluginsInfo = info.pluginInfo;
 
@@ -92,7 +93,7 @@ class LoadContext {
 		if (this.necessaryModules && !this.necessaryModules.lxEmpty) {
 			modulesRequest = new lx.ServiceRequest('get-modules', this.necessaryModules);
 			modulesRequest.success = function(result) {
-				if (result) lx.createAndCallFunction('', result);
+				if (result) lx.createAndCallFunction('', result.data);
 			};
 			synchronizer.register(modulesRequest);
 		}

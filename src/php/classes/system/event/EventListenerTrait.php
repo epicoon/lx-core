@@ -6,7 +6,11 @@ trait EventListenerTrait
 {
 	private EventManager $eventManager;
 
-	public function constructEventListener(?EventManager $eventManager = null): void
+    /**
+     * @magic __construct
+     * @param array|EventManager|null $eventManager
+     */
+	public function constructEventListener($eventManager = null): void
 	{
 		if ($eventManager instanceof EventManager) {
 			$this->eventManager = $eventManager;
@@ -38,7 +42,10 @@ trait EventListenerTrait
 		$this->eventManager->subscribe($eventName, $this);
 	}
 
-	public function trigger(string $eventName, array $params = []): void
+    /**
+     * @param mixed $params
+     */
+	public function trigger(string $eventName, $params = null): void
 	{
 		$map = static::getEventHandlersMap();
 
@@ -50,9 +57,13 @@ trait EventListenerTrait
 			return;
 		}
 
-		if (!is_array($params)) {
-			$params = [$params];
-		}
-		call_user_func_array([$this, $methodName], $params);
+		if ($params === null) {
+		    call_user_func([$this, $methodName]);
+        } else {
+            if (!is_array($params)) {
+                $params = [$params];
+            }
+            call_user_func_array([$this, $methodName], $params);
+        }
 	}
 }

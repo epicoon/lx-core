@@ -2,15 +2,9 @@
 
 namespace lx;
 
-/**
- * Interface ResourceVoterInterface
- * @package lx
- */
 interface ResourceVoterInterface
 {
-	public function setResource(
-	    Resource $resource
-    );
+	public function setResource(Resource $resource): void;
 
 	public function processActionParams(
 	    UserInterface $user,

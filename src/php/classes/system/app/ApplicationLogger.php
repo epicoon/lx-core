@@ -29,19 +29,15 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 	/** @var array */
 	protected $ignoredCategories = [];
 
-    /**
-     * @param array $config
-     */
-    public function init($config)
+    public function init(array $config): void
     {
         $this->path = $config['path'] ?? null;
     }
 
 	/**
 	 * @param array|string $data
-	 * @param string $category
 	 */
-	public function log($data, $category = null)
+	public function log($data, ?string $category = null): void
 	{
 	    $trace = debug_backtrace();
         $source = $trace[1];

@@ -2,10 +2,6 @@
 
 namespace lx;
 
-/**
- * Interface FileInterface
- * @package lx
- */
 interface FileInterface
 {
     /**

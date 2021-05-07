@@ -284,7 +284,10 @@ abstract class AbstractApplication implements FusionInterface
 		return $this->conductor->getFullPath($path);
 	}
 
-	public function getPlugin(string $fullPluginName, array $attributes = [], string $onLoad = ''): ?Plugin
+    /**
+     * @param string|array $fullPluginName
+     */
+	public function getPlugin($fullPluginName, array $attributes = [], string $onLoad = ''): ?Plugin
 	{
 		if (is_array($fullPluginName)) {
 			return $this->getPlugin(

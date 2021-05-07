@@ -338,12 +338,8 @@ class Plugin extends Resource implements FusionInterface
 
 	/**
 	 * This method is used by ResourceContext for return Plugin as resource
-	 *
-	 * @param array $params
-	 * @param UserInterface $user
-	 * @return ResponseInterface
 	 */
-	public function run($params = [], $user = null)
+	public function run(array $params = [], UserInterface $user = null): ResponseInterface
 	{
 		$builder = new PluginBuildContext(['plugin' => $this]);
 		$result = $builder->build();
@@ -446,55 +442,7 @@ class Plugin extends Resource implements FusionInterface
 	{
 		// pass
 	}
-
-	/**
-	 * Define in child
-	 */
-	public function beforeSending()
-	{
-		// pass
-	}
-
-	/**
-	 * Define in child
-	 */
-	public function beforeSuccessfulSending()
-	{
-		// pass
-	}
-
-	/**
-	 * Define in child
-	 */
-	public function beforeFailedSending()
-	{
-		// pass
-	}
-
-	/**
-	 * Define in child
-	 */
-	public function afterSuccessfulSending()
-	{
-		// pass
-	}
-
-	/**
-	 * Define in child
-	 */
-	public function afterFailedSending()
-	{
-		// pass
-	}
-
-	/**
-	 * Define in child
-	 */
-	public function afterSending()
-	{
-		// pass
-	}
-
+	
 	/**
 	 * @param string $name
 	 * @param mixed $value

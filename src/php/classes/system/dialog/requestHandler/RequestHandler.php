@@ -84,11 +84,11 @@ abstract class RequestHandler
     abstract protected function processProblemResponse($response);
 
 
-    /*******************************************************************************************************************
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * PRIVATE
-     ******************************************************************************************************************/
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-    private function defineResourceContext()
+    private function defineResourceContext(): void
     {
         if (SpecialAjaxRouter::checkDialog()) {
             $ajaxRouter = new SpecialAjaxRouter();
@@ -107,7 +107,7 @@ abstract class RequestHandler
         }
     }
 
-    private function setNotFoundResponse()
+    private function setNotFoundResponse(): void
     {
         $this->response = $this->app->diProcessor->createByInterface(ResponseInterface::class, [
             'Resource not found',
@@ -115,35 +115,39 @@ abstract class RequestHandler
         ]);
     }
 
-    private function beforeSuccessfulSending()
+    private function beforeSuccessfulSending(): void
     {
         if ($this->resourceContext) {
-            $this->resourceContext->invoke('beforeSending');
-            $this->resourceContext->invoke('beforeSuccessfulSending');
+            $resource = $this->resourceContext->getResource();
+            $resource->beforeAction();
+            $resource->beforeSuccessfulAction();
         }
     }
 
-    private function beforeFailedSending()
+    private function beforeFailedSending(): void
     {
         if ($this->resourceContext) {
-            $this->resourceContext->invoke('beforeSending');
-            $this->resourceContext->invoke('beforeFailedSending');
+            $resource = $this->resourceContext->getResource();
+            $resource->beforeAction();
+            $resource->beforeFailedAction();
         }
     }
 
-    private function afterSuccessfulSending()
+    private function afterSuccessfulSending(): void
     {
         if ($this->resourceContext) {
-            $this->resourceContext->invoke('afterSuccessfulSending');
-            $this->resourceContext->invoke('afterSending');
+            $resource = $this->resourceContext->getResource();
+            $resource->afterSuccessfulAction();
+            $resource->afterAction();
         }
     }
 
-    private function afterFailedSending()
+    private function afterFailedSending(): void
     {
         if ($this->resourceContext) {
-            $this->resourceContext->invoke('afterFailedSending');
-            $this->resourceContext->invoke('afterSending');
+            $resource = $this->resourceContext->getResource();
+            $resource->afterFailedAction();
+            $resource->afterAction();
         }
     }
 }

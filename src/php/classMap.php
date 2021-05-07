@@ -112,6 +112,7 @@ return [
     'CascadeReport' => 'classes/tools',
     'FlightRecorder' => 'classes/tools/flightRecorder',
     'FlightRecorderHolderTrait' => 'classes/tools/flightRecorder',
+    'Undefined' => 'classes/tools',
 
 	'BaseFile' => 'classes/file',
 	'File' => 'classes/file',

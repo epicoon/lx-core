@@ -34,40 +34,33 @@ class Resource implements ResourceInterface
 
     /**
      * @param mixed $data
-     * @return ResponseInterface
      */
-	public function prepareResponse($data)
+	public function prepareResponse($data): ResponseInterface
     {
         return $this->newResponse($data);
+    }
+    
+    public function prepareWarningResponse($data): ResponseInterface
+    {
+        $responce = $this->newResponse($data);
+        $responce->setWarning();
+        return $responce;
     }
 
     /**
      * @param array|string $error
-     * @param int $code
-     * @return ResponseInterface
      */
-    public function prepareErrorResponse($error, $code = ResponseCodeEnum::BAD_REQUEST_ERROR)
+    public function prepareErrorResponse($error, int $code = ResponseCodeEnum::BAD_REQUEST_ERROR): ResponseInterface
     {
         return $this->newResponse($error, $code);
     }
 
-	/**
-	 * @param array $params
-	 * @param UserInterface $user
-	 * @return ResponseInterface
-	 */
-	public function run($params, $user = null)
+	public function run(array $params, UserInterface $user = null): ResponseInterface
 	{
 	    return $this->newResponse('Resource not found', ResponseCodeEnum::NOT_FOUND);
 	}
 
-	/**
-	 * @param string $actionName
-	 * @param array $params
-	 * @param UserInterface $user
-	 * @return ResponseInterface
-	 */
-	public function runAction($actionName, $params, $user = null)
+	public function runAction(string $actionName, array $params, ?UserInterface $user = null): ?ResponseInterface
 	{
 		if (!method_exists($this, $actionName)) {
 			return $this->newResponse('Resource not found', ResponseCodeEnum::NOT_FOUND);
@@ -113,12 +106,52 @@ class Resource implements ResourceInterface
 			: $this->$actionName();
 	}
 
+    public function beforeAction(): void
+    {
+        // pass
+    }
+
+    public function beforeSuccessfulAction(): void
+    {
+        // pass
+    }
+
+    public function beforeFailedAction(): void
+    {
+        // pass
+    }
+
+    public function afterSuccessfulAction(): void
+    {
+        // pass
+    }
+
+    public function afterFailedAction(): void
+    {
+        // pass
+    }
+
+    public function afterAction(): void
+    {
+        // pass
+    }
+	
 	/**
 	 * @return array
 	 */
 	protected static function getOwnMethodsList()
 	{
-		return ['runAction', 'prepareResponse', 'prepareErrorResponse'];
+		return [
+		    'runAction',
+            'prepareResponse',
+            'prepareErrorResponse',
+            'beforeAction',
+            'beforeSuccessfulAction',
+            'beforeFailedAction',
+            'afterSuccessfulAction',
+            'afterFailedAction',
+            'afterAction',
+        ];
 	}
 
 	/**

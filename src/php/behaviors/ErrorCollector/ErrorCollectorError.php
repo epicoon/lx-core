@@ -65,11 +65,7 @@ class ErrorCollectorError implements ToStringConvertableInterface
 		return $result;
 	}
 
-	/**
-	 * @param callable $callback
-	 * @return string
-	 */
-	public function toString($callback = null)
+	public function toString(callable $callback = null): string
 	{
 		if ($callback === null || !is_callable($callback)) {
 			return $this->__toString();
@@ -83,10 +79,7 @@ class ErrorCollectorError implements ToStringConvertableInterface
 		);
 	}
 
-	/**
-	 * @return string
-	 */
-	public function __toString()
+	public function __toString(): string
 	{
 		$result = [];
 		if ($this->title != '') {

@@ -16,9 +16,8 @@ class DevLogger implements LoggerInterface
 
 	/**
 	 * @param string|array $data
-	 * @param string $category
 	 */
-	public function log($data, $category = null)
+	public function log($data, ?string $category = null): void
 	{
 		$msg = $this->prepareMessage($data);
 		if (!$msg) {
@@ -29,10 +28,7 @@ class DevLogger implements LoggerInterface
 		$this->writeFile($file, $msg);
 	}
 
-    /**
-     * @param array $config
-     */
-    public function init($config)
+    public function init(array $config): void
     {
         // pass
     }

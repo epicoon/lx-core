@@ -2,10 +2,6 @@
 
 namespace lx;
 
-/**
- * Interface ResourceAccessDataInterface
- * @package lx
- */
 interface ResourceAccessDataInterface
 {
 	/**

@@ -2,19 +2,10 @@
 
 namespace lx;
 
-/**
- * Interface LoggerInterface
- * @package lx
- */
 interface LoggerInterface {
 	/**
 	 * @param mixed $data
-	 * @param string $category
 	 */
-	public function log($data, $category = null);
-
-    /**
-     * @param array $config
-     */
-	public function init($config);
+	public function log($data, ?string $category = null): void;
+	public function init(array $config): void;
 }

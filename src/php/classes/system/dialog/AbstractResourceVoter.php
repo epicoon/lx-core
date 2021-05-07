@@ -18,7 +18,7 @@ abstract class AbstractResourceVoter implements ResourceVoterInterface
 		return $this->owner;
 	}
 
-	public function setResource(Resource $resource)
+	public function setResource(Resource $resource): void
 	{
 		$this->owner = $resource;
 	}

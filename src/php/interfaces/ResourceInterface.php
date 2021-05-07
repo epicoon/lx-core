@@ -2,37 +2,24 @@
 
 namespace lx;
 
-/**
- * Interface ResourceInterface
- * @package lx
- */
 interface ResourceInterface extends ErrorCollectorInterface
 {
-	/**
-	 * @param array $params
-	 * @param UserInterface $user
-	 * @return ResponseInterface
-	 */
-	public function run($params, $user = null);
+    public function beforeAction(): void;
+    public function beforeSuccessfulAction(): void;
+    public function beforeFailedAction(): void;
+    public function afterAction(): void;
+    public function afterSuccessfulAction(): void;
+    public function afterFailedAction(): void;
 
-	/**
-	 * @param string $actionName
-	 * @param array $params
-	 * @param UserInterface $user
-	 * @return ResponseInterface
-	 */
-	public function runAction($actionName, $params, $user = null);
+    public function run(array $params, UserInterface $user = null): ResponseInterface;
+	public function runAction(string $actionName, array $params, ?UserInterface $user = null): ?ResponseInterface;
 
     /**
      * @param mixed $data
-     * @return ResponseInterface
      */
-    public function prepareResponse($data);
-
+    public function prepareResponse($data): ResponseInterface;
     /**
      * @param array|string $error
-     * @param int $code
-     * @return ResponseInterface
      */
-    public function prepareErrorResponse($error, $code = ResponseCodeEnum::BAD_REQUEST_ERROR);
+    public function prepareErrorResponse($error, int $code = ResponseCodeEnum::BAD_REQUEST_ERROR): ResponseInterface;
 }
