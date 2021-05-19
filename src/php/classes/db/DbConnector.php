@@ -2,10 +2,6 @@
 
 namespace lx;
 
-/**
- * Class DbConnector
- * @package lx
- */
 class DbConnector implements FusionComponentInterface, DbConnectorInterface
 {
     use ObjectTrait;
@@ -15,11 +11,9 @@ class DbConnector implements FusionComponentInterface, DbConnectorInterface
 	const MAIN_DB_CONNECTION_KEY = 'main';
 	const REPLICA_DB_CONNECTION_KEY = 'replica';
 
+	private array $config = [];
 	/** @var array */
-	private $config = [];
-
-	/** @var array */
-	private $connections = [];
+	private array $connections = [];
 
 	public function __construct(array $config = [])
 	{

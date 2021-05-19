@@ -8,7 +8,7 @@ use lx;
  * Class Directory
  * @package lx
  */
-class Directory extends BaseFile
+class Directory extends BaseFile implements DirectoryInterface
 {
 	const FIND_NAME = 1;
 	const FIND_OBJECT = 2;

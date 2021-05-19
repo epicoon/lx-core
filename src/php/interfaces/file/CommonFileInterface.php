@@ -2,11 +2,10 @@
 
 namespace lx;
 
-interface FileInterface
+interface CommonFileInterface
 {
     /**
      * @param string $path
-     * @return $this
      */
     public function setPath($path);
 

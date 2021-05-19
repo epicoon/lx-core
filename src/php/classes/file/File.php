@@ -6,7 +6,7 @@ namespace lx;
  * Class File
  * @package lx
  */
-class File extends BaseFile
+class File extends BaseFile implements FileInterface
 {
 	/** @var resource */
 	protected $instance = null;

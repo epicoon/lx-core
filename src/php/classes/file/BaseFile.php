@@ -6,7 +6,7 @@ namespace lx;
  * Class BaseFile
  * @package lx
  */
-class BaseFile implements FileInterface
+class BaseFile implements CommonFileInterface
 {
 	const WRONG = 0;
 	const DIR = 1;
@@ -32,7 +32,6 @@ class BaseFile implements FileInterface
 
 	/**
 	 * @param string $path
-	 * @return $this
 	 */
 	public function setPath($path)
 	{
@@ -48,8 +47,6 @@ class BaseFile implements FileInterface
 		if ($this->name == '') $this->name = array_pop($arr);
 
 		$this->parentDir = implode('/', $arr);
-
-		return $this;
 	}
 
 	/**

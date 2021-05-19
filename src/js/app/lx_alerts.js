@@ -12,8 +12,8 @@ lx.Alert = function(msg) {
 	if (lx.ActiveBox) __print(msg);
 	else {
 		(new lx.ServiceRequest('get-modules', ['lx.ActiveBox'])).send().then((result)=>{
-			if (!result) return;
-			lx.createAndCallFunction('', result);
+			if (!result || !result.success) return;
+			lx.createAndCallFunction('', result.data);
 			__print(msg);
 		});
 	}

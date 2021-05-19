@@ -10,7 +10,6 @@ class ApplicationConductor implements ConductorInterface
 	private array $aliases = [];
 
 	/**
-	 * @param string $name
 	 * @return string|array|null
 	 */
 	public function __get(string $name)
@@ -121,9 +120,9 @@ class ApplicationConductor implements ConductorInterface
 	}
 
 
-	/*******************************************************************************************************************
-	 * PRIVATE
-	 ******************************************************************************************************************/
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * PRIVATE
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private function decodeAlias(string $path): ?string
 	{

@@ -4,10 +4,6 @@ namespace lx;
 
 use lx;
 
-/**
- * Class PluginConductor
- * @package lx
- */
 class PluginConductor implements ConductorInterface, FusionComponentInterface
 {
     use ObjectTrait;
@@ -274,9 +270,9 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private function decodeAlias(string $path): string
 	{

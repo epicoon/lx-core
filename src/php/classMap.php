@@ -173,8 +173,6 @@ return [
 	 ******************************************************************************************************************/
 	'ApplicationLifeCycleManagerInterface' => 'interfaces',
 	'ConductorInterface' => 'interfaces',
-    'FileInterface' => 'interfaces',
-	'DataFileInterface' => 'interfaces',
     'ResponseInterface' => 'interfaces',
     'RendererInterface' => 'interfaces',
     'UserManagerInterface' => 'interfaces',
@@ -188,8 +186,16 @@ return [
 	'ResourceInterface' => 'interfaces',
 	'ResourceVoterInterface' => 'interfaces',
 	'ResourceAccessDataInterface' => 'interfaces',
-    'DbConnectorInterface' => 'interfaces',
     'JsCompilerExtensionInterafce' => 'interfaces',
+
+    'DbConnectorInterface' => 'interfaces/db',
+    'DbConnectionInterface' => 'interfaces/db',
+
+    'CommonFileInterface' => 'interfaces/file',
+    'DirectoryInterface' => 'interfaces/file',
+    'FileInterface' => 'interfaces/file',
+    'DataFileInterface' => 'interfaces/file',
+
 	'ModelInterface' => 'interfaces/model',
     'ModelManagerInterface' => 'interfaces/model',
     'ModelSchemaInterface' => 'interfaces/model',
