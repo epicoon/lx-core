@@ -4,10 +4,7 @@ namespace lx;
 
 class FileLink extends BaseFile
 {
-	/**
-	 * @param BaseFile $file
-	 */
-	public function create($file)
+	public function create(CommonFileInterface $file)
 	{
         if ($this->exists()) {
             $this->remove();
@@ -16,22 +13,16 @@ class FileLink extends BaseFile
         symlink($file->getPath(), $this->getPath());
 	}
 
-	/**
-	 * Remove symlink
-	 */
-	public function remove()
+	public function remove(): bool
 	{
 		if (!$this->exists()) {
-			return;
+			return true;
 		}
 
-		unlink($this->getPath());
+		return unlink($this->getPath());
 	}
 
-	/**
-	 * @return BaseFile|null
-	 */
-	public function getFile()
+	public function getFile(): ?CommonFileInterface
 	{
 		$path = readlink($this->getPath());
 		if (!$path) {

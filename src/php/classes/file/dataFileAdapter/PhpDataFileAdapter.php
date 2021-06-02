@@ -13,7 +13,7 @@ class PhpDataFileAdapter extends DataFileAdapter
 	 */
 	public function parse()
 	{
-		return $this->file->load();
+		return require($this->file->getPath());
 	}
 
 	/**

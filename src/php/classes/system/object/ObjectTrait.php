@@ -2,14 +2,9 @@
 
 namespace lx;
 
-/**
- * Trait ObjectTrait
- * @package lx
- */
 trait ObjectTrait
 {
-    /** @var array */
-    private $delegateList = [];
+    private array $delegateList = [];
 
     public static function getConfigProtocol(): array
     {
@@ -25,6 +20,11 @@ trait ObjectTrait
     {
         return false;
     }
+    
+    public static function construct(array $config = [], array $dependencies = [])
+    {
+        return lx::$app->diProcessor->create(static::class, $config, $dependencies);
+    }
 
     public function __construct(array $config = [])
     {
@@ -32,7 +32,6 @@ trait ObjectTrait
     }
 
     /**
-     * @param string $name
      * @return mixed|null
      */
     public function __get(string $name)
@@ -41,8 +40,6 @@ trait ObjectTrait
     }
 
     /**
-     * @param string $name
-     * @param array $arguments
      * @return mixed|null
      */
     public function __call(string $name, array $arguments)
@@ -56,14 +53,11 @@ trait ObjectTrait
     }
 
 
-    /*******************************************************************************************************************
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * NOT PUBLIC
-     ******************************************************************************************************************/
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-    /**
-     * @param array $config
-     */
-    protected function __objectConstruct(array $config = []): void
+    protected function __objectConstruct(array $config = []): array
     {
         if ($this->applyConfig($config)) {
             $traits = ObjectReestr::getTraitMap(static::class);
@@ -74,10 +68,10 @@ trait ObjectTrait
                 }
             }
         }
+        return $config;
     }
 
     /**
-     * @param string $name
      * @return mixed|null
      */
     protected function __objectGet(string $name)
@@ -96,12 +90,11 @@ trait ObjectTrait
         if (ClassHelper::publicPropertyExists($this, $name)) {
             return $this->$name;
         }
+
         return null;
     }
 
     /**
-     * @param string $name
-     * @param array $arguments
      * @return mixed|null
      */
     protected function __objectCall(string $name, array $arguments)
@@ -156,7 +149,7 @@ trait ObjectTrait
 
         foreach ($protocol as $paramName => $paramDescr) {
             $required = $paramDescr['required'] ?? false;
-            if ( ! array_key_exists($paramName, $config)) {
+            if (!array_key_exists($paramName, $config)) {
                 if ($required) {
                     $className = static::class;
                     \lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],

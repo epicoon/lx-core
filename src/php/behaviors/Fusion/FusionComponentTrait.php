@@ -19,9 +19,10 @@ trait FusionComponentTrait
 	 * @magic __construct
 	 * @param array $config
 	 */
-	public function constructFusionComponent($config = [])
+	public function constructFusionComponent(&$config)
 	{
 		$this->_owner = $config['__fusion__'] ?? null;
+		unset($config['__fusion__']);
 		foreach ($config as $key => $value) {
 		    if (property_exists($this, $key)) {
                 $this->$key = $value;

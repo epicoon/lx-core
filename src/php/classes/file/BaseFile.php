@@ -2,38 +2,24 @@
 
 namespace lx;
 
-/**
- * Class BaseFile
- * @package lx
- */
-class BaseFile implements CommonFileInterface
+abstract class BaseFile implements CommonFileInterface
 {
 	const WRONG = 0;
-	const DIR = 1;
+	const DIRECTORY = 1;
 	const FILE = 2;
 
-	/** @var string */
-	protected $path;
+	protected string $path;
+	protected string $name;
+	protected string $parentDir;
 
-	/** @var string */
-	protected $name;
-
-	/** @var string */
-	protected $parentDir;
-
-	/**
-	 * BaseFile constructor.
-	 * @param string $path
-	 */
-	public function __construct($path)
+	public function __construct(string $path)
 	{
 		$this->setPath($path);
 	}
 
-	/**
-	 * @param string $path
-	 */
-	public function setPath($path)
+	abstract public function remove(): bool;
+
+    public function setPath(string $path): void
 	{
         if ($path[0] == '@') {
             $path = \lx::$app->conductor->getFullPath($path);
@@ -49,11 +35,7 @@ class BaseFile implements CommonFileInterface
 		$this->parentDir = implode('/', $arr);
 	}
 
-	/**
-	 * @param string $path
-	 * @return BaseFile|null
-	 */
-	public static function construct($path)
+	public static function construct(string $path): ?BaseFile
 	{
 		if (is_link($path)) {
 			return new FileLink($path);
@@ -70,51 +52,32 @@ class BaseFile implements CommonFileInterface
 		return null;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getPath()
+	public function getPath(): string
 	{
 		return $this->path;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getName()
+	public function getName(): string
 	{
 		return $this->name;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getParentDirPath()
+	public function getParentDirPath(): string
 	{
 		return $this->parentDir;
 	}
 
-	/**
-	 * @return Directory
-	 */
-	public function getParentDir()
+	public function getParentDir(): Directory
 	{
 		return (new Directory($this->parentDir));
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function exists()
+	public function exists(): bool
 	{
 		return file_exists($this->path);
 	}
 
-    /**
-     * @param string $path
-     * @return FileLink|null
-     */
-	public function createLink($path)
+	public function createLink(string $path): ?FileLink
 	{
 		if (!$this->exists()) {
 			return null;
@@ -131,9 +94,8 @@ class BaseFile implements CommonFileInterface
 
 	/**
 	 * @param string|Directory $parent
-	 * @return bool
 	 */
-	public function belongs($parent)
+	public function belongs($parent): bool
 	{
 		$path;
 		if (is_string($parent)) {
@@ -152,22 +114,21 @@ class BaseFile implements CommonFileInterface
 
 	/**
 	 * @param string|Directory $parent
-	 * @return string|false
 	 */
-	public function getRelativePath($parent)
+	public function getRelativePath($parent): ?string
 	{
 		if (!$this->belongs($parent)) {
-			return false;
+			return null;
 		}
 
-		$path = false;
+		$path = null;
 		if (is_string($parent)) {
 			$path = $parent;
 		} else {
 			if ($parent instanceof Directory) {
 				$path = $parent->getPath();
 			} else {
-				return false;
+				return null;
 			}
 		}
 
@@ -176,10 +137,7 @@ class BaseFile implements CommonFileInterface
 		return preg_replace('/^' . $path . '\//', '', $selfPath);
 	}
 
-	/**
-	 * @return int
-	 */
-	public function createdAt()
+	public function createdAt(): int
 	{
 		if (!$this->exists()) {
 			return INF;
@@ -188,64 +146,39 @@ class BaseFile implements CommonFileInterface
 		return filemtime($this->getPath());
 	}
 
-	/**
-	 * @param BaseFile $file
-	 * @return bool
-	 */
-	public function isNewer($file)
+	public function isNewer(BaseFile $file): bool
 	{
 		return $this->createdAt() > $file->createdAt();
 	}
 
-	/**
-	 * @param BaseFile $file
-	 * @return bool
-	 */
-	public function isOlder($file)
+	public function isOlder(BaseFile $file): bool
 	{
 		return $this->createdAt() < $file->createdAt();
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isDir()
+	public function isDirectory(): bool
 	{
 		return is_dir($this->path);
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isFile()
+	public function isFile(): bool
 	{
 		return is_file($this->path);
 	}
 
-	/**
-	 * @return int
-	 */
-	public function getType()
+	public function getType(): int
 	{
-		if ($this->isDir()) return self::DIR;
+		if ($this->isDirectory()) return self::DIRECTORY;
 		if ($this->isFile()) return self::FILE;
 		return self::WRONG;
 	}
 
-	/**
-	 * @param string $newName
-	 * @return bool
-	 */
-	public function rename($newName)
+	public function rename(string $newName): bool
 	{
 		return $this->moveTo($this->parentDir, $newName);
 	}
 
-	/**
-	 * @param Directory $dir
-	 * @param string $newName
-	 */
-	public function moveTo($dir, $newName = null)
+	public function moveTo(Directory $dir, ?string $newName = null)
 	{
 		if ($newName === null) {
 			$newName = $this->getName();

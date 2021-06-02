@@ -14,7 +14,7 @@ use lx;
  * @property-read PackageDirectory $directory
  * @property-read ServiceConductor $conductor
  * @property-read ServiceRouter $router
- * @property-read I18nServiceMap $i18nMap
+ * @property-read ServiceI18nMap $i18nMap
  * @property-read ModelManagerInterface|null $modelManager
  */
 class Service implements FusionInterface
@@ -51,7 +51,7 @@ class Service implements FusionInterface
             'directory' => PackageDirectory::class,
             'conductor' => ServiceConductor::class,
             'router' => ServiceRouter::class,
-            'i18nMap' => I18nServiceMap::class,
+            'i18nMap' => ServiceI18nMap::class,
             'modelManager' => ModelManagerInterface::class,
         ];
     }
@@ -425,7 +425,7 @@ class Service implements FusionInterface
 				continue;
 			}
 
-			$dirs = $dir->getDirs()->toArray();
+			$dirs = $dir->getDirectories()->toArray();
 			foreach ($dirs as $subdir) {
 				if (PluginBrowser::checkDirectoryIsPlugin($subdir->getPath())) {
 					$result[$subdir->getName()] = $this->conductor->getRelativePath($subdir->getPath());

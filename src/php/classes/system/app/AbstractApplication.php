@@ -21,40 +21,40 @@ abstract class AbstractApplication implements FusionInterface
     use ObjectTrait;
     use FusionTrait;
 
-	private string $id;
-	private int $pid;
-	private string $_sitePath;
-	private array $_config;
-	private ?array $defaultServiceConfig = null;
-	private ?array $defaultPluginConfig = null;
-	private ApplicationConductor $_conductor;
-	private ServicesMap $_services;
-	private EventManager $_events;
-	private DependencyProcessor $_diProcessor;
-	private bool $logMode;
+    private string $id;
+    private int $pid;
+    private string $_sitePath;
+    private array $_config;
+    private ?array $defaultServiceConfig = null;
+    private ?array $defaultPluginConfig = null;
+    private ApplicationConductor $_conductor;
+    private ServicesMap $_services;
+    private EventManager $_events;
+    private DependencyProcessor $_diProcessor;
+    private bool $logMode;
 
-	public function __construct(?array $config = [])
-	{
-	    if ($config === null) {
-	        return;
+    public function __construct(?array $config = [], bool $useGlobalConfig = true)
+    {
+        if ($config === null) {
+            return;
         }
 
-        $this->baseInit($config);
-        $this->advancedInit();
-	}
+        $this->baseInit($config, $useGlobalConfig);
+        $this->advancedInit($useGlobalConfig);
+    }
 
-	public static function firstConstruct(array $config = []): AbstractApplication
+    public static function firstConstruct(array $config = [], bool $useGlobalConfig = true): AbstractApplication
     {
         $app = new static(null);
-        $app->baseInit($config);
+        $app->baseInit($config, $useGlobalConfig);
         (new AutoloadMapBuilder())->createCommonAutoloadMap();
         lx::$autoloader->map->reset();
-        $app->advancedInit();
+        $app->advancedInit($useGlobalConfig);
         (new JsModuleMapBuilder())->renewHead();
         return $app;
     }
 
-    protected function baseInit(array $config = []): void
+    protected function baseInit(array $config = [], bool $useGlobalConfig = true): void
     {
         $this->id = Math::randHash();
         $this->pid = getmypid();
@@ -64,32 +64,31 @@ abstract class AbstractApplication implements FusionInterface
         $this->_conductor = new ApplicationConductor();
         lx::$app = $this;
 
-        if (empty($config)) {
+        $diConfig = ClassHelper::prepareConfig(
+            $config['diProcessor'] ?? [],
+            DependencyProcessor::class
+        );
+        $this->_diProcessor = new $diConfig['class']($diConfig['params']);
+
+        $this->_config = $config;
+        if ($useGlobalConfig) {
             $this->renewConfig();
-        } elseif ($config === null) {
-            $this->_config = [];
-        } else {
-            $this->_config = $config;
         }
 
         $this->_services = new ServicesMap();
     }
 
-    protected function advancedInit(): void
+    protected function advancedInit(bool $useGlobalConfig = true): void
     {
-        $diConfig = ClassHelper::prepareConfig(
-            $this->getConfig('diProcessor'),
-            DependencyProcessor::class
-        );
-        $this->_diProcessor = new $diConfig['class']($diConfig['params']);
+        if ($useGlobalConfig) {
+            $this->loadLocalConfig();
+        }
 
         $eventsConfig = ClassHelper::prepareConfig(
             $this->getConfig('eventManager'),
             EventManager::class
         );
         $this->_events = new $eventsConfig['class']($eventsConfig['params']);
-
-        $this->loadLocalConfig();
 
         $aliases = $this->getConfig('aliases');
         if (!$aliases) $aliases = [];
@@ -185,22 +184,12 @@ abstract class AbstractApplication implements FusionInterface
 
 	public function getDefaultServiceConfig(): array
 	{
-		if ($this->defaultServiceConfig === null) {
-			$this->defaultServiceConfig =
-				(new File(lx::$conductor->getDefaultServiceConfig()))->load();
-		}
-
-		return $this->defaultServiceConfig;
+	    return $this->_config['serviceConfig'] ?? [];
 	}
 
 	public function getDefaultPluginConfig(): array
 	{
-		if ($this->defaultPluginConfig === null) {
-			$this->defaultPluginConfig =
-				(new File(lx::$conductor->getDefaultPluginConfig()))->load();
-		}
-
-		return $this->defaultPluginConfig;
+        return $this->_config['pluginConfig'] ?? [];
 	}
 
 	public function getMode(): string
@@ -337,10 +326,21 @@ abstract class AbstractApplication implements FusionInterface
 	{
 		$path = lx::$conductor->getAppConfig();
 		if (!$path) {
-			$this->_config = [];
-		} else {
-			$this->_config = require($path);
-		}
+		    return;
+        }
+
+        $file = $this->diProcessor->createByInterface(DataFileInterface::class, [$path]);
+        if (!$file->exists()) {
+            return;
+        }
+
+        $config = $file->get();
+        if (!is_array($config)) {
+            return;
+        }
+
+        $this->diProcessor->addMap($config['diProcessor'] ?? [], true);
+        $this->_config = ArrayHelper::mergeRecursiveDistinct($this->_config, $config);
 	}
 
 	private function loadLocalConfig(): void
@@ -350,6 +350,7 @@ abstract class AbstractApplication implements FusionInterface
         }
 
         $localConfig = $this->_config['localConfig'];
+        unset($this->_config['localConfig']);
         /** @var DataFileInterface $file */
         $file = $this->diProcessor->createByInterface(DataFileInterface::class, [$localConfig]);
         if (!$file->exists()) {
@@ -361,6 +362,13 @@ abstract class AbstractApplication implements FusionInterface
             return;
         }
 
+        $this->diProcessor->addMap($config['diProcessor'] ?? [], true);
         $this->_config = ArrayHelper::mergeRecursiveDistinct($this->_config, $config, true);
+
+        // Validation creates dev-log messages if classes don't due to interfaces.
+        // This collisions must be solved during development.
+        if ($this->isNotProd()) {
+            $this->diProcessor->validate();
+        }
     }
 }

@@ -2,24 +2,13 @@
 
 namespace lx;
 
-/**
- * Class File
- * @package lx
- */
 class File extends BaseFile implements FileInterface
 {
 	/** @var resource */
 	protected $instance = null;
+	protected string $opened = '';
 
-	/** @var string */
-	protected $opened = '';
-
-	/**
-	 * File constructor.
-	 * @param string $name
-	 * @param string $path
-	 */
-	public function __construct($name, $path = null)
+	public function __construct(string $name, ?string $path = null)
 	{
 		if ($path === null) {
 			parent::__construct($name);
@@ -37,10 +26,7 @@ class File extends BaseFile implements FileInterface
 		parent::__construct($path . $name);
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getExtension()
+	public function getExtension(): string
 	{
 		$arr = explode('.', $this->name);
 		if (count($arr) < 2) {
@@ -50,10 +36,7 @@ class File extends BaseFile implements FileInterface
 		return array_pop($arr);
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getCleanName()
+	public function getCleanName(): string
 	{
 		$ext = $this->getExtension();
 		if ($ext == '') {
@@ -63,55 +46,40 @@ class File extends BaseFile implements FileInterface
 		return preg_replace('/\.'.$ext.'$/', '', $this->getName());
 	}
 
-	/**
-	 * Remove file
-	 */
-	public function remove()
+	public function remove(): bool
 	{
 		if (!$this->exists()) {
-			return;
+			return true;
 		}
 
-		unlink($this->getPath());
+		return unlink($this->getPath());
 	}
 
-	/**
-	 * @param File $file
-	 * @return bool
-	 */
-	public function copy($file)
+ 	public function copy(FileInterface $file): bool
 	{
 		$dir = $this->getParentDir();
 		$dir->make();
 		return copy($file->getPath(), $this->getPath());
 	}
 
-	/**
-	 * @param string $path
-	 * @return File|false
-	 */
-	public function clone($path)
+	public function clone(string $path): ?FileInterface
 	{
 		$file = new File($path);
 		if (!$file->copy($this)) {
-			return false;
+			return null;
 		}
 
 		return $file;
 	}
 
-	/**
-	 * @param string $flags
-	 * @return $this|false
-	 */
-	public function open($flags = 'r')
+	public function open(string $flags = 'r'): bool
 	{
 		if ($flags == 'r' && !$this->exists()) {
 			return false;
 		}
 
 		if ($this->opened == $flags) {
-			return $this;
+			return true;
 		}
 
 		if ($this->opened != '') {
@@ -120,18 +88,13 @@ class File extends BaseFile implements FileInterface
 
 		$this->instance = fopen($this->path, $flags);
 		$this->opened = $flags;
-
-		return $this;
+		return true;
 	}
 
 	/**
-	 * You can open file before use this method multiple times and close after that
-	 *
 	 * @param mixed $info
-	 * @param string $flags
-	 * @return $this|false
 	 */
-	public function write($info, $flags='w')
+	public function write($info, string $flags='w'): bool
 	{
 		if (is_array($info) || is_object($info)) {
 			$info = json_encode($info);
@@ -147,17 +110,14 @@ class File extends BaseFile implements FileInterface
 		}
 
 		fwrite($this->instance, $info);
-		if ( ! $opened) {
+		if (!$opened) {
 			$this->close();
 		}
 
-		return $this;
+		return true;
 	}
 
-	/**
-	 * @return $this
-	 */
-	public function close()
+	public function close(): bool
 	{
 		if ($this->instance) {
 			fclose($this->instance);
@@ -165,17 +125,13 @@ class File extends BaseFile implements FileInterface
 			$this->opened = '';
 		}
 
-		return $this;
+		return true;
 	}
 
 	/**
-	 * Automatic file opening and closing for each using of the method
-	 *
 	 * @param mixed $info
-	 * @param int $flags
-	 * @return $this|false
 	 */
-	public function put($info, $flags = 0)
+	public function put($info, int $flags = 0): bool
 	{
 		if (is_array($info) || is_object($info)) {
 			$info = json_encode($info);
@@ -183,39 +139,34 @@ class File extends BaseFile implements FileInterface
 		    $info = (string)$info;
         }
 
-		if ( ! is_string($info)) {
+		if (!is_string($info)) {
 			return false;
 		}
 
 		$this->checkCanSave();
 		file_put_contents($this->path, $info, $flags);
-		return $this;
+		return true;
 	}
 
-	/**
-	 * @param mixed $info
-	 * @return $this|false
-	 */
-	public function append($info)
+	public function append($info): bool
 	{
 		return $this->put($info, FILE_APPEND);
 	}
 
-	/**
-	 * Automatic file opening and closing for each using of the method
-	 *
-	 * @return false|string
-	 */
+    /**
+     * @return mixed
+     */
 	public function get()
 	{
-		return file_get_contents($this->path);
+	    $result = file_get_contents($this->path);
+	    if ($result === false) {
+	        return null;
+        }
+
+	    return $result;
 	}
 
-	/**
-	 * @param int $rowsCount
-	 * @return string
-	 */
-	public function getTail($rowsCount)
+	public function getTail(int $rowsCount): string
 	{
 		$file = file($this->getPath());
 		$count = count($file);
@@ -227,11 +178,7 @@ class File extends BaseFile implements FileInterface
 		return $result;
 	}
 
-	/**
-	 * @param string $pattern
-	 * @return bool|false
-	 */
-	public function match($pattern)
+	public function match(string $pattern): bool
 	{
 		if ( ! $this->exists()) {
 			return false;
@@ -242,17 +189,12 @@ class File extends BaseFile implements FileInterface
 		}
 		
 		$text = file_get_contents($this->path);
-		return preg_match($pattern, $text);
+		return (bool)preg_match($pattern, $text);
 	}
 
-	/**
-	 * @param string $pattern
-	 * @param string $replacement
-	 * @return bool
-	 */
-	public function replace($pattern, $replacement)
+	public function replace(string $pattern, string $replacement): bool
 	{
-		if ( ! $this->exists()) {
+		if (!$this->exists()) {
 			return false;
 		}
 		
@@ -266,19 +208,11 @@ class File extends BaseFile implements FileInterface
 	}
 
 	/**
-	 * @return mixed
-	 */
-	public function load()
-	{
-		return require($this->path);
-	}
-
-	/**
 	 * Make directories according to file path
 	 */
-	private function checkCanSave()
+	private function checkCanSave(): void
 	{
-		if ( ! file_exists($this->parentDir)) {
+		if (!file_exists($this->parentDir)) {
 			mkdir($this->parentDir, 0777, true);
 		}
 	}

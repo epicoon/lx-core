@@ -60,7 +60,7 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 		$date = new \DateTime();
 		$date = $date->format('Y-m-d');
 
-		$ff = $dir->getFiles($date . '*.log', Directory::FIND_NAME)->toArray();
+		$ff = $dir->getFileNames($date . '*.log')->toArray();
 		$lastFileIndex = -1;
 		$lastFileName = '';
 		foreach ($ff as $name) {

@@ -2,37 +2,28 @@
 
 namespace lx;
 
-/**
- * Interface ApplicationLifeCycleManagerInterface
- * @package lx
- */
 interface ApplicationLifeCycleManagerInterface
 {
 	/**
-	 * Method called as the first step in [[\lx::$app->run()]]
+	 * Method called as the first step in [[lx::$app->run()]]
 	 */
-	public function beforeRun();
+	public function beforeRun(): void;
 
 	/**
-	 * Method called as last step in [[\lx::$app->run()]]
+	 * Method called as the last step in [[lx::$app->run()]]
 	 */
-	public function afterRun();
+	public function afterRun(): void;
 
 	/**
-	 * Method called as the first step in [[\lx\PluginConductor::getCssAssets()]]
-	 *
-	 * @param Plugin $plugin
+	 * Method called as the first step in [[lx\PluginConductor::getCssAssets()]]
 	 */
-	public function beforeGetPluginCssAssets($plugin);
+	public function beforeGetPluginCssAssets(Plugin $plugin): void;
 
 	/**
-	 * Method called as last step in:
-	 * - [[\lx\Plugin::getScripts()]]
-	 * - [[\lx\Plugin::getCss()]]
-	 * - [[\lx\Plugin::getImagePathes()]]
-	 *
-	 * @param array $originalPathes
-	 * @param array $linkPathes
+	 * Method called as the last step in:
+	 * - [[lx\Plugin::getScripts()]]
+	 * - [[lx\Plugin::getCss()]]
+	 * - [[lx\Plugin::getImagePathes()]]
 	 */
-	public function beforeReturnAutoLinkPathes($originalPathes, $linkPathes);
+	public function beforeReturnAutoLinkPathes(array $originalPathes, array $linkPathes): void;
 }

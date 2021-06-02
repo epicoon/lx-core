@@ -102,6 +102,6 @@ class FusionComponentList
     {
         $params = $data['params'];
         $params['__fusion__'] = $this->fusion;
-        $this->list[$name] = \lx::$app->diProcessor->create($data['class'], $params);
+        $this->list[$name] = \lx::$app->diProcessor->create($data['class'], $params, [], get_class($this->fusion));
     }
 }

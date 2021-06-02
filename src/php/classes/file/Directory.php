@@ -4,36 +4,22 @@ namespace lx;
 
 use lx;
 
-/**
- * Class Directory
- * @package lx
- */
 class Directory extends BaseFile implements DirectoryInterface
 {
 	const FIND_NAME = 1;
 	const FIND_OBJECT = 2;
 
-	/**
-	 * @return Vector
-	 */
-	public function scan()
+	public function scan(): Vector
 	{
 		return new Vector(scandir($this->path));
 	}
 
-	/**
-	 * @param string $name
-	 * @return bool
-	 */
-	public function contains($name)
+	public function contains(string $name): bool
 	{
 		return file_exists($this->path . '/' . $name);
 	}
 
-	/**
-	 * @param int $mode
-	 */
-	public function make($mode = 0777)
+	public function make(int $mode = 0777): void
 	{
 		if ($this->exists()) {
 			return;
@@ -42,25 +28,14 @@ class Directory extends BaseFile implements DirectoryInterface
 		mkdir($this->getPath(), $mode, true);
 	}
 
-	/**
-	 * @param string $name
-	 * @param int $mode
-	 * @param bool $recursive
-	 * @return Directory
-	 */
-	public function makeDirectory($name, $mode = 0777, $recursive = false)
+	public function makeDirectory(string $name, int $mode = 0777, bool $recursive = false): Directory
 	{
 		$path = $this->getPath() . '/' . $name;
 		mkdir($path, $mode, $recursive);
 		return new self($path);
 	}
 
-	/**
-	 * @param Directory $dir
-	 * @param bool $rewrite
-	 * @return bool
-	 */
-	public function copy($dir, $rewrite = false)
+	public function copy(Directory $dir, bool $rewrite = false): bool
 	{
 		if ($this->exists()) {
 			if (!$rewrite) {
@@ -85,28 +60,17 @@ class Directory extends BaseFile implements DirectoryInterface
 		return true;
 	}
 
-	/**
-	 * @param string $path
-	 * @param bool $rewrite
-	 * @return Directory|false
-	 */
-	public function clone($path, $rewrite = false)
+	public function clone(string $path, bool $rewrite = false): ?Directory
 	{
 		$dir = new Directory($path);
 		if (!$dir->copy($this, $rewrite)) {
-			return false;
+			return null;
 		}
 
 		return $dir;
 	}
 
-	/**
-	 * @param string $name
-	 * @param int $mode
-	 * @param bool $recursive
-	 * @return Directory
-	 */
-	public function getOrMakeDirectory($name, $mode = 0777, $recursive = false)
+	public function getOrMakeDirectory(string $name, int $mode = 0777, bool $recursive = false): Directory
 	{
 		if ($this->contains($name)) {
 			return $this->get($name);
@@ -114,16 +78,11 @@ class Directory extends BaseFile implements DirectoryInterface
 		return $this->makeDirectory($name, $mode, $recursive);
 	}
 
-	/**
-	 * @param string $name
-	 * @param string $type - File class name or interface name
-	 * @return File
-	 */
-	public function makeFile($name, $type = null)
+	public function makeFile(string $name, ?string $classOrInterface = null): FileInterface
 	{
 	    if (lx::$app && lx::$app->diProcessor) {
             return lx::$app->diProcessor->createByInterface(
-                $type,
+                $classOrInterface,
                 [$this->getPath() . '/' . $name],
                 [],
                 File::class
@@ -136,10 +95,10 @@ class Directory extends BaseFile implements DirectoryInterface
 	/**
 	 * Recursive removing directory with content
 	 */
-	public function remove()
+	public function remove(): bool
 	{
-		if ( ! $this->exists()) {
-			return;
+		if (!$this->exists()) {
+			return true;
 		}
 
 		$dirDel = function($dir) use(&$dirDel) {
@@ -155,16 +114,17 @@ class Directory extends BaseFile implements DirectoryInterface
 				}
 			}
 			closedir($d);
-			rmdir ($dir);
+			if (!rmdir ($dir)) {
+			    return false;
+            }
+			return true;
 		};
-		$dirDel($this->getPath());
+		
+		return $dirDel($this->getPath());
 	}
 
 	/**
 	 * Files and/or directories wich are located in this directory
-	 *
-	 * @param array $rules
-	 * @return Vector
 	 *
 	 * $rules = [
 	 *	'findType'  : Directory::FIND_OBJECT | Directory::FIND_NAME - return objects or names
@@ -177,8 +137,10 @@ class Directory extends BaseFile implements DirectoryInterface
 	 *	'ext'       : bool - return names with/without extensions (for name returning only)
 	 *	'fullname'  : bool - return full/self file names (for name returning only)
 	 * ]
+     * 
+     * @return Vector<CommonFileInterface>|Vector<string>
 	 */
-	public function getContent($rules = [])
+	public function getContent(array $rules = []): Vector
 	{
         $files = new Vector();
         if (!$this->exists()) {
@@ -209,75 +171,96 @@ class Directory extends BaseFile implements DirectoryInterface
 		return $files;
 	}
 
-	/**
-	 * @param string $name
-	 * @param int $cond
-	 * @return BaseFile|string|null
-	 */
-	public function get($name, $cond=self::FIND_OBJECT)
+	public function get(string $name): ?CommonFileInterface
 	{
 		if ($name == '') {
 			return $this;
 		}
 
-		if ( ! $this->contains($name)) {
+		if (!$this->contains($name)) {
 			return null;
 		}
 
 		$path = $this->path . '/' . $name;
-		if ($cond === self::FIND_NAME) {
-			return $path;
-		}
-
 		return BaseFile::construct($path);
 	}
 
-	/**
-	 * @param string $pattern
-	 * @param array|int $condition
-	 * @return Vector
-	 */
-	public function getFiles($pattern = null, $condition = self::FIND_OBJECT)
+    /**
+     * @return Vector<FileInterface>
+     */
+	public function getFiles(?string $pattern = null): Vector
 	{
-		$rules = is_array($condition) ? $condition : ['findType' => $condition];
-		$rules['mask'] = $pattern;
-		$rules['files'] = true;
-		return $this->getContent($rules);
+		return $this->getContent([
+            'findType' => self::FIND_OBJECT,
+            'mask' => $pattern,
+            'files' => true,
+        ]);
 	}
 
-	/**
-	 * @param string $pattern
-	 * @param array|int $condition
-	 * @return Vector
-	 */
-	public function getAllFiles($pattern = null, $condition = Directory::FIND_OBJECT)
-	{
-		$rules = is_array($condition) ? $condition : ['findType' => $condition];
-		$rules['mask'] = $pattern;
-		$rules['files'] = true;
-		$rules['all'] = true;
-		return $this->getContent($rules);
-	}
+    /**
+     * @return Vector<string>
+     */
+    public function getFileNames(?string $pattern = null): Vector
+    {
+        return $this->getContent([
+            'findType' => self::FIND_NAME,
+            'mask' => $pattern,
+            'files' => true,
+        ]);
+    }
 
 	/**
-	 * @param array|int $condition
-	 * @return Vector
+	 * @return Vector<FileInterface>
 	 */
-	public function getDirs($condition = self::FIND_OBJECT)
+	public function getAllFiles(?string $pattern = null): Vector
 	{
-		$rules = is_array($condition) ? $condition : ['findType' => $condition];
-		$rules['dirs'] = true;
-		return $this->getContent($rules);
+		return $this->getContent([
+            'findType' => self::FIND_OBJECT,
+            'mask' => $pattern,
+            'files' => true,
+            'all' => true,
+        ]);
 	}
+
+    /**
+     * @return Vector<string>
+     */
+    public function getAllFileNames(?string $pattern = null): Vector
+    {
+        return $this->getContent([
+            'findType' => self::FIND_NAME,
+            'mask' => $pattern,
+            'files' => true,
+            'all' => true,
+        ]);
+    }
+
+	/**
+	 * @return Vector<DirectoryInterface>
+	 */
+	public function getDirectories(): Vector
+	{
+		return $this->getContent([
+            'findType' => self::FIND_OBJECT,
+            'dirs' => true,
+        ]);
+	}
+
+    /**
+     * @return Vector<string>
+     */
+    public function getDirectoryNames(): Vector
+    {
+        return $this->getContent([
+            'findType' => self::FIND_NAME,
+            'dirs' => true,
+        ]);
+    }
 
 	/**
 	 * Recursive search
-	 *
-	 * @param string $filename
-	 * @param int $flag
-	 * @return BaseFile|string|null
 	 */
-	public function find($filename, $flag = Directory::FIND_OBJECT)
+	public function find(string $filename): ?CommonFileInterface
 	{
 		$arr = explode('/', $filename);
 
@@ -292,81 +275,33 @@ class Directory extends BaseFile implements DirectoryInterface
 		if (!$f) {
 			return null;
 		}
-
-		if ($flag == self::FIND_NAME) {
-			return $f;
-		}
-
+		
 		return BaseFile::construct($f);
 	}
 
 	/**
-	 * @param string $fileMask
-	 * @param string $pattern
-	 * @param string $replacement
+	 * @return Vector<FileInterface>
 	 */
-	public function replaceInFiles($fileMask, $pattern, $replacement)
-	{
-		$arr = $this->getAllFiles($fileMask);
-		$arr->each(function($file) use ($pattern, $replacement) {
-			$file->replace($pattern, $replacement);
-		});
-	}
-
-	/**
-	 * @param string $fileMask
-	 * @param callable $func
-	 * @param int $flag
-	 * @return Vector
-	 */
-	public function getFilesByCallback($fileMask, $func, $flag = Directory::FIND_OBJECT)
+	public function getFilesByCallback(string $fileMask, callable $func): Vector
 	{
 		$arr = $this->getAllFiles($fileMask);
 		$v = new Vector();
-		$arr->each(function($file) use (&$v, $func, $flag) {
+		$arr->each(function($file) use (&$v, $func) {
 			if (!$func($file)) return;
-			if ($flag == Directory::FIND_OBJECT) $v->push($file);
-			else $v->push($file->getPath());
+			$v->push($file);
 		});
 		return $v;
 	}
 
-	/**
-	 * @param string $name
-	 * @return mixed|null
-	 */
-	public function loadFile($name)
-	{
-		$file = $this->get($name);
-		if (!$file) $file = $this->find($name);
-		if ($file instanceof File) return $file->load();
-		return null;
-	}
 
-	/**
-	 * @param string $name
-	 * @return mixed|null
-	 */
-	public function fileContent($name)
-	{
-		$file = $this->get($name);
-		if (!$file) $file = $this->find($name);
-		if ($file instanceof File) return $file->get();
-		return null;
-	}
-
-
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	/**
 	 * Example: '*.(php|js)' ==> ['*.php', '*.js']
-	 *
-	 * @param string $mask
-	 * @return array
 	 */
-	private function parseMask($mask)
+	private function parseMask(string $mask): array
 	{
 		$temp = explode('.(', $mask);
 		if (count($temp) < 2) $masks = [$mask];
@@ -382,15 +317,10 @@ class Directory extends BaseFile implements DirectoryInterface
 		return $masks;
 	}
 
-	/**
-	 * @param string $dirName
-	 * @param string $fileName
-	 * @return string|false
-	 */
-	private static function staticFind($dirName, $fileName)
+	private static function staticFind(string $dirName, string $fileName): ?string
 	{
-		if ( ! file_exists($dirName)) {
-			return false;
+		if (!file_exists($dirName)) {
+			return null;
 		}
 
 		$files = array_diff(scandir($dirName), ['.', '..']);
@@ -403,18 +333,12 @@ class Directory extends BaseFile implements DirectoryInterface
 				if ($res) return $res;
 			}
 		}
-		return false;
+		return null;
 	}
 
-	/**
-	 * @param string $dirName
-	 * @param string $medDirName
-	 * @param string $fileName
-	 * @return string|false
-	 */
-	private static function staticFindExt($dirName, $medDirName, $fileName)
+	private static function staticFindExt(string $dirName, string $medDirName, string $fileName): ?string
 	{
-		if (!file_exists($dirName)) return false;
+		if (!file_exists($dirName)) return null;
 		$files = array_diff(scandir($dirName), ['.', '..']);
 		if ($dirName[-1] != '/') $dirName .= '/';
 		foreach ($files as $f) {
@@ -430,15 +354,10 @@ class Directory extends BaseFile implements DirectoryInterface
 				if ($res) return $res;
 			}
 		}
-		return false;
+		return null;
 	}
 
-	/**
-	 * @param string $dirPath
-	 * @param DataObject $rules
-	 * @param Vector $list
-	 */
-	private function getContentRe($dirPath, $rules, &$list)
+	private function getContentRe(string $dirPath, DataObject $rules, Vector &$list)
 	{
 		$findType = $rules->findType ?? self::FIND_OBJECT;
 
@@ -475,13 +394,9 @@ class Directory extends BaseFile implements DirectoryInterface
 	}
 
 	/**
-	 * @param string $name
-	 * @param string $fullPath
-	 * @param int $type
-     * @param string|null $fileClass
 	 * @return BaseFile|string|null
 	 */
-	private function getItem($name, $fullPath, $type, $fileClass)
+	private function getItem(string $name, string $fullPath, int $type, ?string $fileClass)
 	{
 		if ($type == self::FIND_OBJECT) {
 		    if ($fileClass) {
@@ -497,19 +412,16 @@ class Directory extends BaseFile implements DirectoryInterface
 		return $path;
 	}
 
-	/**
-	 * @param string $fileName
-	 * @param array $masks
-	 * @return bool
-	 */
-	private function checkMasks($fileName, $masks)
+	private function checkMasks(string $fileName, array $masks): bool
 	{
-		if ( ! $masks) {
+		if (!$masks) {
 			return true;
 		}
 
 		foreach ($masks as $mask) {
 			if (fnmatch($mask, $fileName)) return true;
 		}
+
+		return false;
 	}
 }

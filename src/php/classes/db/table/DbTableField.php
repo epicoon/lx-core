@@ -2,54 +2,33 @@
 
 namespace lx;
 
-/**
- * Class DbTableField
- * @package lx
- */
 class DbTableField
 {
+    const TYPE_SERIAL = 'serial';
     const TYPE_INTEGER = 'integer';
     const TYPE_STRING = 'varchar';
     const TYPE_FLOAT = 'float';
     const TYPE_DECIMAL = 'decimal';
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_TIMESTAMP = 'timestamp';
+    
+    const ATTRIBUTE_UNIQUE = 'uniqie';
 
-    /** @var DbTableSchema */
-    private $schema;
-
-    /** @var string */
-    private $name;
-
-    /** @var string */
-    private $type;
-
-    /** @var int */
-    private $size;
-
-    /** @var bool */
-    private $isNullable;
-
+    private string $name;
+    private string $type;
+    private array $attributes;
+    private ?int $size;
+    private bool $isNullable;
     /** @var mixed */
     private $defailt;
+    private bool $pk;
+    private ?array $fk;
 
-    /** @var bool */
-    private $pk;
-
-    /** @var array|null */
-    private $fk;
-
-    /**
-     * DbTableField constructor.
-     * @param DbTableSchema $schema
-     * @param array $definition
-     */
-    public function __construct($schema, $definition)
+    public function __construct(array $definition)
     {
-        $this->schema = $schema;
-
         $this->name = $definition['name'];
         $this->type = $definition['type'] ?? self::TYPE_STRING;
+        $this->attributes = $definition['attributes'] ?? [];
         $this->size = $definition['size'] ?? null;
         if ($this->size !== null) {
             $this->size = (int)$this->size;
@@ -61,10 +40,7 @@ class DbTableField
         $this->fk = $definition['fk'] ?? null;
     }
 
-    /**
-     * @return array
-     */
-    public function getDefinition()
+    public function getDefinition(): array
     {
         $result = [
             'name' => $this->getName(),
@@ -97,26 +73,17 @@ class DbTableField
         return $result;
     }
 
-    /**
-     * @return string
-     */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
 
-    /**
-     * @return string
-     */
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
 
-    /**
-     * @return string
-     */
-    public function getTypeDefinition()
+    public function getTypeDefinition(): string
     {
         if ($this->size === null) {
             return $this->type;
@@ -124,11 +91,13 @@ class DbTableField
 
         return $this->type . '(' . $this->size . ')';
     }
+    
+    public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
 
-    /**
-     * @return int|null
-     */
-    public function getSize()
+    public function getSize(): ?int
     {
         return $this->size;
     }
@@ -141,27 +110,27 @@ class DbTableField
         return $this->defailt;
     }
 
-    /**
-     * @return bool
-     */
-    public function isNullable()
+    public function isNullable(): bool
     {
+        if ($this->isPk()) {
+            return false;
+        }
+
         return $this->isNullable;
     }
 
-    /**
-     * @return bool
-     */
-    public function isPk()
+    public function isPk(): bool
     {
         return $this->pk;
     }
     
-    /**
-     * @return bool
-     */
-    public function isFk()
+    public function isFk(): bool
     {
         return $this->fk !== null;
+    }
+
+    public function getFkConfig(): ?array
+    {
+        return $this->fk;
     }
 }

@@ -4,8 +4,60 @@ namespace lx;
 
 //TODO сотояние кода устарело
 
-class DBmysql extends DB {
-	/**
+class DbMysql extends DbConnection
+{
+    //новый метод
+    public function connect(): bool
+    {
+        if ($this->connection !== null) {
+            return true;
+        }
+
+        $settings = $this->settings;
+        $connection = null;
+        try {
+            $connection = mysqli_connect($settings['hostname'], $settings['username'], $settings['password']);
+            mysqli_select_db($connection, $settings['dbName']);
+            mysqli_set_charset($connection, 'utf8');
+        } catch (\Exception $e) {
+            if ($connection) {
+                mysqli_close($connection);
+            }
+            
+            $this->addError($e->getMessage());
+            return false;
+        }
+
+        $this->connection = $connection;
+        return true;
+    }
+
+    //новый метод
+    public function disconnect(): bool
+    {
+        if ($this->connection === null) {
+            return true;
+        }
+
+        $result = mysqli_close($this->connection);
+        if (!$result) {
+            $this->addError(pg_last_error($this->connection));
+            return false;
+        }
+
+        $this->connection = null;
+        return true;
+    }
+
+
+
+    
+    public function __construct(array $settings)
+    {
+        throw new \Exception('Not implemented');
+    }
+
+    /**
 	 * Имя таблицы с учетом схемы
 	 * */
 	public function tableName($name) {
@@ -17,8 +69,12 @@ class DBmysql extends DB {
 
 		$query = '';
 		if (preg_match('/\./', $name)) {
-			$name = $this->tableName($name);
+			$name = $this->getTableName($name);
 		}
+
+		//mysql> create table myfriends(id serial primary key,frnd_name varchar(50) not null);
+        //mysql> create table myfriends(id int primary key auto_increment,frnd_name varchar(50) not null);
+        // SERIAL-это псевдоним для BIGINT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE
 
 		$query .= "CREATE TABLE $name (";
 		$cols = [];
@@ -69,7 +125,7 @@ class DBmysql extends DB {
 	 * SELECT-запрос
 	 * @param $query
 	 * */
-	public function select($query, $selectType = DB::SELECT_TYPE_MAP) {
+	public function select($query, $selectType = DbConnection::SELECT_TYPE_ASSOC) {
 		$this->error = null;
 
 		$res = mysqli_query($this->connection, $query);
@@ -78,9 +134,12 @@ class DBmysql extends DB {
 			return false;
 		}
 
+		//TODO
+        $mode = MYSQLI_ASSOC;
+		
 		$arr = [];
-		while ($row = mysqli_fetch_array($res)) {
-			$arr[] = $this->applySelectType($row, $selectType);
+		while ($row = mysqli_fetch_array($res, $mode)) {
+			$arr[] = $row;
 		}
 
 		return $arr;
@@ -126,16 +185,17 @@ class DBmysql extends DB {
 	 * Проверяет существование таблицы
 	 * */
 	public function tableExists($name) {
-		$name = $this->tableName($name);
-		$res = $this->select("SHOW TABLES FROM {$this->getName()} LIKE '$name'");
+		$name = $this->getTableName($name);
+		$res = $this->select("SHOW TABLES FROM {$this->settings['dbName']} LIKE '$name'");
 		return !empty($res);
 	}
 
 	/**
+     * @deprecated переделать в метод getTableSchema
 	 * Схема таблицы
-	 * */
+	 */
 	public function tableSchema($name, $fields=null) {
-		$name = $this->tableName($name);
+		$name = $this->getTableName($name);
 		$fieldsString = $fields;
 		if ($fields == self::SHORT_SCHEMA) $fieldsString = 'column_name,column_default,is_nullable,data_type,character_maximum_length,column_key';
 		else if (is_array($fields)) $fieldsString = implode(',', $fields);

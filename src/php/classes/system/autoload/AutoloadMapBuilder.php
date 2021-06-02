@@ -76,7 +76,7 @@ class AutoloadMapBuilder
 
 		if ($config === null) {
 			$dir = new Directory($path);
-			$subDirs = $dir->getDirs(Directory::FIND_NAME);
+			$subDirs = $dir->getDirectoryNames();
 			$subDirs = $subDirs->toArray();
 			foreach ($subDirs as $subDir) {
 				$this->analizeDirectory($path . '/' . $subDir);

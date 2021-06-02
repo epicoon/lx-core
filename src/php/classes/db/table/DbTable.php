@@ -4,36 +4,31 @@ namespace lx;
 
 class DbTable
 {
+    /** @var DbConnectionInterface */
     private $db;
+    /** @var string */
     private $name;
     private $_pkName = null;
 
-    public function __construct($name, $db)
+    public function __construct(DbConnectionInterface $db, string $name)
     {
-        $this->name = $name;
         $this->db = $db;
+        $this->name = $name;
     }
 
-    public function getDb()
+    public function getDb(): DbConnectionInterface
     {
         return $this->db;
     }
 
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
-
-    /**
-     * @deprecated
-     */
-    public function schema($columns = DB::SHORT_SCHEMA)
+    
+    public function getSchema(): DbTableSchema
     {
-        if ($columns == DB::SHORT_SCHEMA) {
-            return DbTableSchemaProvider::get($this);
-        }
-
-        return $this->db->tableSchema($this->name, $columns);
+        return $this->db->getTableSchema($this->name);
     }
 
     /**
@@ -49,14 +44,6 @@ class DbTable
         return $this->_pkName;
     }
 
-    /**
-     * @deprecated
-     */
-    public function setPkName($name)
-    {
-        $this->_pkName = $name;
-    }
-
     public function select($fields = '*', $condition = null)
     {
         if (is_array($fields)) {
@@ -66,8 +53,7 @@ class DbTable
         $condition = $this->parseCondition($condition);
         if ($condition) $query .= $condition;
 
-        $result = $this->db->select($query);
-        $result = $this->db->normalizeTypes($this, $result);
+        $result = $this->db->query($query);
         return $result;
     }
 
@@ -82,10 +68,9 @@ class DbTable
         return $result;
     }
 
-    public function insert($fields, $values=null, $returnId=true)
+    public function insert($fields, $values = null)
     {
-        if ($values === null || is_bool($values)) {
-            $returnId = $values === null ? true : $values;
+        if ($values === null) {
             $values = array_values($fields);
             $fields = array_keys($fields);
         }
@@ -95,20 +80,23 @@ class DbTable
         if (!is_array($values[0])) $values = [$values];
         foreach ($values as $valueSet) {
             foreach ($valueSet as &$value) {
-                $value = DB::valueForQuery($value);
+                $value = DbConnection::valueForQuery($value);
             }
             unset($value);
             $valstr[] = '(' . implode(', ', (array)$valueSet) . ')';
         }
         $query .= implode(', ', $valstr);
-        return $this->db->insert($query, $returnId);
+        return $this->db->query($query);
     }
 
-    public function update($sets, $condition=null)
+    /**
+     * @param array|string|int|null $condition
+     */
+    public function update(array $sets, $condition = null): bool
     {
         $temp = [];
         foreach ($sets as $field => $value) {
-            $temp[] = $field . ' = ' . DB::valueForQuery($value);
+            $temp[] = $field . ' = ' . DbConnection::valueForQuery($value);
         }
         $temp = implode(', ', $temp);
 
@@ -116,30 +104,35 @@ class DbTable
         $query = "UPDATE {$this->name} SET $temp";
         if ($condition !== null) $query .= $condition;
 
-        $res = $this->db->query($query);
-        return $res;
-    }
-
-    public function delete($condition=null)
-    {
-        $condition = $this->parseCondition($condition);
-        $query = 'DELETE FROM ' . $this->name;
-        if ($condition !== null) $query .= $condition;
-        $res = $this->db->query($query);
-        return $res;
+        return $this->db->query($query);
     }
 
     /**
-     * @param array $rows
+     * @param array|string|int|null $condition
      */
-    public function massUpdate($rows)
+    public function delete($condition = null): bool
+    {
+        $condition = $this->parseCondition($condition);
+        $query = 'DELETE FROM ' . $this->name;
+        if ($condition !== null) {
+            $query .= $condition;
+        }
+        return $this->db->query($query);
+    }
+
+    public function massUpdate(array $rows): bool
     {
         return $this->db->massUpdate($this->getName(), $rows);
     }
 
-    protected function parseCondition($condition)
+    /**
+     * @param array|string|int|null $condition
+     */
+    protected function parseCondition($condition): ?string
     {
-        if ($condition === null) return '';
+        if ($condition === null) {
+            return null;
+        }
 
         $data = new DataObject();
         $data->where = [];
@@ -196,20 +189,24 @@ class DbTable
             }
         }
 
-        $schema = $this->schema();
+        $schema = $this->getSchema();
         $whereText = '';
         foreach ($data->where as $key => $value) {
             if (is_string($key)) {
                 if (is_array($value)) {
                     foreach ($value as &$val) {
-                        if (!is_string($val) && $schema->getType($key) == 'string') $val = (string)$val;
-                        $val = DB::valueForQuery($val);
+                        if (!is_string($val) && $schema->getField($key)->getType() == DbTableField::TYPE_STRING) {
+                            $val = (string)$val;
+                        }
+                        $val = DbConnection::valueForQuery($val);
                     }
                     unset($val);
                     $part = $key . ' IN (' . implode(', ', $value) . ')';
                 } else {
-                    if (!is_string($value) && $schema->getType($key) == 'string') $value = (string)$value;
-                    $part = $key . '=' . DB::valueForQuery($value);
+                    if (!is_string($value) && $schema->getField($key)->getType() == DbTableField::TYPE_STRING) {
+                        $value = (string)$value;
+                    }
+                    $part = $key . '=' . DbConnection::valueForQuery($value);
                 }
             } else {
                 $part = $value;

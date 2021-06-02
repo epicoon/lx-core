@@ -3,8 +3,8 @@
 namespace lx;
 
 /**
- * Conductor classes can find different pathes in application
- * This is the most common conductor for platform
+ * Conductor classes can find different pathes in applications
+ * This is the most common conductor for the platform
  * 
  * Class PlatformConductor
  * @package lx
@@ -117,16 +117,6 @@ class PlatformConductor
 		}
 
 		return null;
-	}
-
-	public function getDefaultServiceConfig(): string
-	{
-		return $this->_defaultServiceConfig;
-	}
-
-	public function getDefaultPluginConfig(): string
-	{
-		return $this->_defaultPluginConfig;
 	}
 
 	public function getPackageConfigNames(): array

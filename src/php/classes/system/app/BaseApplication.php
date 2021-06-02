@@ -7,7 +7,7 @@ namespace lx;
  * @package lx
  *
  * @property-read Language $language
- * @property-read I18nApplicationMap $i18nMap
+ * @property-read ApplicationI18nMap $i18nMap
  */
 abstract class BaseApplication extends AbstractApplication
 {
@@ -18,7 +18,7 @@ abstract class BaseApplication extends AbstractApplication
     {
         return array_merge(parent::getDefaultComponents(), [
             'language' => Language::class,
-            'i18nMap' => I18nApplicationMap::class,
+            'i18nMap' => ApplicationI18nMap::class,
         ]);
     }
 

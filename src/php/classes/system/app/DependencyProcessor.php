@@ -2,68 +2,93 @@
 
 namespace lx;
 
-/**
- * Class DependencyProcessor
- * @package lx
- */
 class DependencyProcessor
 {
-	/** @var array */
-	private $interfaces = [];
+	private array $interfaces = [];
+	private array $classes = [];
+	private array $addedServices = [];
+	private array $instances = [];
 
-	/** @var array */
-	private $classes = [];
-
-	/** @var array */
-	private $addedServices = [];
-
-	/** @var array */
-	private $instances = [];
-
-	/**
-	 * DependencyProcessor constructor.
-	 * @param array $config
-	 */
-	public function __construct($config = [])
+	public function __construct(array $config = [])
 	{
-        $this->interfaces = $config['interfaces'] ?? [];
-        $this->classes = $config['classes'] ?? [];
-
-		// Validation creates dev-log messages if classes don't due to interfaces.
-		// This collisions must be solved during development.
-		if (\lx::$app->isNotProd()) {
-			$this->validate();
-		}
-
-		// Default settings
-        $this->setDefaults([
+	    $this->addMap($config);
+	    $this->setDefaults([
             DataFileInterface::class => DataFile::class,
             ResponseInterface::class => Response::class,
             RendererInterface::class => Renderer::class,
             UserInterface::class => User::class,
         ]);
 	}
+	
+	public function addMap(array $map, bool $rewrite = false): void
+    {
+        $interfaces = $map['interfaces'] ?? [];
+        if (empty($this->interfaces)) {
+            $this->interfaces = $interfaces;
+        } else {
+            $this->interfaces = ArrayHelper::mergeRecursiveDistinct($this->interfaces, $interfaces, $rewrite);
+        }
+        
+        $classes = $map['classes'] ?? [];
+        if (empty($this->classes)) {
+            $this->classes = $classes;
+        } else {
+            $this->classes = ArrayHelper::mergeRecursiveDistinct($this->classes, $classes, $rewrite);
+        }
+    }
+
+    /**
+     * Validation creates dev-log messages if classes don't due to interfaces
+     */
+    public function validate()
+    {
+        foreach ($this->interfaces as $interface => $class) {
+            $re = new \ReflectionClass($class);
+            if (!$re->implementsInterface($interface)) {
+                \lx::devLog([
+                    'msg' => 'DI-processor notification! Configuration is wrong: class doesn\'t due to interface',
+                    'interface' => $interface,
+                    'class' => $class,
+                ]);
+            }
+        }
+
+        foreach ($this->classes as $mainClass => $data) {
+            foreach ($data as $interface => $class) {
+                $re = new \ReflectionClass($class);
+                if (!$re->implementsInterface($interface)) {
+                    \lx::devLog([
+                        'msg' => 'DI-processor notification! Configuration is wrong: class doesn\'t due to interface',
+                        'context' => $mainClass,
+                        'interface' => $interface,
+                        'class' => $class,
+                    ]);
+                }
+            }
+        }
+    }
 
 	/**
-	 * @param string $className
-	 * @param array $params
-	 * @param array $dependencies
 	 * @return mixed
 	 */
-	public function create($className, $params = [], $dependencies = [])
-	{
-		$re = new \ReflectionClass($className);
+	public function create(
+	    string $classOrInterface,
+        array $params = [],
+        array $dependencies = [],
+        ?string $contextClass = null
+    ) {
+		$re = new \ReflectionClass($classOrInterface);
 		
 		if ($re->isInterface()) {
-		    return $this->createByInterface($className, $params, $dependencies);
+		    return $this->createByInterface($classOrInterface, $params, $dependencies, null, $contextClass);
         }
 
 		$isSingleton = false;
 		if ($re->hasMethod('isSingleton')) {
 		    $method = $re->getMethod('isSingleton');
             $isSingleton = $method->invoke(null);
-		    if ($isSingleton && array_key_exists($className, $this->instances)) {
-		        return $this->instances[$className];
+		    if ($isSingleton && array_key_exists($classOrInterface, $this->instances)) {
+		        return $this->instances[$classOrInterface];
             }
         }
 
@@ -72,43 +97,56 @@ class DependencyProcessor
             : $this->createProcess($re, $params, $dependencies);
 
 		if ($isSingleton) {
-		    $this->instances[$className] = $instance;
+		    $this->instances[$classOrInterface] = $instance;
         }
 
 		return $instance;
 	}
 
 	/**
-	 * @param string $interface
-	 * @param array $params
-	 * @param array $dependencies
-	 * @param string $defaultClass
-	 * @return mixed
+	 * @return mixed|null
 	 */
-	public function createByInterface($interface, $params = [], $dependencies = [], $defaultClass = null)
-	{
-		$className = $this->getClassNameByInterface($interface, $defaultClass);
-		if (!$className) {
-			return null;
-		}
+	public function createByInterface(
+	    ?string $interface,
+        array $params = [],
+        array $dependencies = [],
+        ?string $defaultClass = null,
+        ?string $contextClass = null
+    ) {
+	    if ($interface === null) {
+	        $classForInterface = $defaultClass;
+        } else {
+            $classForInterface = $this->findClassForInterface($interface, $contextClass);
+            if (!$classForInterface) {
+                $service = ClassHelper::defineService($interface);
+                if (!$service || in_array($service->name, $this->addedServices)) {
+                    $classForInterface = $defaultClass;
+                } else {
+                    $map = $service->getConfig('diProcessor') ?? [];
+                    $interfaces = $map['interfaces'] ?? [];
+                    $classes = $map['classes'] ?? [];
+                    $this->interfaces = ArrayHelper::mergeRecursiveDistinct($this->interfaces, $interfaces);
+                    $this->classes = ArrayHelper::mergeRecursiveDistinct($this->classes, $classes);
+                    $this->addedServices[] = $service->name;
+                    $classForInterface = $this->findClassForInterface($interface, $contextClass);
+                    if (!$classForInterface) {
+                        $classForInterface = $defaultClass;
+                    }
+                }
+            }
+        }
 
-		return $this->create($className, $params, $dependencies);
+        if (!$classForInterface) {
+            return null;
+        }
+
+        return $this->create($classForInterface, $params, $dependencies);
 	}
 
-	/**
-	 * @param string $interface
-	 * @param string $defaultClass
-	 * @return string
-	 */
-	public function getClassNameByInterface($interface, $defaultClass = null)
-	{
-		return $this->interfaces[$interface] ?? $defaultClass;
-	}
 
-
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	/**
 	 * @param \ReflectionClass $re
@@ -179,7 +217,7 @@ class DependencyProcessor
 				if (array_key_exists($typeName, $dependencies)) {
 					$instance = $this->create($dependencies[$typeName]);
 				} else {
-					$instance = $this->createInstanceByInterface($typeName, $name);
+					$instance = $this->createByInterface($typeName, [], [], null, $name);
 				}
 			} else {
 				$instance = $this->create($typeName);
@@ -224,11 +262,11 @@ class DependencyProcessor
 				} elseif (array_key_exists($paramName, $dependencies)) {
 					$instance = $this->create($dependencies[$paramName]);
 				} elseif ($this->hasDefinitionForClass($name, $instanceName)) {
-					$instance = $this->createInstanceByInterface($instanceName, $name);
+					$instance = $this->createByInterface($instanceName, [], [], null, $name);
 				} elseif (array_key_exists($instanceName, $diMap)) {
 					$instance = $this->create($diMap[$instanceName]);
 				} else {
-					$instance = $this->createInstanceByInterface($instanceName, $name);
+					$instance = $this->createByInterface($instanceName, [], [], null, $name);
 				}
 			} else {
 				$instance = $this->create($instanceName);
@@ -262,45 +300,16 @@ class DependencyProcessor
 		return true;
 	}
 
-	/**
-	 * @param string $interfaceName
-	 * @param string|null $className
-	 * @return mixed|null
-	 */
-	private function createInstanceByInterface($interfaceName, $className = null)
-	{
-		$classForInterface = $this->tryCreateInstanceByInterface($interfaceName, $className);
-		if (!$classForInterface) {
-		    $service = ClassHelper::defineService($interfaceName);
-		    if (!$service || in_array($service->name, $this->addedServices)) {
-		        return null;
-            }
-
-		    $map = $service->getConfig('diProcessor') ?? [];
-		    $interfaces = $map['interfaces'] ?? [];
-            $classes = $map['classes'] ?? [];
-            $this->interfaces = ArrayHelper::mergeRecursiveDistinct($this->interfaces, $interfaces);
-            $this->classes = ArrayHelper::mergeRecursiveDistinct($this->classes, $classes);
-            $this->addedServices[] = $service->name;
-            $classForInterface = $this->tryCreateInstanceByInterface($interfaceName, $className);
-            if (!$classForInterface) {
-                return null;
-            }
-		}
-
-		return $this->create($classForInterface);
-	}
-
     /**
      * @param string $interfaceName
-     * @param string|null $className
+     * @param string|null $contextClassName
      * @return string|null
      */
-    private function tryCreateInstanceByInterface($interfaceName, $className = null)
+    private function findClassForInterface($interfaceName, $contextClassName = null)
     {
         $classForInterface = null;
-        if ($className !== null && array_key_exists($className, $this->classes)) {
-            $classData = $this->classes[$className];
+        if ($contextClassName !== null && array_key_exists($contextClassName, $this->classes)) {
+            $classData = $this->classes[$contextClassName];
             if (array_key_exists($interfaceName, $classData)) {
                 $classForInterface = $classData[$interfaceName];
             }
@@ -314,38 +323,7 @@ class DependencyProcessor
 
         return $classForInterface;
     }
-
-	/**
-	 * Validation creates dev-log messages if classes don't due to interfaces
-	 */
-	private function validate()
-	{
-		foreach ($this->interfaces as $interface => $class) {
-			$re = new \ReflectionClass($class);
-			if (!$re->implementsInterface($interface)) {
-				\lx::devLog([
-					'msg' => 'DI-processor notification! Configuration is wrong: class doesn\'t due to interface',
-					'interface' => $interface,
-					'class' => $class,
-				]);
-			}
-		}
-
-		foreach ($this->classes as $mainClass => $data) {
-			foreach ($data as $interface => $class) {
-				$re = new \ReflectionClass($class);
-				if (!$re->implementsInterface($interface)) {
-					\lx::devLog([
-						'msg' => 'DI-processor notification! Configuration is wrong: class doesn\'t due to interface',
-						'context' => $mainClass,
-						'interface' => $interface,
-						'class' => $class,
-					]);
-				}
-			}
-		}
-	}
-
+    
     /**
      * @param array $map
      */

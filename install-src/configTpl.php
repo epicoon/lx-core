@@ -29,7 +29,8 @@ return [
 		// You can define db-connector component for your application
 		'dbConnector' => [
 			'class' => lx\DbConnector::class,
-			'db' => [
+			'default' => [
+			    'driver' => 'pgsql',
 				'hostname' => 'localhost',
 				'username' => 'username',
 				'password' => '*',
@@ -82,7 +83,8 @@ return [
 		// You can define db-connector component for your service
 		// 'dbConnector' => [
 		//	'class' => 'lx\DbConnector',
-		//	'db' => [
+		//	'default' => [
+		//      'driver' => 'pgsql',
 		//		'hostname' => 'localhost',
 		//		'username' => 'username',
 		//		'password' => '*',

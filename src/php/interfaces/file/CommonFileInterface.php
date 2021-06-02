@@ -4,101 +4,29 @@ namespace lx;
 
 interface CommonFileInterface
 {
-    /**
-     * @param string $path
-     */
-    public function setPath($path);
-
-    /**
-     * @param string $path
-     * @return BaseFile|null
-     */
-    public static function construct($path);
-
-    /**
-     * @return string
-     */
-    public function getPath();
-
-    /**
-     * @return string
-     */
-    public function getName();
-
-    /**
-     * @return string
-     */
-    public function getParentDirPath();
-
-    /**
-     * @return Directory
-     */
-    public function getParentDir();
-
-    /**
-     * @return bool
-     */
-    public function exists();
-
-    /**
-     * @param string $path
-     * @return FileLink|null
-     */
-    public function createLink($path);
-
+    public function setPath(string $path): void;
+    public static function construct(string $path): ?BaseFile;
+    public function getPath(): string;
+    public function getName(): string;
+    public function getParentDirPath(): string;
+    public function getParentDir(): Directory;
+    public function exists(): bool;
+    public function createLink(string $path): ?FileLink;
+    public function remove(): bool;
     /**
      * @param string|Directory $parent
-     * @return bool
      */
-    public function belongs($parent);
-
+    public function belongs($parent): bool;
     /**
      * @param string|Directory $parent
-     * @return string|false
      */
-    public function getRelativePath($parent);
-
-    /**
-     * @return int
-     */
-    public function createdAt();
-
-    /**
-     * @param BaseFile $file
-     * @return bool
-     */
-    public function isNewer($file);
-
-    /**
-     * @param BaseFile $file
-     * @return bool
-     */
-    public function isOlder($file);
-
-    /**
-     * @return bool
-     */
-    public function isDir();
-
-    /**
-     * @return bool
-     */
-    public function isFile();
-
-    /**
-     * @return int
-     */
-    public function getType();
-
-    /**
-     * @param string $newName
-     * @return bool
-     */
-    public function rename($newName);
-
-    /**
-     * @param Directory $dir
-     * @param string $newName
-     */
-    public function moveTo($dir, $newName = null);
+    public function getRelativePath($parent): ?string;
+    public function createdAt(): int;
+    public function isNewer(BaseFile $file): bool;
+    public function isOlder(BaseFile $file): bool;
+    public function isDirectory(): bool;
+    public function isFile(): bool;
+    public function getType(): int;
+    public function rename(string $newName): bool;
+    public function moveTo(Directory $dir, ?string $newName = null);
 }

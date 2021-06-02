@@ -3,10 +3,10 @@
 namespace lx;
 
 /**
- * Class I18nServiceMap
+ * Class ServiceI18nMap
  * @package lx
  */
-class I18nServiceMap extends I18nMap
+class ServiceI18nMap extends I18nMap
 {
 	/** @var array */
 	protected $fullMap;

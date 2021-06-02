@@ -3,10 +3,7 @@
 namespace lx;
 
 /**
- * You don't need note extension - the file will try to define it automatically
- *
- * Class DataFile
- * @package lx
+ * You don't need note an extension - the file will try to define it automatically
  */
 class DataFile extends File implements DataFileInterface
 {
@@ -23,18 +20,10 @@ class DataFile extends File implements DataFileInterface
 	const TYPE_YAML = 3;
 	const EXTENSIONS_YAML = ['yaml', 'yml'];
 
-	/** @var string */
-	protected $extension = null;
+	protected ?string $extension = null;
+	private ?DataFileAdapter $adapter = null;
 
-	/** @var DataFileAdapter */
-	private $adapter = null;
-
-	/**
-	 * DataFile constructor.
-	 * @param string $name
-	 * @param string $path
-	 */
-	public function __construct($name, $path = null)
+	public function __construct(string $name, ?string $path = null)
 	{
 		parent::__construct($name, $path);
 
@@ -68,10 +57,7 @@ class DataFile extends File implements DataFileInterface
 		}
 	}
 
-	/**
-	 * @return array
-	 */
-	protected static function getExtensions()
+	protected static function getExtensions(): array
 	{
 		return array_merge(
 			self::EXTENSIONS_PHP,
@@ -80,11 +66,7 @@ class DataFile extends File implements DataFileInterface
 		);
 	}
 
-	/**
-	 * @param string $extension
-	 * @return int|null
-	 */
-	protected static function defineType($extension)
+	protected static function defineType(string $extension): ?int
 	{
 		if (array_search($extension, self::EXTENSIONS_PHP) !== false) {
 			return self::TYPE_PHP;
@@ -101,10 +83,7 @@ class DataFile extends File implements DataFileInterface
 		return null;
 	}
 
-	/**
-	 * @return array
-	 */
-	protected static function getAdaptersMap()
+	protected static function getAdaptersMap(): array
 	{
 		return [
 			self::TYPE_PHP => PhpDataFileAdapter::class,
@@ -113,16 +92,13 @@ class DataFile extends File implements DataFileInterface
 		];
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getExtension()
+	public function getExtension(): string
 	{
 		return $this->extension;
 	}
 
 	/**
-	 * @return array
+	 * @return array|string
 	 */
 	public function get()
 	{
@@ -142,20 +118,15 @@ class DataFile extends File implements DataFileInterface
 		return $adapter->parse();
 	}
 
-    /**
-     * @return string
-     */
-    public function getText()
+    public function getText(): string
     {
         return parent::get();
     }
 
 	/**
 	 * @param array $data
-	 * @param int $style
-	 * @return File|false
 	 */
-	public function put($data, $style = self::STYLE_PREATY)
+	public function put($data, int $style = self::STYLE_PREATY): bool
 	{
 		$adapter = $this->getAdapter();
 		if ( ! $adapter) {
@@ -170,22 +141,16 @@ class DataFile extends File implements DataFileInterface
 		return parent::put($string);
 	}
 
-	/**
-	 * @param int $style
-	 */
-	public function setStyle($style)
+	public function setStyle(int $style)
 	{
 		$this->put($this->get(), $style);
 	}
 
 	/**
-	 * @param string $name
 	 * @param mixed $value
 	 * @param array|string|null $group
-	 * @param int $style
-	 * @return File|false
 	 */
-	public function insertParam($name, $value, $group = null, $style = self::STYLE_PREATY)
+	public function insertParam(string $name, $value, $group = null, ?int $style = self::STYLE_PREATY): bool
 	{
 		$adapter = $this->getAdapter();
 		if ( ! $adapter) {
@@ -220,10 +185,7 @@ class DataFile extends File implements DataFileInterface
 		$this->put($data, $style);
 	}
 
-	/**
-	 * @return DataFileAdapter|null
-	 */
-	private function getAdapter()
+	private function getAdapter(): ?DataFileAdapter
 	{
 		if ($this->adapter === null) {
 			$classMap = static::getAdaptersMap();

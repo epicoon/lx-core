@@ -2,53 +2,63 @@
 
 namespace lx;
 
-/**
- * Class DbTableBuilder
- * @package lx
- */
-class DbTableBuilder
+class DbTableEditor
 {
-    /** @var DbTableSchema */
-    private $schema;
+    private ?DbConnectionInterface $db;
+    private ?DbTableSchema $schema;
 
-    /**
-     * DbTableBuilder constructor.
-     * @param DbTableSchema|null $schema
-     */
-    public function __construct($schema = null)
+    public function __construct(?DbConnectionInterface $db = null, ?DbTableSchema $schema = null)
+    {
+        $this->db = $db;
+        if ($db && $schema && $schema->getDb() !== null && $schema->getDb() !== $db) {
+            //TODO а если в этой базе уже есть такая таблица с совершенно другой структурой?
+            $this->schema = clone $schema;
+            $this->schema->setDb($this->db);
+        } else {
+            $this->schema = $schema;
+        }
+    }
+    
+    public static function createTableFromConfig(DbConnectionInterface $db, array $config, bool $rewrite = false): bool
+    {
+        $dbSchema = DbTableSchema::createByConfig($config);
+        $editor = new self($db, $dbSchema);
+        return $editor->createTable($rewrite);
+    }
+    
+    public function setDb(DbConnectionInterface $db)
+    {
+        $this->db = $db;
+        if ($this->schema && $this->schema->getDb() !== null && $this->schema->getDb() !== $db) {
+            $this->schema = null;
+        }
+    }
+    
+    public function setTableSchema(DbTableSchema $schema)
     {
         $this->schema = $schema;
+        if ($schema->getDb()) {
+            $this->db = $schema->getDb();
+        }
     }
-
-    /**
-     * @return DB|null
-     */
-    public function getDb()
+    
+    public function loadTableSchema(DbConnectionInterface $db, string $tableName)
     {
-        return $this->schema ? $this->schema->getDb() : null;
+        $this->db = $db;
+        $this->schema = $db->getTableSchema($tableName);
     }
-
-    /**
-     * @param DbTableSchema $schema
-     */
-    public function setSchema($schema)
+    
+    public function getDb(): ?DbConnectionInterface
     {
-        $this->schema = $schema;
+        return $this->db;
     }
-
-    /**
-     * @return DbTableSchema|null
-     */
-    public function getSchema()
+    
+    public function getTableSchema(): ?DbTableSchema
     {
         return $this->schema;
     }
 
-    /**
-     * @param bool $rewrite
-     * @return bool
-     */
-    public function createTable($rewrite = false)
+    public function createTable(bool $rewrite = false): bool
     {
         if (!$this->schema) {
             return false;
@@ -95,10 +105,7 @@ class DbTableBuilder
         return true;
     }
 
-    /**
-     * @return bool
-     */
-    public function dropTable()
+    public function dropTable(): bool
     {
         if (!$this->schema) {
             return false;
@@ -133,18 +140,14 @@ class DbTableBuilder
         return true;
     }
 
-    /**
-     * @param array $definition
-     * @return bool
-     */
-    public function addField($definition)
+    public function addField(array $definition): bool
     {
         $field = $this->schema->addField($definition);
 
         $db = $this->getDb();
         $db->transactionBegin();
 
-        $query = $db->getAddColumnQuery($this->schema, $field->getName());
+        $query = $db->getAddColumnQuery($this->schema->getName(), $field);
         $result = $db->query($query);
         if (!$result) {
             $db->transactionRollback();
@@ -171,11 +174,7 @@ class DbTableBuilder
         return true;
     }
 
-    /**
-     * @param string $fieldName
-     * @return bool
-     */
-    public function delField($fieldName)
+    public function delField(string $fieldName): bool
     {
         $db = $this->getDb();
         $db->transactionBegin();
@@ -195,7 +194,7 @@ class DbTableBuilder
             }
         }
 
-        $query = $db->getDelColumnQuery($this->schema, $fieldName);
+        $query = $db->getDelColumnQuery($this->schema->getName(), $fieldName);
         $result = $db->query($query);
         if (!$result) {
             $db->transactionRollback();
@@ -206,27 +205,18 @@ class DbTableBuilder
         return true;
     }
 
-    /**
-     * @param string $oldFieldName
-     * @param string $newFieldName
-     * @return bool
-     */
-    public function renameField($oldFieldName, $newFieldName)
+    public function renameField(string $oldFieldName, string $newFieldName): bool
     {
         $db = $this->getDb();
-        $query = $db->getRenameColumnQuery($this->schema, $oldFieldName, $newFieldName);
+        $query = $db->getRenameColumnQuery($this->schema->getName(), $oldFieldName, $newFieldName);
         return $db->query($query);
     }
 
-    /**
-     * @param array $newDefinition
-     * @return bool
-     */
-    public function changeField($newDefinition)
+    public function changeField(array $newDefinition): bool
     {
         $field = $this->schema->addField($newDefinition);
         $db = $this->getDb();
-        $query = $db->getChangeColumnQuery($this->schema, $field->getName());
+        $query = $db->getChangeColumnQuery($this->schema->getName(), $field);
         return $db->query($query);
     }
 }

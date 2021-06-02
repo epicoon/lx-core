@@ -2,10 +2,6 @@
 
 namespace lx;
 
-/**
- * Interface ModelInterface
- * @package lx
- */
 interface ModelInterface
 {
     public function getId(): ?int;
@@ -13,7 +9,6 @@ interface ModelInterface
     public function hasField(string $name): bool;
 
     /**
-     * @param string $name
      * @param mixed $value
      */
     public function setField(string $name, $value): void;
@@ -21,7 +16,6 @@ interface ModelInterface
     public function setFields(array $fields): void;
 
     /**
-     * @param string$name
      * @return mixed|null
      */
     public function &getField(string $name);
@@ -33,7 +27,6 @@ interface ModelInterface
     public function setRelated(string $name, ?ModelInterface $model): void;
 
     /**
-     * @param string $name
      * @return mixed|null
      */
     public function &getRelated(string $name);

@@ -3,10 +3,10 @@
 namespace lx;
 
 /**
- * Class I18nPluginMap
+ * Class PluginI18nMap
  * @package lx
  */
-class I18nPluginMap extends I18nMap
+class PluginI18nMap extends I18nMap
 {
     const DEFAULT_FILE_NAME = 'assets/i18n/main.yaml';
 

@@ -13,7 +13,7 @@ use lx;
  * @property-read string $prototype
  * @property-read PluginDirectory $directory
  * @property-read PluginConductor $conductor
- * @property-read I18nPluginMap $i18nMap
+ * @property-read PluginI18nMap $i18nMap
  */
 class Plugin extends Resource implements FusionInterface
 {
@@ -175,7 +175,7 @@ class Plugin extends Resource implements FusionInterface
 		return [
 			'directory' => PluginDirectory::class,
 			'conductor' => PluginConductor::class,
-			'i18nMap' => I18nPluginMap::class,
+			'i18nMap' => PluginI18nMap::class,
 		];
 	}
 

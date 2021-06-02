@@ -112,7 +112,7 @@ class BaseFile #lx:namespace lx {
         return this.changedAt('ms') < file.changedAt('ms');
     }
 
-    isDir() {
+    isDirectory() {
         return this.__stat.isDirectory();
     }
 
@@ -122,7 +122,7 @@ class BaseFile #lx:namespace lx {
 
     getType() {
         if ( ! this.exists()) return self::WRONG;
-        if (this.isDir()) return self::DIR;
+        if (this.isDirectory()) return self::DIR;
         if (this.isFile()) return self::FILE;
         return self::WRONG;
     }

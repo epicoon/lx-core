@@ -3,10 +3,10 @@
 namespace lx;
 
 /**
- * Class I18nApplicationMap
+ * Class ApplicationI18nMap
  * @package lx
  */
-class I18nApplicationMap extends I18nMap
+class ApplicationI18nMap extends I18nMap
 {
 	/** @var array */
 	private $used = [];

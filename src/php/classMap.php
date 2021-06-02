@@ -13,7 +13,6 @@ return [
 	'ConsoleApplication' => 'classes/system/app',
 
     'HttpAssetsManager' => 'classes/system/app',
-	'DevApplicationLifeCycleManager' => 'classes/system/app',
 	'ApplicationConductor' => 'classes/system/app',
 	'ApplicationLogger' => 'classes/system/app',
 	'DevLogger' => 'classes/system/app',
@@ -21,6 +20,8 @@ return [
 	'UserEventsEnum' => 'classes/system/app',
 	'DependencyProcessor' => 'classes/system/app',
 
+    'DevApplicationLifeCycleManager' => 'classes/system/lifeCycle',
+    
 	'Dialog' => 'classes/system/dialog',
 	'Cookie' => 'classes/system/dialog',
 	'ResponseCodeEnum' => 'classes/system/dialog',
@@ -65,9 +66,9 @@ return [
 
 	'Language' => 'classes/i18n',
 	'I18nMap' => 'classes/i18n',
-	'I18nApplicationMap' => 'classes/i18n',
-	'I18nServiceMap' => 'classes/i18n',
-	'I18nPluginMap' => 'classes/i18n',
+	'ApplicationI18nMap' => 'classes/i18n',
+	'ServiceI18nMap' => 'classes/i18n',
+	'PluginI18nMap' => 'classes/i18n',
 
 	'PackageDirectory' => 'classes/package',
 	'PackageBrowser' => 'classes/package',
@@ -94,18 +95,19 @@ return [
 
 	'DataObject' => 'classes/dataClasses',
 
-	'DbConnectionList' => 'classes/db',
+	'DbConnectionRegistry' => 'classes/db',
 	'DbConnector' => 'classes/db',
-	'DB' => 'classes/db',
-	'DBpostgres' => 'classes/db',
-	'DBmysql' => 'classes/db',
-    'DbTableSchema' => 'classes/db/schema',
-    'DbTableField' => 'classes/db/schema',
+	'DbConnection' => 'classes/db',
+	'DbPostgres' => 'classes/db',
+	'DbMysql' => 'classes/db',
     'DbTable' => 'classes/db/table',
-    'DbTableBuilder' => 'classes/db/table',
-    //deprecated
-    'DbTableSchemaProvider' => 'classes/db',
-    'DbSchema' => 'classes/db',
+    'DbTableEditor' => 'classes/db/table',
+    'DbTableSchema' => 'classes/db/table',
+    'DbTableField' => 'classes/db/table',
+    'DbSelectQuery' => 'classes/db/query',
+    'DbSelectParser' => 'classes/db/query',
+    'DbQueryTableData' => 'classes/db/query',
+    'DbQueryFieldData' => 'classes/db/query',
 
 	'Request' => 'classes/tools',
 	'Vector' => 'classes/tools',

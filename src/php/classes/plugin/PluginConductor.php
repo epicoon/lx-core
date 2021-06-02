@@ -140,7 +140,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
         $result = [];
         foreach ((array)$snippetDirs as $snippetDir) {
             $dir = $this->getFile($snippetDir);
-            if ($dir && $dir->isDir()) {
+            if ($dir && $dir->isDirectory()) {
                 $result[] = $dir;
             }
         }

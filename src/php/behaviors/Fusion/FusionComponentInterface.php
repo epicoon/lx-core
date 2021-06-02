@@ -11,7 +11,7 @@ interface FusionComponentInterface
 	/**
 	 * @param array $config
 	 */
-	public function constructFusionComponent($config = []);
+	public function constructFusionComponent(&$config);
 
 	/**
 	 * @param string $name
