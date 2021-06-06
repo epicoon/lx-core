@@ -108,6 +108,7 @@ return [
     'DbSelectParser' => 'classes/db/query',
     'DbQueryTableData' => 'classes/db/query',
     'DbQueryFieldData' => 'classes/db/query',
+    'DbQueryBuilder' => 'classes/db/query',
 
 	'Request' => 'classes/tools',
 	'Vector' => 'classes/tools',

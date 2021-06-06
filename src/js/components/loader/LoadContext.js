@@ -91,7 +91,10 @@ class LoadContext {
 		// Запрос на догрузку модулей регистрируется в синхронайзере
 		var modulesRequest = null;
 		if (this.necessaryModules && !this.necessaryModules.lxEmpty) {
-			modulesRequest = new lx.ServiceRequest('get-modules', this.necessaryModules);
+			modulesRequest = new lx.ServiceRequest('get-modules', {
+				need: this.necessaryModules,
+				have: lx.dependencies.getCurrentModules()
+			});
 			modulesRequest.success = function(result) {
 				if (result) lx.createAndCallFunction('', result.data);
 			};

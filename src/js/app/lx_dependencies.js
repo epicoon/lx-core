@@ -11,7 +11,38 @@ const __data = {
  */
 lx.dependencies = {
 	cache: false,
+	
+	getCurrentModules: function () {
+		var result = [];
+		for (var name in __data.modules)
+			result.push(name);
+		return result;
+	},
 
+	promiseModules: function (list, callback = null) {
+		var need = this.defineNecessaryModules(list);
+
+		if (need.lxEmpty) {
+			this.depend({modules: need});
+			if (callback) callback();
+		} else {
+			var modulesRequest = new lx.ServiceRequest('get-modules', {
+				have: this.getCurrentModules(),
+				need
+			});
+			modulesRequest.send().then(res=>{
+				if (!res.success) {
+					console.error(res.data);
+					return;
+				}
+				
+				lx.createAndCallFunction('', res.data);
+				this.depend({modules: need});
+				if (callback) callback();
+			});
+		}
+	},
+	
 	/**
 	 * Подписать плагин на ресурсы
 	 */

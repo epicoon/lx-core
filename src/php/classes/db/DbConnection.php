@@ -64,6 +64,11 @@ abstract class DbConnection implements DbConnectionInterface
         string $newFieldName
     ): string;
 
+    /**
+     * @param mixed $value
+     */
+    abstract public function convertValueForQuery($value): string;
+
     public function transactionBegin(): void
     {
         $this->query('BEGIN;');
@@ -89,27 +94,5 @@ abstract class DbConnection implements DbConnectionInterface
     {
 		$name = $this->getTableName($name);
 		return new DbTable($this, $name);
-	}
-
-
-	
-
-
-
-
-
-
-
-
-	/**
-     * TODO перенести все методы-запросы из DbTable в DbConnection, тогда этот метод станет protected
-     * 
-	 * Приводит значение к формату, подходящему для текста запроса
-	 */
-	public static function valueForQuery($value) {
-		if (is_string($value)) return "'$value'";
-		if (is_bool($value)) return $value ? 'TRUE' : 'FALSE';
-		if (is_null($value)) return 'NULL';
-		return $value;
 	}
 }

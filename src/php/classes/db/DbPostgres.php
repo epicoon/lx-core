@@ -205,7 +205,7 @@ class DbPostgres extends DbConnection
         if ($fields) {
             $fields = (array)$fields;
             foreach ($fields as &$field) {
-                $field = self::valueForQuery($field);
+                $field = $this->convertValueForQuery($field);
             }
             unset($field);
             $fields = implode(',', $fields);
@@ -343,7 +343,7 @@ class DbPostgres extends DbConnection
                     }
                 }
 
-                $val = DbConnection::valueForQuery($row[$fieldName] ?? null);
+                $val = $this->convertValueForQuery($row[$fieldName] ?? null);
                 if ($val == 'NULL' && $field->getType() != DbTableField::TYPE_STRING) {
                     $val .= '::' . $field->getType();
                 }
@@ -494,7 +494,7 @@ class DbPostgres extends DbConnection
         if ($default === null) {
             $queries[] = "ALTER TABLE $tableName ALTER COLUMN $fieldName DROP DEFAULT;";
         } else {
-            $default = DbConnection::valueForQuery($default);
+            $default = $this->convertValueForQuery($default);
             $queries[] = "ALTER TABLE $tableName ALTER COLUMN $fieldName SET DEFAULT $default;";
         }
         
@@ -515,6 +515,17 @@ class DbPostgres extends DbConnection
     public function getRenameColumnQuery(string $tableName, string $oldFieldName, string $newFieldName): string
     {
         return "ALTER TABLE {$tableName} RENAME COLUMN {$oldFieldName} TO {$newFieldName}";
+    }
+
+    /**
+     * @param mixed $value
+     */
+    public function convertValueForQuery($value): string
+    {
+        if (is_string($value)) return "'$value'";
+        if (is_bool($value)) return $value ? 'TRUE' : 'FALSE';
+        if (is_null($value)) return 'NULL';
+        return (string)$value;
     }
 
 
@@ -669,7 +680,7 @@ class DbPostgres extends DbConnection
 
         $default = $field->getDefault();
         if ($default !== null) {
-            $default = DbConnection::valueForQuery($default);
+            $default = $this->convertValueForQuery($default);
             $result .= " default {$default}";
         }
 

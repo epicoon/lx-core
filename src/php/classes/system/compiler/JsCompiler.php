@@ -22,6 +22,9 @@ class JsCompiler
 
 	/** @var bool */
 	private $buildModules;
+	
+	/** @var array */
+	private $ignoreModules;
 
 	/** @var array */
 	private $allCompiledFiles;
@@ -49,6 +52,7 @@ class JsCompiler
 
 		$this->context = self::CONTEXT_CLIENT;
 		$this->buildModules = false;
+		$this->ignoreModules = [];
 		$this->allCompiledFiles = [];
 		$this->compiledFiles = [];
 	}
@@ -80,6 +84,14 @@ class JsCompiler
 	{
 		$this->buildModules = $value;
 	}
+
+    /**
+     * @param array $list
+     */
+	public function ignoreModules($list)
+    {
+        $this->ignoreModules = $list;
+    }
 
 	/**
 	 * @return bool
@@ -148,7 +160,6 @@ class JsCompiler
         $code = $this->compileExtensions($code, $path);
 		return $code;
 	}
-
 
     /**
      * @param string $code
@@ -405,7 +416,7 @@ class JsCompiler
 		$moduleMap = new JsModuleMap();
 		$filePathes = [];
 		foreach ($moduleNames as $moduleName) {
-		    if (!$moduleMap->moduleExists($moduleName)) {
+		    if (in_array($moduleName, $this->ignoreModules) || !$moduleMap->moduleExists($moduleName)) {
 		        continue;
             }
 

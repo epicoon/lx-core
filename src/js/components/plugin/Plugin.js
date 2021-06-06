@@ -131,24 +131,13 @@ class Plugin #lx:namespace lx {
 		if (!newForPlugin.len) return;
 
 		if (!this.dependencies.modules) this.dependencies.modules = [];
-		var forLoad = lx.dependencies.defineNecessaryModules(newForPlugin);
-		if (forLoad.len) {
-			(new lx.ServiceRequest('get-modules', forLoad)).send().then(result=>{
-				if (!result) return;
-				lx.createAndCallFunction('', result);
+		lx.dependencies.promiseModules(
+			newForPlugin,
+			()=>{
 				newForPlugin.each(a=>this.dependencies.modules.push(a));
-				lx.dependencies.depend({
-					modules: newForPlugin
-				});
 				if (callback) callback();
-			});
-		} else {
-			newForPlugin.each(a=>this.dependencies.modules.push(a));
-			lx.dependencies.depend({
-				modules: newForPlugin
-			});
-			if (callback) callback();
-		}
+			}
+		);
 	}
 
 	/**

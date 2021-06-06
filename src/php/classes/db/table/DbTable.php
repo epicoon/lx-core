@@ -8,7 +8,6 @@ class DbTable
     private $db;
     /** @var string */
     private $name;
-    private $_pkName = null;
 
     public function __construct(DbConnectionInterface $db, string $name)
     {
@@ -36,12 +35,7 @@ class DbTable
      */
     public function pkName()
     {
-        if ($this->_pkName === null) {
-            //TODO
-            $this->_pkName = 'id';
-        }
-
-        return $this->_pkName;
+        return 'id';
     }
 
     public function select($fields = '*', $condition = null)
@@ -79,11 +73,12 @@ class DbTable
         $valstr = [];
         if (!is_array($values[0])) $values = [$values];
         foreach ($values as $valueSet) {
+            $valueSet = (array)$valueSet;
             foreach ($valueSet as &$value) {
-                $value = DbConnection::valueForQuery($value);
+                $value = $this->db->convertValueForQuery($value);
             }
             unset($value);
-            $valstr[] = '(' . implode(', ', (array)$valueSet) . ')';
+            $valstr[] = '(' . implode(', ', $valueSet) . ')';
         }
         $query .= implode(', ', $valstr);
         return $this->db->query($query);
@@ -96,7 +91,7 @@ class DbTable
     {
         $temp = [];
         foreach ($sets as $field => $value) {
-            $temp[] = $field . ' = ' . DbConnection::valueForQuery($value);
+            $temp[] = $field . ' = ' . $this->db->convertValueForQuery($value);
         }
         $temp = implode(', ', $temp);
 
@@ -198,7 +193,7 @@ class DbTable
                         if (!is_string($val) && $schema->getField($key)->getType() == DbTableField::TYPE_STRING) {
                             $val = (string)$val;
                         }
-                        $val = DbConnection::valueForQuery($val);
+                        $val = $this->db->convertValueForQuery($val);
                     }
                     unset($val);
                     $part = $key . ' IN (' . implode(', ', $value) . ')';
@@ -206,7 +201,7 @@ class DbTable
                     if (!is_string($value) && $schema->getField($key)->getType() == DbTableField::TYPE_STRING) {
                         $value = (string)$value;
                     }
-                    $part = $key . '=' . DbConnection::valueForQuery($value);
+                    $part = $key . '=' . $this->db->convertValueForQuery($value);
                 }
             } else {
                 $part = $value;

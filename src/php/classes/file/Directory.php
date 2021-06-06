@@ -412,7 +412,7 @@ class Directory extends BaseFile implements DirectoryInterface
 		return $path;
 	}
 
-	private function checkMasks(string $fileName, array $masks): bool
+	private function checkMasks(string $fileName, ?array $masks): bool
 	{
 		if (!$masks) {
 			return true;

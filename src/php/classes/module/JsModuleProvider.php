@@ -12,7 +12,7 @@ class JsModuleProvider extends Resource
 	 * @param array $list
 	 * @return string
 	 */
-	public function getModulesCode($list)
+	public function getModulesCode($list, $except = [])
 	{
 		$modulesCode = '';
 		foreach ($list as $moduleName) {
@@ -20,6 +20,7 @@ class JsModuleProvider extends Resource
 		}
 		$compiler = new JsCompiler();
 		$compiler->setBuildModules(true);
+		$compiler->ignoreModules($except);
 		$modulesCode = $compiler->compileCode($modulesCode);
 		$modulesCode = I18nHelper::localize($modulesCode, $this->app->i18nMap->getMap());
 
@@ -32,7 +33,7 @@ class JsModuleProvider extends Resource
      */
 	public function getModulesRequest($list)
     {
-        $code = $this->getModulesCode($list);
+        $code = $this->getModulesCode($list['need'], $list['have']);
         return \lx::$app->diProcessor->createByInterface(ResponseInterface::class, [$code]);
     }
 }

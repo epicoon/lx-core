@@ -52,4 +52,8 @@ interface DbConnectionInterface extends ErrorCollectorInterface
     public function getDelColumnQuery(string $tableName, string $fieldName): string;
     public function getChangeColumnQuery(string $tableName, DbTableField $field): string;
     public function getRenameColumnQuery(string $tableName, string $oldFieldName, string $newFieldName): string;
+    /**
+     * @param mixed $value
+     */
+    public function convertValueForQuery($value): string;
 }

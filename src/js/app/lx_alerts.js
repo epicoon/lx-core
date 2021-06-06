@@ -8,15 +8,7 @@ function initAlerts() {
 
 lx.Alert = function(msg) {
 	if (!alerts) initAlerts();
-
-	if (lx.ActiveBox) __print(msg);
-	else {
-		(new lx.ServiceRequest('get-modules', ['lx.ActiveBox'])).send().then((result)=>{
-			if (!result || !result.success) return;
-			lx.createAndCallFunction('', result.data);
-			__print(msg);
-		});
-	}
+	lx.dependencies.promiseModules(['lx.ActiveBox'], ()=>__print(msg));
 };
 
 function __print(msg) {
