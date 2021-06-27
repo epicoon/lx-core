@@ -357,7 +357,7 @@ class Directory extends BaseFile implements DirectoryInterface
 		return null;
 	}
 
-	private function getContentRe(string $dirPath, DataObject $rules, Vector &$list)
+	private function getContentRe(string $dirPath, DataObject $rules, Vector &$list): void
 	{
 		$findType = $rules->findType ?? self::FIND_OBJECT;
 

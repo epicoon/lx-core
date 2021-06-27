@@ -2,26 +2,14 @@
 
 namespace lx;
 
-/**
- * Class PhpDataFileAdapter
- * @package lx
- */
 class PhpDataFileAdapter extends DataFileAdapter
 {
-	/**
-	 * @return array
-	 */
-	public function parse()
+	public function parse(): array
 	{
 		return require($this->file->getPath());
 	}
 
-	/**
-	 * @param array $data
-	 * @param int $style
-	 * @return string
-	 */
-	public function dataToString($data, $style)
+	public function dataToString(array $data, int $style): string
 	{
 		switch ($style) {
 			case DataFile::STYLE_LINE: return $this->dataToLineString($data);
@@ -30,19 +18,12 @@ class PhpDataFileAdapter extends DataFileAdapter
 		}
 	}
 
-	/**
-	 * @return string
-	 */
-	private static function getStep()
+	private static function getStep(): string
 	{
 		return '    ';
 	}
 
-	/**
-	 * @param array $data
-	 * @return string
-	 */
-	private function dataToLineString($data)
+	private function dataToLineString(array $data): string
 	{
 		$arr = $this->prePack($data);
 		$pack = function($arr) use (&$pack) {
@@ -67,11 +48,7 @@ class PhpDataFileAdapter extends DataFileAdapter
 		return $result;
 	}
 
-	/**
-	 * @param array $data
-	 * @return string
-	 */
-	private function dataToPreatyString($data)
+	private function dataToPreatyString(array $data): string
 	{
 		$arr = $this->prePack($data);
 		$pack = function($arr, $step) use (&$pack) {
@@ -110,11 +87,7 @@ class PhpDataFileAdapter extends DataFileAdapter
 		return $result;
 	}
 
-	/**
-	 * @param array $data
-	 * @return string
-	 */
-	private function dataToCombineString($data)
+	private function dataToCombineString(array $data): string
 	{
 		$arr = $this->prePack($data);
 		$pack = function($arr, $step) use (&$pack) {

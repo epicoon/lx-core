@@ -3,7 +3,7 @@
 namespace lx;
 
 /**
- * You don't need note an extension - the file will try to define it automatically
+ * You don't ought to note an extension - the file will try to define it automatically
  */
 class DataFile extends File implements DataFileInterface
 {
@@ -107,7 +107,7 @@ class DataFile extends File implements DataFileInterface
 		}
 
 		$adapter = $this->getAdapter();
-		if ( ! $adapter) {
+		if (!$adapter) {
 			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Adapter for config file '{$this->path}' not found",
@@ -129,7 +129,7 @@ class DataFile extends File implements DataFileInterface
 	public function put($data, int $style = self::STYLE_PREATY): bool
 	{
 		$adapter = $this->getAdapter();
-		if ( ! $adapter) {
+		if (!$adapter) {
 			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Adapter for config file '{$this->path}' not found",
@@ -141,7 +141,7 @@ class DataFile extends File implements DataFileInterface
 		return parent::put($string);
 	}
 
-	public function setStyle(int $style)
+	public function setStyle(int $style): void
 	{
 		$this->put($this->get(), $style);
 	}
@@ -153,7 +153,7 @@ class DataFile extends File implements DataFileInterface
 	public function insertParam(string $name, $value, $group = null, ?int $style = self::STYLE_PREATY): bool
 	{
 		$adapter = $this->getAdapter();
-		if ( ! $adapter) {
+		if (!$adapter) {
 			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Adapter for config file '{$this->path}' not found",
@@ -171,7 +171,7 @@ class DataFile extends File implements DataFileInterface
 
 			$target = &$data;
 			foreach ($group as $itemName) {
-				if ( ! array_key_exists($itemName, $target)) {
+				if (!array_key_exists($itemName, $target)) {
 					$target[$itemName] = [];
 				}
 
@@ -183,6 +183,7 @@ class DataFile extends File implements DataFileInterface
 		}
 
 		$this->put($data, $style);
+		return true;
 	}
 
 	private function getAdapter(): ?DataFileAdapter

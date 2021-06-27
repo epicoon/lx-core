@@ -122,7 +122,6 @@ return [
 	'File' => 'classes/file',
 	'Directory' => 'classes/file',
 	'FileLink' => 'classes/file',
-	'YamlFile' => 'classes/file',
 	'DataFile' => 'classes/file',
 	'DataFileAdapter' => 'classes/file/dataFileAdapter',
 	'PhpDataFileAdapter' => 'classes/file/dataFileAdapter',

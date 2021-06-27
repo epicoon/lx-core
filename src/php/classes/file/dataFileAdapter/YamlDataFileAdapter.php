@@ -2,30 +2,15 @@
 
 namespace lx;
 
-/**
- * Class YamlDataFileAdapter
- * @package lx
- */
 class YamlDataFileAdapter extends DataFileAdapter
 {
-	/**
-	 * @return array
-	 */
-	public function parse()
+	public function parse(): array
 	{
 		$text = $this->file->get();
 		return (new Yaml($text, $this->file->getParentDirPath()))->parse();
 	}
 
-	/**
-	 * Yaml format is about text formatting.
-	 * It doesn't matter what style has choised, the result will be formatted only one way
-	 *
-	 * @param array $data
-	 * @param int $style
-	 * @return string
-	 */
-	public function dataToString($data, $style)
+	public function dataToString(array $data, int $style): string
 	{
 		switch ($style) {
 			case DataFile::STYLE_LINE:
@@ -34,23 +19,16 @@ class YamlDataFileAdapter extends DataFileAdapter
 		}
 	}
 
-	/**
-	 * @return string
-	 */
-	private static function getStep()
+	private static function getStep(): string
 	{
 		return '  ';
 	}
 
-	/**
-	 * @param array $data
-	 * @return string
-	 */
-	private function dataToPreatyString($data)
+	private function dataToPreatyString(array $data): string
 	{
 		$arr = $this->prePack($data);
 		$pack = function($arr, $step, $useFirstStep = true) use (&$pack) {
-			if ( ! is_array($arr)) {
+			if (!is_array($arr)) {
 				return $arr;
 			}
 
@@ -82,8 +60,7 @@ class YamlDataFileAdapter extends DataFileAdapter
 			return $result;
 		};
 
-		$step = '';
-		$result = $pack($arr, $step);
+		$result = $pack($arr, '');
 		return $result;
 	}
 

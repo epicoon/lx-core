@@ -93,11 +93,10 @@ abstract class BaseFile implements CommonFileInterface
 	}
 
 	/**
-	 * @param string|Directory $parent
+	 * @param string|Directory $parent  //TODO since 8.0 : \Stringable + make all files \Stringable with __toString() == getPath()
 	 */
 	public function belongs($parent): bool
 	{
-		$path;
 		if (is_string($parent)) {
 			$path = $parent;
 		} else {
@@ -113,7 +112,7 @@ abstract class BaseFile implements CommonFileInterface
 	}
 
 	/**
-	 * @param string|Directory $parent
+	 * @param string|Directory $parent  //TODO since 8.0 : \Stringable + make all files \Stringable with __toString() == getPath()
 	 */
 	public function getRelativePath($parent): ?string
 	{

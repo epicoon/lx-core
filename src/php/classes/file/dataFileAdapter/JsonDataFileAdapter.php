@@ -2,27 +2,15 @@
 
 namespace lx;
 
-/**
- * Class JsonDataFileAdapter
- * @package lx
- */
 class JsonDataFileAdapter extends DataFileAdapter
 {
-	/**
-	 * @return array
-	 */
-	public function parse()
+	public function parse(): array
 	{
 		$data = $this->file->get();
 		return json_decode($data, true);
 	}
 
-	/**
-	 * @param array $data
-	 * @param int $style
-	 * @return string
-	 */
-	public function dataToString($data, $style)
+	public function dataToString(array $data, int $style): string
 	{
 		switch ($style) {
 			case DataFile::STYLE_LINE: return $this->dataToLineString($data);
@@ -31,20 +19,12 @@ class JsonDataFileAdapter extends DataFileAdapter
 		}
 	}
 
-	/**
-	 * @param array $data
-	 * @return string
-	 */
-	private function dataToLineString($data)
+	private function dataToLineString(array $data): string
 	{
 		return json_encode($data);
 	}
 
-	/**
-	 * @param array $data
-	 * @return string
-	 */
-	private function dataToPreatyString($data)
+	private function dataToPreatyString(array $data): string
 	{
 		return json_encode($data, JSON_PRETTY_PRINT);
 	}

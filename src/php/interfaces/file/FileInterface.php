@@ -18,8 +18,10 @@ interface FileInterface extends CommonFileInterface
      * @param mixed $info
      */
     public function put($info, int $flags = 0): bool;
+    /**
+     * @param mixed $info
+     */
     public function append($info): bool;
-
     /**
      * @return mixed
      */

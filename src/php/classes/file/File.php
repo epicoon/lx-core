@@ -148,6 +148,9 @@ class File extends BaseFile implements FileInterface
 		return true;
 	}
 
+    /**
+     * @param mixed $info
+     */
 	public function append($info): bool
 	{
 		return $this->put($info, FILE_APPEND);

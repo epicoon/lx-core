@@ -2,29 +2,19 @@
 
 namespace lx;
 
-/**
- * Class DataFileAdapter
- * @package lx
- */
 abstract class DataFileAdapter
 {
-	/** @var File */
-	protected $file;
+	protected FileInterface $file;
 
-	/**
-	 * DataFileAdapter constructor.
-	 * @param File $file
-	 */
-	public function __construct($file)
+	public function __construct(FileInterface $file)
 	{
 		$this->file = $file;
 	}
 
 	/**
 	 * @param mixed $elem
-	 * @return string|null
 	 */
-	protected static function packPrimitiveType($elem)
+	protected static function packPrimitiveType($elem): ?string
 	{
 		if (is_numeric($elem)) {
 			return $elem;
@@ -45,15 +35,6 @@ abstract class DataFileAdapter
 		return null;
 	}
 
-	/**
-	 * @return array
-	 */
-	abstract public function parse();
-
-	/**
-	 * @param array $data
-	 * @param int $style
-	 * @return string
-	 */
-	abstract public function dataToString($data, $style);
+	abstract public function parse(): array;
+	abstract public function dataToString(array $data, int $style): string;
 }
