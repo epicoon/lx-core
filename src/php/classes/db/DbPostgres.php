@@ -587,16 +587,17 @@ class DbPostgres extends DbConnection
 		    if ($useParser) {
                 foreach ($row as $name => &$value) {
                     $field = $queryObject->getField($name);
-                    if (!$field) continue;
-                    switch ($field->getType()) {
-                        case DbTableField::TYPE_SERIAL:
-                        case DbTableField::TYPE_INTEGER:
-                            $value = (int)$value;
-                            break;
-                        case DbTableField::TYPE_BOOLEAN:
-                            if ($value == 'f') $value = false;
-                            elseif ($value == 't') $value = true;
-                            break;
+                    if ($field) {
+                        switch ($field->getType()) {
+                            case DbTableField::TYPE_SERIAL:
+                            case DbTableField::TYPE_INTEGER:
+                                $value = (int)$value;
+                                break;
+                            case DbTableField::TYPE_BOOLEAN:
+                                if ($value == 'f') $value = false;
+                                elseif ($value == 't') $value = true;
+                                break;
+                        }
                     }
                 }
                 unset($value);

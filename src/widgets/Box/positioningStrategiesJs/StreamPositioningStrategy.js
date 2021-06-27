@@ -40,9 +40,8 @@ class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx 
 		this.setIndents(config);
 	}
 
-	#lx:server pack() {
-		var str = super.pack();
-		str += ';t:' + this.type + ';d:' + this.direction;
+	#lx:server packProcess() {
+		var str = ';t:' + this.type + ';d:' + this.direction;
 		if (this.rowDefaultHeight)
 			str += ';rdh:' + this.rowDefaultHeight;
 		if (this.columnDefaultWidth)

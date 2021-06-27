@@ -3,25 +3,23 @@
 namespace lx;
 
 /**
- * Implementation for \lx\FusionComponentInterface
- *
- * Trait FusionComponentTrait
- * @package lx
+ * @see FusionComponentInterface
  *
  * @property mixed $owner
  */
 trait FusionComponentTrait
 {
-	/** @var FusionInterface */
-	private $_owner;
+    use ObjectTrait;
+    
+	private ?FusionInterface $_owner = null;
 
 	/**
 	 * @magic __construct
-	 * @param array $config
 	 */
-	public function constructFusionComponent(&$config)
+	public function constructFusionComponent(array &$config)
 	{
 		$this->_owner = $config['__fusion__'] ?? null;
+
 		unset($config['__fusion__']);
 		foreach ($config as $key => $value) {
 		    if (property_exists($this, $key)) {
@@ -32,17 +30,12 @@ trait FusionComponentTrait
 
 	/**
 	 * @magic __get
-	 * @param string $name
 	 * @return mixed
 	 */
-	public function getFusionComponentProperty($name)
+	public function getFusionComponentProperty(string $name)
 	{
 		if ($name == 'owner') {
 			return $this->_owner;
-		}
-
-		if (ClassHelper::publicPropertyExists($this, $name)) {
-			return $this->$name;
 		}
 
 		return null;

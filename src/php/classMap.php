@@ -39,6 +39,7 @@ return [
     'AjaxRequestHandler' => 'classes/system/dialog/requestHandler',
     'CommonRequestHandler' => 'classes/system/dialog/requestHandler',
 
+    'EventManagerInterface' => 'classes/system/event',
 	'EventManager' => 'classes/system/event',
 	'EventListenerInterface' => 'classes/system/event',
 	'EventListenerTrait' => 'classes/system/event',
@@ -128,9 +129,6 @@ return [
 	'JsonDataFileAdapter' => 'classes/file/dataFileAdapter',
 	'YamlDataFileAdapter' => 'classes/file/dataFileAdapter',
 
-	'BitLine' => 'classes/bit',
-	'BitMap' => 'classes/bit',
-
 
 	/*******************************************************************************************************************
 	 * Helpers
@@ -152,9 +150,6 @@ return [
 	'ArrayInterface' => 'behaviors/Array',
 	'ArrayTrait' => 'behaviors/Array',
 	'Iterator' => 'behaviors/Array',
-
-	'ClassOfServiceInterface' => 'behaviors/ClassOfService',
-	'ClassOfServiceTrait' => 'behaviors/ClassOfService',
 
 	'ContextTreeInterface' => 'behaviors/ContextTree',
 	'ContextTreeTrait' => 'behaviors/ContextTree',

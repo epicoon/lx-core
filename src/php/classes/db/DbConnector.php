@@ -4,7 +4,6 @@ namespace lx;
 
 class DbConnector implements FusionComponentInterface, DbConnectorInterface
 {
-    use ObjectTrait;
     use FusionComponentTrait;
 
     const DEFAULT_DB_CONNECTION_KEY = 'default';

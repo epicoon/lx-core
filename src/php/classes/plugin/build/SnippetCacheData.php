@@ -74,7 +74,7 @@ class SnippetCacheData
 		return [
 			'rootSnippetKey' => $map['root'],
 			'pluginModif' => $map['pluginModif'] ?? [],
-			'dependencies' => new JsCompileDependencies($map['dependencies']),
+			'dependencies' => $map['dependencies'],
 			'cache' => $this->mainFile->get(),
 		];
 	}
@@ -116,7 +116,7 @@ class SnippetCacheData
 				$path = '@site/' . $snippet->getFile()->getRelativePath($this->app->sitePath);
 			}
 
-			$dependencies = $snippet->getDependencies()->toArray();
+			$dependencies = $snippet->getDependencies();
 			$this->processDependencies($commonDependencies, $dependencies);
 			$data = [
 				'key' => $key,
@@ -199,7 +199,7 @@ class SnippetCacheData
 				$path = '@site/' . $snippet->getFile()->getRelativePath($this->app->sitePath);
 			}
 
-			$dependencies = $snippet->getDependencies()->toArray();
+			$dependencies = $snippet->getDependencies();
 			$this->processDependencies($commonDependencies, $dependencies);
 			$data = [
 				'key' => $key,

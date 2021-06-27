@@ -128,7 +128,7 @@ class Snippet #lx:namespace lx {
 function __extractAttributes(params) {
     if (!params) return {};
     var result = {};
-    if (params.isArray)
+    if (params.isArray || params.isObject)
         for (var i in params) result[i] = params[i];
     return result;
 }

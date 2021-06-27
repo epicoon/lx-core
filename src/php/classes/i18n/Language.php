@@ -12,7 +12,6 @@ namespace lx;
  */
 class Language implements FusionComponentInterface
 {
-    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 

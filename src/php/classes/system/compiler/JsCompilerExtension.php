@@ -2,8 +2,10 @@
 
 namespace lx;
 
-class JsCompilerExtension implements JsCompilerExtensionInterafce
+class JsCompilerExtension implements FusionComponentInterface, JsCompilerExtensionInterafce
 {
+    use FusionComponentTrait;
+
     private ConductorInterface $conductor;
     
     public function setConductor(ConductorInterface $conductor): void

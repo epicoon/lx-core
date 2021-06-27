@@ -34,6 +34,30 @@ class Tree #lx:namespace lx {
 		return tree;
 	}
 
+	static uCreateFromObject(obj, childrenKey, callback) {
+		var counter = 0;
+		function re(node, obj) {
+			if (obj === null || obj === undefined) return;
+
+			if (obj.isArray || obj.isObject) {
+				if (callback) callback(obj, node);
+
+				if (childrenKey in obj) {
+					let children = obj[childrenKey];
+					for (let key in children) {
+						let child = children[key];
+						let newNode = node.add('k' + (counter++));
+						re(newNode, child);
+					}
+				}
+			}
+		}		
+
+		var tree = new this();
+		re(tree, obj);
+		return tree;
+	}
+
 	//TODO переименовать, раскопать что в коде метода делает url - ему явно тут не место
 	static create(treeData, itemsFiled) {
 		var counter = 0;

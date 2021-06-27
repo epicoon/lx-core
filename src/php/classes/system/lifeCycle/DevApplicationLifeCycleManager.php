@@ -6,7 +6,6 @@ use lx;
 
 class DevApplicationLifeCycleManager implements ApplicationLifeCycleManagerInterface, FusionComponentInterface
 {
-    use ObjectTrait;
     use ApplicationToolTrait;
     use FusionComponentTrait;
 

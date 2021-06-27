@@ -60,11 +60,7 @@ class Vector implements ArrayInterface
 		}
 	}
 
-	/**
-	 * @param iterable $elems
-	 * @return iterable
-	 */
-	public function merge($elems)
+	public function merge(iterable $elems): iterable
 	{
         return $this->insert($this->len(), $elems);
 	}
@@ -76,7 +72,7 @@ class Vector implements ArrayInterface
 	public function remove($el)
 	{
 		$index = $this->getKeyByValue($el);
-		if ($index === false) return false;
+		if ($index === null) return false;
 		$this->splice($index);
 		return true;
 	}

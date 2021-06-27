@@ -95,7 +95,7 @@ class Plugin extends Resource implements FusionInterface
 		ConfigHelper::pluginInject($this->name, $this->prototype, $injections, $config);
 		$this->config = $config;
 
-		$this->initFusionComponents($this->getConfig('components'));
+		$this->initFusionComponents($this->getConfig('components') ?? []);
 		$this->init();
 	}
 

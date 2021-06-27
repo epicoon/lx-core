@@ -8,7 +8,6 @@ namespace lx;
  */
 class ServiceRouter implements FusionComponentInterface
 {
-    use ObjectTrait;
 	use FusionComponentTrait;
 
 	/**

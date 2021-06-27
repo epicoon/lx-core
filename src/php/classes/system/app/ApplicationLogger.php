@@ -10,7 +10,6 @@ use Exception;
  */
 class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 {
-    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 

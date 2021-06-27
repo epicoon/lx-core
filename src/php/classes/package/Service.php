@@ -42,7 +42,7 @@ class Service implements FusionInterface
 		$this->setName($serviceConfig['name']);
 
         $this->_config = $serviceConfig;
-        $this->initFusionComponents($this->getConfig('components'));
+        $this->initFusionComponents($this->getConfig('components') ?? []);
 	}
 
     public function getDefaultFusionComponents(): array
@@ -149,7 +149,7 @@ class Service implements FusionInterface
 
 	/**
 	 * @param string $key
-	 * @return mixed|null
+	 * @return mixed
 	 */
 	public function getConfig(?string $key = null)
 	{

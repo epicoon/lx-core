@@ -32,7 +32,7 @@ trait ObjectTrait
     }
 
     /**
-     * @return mixed|null
+     * @return mixed
      */
     public function __get(string $name)
     {
@@ -40,7 +40,7 @@ trait ObjectTrait
     }
 
     /**
-     * @return mixed|null
+     * @return mixed
      */
     public function __call(string $name, array $arguments)
     {
@@ -72,7 +72,7 @@ trait ObjectTrait
     }
 
     /**
-     * @return mixed|null
+     * @return mixed
      */
     protected function __objectGet(string $name)
     {
@@ -95,7 +95,7 @@ trait ObjectTrait
     }
 
     /**
-     * @return mixed|null
+     * @return mixed
      */
     protected function __objectCall(string $name, array $arguments)
     {
@@ -191,7 +191,6 @@ trait ObjectTrait
     }
 
     /**
-     * @param string $name
      * @param mixed $value
      */
     private function setParameter(string $name, $value): void

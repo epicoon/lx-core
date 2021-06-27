@@ -2,29 +2,20 @@
 
 namespace lx;
 
-/**
- * Class EventManager
- * @package lx
- */
-class EventManager implements FusionComponentInterface
+class EventManager implements EventManagerInterface
 {
-    use ObjectTrait;
-	use ApplicationToolTrait;
-	use FusionComponentTrait;
+	private array $list = [];
 
-	private array $list;
+    public function subscribe(string $eventName, EventListenerInterface $listener): void
+    {
+        if (!array_key_exists($eventName, $this->list)) {
+            $this->list[$eventName] = [];
+        }
 
-	public function __construct(array $config = [])
-	{
-	    $this->__objectConstruct($config);
-		$this->list = [];
-	}
+        $this->list[$eventName][] = $listener;
+    }
 
-	/**
-	 * @param string $eventName
-	 * @param array $params
-	 */
-	public function trigger($eventName, $params = [])
+	public function trigger(string $eventName, array $params = []): void
 	{
 		if (!array_key_exists($eventName, $this->list)) {
 			return;
@@ -34,18 +25,5 @@ class EventManager implements FusionComponentInterface
 		foreach ($list as $listener) {
 			$listener->trigger($eventName, $params);
 		}
-	}
-
-	/**
-	 * @param string $eventName
-	 * @param EventListenerInterface $listener
-	 */
-	public function subscribe($eventName, $listener)
-	{
-		if (!array_key_exists($eventName, $this->list)) {
-			$this->list[$eventName] = [];
-		}
-
-		$this->list[$eventName][] = $listener;
 	}
 }

@@ -3,19 +3,13 @@
 namespace lx;
 
 /**
- * Interface FusionComponentInterface
- * @package lx
+ * @see FusionComponentTrait
  */
 interface FusionComponentInterface
 {
+	public function constructFusionComponent(array &$config);
 	/**
-	 * @param array $config
-	 */
-	public function constructFusionComponent(&$config);
-
-	/**
-	 * @param string $name
 	 * @return mixed
 	 */
-	public function getFusionComponentProperty($name);
+	public function getFusionComponentProperty(string $name);
 }

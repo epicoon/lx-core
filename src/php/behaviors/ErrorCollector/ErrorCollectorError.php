@@ -2,35 +2,27 @@
 
 namespace lx;
 
-/**
- * Class ErrorCollectorError
- * @package lx
- */
+use Throwable;
+
 class ErrorCollectorError implements ToStringConvertableInterface
 {
-	/** @var string */
-	private $title;
-
-	/** @var string */
-	private $description;
-
-	/** @var array */
-	private $data;
-
-	/** @var \Exception */
-	private $exception;
+	private string $title;
+	private string $description;
+	private array $data;
+	private Throwable $exception;
 
 	/**
-	 * ErrorCollectorError constructor.
-	 * @param string|array $config
+	 * @param string|array|Throwable $config
 	 */
 	public function __construct($config)
 	{
 		if (is_string($config)) {
 			$config = ['description' => $config];
-		}
+		} elseif ($config instanceof Throwable) {
+		    $config = ['exception' => $config];
+        }
 		
-		if ( ! is_array($config)) {
+		if (!is_array($config)) {
 			return;
 		}
 
@@ -40,10 +32,7 @@ class ErrorCollectorError implements ToStringConvertableInterface
 		$this->exception = $config['exception'] ?? null;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getInfo()
+	public function getInfo(): array
 	{
 		$result = [];
 		if ($this->title != '') {
@@ -65,7 +54,7 @@ class ErrorCollectorError implements ToStringConvertableInterface
 		return $result;
 	}
 
-	public function toString(callable $callback = null): string
+	public function toString(?callable $callback = null): string
 	{
 		if ($callback === null || !is_callable($callback)) {
 			return $this->__toString();
@@ -118,9 +107,8 @@ class ErrorCollectorError implements ToStringConvertableInterface
 
 	/**
 	 * @param mixed $value
-	 * @return string
 	 */
-	private function dataValueToString($value)
+	private function dataValueToString($value): string
 	{
 		if (is_string($value)) {
 			return $value;

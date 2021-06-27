@@ -91,9 +91,8 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		this.setIndents(config);
 	}
 	
-	#lx:server pack() {
-		var str = super.pack();
-		str += ';c:' + this.cols + ';t:' + this.type;
+	#lx:server packProcess() {
+		var str = ';c:' + this.cols + ';t:' + this.type;
 		if (this.minHeight)
 			str += ';mh:' + this.minHeight;
 		if (this.minWidth)

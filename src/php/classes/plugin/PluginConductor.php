@@ -6,7 +6,6 @@ use lx;
 
 class PluginConductor implements ConductorInterface, FusionComponentInterface
 {
-    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 

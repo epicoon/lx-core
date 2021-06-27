@@ -49,7 +49,7 @@ abstract class BaseApplication extends AbstractApplication
 
     /**
      * @param string $name
-     * @return mixed|null
+     * @return mixed
      */
     public function getSetting($name)
     {

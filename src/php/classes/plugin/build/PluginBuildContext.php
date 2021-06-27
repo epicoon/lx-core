@@ -2,59 +2,28 @@
 
 namespace lx;
 
-/**
- * Class PluginBuildContext
- * @package lx
- */
 class PluginBuildContext implements ContextTreeInterface
 {
     use ObjectTrait;
 	use ApplicationToolTrait;
 	use ContextTreeTrait;
 
-	const DEFAULT_MODULE_TITLE = 'lx';
+	const DEFAULT_PLUGIN_TITLE = 'lx';
 
-	/** @var Plugin */
-	private $plugin;
-
-	/** @var string */
-	private $cacheType;
-
-	/** @var SnippetBuildContext */
-	private $rootSnippetBuildContext;
-
-	/** @var bool */
-	private $compiled;
-
-	/** @var string */
-	private $pluginInfo;
-
-	/** @var string */
-	private $bootstrapJs;
-
-	/** @var string */
-	private $mainJs;
-
-	/** @var string */
-	private $snippetData;
-
-	/** @var string */
-	private $commonData;
-
-	/** @var array */
-	private $scripts;
-
-	/** @var array */
-	private $css;
-
-	/** @var JsCompiler */
-	private $jsCompiler;
-
-	/** @var array */
-	private $moduleDependencies = [];
-
-	/** @var array */
-	private $commonModuleDependencies = [];
+	private Plugin $plugin;
+	private string $cacheType;
+	private SnippetBuildContext $rootSnippetBuildContext;
+	private bool $compiled;
+	private string $pluginInfo;
+	private string $bootstrapJs;
+	private string $mainJs;
+	private string $snippetData;
+	private string $commonData;
+	private array $scripts = [];
+	private array $css = [];
+	private JsCompiler $jsCompiler;
+	private array $moduleDependencies = [];
+	private array $commonModuleDependencies = [];
 
 	public function __construct(array $config = [])
 	{
@@ -70,59 +39,28 @@ class PluginBuildContext implements ContextTreeInterface
 		}
 	}
 
-	/**
-	 * @return Plugin
-	 */
-	public function getPlugin()
+	public function getPlugin(): Plugin
 	{
 		return $this->plugin;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getCacheType()
+	public function getCacheType(): string
 	{
 		return $this->cacheType ?? $this->getPlugin()->getConfig('cacheType') ?? Plugin::CACHE_NONE;
 	}
 
-	/**
-	 * @param array $moduleNames
-	 */
-	public function noteModuleDependencies($moduleNames)
-	{
-		$this->moduleDependencies = array_values(array_unique(array_merge(
-			$this->moduleDependencies,
-			$moduleNames
-		)));
-
-		$head = $this->getHead();
-		$head->commonModuleDependencies = array_values(array_unique(array_merge(
-			$head->commonModuleDependencies,
-			$moduleNames
-		)));
-	}
-
-	/**
-	 * Rebuild plugin cache
-	 */
-	public function buildCache()
+	public function buildCache(): void
 	{
 		$this->cacheType = Plugin::CACHE_BUILD;
 		$this->compile();
 	}
 
-	/**
-	 * Build all contexts
-	 *
-	 * @return array
-	 */
-	public function build()
+	public function build(): array
 	{
 		$this->compile();
 
 		$plugin = $this->getPlugin();
-		$title = $plugin->title ? $plugin->title : self::DEFAULT_MODULE_TITLE;
+		$title = $plugin->title ? $plugin->title : self::DEFAULT_PLUGIN_TITLE;
 		$title = I18nHelper::localizePlugin($plugin, $title);
 		$result = [
 			'pluginInfo' => '',
@@ -154,44 +92,10 @@ class PluginBuildContext implements ContextTreeInterface
 		return $result;
 	}
 
-	/**
-	 * Build this context
-	 */
-	public function compile()
+	public function applayDependencies(array $dependencies): void
 	{
-		$this->getPlugin()->beforeCompile();
-		if ($this->compiled) {
-			return;
-		}
-
-		$this->compileSnippet();
-
-		$this->compileBootstrapJs();
-		$this->compileMainJs();
-		$this->applayDependencies($this->jsCompiler->getDependencies());
-
-		$this->compilePluginInfo();
-
-		$key = $this->getKey();
-		$data = "<mi $key>{$this->pluginInfo}</mi $key>"
-			. "<bs $key>{$this->bootstrapJs}</bs $key>"
-			. "<bl $key>{$this->snippetData}</bl $key>"
-			. "<mj $key>{$this->mainJs}</mj $key>";
-		$this->commonData = I18nHelper::localizePlugin($this->getPlugin(), $data);
-
-		$this->compiled = true;
-		$this->getPlugin()->afterCompile();
-	}
-
-	/**
-	 * @param JsCompileDependencies $dependencies
-	 */
-	public function applayDependencies($dependencies)
-	{
-		$dependenciesArray = $dependencies->toArray();
-
-		if (isset($dependenciesArray['plugins'])) {
-			foreach ($dependenciesArray['plugins'] as $pluginInfo) {
+		if (isset($dependencies['plugins'])) {
+			foreach ($dependencies['plugins'] as $pluginInfo) {
 				$plugin = $this->app->getPlugin($pluginInfo);
 				$plugin->setAnchor($pluginInfo['anchor']);
 				$context = $this->add(['plugin' => $plugin]);
@@ -199,32 +103,69 @@ class PluginBuildContext implements ContextTreeInterface
 			}
 		}
 
-		if (isset($dependenciesArray['modules'])) {
-			$this->noteModuleDependencies($dependenciesArray['modules']);
+		if (isset($dependencies['modules'])) {
+			$this->noteModuleDependencies($dependencies['modules']);
 		}
 
-		if (isset($dependenciesArray['scripts'])) {
-			foreach ($dependenciesArray['scripts'] as $script) {
+		if (isset($dependencies['scripts'])) {
+			foreach ($dependencies['scripts'] as $script) {
 				$this->getPlugin()->addScript($script);
 			}
 		}
 
-		if (isset($dependenciesArray['i18n'])) {
-			foreach ($dependenciesArray['i18n'] as $config) {
+		if (isset($dependencies['i18n'])) {
+			foreach ($dependencies['i18n'] as $config) {
 				$this->app->useI18n($config);
 			}
 		}
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * COMPILE METHODS
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * Building of plugin self information
-	 */
-	private function compilePluginInfo()
+    private function compile(): void
+    {
+        $this->getPlugin()->beforeCompile();
+        if ($this->compiled) {
+            return;
+        }
+
+        $this->compileSnippet();
+
+        $this->compileBootstrapJs();
+        $this->compileMainJs();
+        $this->applayDependencies($this->jsCompiler->getDependencies()->toArray());
+
+        $this->compilePluginInfo();
+
+        $key = $this->getKey();
+        $data = "<mi $key>{$this->pluginInfo}</mi $key>"
+            . "<bs $key>{$this->bootstrapJs}</bs $key>"
+            . "<bl $key>{$this->snippetData}</bl $key>"
+            . "<mj $key>{$this->mainJs}</mj $key>";
+        $this->commonData = I18nHelper::localizePlugin($this->getPlugin(), $data);
+
+        $this->compiled = true;
+        $this->getPlugin()->afterCompile();
+    }
+
+    private function noteModuleDependencies(array $moduleNames): void
+    {
+        $this->moduleDependencies = array_values(array_unique(array_merge(
+            $this->moduleDependencies,
+            $moduleNames
+        )));
+
+        $head = $this->getHead();
+        $head->commonModuleDependencies = array_values(array_unique(array_merge(
+            $head->commonModuleDependencies,
+            $moduleNames
+        )));
+    }
+
+	private function compilePluginInfo(): void
 	{
 		$info = $this->getPlugin()->getSelfInfo();
 
@@ -254,40 +195,27 @@ class PluginBuildContext implements ContextTreeInterface
 		$this->pluginInfo = json_encode($info);
 	}
 
-	/**
-	 * Building of root snippet
-	 */
-	private function compileSnippet()
+	private function compileSnippet(): void
 	{
 		$this->rootSnippetBuildContext = new SnippetBuildContext(['pluginBuildContext' => $this]);
 		$snippets = $this->rootSnippetBuildContext->build();
 		$this->snippetData = $snippets;
 	}
 
-	/**
-	 * Building of bootstrap JS-code
-	 */
-	private function compileBootstrapJs()
+	private function compileBootstrapJs(): void
 	{
 		$plugin = $this->getPlugin();
 		$jsBootstrapFile = $plugin->conductor->getJsBootstrap();
 		$this->bootstrapJs = $this->compileJs($jsBootstrapFile);
 	}
 
-	/**
-	 * Building of main JS-code
-	 */
-	private function compileMainJs()
+	private function compileMainJs(): void
 	{
 		$plugin = $this->getPlugin();
 		$this->mainJs = $this->compileJs($plugin->conductor->getJsMain());
 	}
 
-	/**
-	 * @param File $file
-	 * @return string
-	 */
-	private function compileJs($file)
+	private function compileJs(File $file): string
 	{
 		$fileExists = $file && $file->exists();
 		$code = '';
@@ -295,7 +223,9 @@ class PluginBuildContext implements ContextTreeInterface
 			$code = $file->get();
 		}
 
-		if ($code == '') return '';
+		if ($code == '') {
+		    return '';
+        }
 
 		return $this->jsCompiler->compileCode(
 			$code,
@@ -303,11 +233,7 @@ class PluginBuildContext implements ContextTreeInterface
 		);
 	}
 
-	/**
-	 * @param array $scripts
-	 * @return array
-	 */
-	private function collapseScripts($scripts)
+	private function collapseScripts(array $scripts): array
 	{
 		$result = [];
 		foreach ($scripts as $value) {
@@ -324,11 +250,7 @@ class PluginBuildContext implements ContextTreeInterface
 		return array_values($result);
 	}
 
-	/**
-	 * @param array $css
-	 * @return array
-	 */
-	private function collapseCss($css)
+	private function collapseCss(array $css): array
 	{
 		$result = [];
 		foreach ($css as $value) {

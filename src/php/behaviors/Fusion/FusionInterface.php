@@ -2,23 +2,10 @@
 
 namespace lx;
 
-/**
- * Interface FusionInterface
- * @package lx
- */
 interface FusionInterface
 {
-	/**
-	 * @param array $list
-	 * @param array $defaults
-	 */
-	public function initFusionComponents($list, $defaults = []);
-
-	/**
-	 * @param string $name
-	 * @return FusionComponentInterface|null
-	 */
-	public function getFusionComponent($name);
-
+	public function initFusionComponents(array $list, array $defaults = []): void;
+    public function hasFusionComponent(string $name): bool;
+	public function getFusionComponent(string $name): ?FusionComponentInterface;
 	public function getDefaultFusionComponents(): array;
 }

@@ -8,7 +8,6 @@ namespace lx;
  */
 abstract class I18nMap implements FusionComponentInterface
 {
-    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 

@@ -8,7 +8,6 @@ namespace lx;
  */
 class Dialog implements FusionComponentInterface
 {
-    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 

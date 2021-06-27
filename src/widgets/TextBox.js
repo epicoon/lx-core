@@ -29,13 +29,13 @@ class TextBox extends lx.Rect #lx:namespace lx {
 	value(val) {
 		if (val === undefined) return this.html();
 		this.html(val);
-		if (this.parent) this.parent.childHasAutoresized(this);
+		this.reportSizeHasChanged();
 		this.trigger('resize');
 	}
 
 	setFontSize(sz) {
 		this.style('fontSize', sz);
-		this.parent.childHasAutoresized(this);
+		this.reportSizeHasChanged();
 	}
 
 	ellipsis() {

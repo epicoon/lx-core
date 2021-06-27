@@ -50,9 +50,8 @@ class SlotPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		#lx:server{ this.needJsActualize = 1; }
 	}
 
-	#lx:server pack() {
-		var str = super.pack();
-		str += ';k:' + this.k + ';c:' + this.cols;
+	#lx:server packProcess() {
+		var str = ';k:' + this.k + ';c:' + this.cols;
 		if (this.align) str += ';a:' + this.align;
 		return str;
 	}
@@ -84,13 +83,8 @@ class SlotPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 	#lx:client {
 		/**
 		 * Актуализация позиций элементов в контейнере
-		 * info = {
-		 *	from: Rect  // если указан - с него начать актуализацию
-		 *	changed: Rect  // если указан - актуализация была вызвана в связи с изменением этих элементов
-		 *	deleted: Array  // если указан - актуализация была вызвана в связи с удалением этих элементов
-		 * }
-		 * */
-		actualizeProcess(info) {
+		 */
+		actualizeProcess() {
 			var sz = this.owner.size('px'),
 				rows = this.rows(),
 				amt = [this.cols, rows],
@@ -141,10 +135,10 @@ class SlotPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 				for (var j=0; j<this.cols; j++) {
 					var slot = slots.next();
 					if (!slot) return;
-					this.setParam(slot, lx.LEFT, x, true);
-					this.setParam(slot, lx.TOP, y, true);
-					this.setParam(slot, lx.WIDTH, sz[0], true);
-					this.setParam(slot, lx.HEIGHT, sz[1], true);
+					this.setParam(slot, lx.LEFT, x + 'px');
+					this.setParam(slot, lx.TOP, y + 'px');
+					this.setParam(slot, lx.WIDTH, sz[0] + 'px');
+					this.setParam(slot, lx.HEIGHT, sz[1] + 'px');
 					slot.trigger('resize');
 					x += sz[0] + step[0];
 				}

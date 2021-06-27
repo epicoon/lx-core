@@ -8,7 +8,6 @@ namespace lx;
  */
 class CorsProcessor implements FusionComponentInterface
 {
-    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 

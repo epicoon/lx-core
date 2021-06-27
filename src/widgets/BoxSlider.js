@@ -48,8 +48,8 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 			if (this.timer.auto) this.timer.start();
 		}
 
-		destructProcess() {
-			super.destructProcess();
+		destruct() {
+			super.destruct();
 			this.timer.stop();
 		}
 

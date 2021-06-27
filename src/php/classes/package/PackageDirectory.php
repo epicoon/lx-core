@@ -8,7 +8,6 @@ namespace lx;
  */
 class PackageDirectory implements FusionComponentInterface
 {
-    use ObjectTrait;
 	use FusionComponentTrait;
 
 	/** @var Directory */

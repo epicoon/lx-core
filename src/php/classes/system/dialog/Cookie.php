@@ -2,55 +2,40 @@
 
 namespace lx;
 
-/**
- * Instance of this class is available as [[\lx::$app->dialog->getCookie()]]
- *
- * Class Cookie
- * @package lx
- */
 class Cookie extends DataObject
 {
-	/**
-	 * Cookie constructor.
-	 */
 	public function __construct()
 	{
-		$this->setProperties($_COOKIE);
+        $this->__constructArray($_COOKIE);
 	}
 
 	/**
-	 * @param string $prop
-	 * @param string|int|double $val
+	 * @param mixed $val
 	 */
-	public function __set($prop, $val)
+	public function __set(string $prop, $val): void
 	{
-		if ($val === null) {
-			$this->drop($prop);
-		} else {
-			setcookie($prop, $val);
-			parent::__set($prop, $val);
-		}
+	    $this->set($prop, $val);
 	}
 
 	/**
-	 * @param string $name
-	 * @param string|int|double $val
-	 * @param int $expire
+	 * @param mixed $val
 	 */
-	public function set($name, $val, $expire)
+	public function set(string $name, $val, ?int $expire = null)
 	{
 		if ($val === null) {
 			$this->drop($name);
 		} else {
-			setcookie($name, $val, $expire);
+		    if ($expire === null) {
+                setcookie($name, $val);
+            } else {
+                setcookie($name, $val, $expire);
+            }
+
 			parent::__set($name, $val);
 		}
 	}
 
-	/**
-	 * @param string $name
-	 */
-	public function drop($name)
+	public function drop(string $name): void
 	{
 		$this->extract($name);
 		setcookie($name, '', time() - 1);

@@ -4,20 +4,20 @@ namespace lx;
 
 trait EventListenerTrait
 {
-	private EventManager $eventManager;
+	private ?EventManagerInterface $eventManager = null;
 
     /**
      * @magic __construct
-     * @param array|EventManager|null $eventManager
+     * @param array|EventManagerInterface|null $eventManager
      */
 	public function constructEventListener($eventManager = null): void
 	{
-		if ($eventManager instanceof EventManager) {
+		if ($eventManager instanceof EventManagerInterface) {
 			$this->eventManager = $eventManager;
 		} elseif (
 			is_array($eventManager)
 			&& array_key_exists('eventManager', $eventManager)
-			&& $eventManager['eventManager'] instanceof EventManager) {
+			&& $eventManager['eventManager'] instanceof EventManagerInterface) {
 			$this->eventManager = $eventManager['eventManager'];
 		} else {
 			$this->eventManager = \lx::$app->events;

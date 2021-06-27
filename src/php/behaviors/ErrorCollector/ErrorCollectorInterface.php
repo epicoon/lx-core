@@ -3,33 +3,20 @@
 namespace lx;
 
 /**
- * Interface ErrorCollectorInterface
- * @package lx
+ * @see ErrorCollectorTrait
  */
 interface ErrorCollectorInterface
 {
+	public function hasErrors(): bool;
 	/**
-	 * @return bool
+	 * @param mixed $errorInfo
 	 */
-	public function hasErrors();
-	
+	public function addError($errorInfo): void;
+	public function addErrors(array $errors): void;
+    public function mergeErrors(ErrorCollectorInterface $collector): void;
+	public function getErrors(): array;
 	/**
-	 * @param $errorInfo string|array
+	 * @return mixed
 	 */
-	public function addError($errorInfo);
-
-	/**
-	 * @param $errors array|ErrorCollectorInterface
-	 */
-	public function addErrors($errors);
-
-	/**
-	 * @return array
-	 */
-	public function getErrors();
-
-	/**
-	 * @return null|string|ToStringConvertableInterface
-	 */
-	public function getFirstError();
+	public function getFirstError(); //TODO since 8.0 : \Stringable
 }

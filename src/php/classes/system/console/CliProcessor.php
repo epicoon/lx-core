@@ -313,7 +313,7 @@ class CliProcessor
 
 	/**
 	 * @param string $name
-	 * @return mixed|null
+	 * @return mixed
 	 */
 	public function getParam($name)
 	{
@@ -405,7 +405,7 @@ class CliProcessor
 	/**
 	 * @param string|int|array $key
      * @param mixed $default
-	 * @return mixed|null
+	 * @return mixed
 	 */
 	public function getArg($key, $default = null)
 	{

@@ -2,35 +2,18 @@
 
 namespace lx;
 
-/**
- * Class FusionComponentList
- * @package lx
- */
 class FusionComponentList
 {
-	/** @var FusionInterface */
-	private $fusion;
+	private FusionInterface $fusion;
+	private array $config = [];
+	private array $list = [];
 
-	/** @var array */
-	private $config = [];
-
-	/** @var array */
-	private $list = [];
-
-	/**
-	 * FusionComponentList constructor.
-	 * @param FusionInterface $fusion
-	 */
-	public function __construct($fusion)
+	public function __construct(FusionInterface $fusion)
 	{
 		$this->fusion = $fusion;
 	}
 
-	/**
-	 * @param string $name
-	 * @return FusionComponentInterface|null
-	 */
-	public function __get($name)
+	public function __get(string $name): ?FusionComponentInterface
 	{
 		if (array_key_exists($name, $this->list)) {
 			return $this->list[$name];
@@ -45,20 +28,12 @@ class FusionComponentList
 		return null;
 	}
 
-	/**
-	 * @param string $name
-	 * @return bool
-	 */
-	public function has($name)
+	public function has(string $name): bool
 	{
 		return array_key_exists($name, $this->list) || array_key_exists($name, $this->config);
 	}
 
-	/**
-	 * @param array $list
-	 * @param array $defaults
-	 */
-	public function load($list, $defaults = [])
+	public function load(array $list, array $defaults = []): void
 	{
 	    foreach ($defaults as &$item) {
 	        if (is_string($item)) {
@@ -94,11 +69,7 @@ class FusionComponentList
 		}
 	}
 
-    /**
-     * @param string $name
-     * @param array $data
-     */
-	private function createInstance($name, $data)
+	private function createInstance(string $name, array $data): void
     {
         $params = $data['params'];
         $params['__fusion__'] = $this->fusion;

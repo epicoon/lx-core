@@ -2,54 +2,22 @@
 
 namespace lx;
 
-/**
- * Class Snippet
- * @package lx
- */
 class Snippet
 {
-	/** @var File */
-	private $file;
+	private File $file;
+	private array $attributes = [];
+	private array $metaData = [];
+	private ?string $renderIndex = null;
+	private array $pluginModifications = [];
+	private array $self = [];
+	private string $htmlContent = '';
+	private array $lx = [];
+	private ?string $js = null;
+	private array $dependencies = [];
+	private array $fileDependencies = [];
+	private array $innerSnippetKeys = [];
 
-	/** @var array */
-	private $attributes = [];
-
-	/** @var array */
-	private $metaData = [];
-
-	/** @var string */
-	private $renderIndex = null;
-
-	/** @var array */
-	private $pluginModifications = [];
-
-	/** @var array */
-	private $self = [];
-
-	/** @var string */
-	private $htmlContent = '';
-
-	/** @var array */
-	private $lx = [];
-
-	/** @var string */
-	private $js = null;
-
-	/** @var array */
-	private $dependencies;
-
-	/** @var array */
-	private $fileDependencies;
-
-	/** @var array */
-	private $innerSnippetKeys = [];
-
-	/**
-	 * Snippet constructor.
-	 * @param SnippetBuildContext $context
-	 * @param array $data
-	 */
-	public function __construct($context, $data)
+	public function __construct(SnippetBuildContext $context, array $data)
 	{
 		$this->snippetBuildContext = $context;
 		$this->pluginBuildContext = $context->getPluginBuildContext();
@@ -60,11 +28,7 @@ class Snippet
 		$this->retrieveFile($data);
 	}
 
-	/**
-	 * @param string $path
-	 * @return string|null
-	 */
-	public static function defineSnippetPath($path)
+	public static function defineSnippetPath(string $path): ?string
 	{
 		if (file_exists($path) && !is_dir($path)) {
 			return $path;
@@ -82,92 +46,58 @@ class Snippet
 		return null;
 	}
 
-	/**
-	 * @return Plugin
-	 */
-	public function getPlugin()
+	public function getPlugin(): Plugin
 	{
 		return $this->pluginBuildContext->getPlugin();
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getRenderIndex()
+	public function getRenderIndex(): ?string
 	{
 		return $this->renderIndex;
 	}
 
-	/**
-	 * @param array $data
-	 */
-	public function setPluginModifications($data)
+	public function setPluginModifications(array $data): void
 	{
 		$this->pluginModifications = $data;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getPluginModifications()
+	public function getPluginModifications(): array
 	{
 		return $this->pluginModifications;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getAttributes()
+	public function getAttributes(): array
 	{
 		return $this->attributes;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getInnerSnippetKeys()
+	public function getInnerSnippetKeys(): array
 	{
 		return $this->innerSnippetKeys;
 	}
 
-	/**
-	 * @return File
-	 */
-	public function getFile()
+	public function getFile(): File
 	{
 		return $this->file;
 	}
 
-	/**
-	 * @param array $dependencies
-	 * @param array $files
-	 */
-	public function setDependencies($dependencies, $files)
+	public function setDependencies(array $dependencies, array $files): void
 	{
 		$this->dependencies = $dependencies;
 		$this->fileDependencies = $files;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getDependencies()
+	public function getDependencies(): array
 	{
 		return $this->dependencies;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getFileDependencies()
+	public function getFileDependencies(): array
 	{
 		return $this->fileDependencies;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getBuildData()
+	public function getBuildData(): array
 	{
 		return [
 			'filePath' => $this->file->getPath(),
@@ -175,10 +105,7 @@ class Snippet
 		];
 	}
 
-	/**
-	 * @param array $data
-	 */
-	public function applyBuildData($data)
+	public function applyBuildData(array $data): void
 	{
 		if (!empty($data['attributes'])) {
 			$this->attributes += $data['attributes'];
@@ -193,12 +120,7 @@ class Snippet
 		$this->runBuildProcess();
 	}
 
-	/**
-	 * Method returns rendering result
-	 *
-	 * @return array
-	 */
-	public function getData()
+	public function getData(): array
 	{
 		$hasContent = function ($field) {
 			return !($field === [] || $field === '' || $field === null);
@@ -215,14 +137,11 @@ class Snippet
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @param array $data
-	 */
-	private function retrieveFile($data)
+	private function retrieveFile(array $data): void
 	{
 		$path = self::defineSnippetPath($data['path']);
 		if (!$path) {
@@ -238,10 +157,7 @@ class Snippet
 		$this->file = new File($path);
 	}
 
-	/**
-	 * Applying of different injections was added while snippet was rendered
-	 */
-	private function runBuildProcess()
+	private function runBuildProcess(): void
 	{
 		foreach ($this->lx as &$elemData) {
 			// Injection of snippet to element
@@ -258,11 +174,7 @@ class Snippet
 		unset($elemData);
 	}
 
-	/**
-	 * @param $snippetInfo
-	 * @return mixed
-	 */
-	private function addInnerSnippet($snippetInfo)
+	private function addInnerSnippet(array $snippetInfo): ?Snippet
 	{
 		$path = $snippetInfo['path'];
 		$attributes = $snippetInfo['attributes'];

@@ -2,65 +2,73 @@
 
 namespace lx;
 
-/**
- * Class DataObject
- * @package lx
- */
-class DataObject
+class DataObject implements ArrayInterface
 {
+    use ArrayTrait;
+    
 	/** @var null */
 	private static $nullCache;
-	
-	/** @var array */
-	protected $_prop = [];
 
-	/**
-	 * @param array $arr
-	 * @return DataObject
-	 */
-	public static function create($arr = [])
+	protected array $methods = [];
+
+	public static function create(iterable $arr = []): DataObject
 	{
 		if ($arr instanceof DataObject) return $arr;
-
-		$obj = new static();
-		if (is_array($arr)) $obj->setProperties($arr);
-		return $obj;
+		return new static($arr);
 	}
+	
+	public function __construct(iterable $arr = [])
+    {
+        $this->__constructArray($arr);
+    }
 
 	/**
-	 * @param string $prop
 	 * @param mixed $val
 	 */
-	public function __set($prop, $val)
+	public function __set(string $prop, $val): void
 	{
+	    if (is_callable($val)) {
+	        $this->methods[$prop] = $val->bindTo($this);
+	        return;
+        }
+	    
 		$this->setProperty($prop, $val);
 	}
 
 	/**
-	 * @param string $prop
 	 * @return mixed
 	 */
-	public function &__get($prop)
+	public function &__get(string $prop)
 	{
 	    return $this->getProperty($prop);
 	}
 
-	/**
-	 * Returns the dynamic properties
-	 * 
-	 * @return array
-	 */
-	public function getProperties()
+    /**
+     * @return mixed
+     */
+	public function __call(string $name, array $arguments = [])
+    {
+        if (!$this->hasMethod($name)) {
+            return null;
+        }
+        
+        $method = $this->methods[$name];
+        
+        if (empty($arguments)) {
+            return call_user_func($method);
+        } else {
+            return call_user_func_array($method, $arguments);
+        }
+    }
+
+	public function getProperties(): array
 	{
-		return $this->_prop;
+        return $this->arrayValue;
 	}
 
-	/**
-	 * @param array $arr
-	 */
-	public function setProperties($arr)
+	public function setProperties(array $arr)
 	{
-		$this->_prop = $arr;
+		$this->arrayValue = $arr;
 	}
 
 	/**
@@ -69,138 +77,88 @@ class DataObject
 	 */
 	public function isNull($name)
 	{
-		return (array_key_exists($name, $this->_prop) && $this->_prop[$name] === null);
+		return (array_key_exists($name, $this->arrayValue) && $this->arrayValue[$name] === null);
 	}
 
     /**
-     * @param string $prop
      * @param mixed $val
      */
-    public function setProperty($prop, $val)
+    public function setProperty(string $prop, $val)
     {
-        $this->_prop[$prop] = $val;
+        $this->arrayValue[$prop] = $val;
     }
 
     /**
-     * @param string $name
-     * @return mixed|null
+     * @return mixed
      */
-	public function &getProperty($name)
+	public function &getProperty(string $name)
     {
-        if (array_key_exists($name, $this->_prop)) {
-            return $this->_prop[$name];
+        if (array_key_exists($name, $this->arrayValue)) {
+            return $this->arrayValue[$name];
         }
 
-        return $this->null();
+        self::$nullCache = null;
+        return self::$nullCache;
     }
 
-    /**
-     * @param string $name
-     */
-	public function dropProperty($name)
+	public function dropProperty(string $name): void
     {
-        unset($this->_prop[$name]);
+        unset($this->arrayValue[$name]);
     }
 
 	/**
-	 * Returns a dynamic property and deletes it from the object
-	 * 
-	 * @param string $name
-	 * @return mixed|null
+	 * @return mixed
 	 */
-	public function extract($name)
+	public function extract(string $name)
 	{
-		if (!array_key_exists($name, $this->_prop)) return null;
-		$res = $this->_prop[$name];
-		unset($this->_prop[$name]);
+        if (!array_key_exists($name, $this->arrayValue)) {
+            return null;
+        }
+
+        $res = $this->arrayValue[$name];
+        unset($this->arrayValue[$name]);
 		return $res;
 	}
 
-	/**
-	 * Object is empty if it doesn't have dynamic properties
-	 * 
-	 * @return bool
-	 */
-	public function isEmpty()
-	{
-		return count($this->_prop) === 0;
-	}
 
 	/**
-	 * Returns first defined property (dynamic or static)
-	 * 
-	 * @param string $names
+	 * @param array|string $names
 	 * @param mixed $default
 	 * @return mixed
 	 */
-	public function getFirstDefined($names, $default=null)
+	public function getFirstDefined($names, $default = null)
 	{
-		if (is_string($names)) $names = [$names];
+		if (is_string($names)) {
+		    $names = [$names];
+        }
+
 		foreach ($names as $name) {
-			if (array_key_exists($name, $this->_prop)) return $this->_prop[$name];
-			if (property_exists($this, $name)) return $this->$name;
+			if (array_key_exists($name, $this->arrayValue)) {
+			    return $this->arrayValue[$name];
+            }
 		}
+
 		return $default;
 	}
 
 	/**
-	 * @param string $name
-	 * @return bool
-	 */
-	public function hasOwnProperty($name)
-	{
-		return property_exists($this, $name);
-	}
-
-	/**
-	 * @param string $name
-	 * @return bool
-	 */
-	public function hasDynamicProperty($name)
-	{
-		return array_key_exists($name, $this->_prop);
-	}
-
-	/**
-	 * Check the property exists (dynamic or static)
-	 *
-	 * @param string $name
-	 * @return bool
-	 */
-	public function hasProperty($name)
-	{
-		return (
-			property_exists($this, $name)
-			||
-			array_key_exists($name, $this->_prop)
-		);
-	}
-
-	/**
-	 * @param string $name
 	 * @param mixed $val
-	 * @return bool
 	 */
-	public function testProperty($name, $val)
+	public function testProperty(string $name, $val, bool $strickt = false): bool
 	{
-		if (!$this->hasProperty($name)) return false;
-		return $this->$name == $val;
+		if (!$this->contains($name)) {
+		    return false;
+        }
+
+		if ($strickt) {
+            return $this->$name === $val;
+        } else {
+            return $this->$name == $val;
+        }
 	}
 
-	/**
-	 * @param string $name
-	 */
-	public function hasMethod($name)
+	public function hasMethod(string $name): bool
 	{
-		require method_exists($this, $name);
-	}
-
-	/**
-	 * @return null
-	 */
-	private function & null()
-	{
-		self::$nullCache = null;
-		return self::$nullCache;
+	    return array_key_exists($name, $this->methods);
 	}
 }

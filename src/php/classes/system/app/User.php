@@ -8,7 +8,6 @@ namespace lx;
  */
 class User implements UserInterface, FusionComponentInterface
 {
-    use ObjectTrait;
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
@@ -22,8 +21,7 @@ class User implements UserInterface, FusionComponentInterface
 	}
 	
 	/**
-	 * @param string $name
-	 * @return mixed|null
+	 * @return mixed
 	 */
 	public function __get(string $name)
 	{

@@ -136,14 +136,10 @@ class ModelListDisplayer #lx:namespace lx {
 
 		lx.timetest.start();
 
-		//!!!!!!!!! попробовать без этого
-		body.stopPositioning();
 		body.matrix({
 			items: data,
 			itemBox: [lx.Form, {grid: {cols: colsCount, indent: '10px'}}],
 			itemRender: (form)=> {
-				form.stopPositioning();
-
 				if (formModifier) formModifier(form);
 
 				pre.each((a)=>{
@@ -166,11 +162,8 @@ class ModelListDisplayer #lx:namespace lx {
 					if (fieldsModifier[a.key]) fieldsModifier[a.key](a);
 					else if (fieldsModifier['default']) fieldsModifier['default'](a);
 				});
-
-				form.startPositioning();
 			}
 		});
-		body.startPositioning();
 	}
 
 	/**

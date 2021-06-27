@@ -3,18 +3,13 @@
 namespace lx;
 
 /**
- * Trait ErrorCollectorTrait
- * @package lx
+ * @see ErrorCollectorInterface
  */
 trait ErrorCollectorTrait
 {
-	/** @var ErrorCollectorList */
-	private $errorCollectorList = null;
+	private ?ErrorCollectorList $errorCollectorList = null;
 
-	/**
-	 * @return bool
-	 */
-	public function hasErrors()
+	public function hasErrors(): bool
 	{
 		if ($this->errorCollectorList === null) {
 			return false;
@@ -24,53 +19,50 @@ trait ErrorCollectorTrait
 	}
 
 	/**
-	 * @param string|array $errorInfo
+	 * @param string|array|ErrorCollectorError|\Throwable $errorInfo
 	 */
-	public function addError($errorInfo)
+	public function addError($errorInfo): void
 	{
 		$this->getErrorCollectorList()->addError($errorInfo);
 	}
 
-	/**
-	 * @param array|ErrorCollectorInterface $errors
-	 */
-	public function addErrors($errors)
+	public function addErrors(array $errors): void
 	{
-	    if (is_string($errors)) {
-	        $this->addError($errors);
-        } elseif (is_array($errors)) {
-			foreach ($errors as $error) {
-				$this->addError($error);
-			}
-		} elseif ($errors instanceof ErrorCollectorInterface) {
-			$list = $errors->getErrors();
-			/** @var ErrorCollectorError $item */
-			foreach ($list as $item) {
-				$this->addError($item->getInfo());
-			}
-		}
+        foreach ($errors as $error) {
+            $this->addError($error);
+        }
 	}
 
+    public function mergeErrors(ErrorCollectorInterface $collector): void
+    {
+        $this->addErrors($collector->getErrors());
+    }
+
 	/**
-	 * @return array
+	 * @return array<ErrorCollectorError>
 	 */
-	public function getErrors()
+	public function getErrors(): array
 	{
+        if ($this->errorCollectorList === null) {
+            return [];
+        }
+
 		return $this->getErrorCollectorList()->getErrors();
 	}
 
-	/**
-	 * @return ErrorCollectorError|null
-	 */
-	public function getFirstError()
+    /**
+     * @return ErrorCollectorError|null
+     */
+	public function getFirstError() //TODO since 8.0 : \Stringable
 	{
+        if ($this->errorCollectorList === null) {
+            return null;
+        }
+
 		return $this->getErrorCollectorList()->getFirstError();
 	}
 
-	/**
-	 * @return ErrorCollectorList
-	 */
-	private function getErrorCollectorList()
+	private function getErrorCollectorList(): ErrorCollectorList
 	{
 		if ($this->errorCollectorList === null) {
 			$this->errorCollectorList = new ErrorCollectorList();

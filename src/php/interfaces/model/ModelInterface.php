@@ -16,7 +16,7 @@ interface ModelInterface
     public function setFields(array $fields): void;
 
     /**
-     * @return mixed|null
+     * @return mixed
      */
     public function &getField(string $name);
 
@@ -27,7 +27,7 @@ interface ModelInterface
     public function setRelated(string $name, ?ModelInterface $model): void;
 
     /**
-     * @return mixed|null
+     * @return mixed
      */
     public function &getRelated(string $name);
 

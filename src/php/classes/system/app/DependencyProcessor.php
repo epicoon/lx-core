@@ -14,6 +14,7 @@ class DependencyProcessor
 	    $this->addMap($config);
 	    $this->setDefaults([
             DataFileInterface::class => DataFile::class,
+            EventManagerInterface::class => EventManager::class,
             ResponseInterface::class => Response::class,
             RendererInterface::class => Renderer::class,
             UserInterface::class => User::class,
@@ -104,7 +105,7 @@ class DependencyProcessor
 	}
 
 	/**
-	 * @return mixed|null
+	 * @return mixed
 	 */
 	public function createByInterface(
 	    ?string $interface,

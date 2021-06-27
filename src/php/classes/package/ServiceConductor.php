@@ -6,7 +6,6 @@ use lx;
 
 class ServiceConductor implements ConductorInterface, FusionComponentInterface
 {
-    use ObjectTrait;
 	use FusionComponentTrait;
 
 	public function getService(): Service

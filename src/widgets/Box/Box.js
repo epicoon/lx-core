@@ -22,7 +22,6 @@
  * * 2. Content managment
  * addChild(elem, config = {})
  * modifyNewChildConfig(config)
- * registerChild(el, next)
  * insert(c, next, config={})
  * add(type, count=1, config={}, configurator={})
  * clear()
@@ -68,6 +67,10 @@
  * bind(model)
  * matrix(config)
  * agregator(c, toWidget=true, fromWidget=true)
+ * 
+ * Special events:
+ * - beforeAddChild(child)
+ * - afterAddChild(child)
  */
 
 /**
@@ -96,7 +99,7 @@ class Box extends lx.Rect #lx:namespace lx {
                 this.positioningStrategy.actualize();
         }
 
-        destructProcess() {
+        destruct() {
             this.unbind();
 
             var container = __getContainer(this);
@@ -104,11 +107,11 @@ class Box extends lx.Rect #lx:namespace lx {
 
             this.setBuildMode(true);
             this.eachChild((child)=>{
-                if (child.destruct) child.destruct();
+                if (child.destructProcess) child.destructProcess();
             });
             this.setBuildMode(false);
 
-            super.destructProcess();
+            super.destruct();
         }
     }
 
@@ -155,6 +158,10 @@ class Box extends lx.Rect #lx:namespace lx {
         if (config.slot) this.slot(config.slot.isObject ? config.slot : {});
     }
 
+    getCommonEventNames() {
+        return ['beforeAddChild', 'afterAddChild'];
+    }
+
     static onresize() {
         this.positioning().actualize();
     }
@@ -182,6 +189,10 @@ class Box extends lx.Rect #lx:namespace lx {
 
     //==================================================================================================================
     /* 2. Content managment */
+
+    getContainer() {
+        return __getContainer(this);
+    }
 
     #lx:server {
 		setSnippet(config, attributes = null) {
@@ -252,6 +263,8 @@ class Box extends lx.Rect #lx:namespace lx {
 
         useRenderCache() {
             if (this.renderCacheStatus === undefined) {
+                this.stopPositioning();
+                
                 this.renderCacheStatus = true;
                 this.renderCache = 0;
 
@@ -285,7 +298,7 @@ class Box extends lx.Rect #lx:namespace lx {
             this.domElem.html(text);
             __refreshAfterRender(this);
 
-            this.positioning().actualize();
+            this.startPositioning();
         }
     }
 
@@ -309,6 +322,7 @@ class Box extends lx.Rect #lx:namespace lx {
      * Метод, используемый новым виджетом для регистрации в родителе
      * */
     addChild(widget, config = {}) {
+        this.trigger('beforeAddChild', widget);
         widget.parent = this;
         config = this.modifyNewChildConfig(config);
         var container = __getContainer(this);
@@ -323,14 +337,17 @@ class Box extends lx.Rect #lx:namespace lx {
             }
         }
 
+        var clientHeight0, clientWidth0;
+        if (container.getDomElem() && widget.getDomElem()) {
+            var tElem = container.getDomElem();
+            clientHeight0 = tElem.clientHeight;
+            clientWidth0 = tElem.clientWidth;
+        }
+
         container.registerChild(widget, config.nextSibling);
         this.positioning().allocate(widget, config);
 
         if (container.getDomElem() && widget.getDomElem()) {
-            var	tElem = container.getDomElem(),
-                clientHeight0 = tElem.clientHeight,
-                clientWidth0 = tElem.clientWidth;
-
             var clientHeight1 = tElem.clientHeight;
             var trigged = false;
             if (clientHeight0 > clientHeight1) {
@@ -355,7 +372,38 @@ class Box extends lx.Rect #lx:namespace lx {
                 container.trigger('yScrollBarChange');
                 if (!trigged) container.trigger('scrollBarChange');
             }
+
+            widget.trigger('displayin');
         }
+        this.trigger('afterAddChild', widget);
+    }
+
+    /**
+     * Регистрация нового виджета в структурах родителя (текущего виджета)
+     * регистрация напрямую (!) - без посредника контейнера
+     */
+    registerChild(child, next) {
+        if (next) this.children.insertBefore(child, next);
+        else this.children.push(child);
+
+        if (!child.key) return;
+
+        if (child.key in this.childrenByKeys) {
+            if (!this.childrenByKeys[child.key].isArray) {
+                this.childrenByKeys[child.key]._index = 0;
+                this.childrenByKeys[child.key] = [this.childrenByKeys[child.key]];
+            }
+            if (next && child.key == next.key) {
+                child._index = next._index;
+                this.childrenByKeys[child.key].splice(child._index, 0, child);
+                for (var i=child._index+1,l=this.childrenByKeys[child.key].length; i<l; i++) {
+                    this.childrenByKeys[child.key][i]._index = i;
+                }
+            } else {
+                child._index = this.childrenByKeys[child.key].length;
+                this.childrenByKeys[child.key].push(child);
+            }
+        } else this.childrenByKeys[child.key] = child;
     }
 
     /**
@@ -363,34 +411,6 @@ class Box extends lx.Rect #lx:namespace lx {
      * */
     modifyNewChildConfig(config) {
         return config;
-    }
-
-    /**
-     * Регистрация нового виджета в структурах родителя (текущего виджета)
-     * регистрация напрямую (!) - без посредника контейнера
-     * */
-    registerChild(el, next) {
-        if (next) this.children.insertBefore(el, next);
-        else this.children.push(el);
-
-        if (!el.key) return;
-
-        if (el.key in this.childrenByKeys) {
-            if (!this.childrenByKeys[el.key].isArray) {
-                this.childrenByKeys[el.key]._index = 0;
-                this.childrenByKeys[el.key] = [this.childrenByKeys[el.key]];
-            }
-            if (next && el.key == next.key) {
-                el._index = next._index;
-                this.childrenByKeys[el.key].splice(el._index, 0, el);
-                for (var i=el._index+1,l=this.childrenByKeys[el.key].length; i<l; i++) {
-                    this.childrenByKeys[el.key][i]._index = i;
-                }
-            } else {
-                el._index = this.childrenByKeys[el.key].length;
-                this.childrenByKeys[el.key].push(el);
-            }
-        } else this.childrenByKeys[el.key] = el;
     }
 
     /**
@@ -431,7 +451,7 @@ class Box extends lx.Rect #lx:namespace lx {
 
         // Сначала все потомки должны освободить используемые ресурсы
         container.eachChild((child)=>{
-            if (child.destruct) child.destruct();
+            if (child.destructProcess) child.destructProcess();
         });
 
         // После чего можно разом обнулить содержимое
@@ -460,7 +480,7 @@ class Box extends lx.Rect #lx:namespace lx {
         if (el === undefined) return super.del();
 
         var c = this.remove(el, index, count);
-        c.each((a)=>a.destruct());
+        c.each((a)=>a.destructProcess());
     }
 
     /*
@@ -801,9 +821,18 @@ class Box extends lx.Rect #lx:namespace lx {
         return container.positioningStrategy;
     }
 
-    align(hor, vert) {
+    align(horizontal, vertical) {
         var pos = this.preparePositioningStrategy(lx.AlignPositioningStrategy);
-        if (pos) pos.init(hor, vert);
+        if (!pos) return this;
+
+        if (vertical === undefined && horizontal.isObject) pos.init(horizontal);
+        else pos.init({horizontal, vertical});
+        return this;
+    }
+
+    map(config) {
+        var pos = this.preparePositioningStrategy(lx.MapPositioningStrategy);
+        if (pos) pos.init(config);
         return this;
     }
 
@@ -1012,6 +1041,7 @@ function __get(self, path) {
             elemNum = childNum;
             var elem = elemsList[elemNum];
             child.domElem.refreshElem(elem);
+            child.trigger('displayin');
             __refreshAfterRender(child);
 
             child = self.child(++childNum);

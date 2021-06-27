@@ -3,44 +3,28 @@
 namespace lx;
 
 /**
- * Implementation for \lx\ContextTreeInterface
- * 
- * Trait ContextTreeTrait
- * @package lx
+ * @see ContextTreeInterface
  */
 trait ContextTreeTrait
 {
-	/** @var string */
-	protected static $keyPrefix;
+	private static ?string $keyPrefix = null;
+	private static int $keyCounter = 1;
 
-	/** @var int */
-	protected static $keyCounter = 1;
-
-	/** @var ContextTreeInterface */
-	protected $parentContext;
-
-	/** @var array */
-	protected $nestedContexts;
-	
-	/** @var string */
-	protected $key;
+	protected ?ContextTreeInterface $parentContext = null;
+	protected array $nestedContexts = [];
+	protected string $key;
 	
 	/**
 	 * @magic __construct
-	 * @param array $config
 	 */
-	public function constructContextTree($config = [])
+	public function constructContextTree(iterable $config = [])
 	{
-		$this->nestedContexts = [];
-
-		if (is_array($config)) {
-			if (isset($config['parent'])) {
-				$parent = $config['parent'];
-			}
-			if (isset($config['key'])) {
-				$key = $config['key'];
-			}
-		}
+        if (isset($config['parent'])) {
+            $parent = $config['parent'];
+        }
+        if (isset($config['key'])) {
+            $key = $config['key'];
+        }
 
 		if (!isset($parent)) {
 			$parent = null;
@@ -55,10 +39,7 @@ trait ContextTreeTrait
 		}
 	}
 
-	/**
-	 * @return ContextTreeInterface
-	 */
-	public function getHead()
+	public function getHead(): ContextTreeInterface
 	{
 		$head = $this;
 		while ($head->getParent()) {
@@ -67,18 +48,12 @@ trait ContextTreeTrait
 		return $head;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getKey()
+	public function getKey(): string
 	{
 		return $this->key;
 	}
 
-	/**
-	 * @param string $key
-	 */
-	public function setKey($key)
+	public function setKey(string $key): void
 	{
 		if ($this->parentContext) {
 			$this->parentContext->unnest($this);
@@ -90,18 +65,12 @@ trait ContextTreeTrait
 		}
 	}
 
-	/**
-	 * @return ContextTreeInterface|null
-	 */
-	public function getParent()
+	public function getParent(): ?ContextTreeInterface
 	{
 		return $this->parentContext;
 	}
 
-	/**
-	 * @param ContextTreeInterface $parent
-	 */
-	public function setParent($parent)
+	public function setParent(ContextTreeInterface $parent): void
 	{
 		if ($this->parentContext) {
 			$this->parentContext->unnest($this);
@@ -113,27 +82,17 @@ trait ContextTreeTrait
 		}
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getNested()
+	public function getNested(): array
 	{
 		return $this->nestedContexts;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isHead()
+	public function isHead(): bool
 	{
 		return $this->parentContext === null;
 	}
 
-	/**
-	 * @param array $config
-	 * @return ContextTreeInterface
-	 */
-	public function add($config = [])
+	public function add(iterable $config = []): ContextTreeInterface
 	{
 		$config['parent'] = $this;
 		$refClass = new \ReflectionClass(static::class);
@@ -141,10 +100,23 @@ trait ContextTreeTrait
 		return $instance;
 	}
 
-	/**
-	 * @param callable $func
-	 */
-	public function eachContext($func)
+    public function nest(ContextTreeInterface $context): bool
+    {
+        $this->nestedContexts[$context->getKey()] = $context;
+        return true;
+    }
+
+    public function unnest(ContextTreeInterface $context): bool
+    {
+        if (!array_key_exists($context->getKey(), $this->nestedContexts)) {
+            return false;
+        }
+
+        unset($this->nestedContexts[$context->getKey()]);
+        return true;
+    }
+
+	public function eachContext(callable $func): void
 	{
 		$head = $this->getHead();
 
@@ -160,42 +132,14 @@ trait ContextTreeTrait
 		$re($head);
 	}
 
-	/**
-	 * @param ContextTreeInterface $context
-	 */
-	protected function nest($context)
-	{
-		$this->nestedContexts[$context->getKey()] = $context;
-	}
-
-	/**
-	 * @param ContextTreeInterface $context
-	 * @return bool
-	 */
-	protected function unnest($context)
-	{
-		if (!array_key_exists($context->getKey(), $this->nestedContexts)) {
-			return false;
-		}
-		
-		unset($this->nestedContexts[$context->getKey()]);
-		return true;
-	}
-
-	/**
-	 * @return string
-	 */
-	protected function genUniqKey()
+	protected function genUniqKey(): string
 	{
 		$index = self::$keyCounter;
 		self::$keyCounter++;
 		return self::getKeyPrefix() . '_' . Math::decChangeNotation($index, 62);
 	}
 
-	/**
-	 * @return string
-	 */
-	protected static function getKeyPrefix()
+	private static function getKeyPrefix(): string
 	{
 		if ( ! self::$keyPrefix) {
 			self::$keyPrefix = ''

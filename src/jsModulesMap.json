@@ -13,7 +13,7 @@
     },
     "lx.ActiveBox": {
         "name": "lx.ActiveBox",
-        "path": "widgets\/ActiveBox\/ActiveBox.js"
+        "path": "widgets\/ActiveBox.js"
     },
     "lx.Box": {
         "name": "lx.Box",
@@ -21,59 +21,63 @@
     },
     "lx.BoxSlider": {
         "name": "lx.BoxSlider",
-        "path": "widgets\/BoxSlider\/BoxSlider.js"
+        "path": "widgets\/BoxSlider.js"
     },
     "lx.Button": {
         "name": "lx.Button",
-        "path": "widgets\/Button\/Button.js"
+        "path": "widgets\/Button.js"
     },
     "lx.Calendar": {
         "name": "lx.Calendar",
-        "path": "widgets\/Calendar\/Calendar.js"
+        "path": "widgets\/Calendar.js"
     },
     "lx.Checkbox": {
         "name": "lx.Checkbox",
-        "path": "widgets\/Checkbox\/Checkbox.js"
+        "path": "widgets\/Checkbox.js"
     },
     "lx.CheckboxGroup": {
         "name": "lx.CheckboxGroup",
-        "path": "widgets\/CheckboxGroup\/CheckboxGroup.js"
+        "path": "widgets\/CheckboxGroup.js"
     },
     "lx.Dropbox": {
         "name": "lx.Dropbox",
-        "path": "widgets\/Dropbox\/Dropbox.js"
+        "path": "widgets\/Dropbox.js"
     },
     "lx.EggMenu": {
         "name": "lx.EggMenu",
-        "path": "widgets\/EggMenu\/EggMenu.js"
+        "path": "widgets\/EggMenu.js"
     },
     "lx.Form": {
         "name": "lx.Form",
-        "path": "widgets\/Form\/Form.js"
+        "path": "widgets\/Form.js"
     },
     "lx.Image": {
         "name": "lx.Image",
-        "path": "widgets\/Image\/Image.js"
+        "path": "widgets\/Image.js"
     },
     "lx.ImageSlider": {
         "name": "lx.ImageSlider",
-        "path": "widgets\/ImageSlider\/ImageSlider.js"
+        "path": "widgets\/ImageSlider.js"
     },
     "lx.Input": {
         "name": "lx.Input",
-        "path": "widgets\/Input\/Input.js"
+        "path": "widgets\/Input.js"
+    },
+    "lx.JointMover": {
+        "name": "lx.JointMover",
+        "path": "widgets\/JointMover.js"
     },
     "lx.LabeledGroup": {
         "name": "lx.LabeledGroup",
-        "path": "widgets\/LabeledGroup\/LabeledGroup.js"
+        "path": "widgets\/LabeledGroup.js"
     },
     "lx.MessageBox": {
         "name": "lx.MessageBox",
-        "path": "widgets\/MessageBox\/MessageBox.js"
+        "path": "widgets\/MessageBox.js"
     },
     "lx.MultiBox": {
         "name": "lx.MultiBox",
-        "path": "widgets\/MultiBox\/MultiBox.js"
+        "path": "widgets\/MultiBox.js"
     },
     "lx.Paginator": {
         "name": "lx.Paginator",
@@ -84,34 +88,34 @@
     },
     "lx.Radio": {
         "name": "lx.Radio",
-        "path": "widgets\/Radio\/Radio.js"
+        "path": "widgets\/Radio.js"
     },
     "lx.RadioGroup": {
         "name": "lx.RadioGroup",
-        "path": "widgets\/RadioGroup\/RadioGroup.js"
+        "path": "widgets\/RadioGroup.js"
     },
     "lx.Rect": {
         "name": "lx.Rect",
-        "path": "widgets\/Rect\/Rect.js"
+        "path": "widgets\/Rect.js"
     },
     "lx.Slider": {
         "name": "lx.Slider",
-        "path": "widgets\/Slider\/Slider.js"
+        "path": "widgets\/Slider.js"
     },
     "lx.Table": {
         "name": "lx.Table",
-        "path": "widgets\/Table\/Table.js"
+        "path": "widgets\/Table.js"
     },
     "lx.TextBox": {
         "name": "lx.TextBox",
-        "path": "widgets\/TextBox\/TextBox.js"
+        "path": "widgets\/TextBox.js"
     },
     "lx.Textarea": {
         "name": "lx.Textarea",
-        "path": "widgets\/Textarea\/Textarea.js"
+        "path": "widgets\/Textarea.js"
     },
     "lx.TreeBox": {
         "name": "lx.TreeBox",
-        "path": "widgets\/TreeBox\/TreeBox.js"
+        "path": "widgets\/TreeBox.js"
     }
 }

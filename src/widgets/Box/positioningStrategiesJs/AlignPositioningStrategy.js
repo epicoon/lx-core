@@ -1,13 +1,5 @@
 class AlignPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
-	init(hor, vert) {
-		var config;
-		if (vert !== undefined) config = {
-			horizontal: hor,
-			vertical: vert
-		};
-		else if (hor !== undefined && hor.isObject) config = hor;
-		else config = {};
-
+	init(config) {
 		this.direction = config.direction || lx.HORIZONTAL;
 		this.horizontal = config.horizontal || lx.CENTER;
 		this.vertical = config.vertical || lx.MIDDLE;
@@ -48,9 +40,8 @@ class AlignPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		this.actualizeIndents(indents);
 	}
 
-	#lx:server pack() {
-		return super.pack()
-			+ ';d:' + this.direction
+	#lx:server packProcess() {
+		return ';d:' + this.direction
 			+ ';h:' + this.horizontal
 			+ ';v:' + this.vertical;
 	}

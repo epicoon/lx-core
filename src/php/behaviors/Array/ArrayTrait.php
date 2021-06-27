@@ -3,30 +3,15 @@
 namespace lx;
 
 /**
- * Trait ArrayTrait
- * @package lx
+ * @see ArrayInterface
  */
 trait ArrayTrait
 {
-	/** @var int */
-	protected $arrayNumericIndexCounter = 0;
+	protected int $arrayNumericIndexCounter = 0;
+	protected array $arrayValue = [];
+	protected bool $arrayIsAssoc = true;
 
-	/** @var array */
-	protected $arrayValue = [];
-
-	/** @var bool */
-	protected $arrayIsAssoc = true;
-
-	public function __construct()
-    {
-        $this->constructArray([]);
-    }
-
-	/**
-	 * @magic __construct
-	 * @param iterable $array
-	 */
-	public function __constructArray($array = [])
+	public function __constructArray(iterable $array = [])
 	{
 		if (!is_array($array)) {
 		    if (is_object($array) && method_exists($array, 'toArray')) {
@@ -67,39 +52,27 @@ trait ArrayTrait
 		}
 	}
 
-	/**
-	 * @return int
-	 */
-	public function getIndex()
+	public function getIndex(): int
 	{
 		return $this->arrayNumericIndexCounter;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isAssoc()
+	public function isAssoc(): bool
 	{
 		return $this->arrayIsAssoc;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isEmpty()
+	public function isEmpty(): bool
 	{
 		return empty($this->arrayValue);
 	}
 
-	/**
-	 * @return int
-	 */
-	public function len()
+	public function len(): int
 	{
 		return count($this->arrayValue);
 	}
 
-	public function clear()
+	public function clear(): void
 	{
 		$this->arrayValue = [];
 		$this->arrayNumericIndexCounter = 0;
@@ -166,11 +139,16 @@ trait ArrayTrait
 
 	/**
 	 * @param mixed $value
-	 * @return mixed|false
+	 * @return mixed
 	 */
 	public function getKeyByValue($value)
 	{
-		return array_search($value, $this->arrayValue);
+	    $result = array_search($value, $this->arrayValue);
+	    if ($result === false) {
+	        return null;
+        }
+	    
+	    return $result;
 	}
 
     /**
@@ -179,7 +157,7 @@ trait ArrayTrait
     public function removeValue($value)
     {
         $key = $this->getKeyByValue($value);
-        if ($key === false) {
+        if ($key === null) {
             return;
         }
 
@@ -191,18 +169,13 @@ trait ArrayTrait
 
 	/**
 	 * @param mixed $value
-	 * @return bool
 	 */
-	public function contains($value)
+	public function contains($value): bool
 	{
-		return $this->getKeyByValue($value) !== false;
+		return $this->getKeyByValue($value) !== null;
 	}
 
-    /**
-     * @param iterable $iterable
-     * @return iterable
-     */
-    public function merge($iterable)
+    public function merge(iterable $iterable): iterable
     {
         if (is_object($iterable) && method_exists($iterable, 'toArray')) {
             $iterable = $iterable->toArray();
@@ -218,10 +191,7 @@ trait ArrayTrait
         return $this;
     }
 
-	/**
-	 * @return array
-	 */
-	public function toArray()
+	public function toArray(): array
 	{
 		return $this->arrayValue;
 	}

@@ -2,43 +2,37 @@
 
 namespace lx;
 
-/**
- * Class ErrorCollectorList
- * @package lx
- */
 class ErrorCollectorList
 {
-	/** @var array */
-	private $list = [];
+    /** @var array<ErrorCollectorError> */
+	private array $list = [];
 
-	/**
-	 * @return bool
-	 */
-	public function hasErrors()
+	public function hasErrors(): bool
 	{
 		return !empty($this->list);
 	}
 
 	/**
-	 * @param string|array $errorInfo
+	 * @param string|array|ErrorCollectorError|\Throwable $errorInfo
 	 */
-	public function addError($errorInfo)
+	public function addError($errorInfo): void
 	{
-		$this->list[] = new ErrorCollectorError($errorInfo);
+	    if ($errorInfo instanceof ErrorCollectorError) {
+            $this->list[] = $errorInfo;
+        } else {
+            $this->list[] = new ErrorCollectorError($errorInfo);
+        }
 	}
 
 	/**
-	 * @return array
+	 * @return array<ErrorCollectorError>
 	 */
-	public function getErrors()
+	public function getErrors(): array
 	{
 		return $this->list;
 	}
 
-	/**
-	 * @return ErrorCollectorError|null
-	 */
-	public function getFirstError()
+	public function getFirstError(): ?ErrorCollectorError
 	{
 		return $this->list[0] ?? null;
 	}

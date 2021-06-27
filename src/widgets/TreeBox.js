@@ -8,13 +8,13 @@
 
 /* 
  * Special events:
- * - leafOpen(event, leaf, node)
- * - leafClose(event, leaf, node)
+ * - leafOpen(event, leaf)
+ * - leafClose(event, leaf)
  * - beforeAdd(event, info)  // info == { parentNode, button, text, data: null, comment: '' } - в info можно записать данные узла по умолчанию, text - при варианте add==2, здесь окажется предварительно введенный текст
- * - afterAdd(event, newNode, button)
+ * - afterAdd(event, newNode)
  * - beforeDel(event, node)
  * - afterDel(event)
- * */
+ */
 class TreeBox extends lx.Box #lx:namespace lx {
 	#lx:const
 		FORBIDDEN_ADDING = 0,
@@ -115,9 +115,6 @@ class TreeBox extends lx.Box #lx:namespace lx {
 
 			if (this.leafConstructor && this.leafConstructor.isString)
 				this.leafConstructor = this.unpackFunction(this.leafConstructor);
-
-			this->work.clear();
-			this.prepareRoot();
 		}
 
 		leafs() {

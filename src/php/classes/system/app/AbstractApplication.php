@@ -13,7 +13,7 @@ use lx;
  * @property-read ApplicationConductor $conductor
  * @property-read ServicesMap $services
  * @property-read DependencyProcessor $diProcessor
- * @property-read EventManager $events
+ * @property-read EventManagerInterface $events
  * @property-read LoggerInterface $logger
  */
 abstract class AbstractApplication implements FusionInterface
@@ -29,7 +29,7 @@ abstract class AbstractApplication implements FusionInterface
     private ?array $defaultPluginConfig = null;
     private ApplicationConductor $_conductor;
     private ServicesMap $_services;
-    private EventManager $_events;
+    private EventManagerInterface $_events;
     private DependencyProcessor $_diProcessor;
     private bool $logMode;
 
@@ -84,17 +84,18 @@ abstract class AbstractApplication implements FusionInterface
             $this->loadLocalConfig();
         }
 
-        $eventsConfig = ClassHelper::prepareConfig(
-            $this->getConfig('eventManager'),
-            EventManager::class
+        $this->_events = $this->diProcessor->createByInterface(
+            EventManagerInterface::class,
+            [], [],
+            EventManager::class,
+            static::class
         );
-        $this->_events = new $eventsConfig['class']($eventsConfig['params']);
 
         $aliases = $this->getConfig('aliases');
         if (!$aliases) $aliases = [];
         $this->_conductor->setAliases($aliases);
 
-        $this->initFusionComponents($this->getConfig('components'), static::getDefaultComponents());
+        $this->initFusionComponents($this->getConfig('components') ?? [], static::getDefaultComponents());
         $this->init();
     }
 

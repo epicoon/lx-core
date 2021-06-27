@@ -103,7 +103,7 @@ class DbTableField
     }
 
     /**
-     * @return mixed|null
+     * @return mixed
      */
     public function getDefault()
     {

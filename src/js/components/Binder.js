@@ -187,9 +187,9 @@ function __bindMatrix(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 		__matrixBinds[c._lxMatrixBindId].widgets.push(widget);
 	widget._lxMatrixBindId = c._lxMatrixBindId;
 
-	widget.stopPositioning();
+	widget.useRenderCache();
 	c.each((a)=>__matrixNewBox(widget, a, type));
-	widget.startPositioning();
+	widget.applyRenderCache();
 
 	c.addBehavior(lx.MethodListenerBehavior);
 	c.afterMethod('add',       __matrixHandlerOnAdd   );
@@ -439,9 +439,11 @@ function __matrixNewBox(w, obj, type, rowConfig = null) {
 	r.matrixItems = function() {return __getMatrixCollection(this.parent);};
 	r.matrixIndex = function() {return this.index || 0;};
 	r.matrixModel = function() {return __getMatrixCollection(this.parent).at(this.index || 0);};
+	r.useRenderCache();
 	r.begin();
 	w.lxcwb_itemRender(r, obj);
 	r.end();
+	r.applyRenderCache();
 	__bind(obj, r, type);
 	if (w.lxcwb_afterBind) w.lxcwb_afterBind(r, obj);
 }

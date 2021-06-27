@@ -2,26 +2,18 @@
 
 namespace lx;
 
-/**
- * Class Iterator
- * @package lx
- */
 class Iterator implements \Iterator
 {
-	/** @var array */
-	private $var = [];
+	private array $var = [];
 
-	/**
-	 * Iterator constructor.
-	 * @param array $array
-	 */
-	public function __construct($array)
+	public function __construct(array $array)
 	{
-		if (is_array($array)) {
-			$this->var = $array;
-		}
+        $this->var = $array;
 	}
 
+    /**
+     * @return void
+     */
 	public function rewind()
 	{
 		reset($this->var);

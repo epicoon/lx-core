@@ -72,7 +72,9 @@ class DbSelectQuery
                 }
             }
 
-            $this->fields[$aliase ?? $table->getName() . '.' . $name] = new DbQueryFieldData($table, $name, $aliase);
+            if ($table) {
+                $this->fields[$aliase ?? $table->getName() . '.' . $name] = new DbQueryFieldData($table, $name, $aliase);
+            }
         }
     }
 

@@ -8,7 +8,6 @@ namespace lx;
  */
 class HttpAssetsManager implements FusionComponentInterface
 {
-    use ObjectTrait;
     use FusionComponentTrait;
 
     /** @var string */

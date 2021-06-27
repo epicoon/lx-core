@@ -31,7 +31,7 @@ class ArrayHelper
     }
     
     /**
-     * @param mixed|null $array
+     * @param mixed $array
      * @return bool
      */
     public static function isEmpty($array)

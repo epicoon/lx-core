@@ -1,3 +1,5 @@
+#lx:private;
+
 #lx:module lx.Rect;
 
 /**
@@ -45,7 +47,6 @@ class Rect #lx:namespace lx {
     #lx:client __construct() {
         this.domElem = null;
         this.parent = null;
-        this.destructCallbacks = [];
     }
 
     static getStaticTag() {
@@ -157,22 +158,16 @@ class Rect #lx:namespace lx {
     /**
      * Метод для освобождения ресурсов
      * */
-    destruct() {
+    destructProcess() {
         this.trigger('beforeDestruct');
-        for (var i=0, l=this.destructCallbacks.len; i<l; i++)
-            this.destructCallbacks[i].call(this);
-        this.destructProcess();
+        this.destruct();
         this.parent = null;
         if (this.domElem) this.domElem.clear();
         this.domElem = null;
         this.trigger('afterDestruct');
     }
 
-    onDestruct(callback) {
-        this.destructCallbacks.push(callback);
-    }
-
-    destructProcess() {}
+    destruct() {}
 
     #lx:client {
         /**
@@ -586,16 +581,12 @@ class Rect #lx:namespace lx {
         тут не актуализируется стратегия позиционирования для потомков - отсюда она и не может, потому что Rect не имеет потомков
         надо сделать этот метод шалонным - оператор this.parent.tryChildReposition(this, param, val); вынести в отдельный метод,
         и переопределить его в Box, чтобы там актуализировать стратегию
-        + добавить метод Box.positioningAutoActualizeState(boolean) - чтобы включать/выключать/проверять режим авто-актуализации
-        + добавить в метод Rect.coords поддержку передачи параметров конфигом, передачу 4-х методов (l, t, r, b)
-        + методы Rect.coords и Rect.size переопределить в Box с выключением автоактуализации
-        + добавить метод Rect.geom(l, t, w, h, r, b) с возможностью передачи параметров конфигом + переопределить его в Box с выключением автоактуализации
-        Для всего этого надо перепроверить как работают все стратегии во всех вариантах, продумать их взаимодействия
-        и, возможно, прижется сделать метод аналогичный этому, но без актуализации - для использования родительской стратегией
+
+        !не факт, что оно вообще долно здесь актуализироваться
         */
         if (this.parent) this.parent.tryChildReposition(this, param, val);
         else {
-            this.geomPriority(param);
+            this.setGeomPriority(param);
             this.domElem.style(lx.Geom.geomName(param), val);
         }
         return this;
@@ -604,164 +595,43 @@ class Rect #lx:namespace lx {
     /**
      * Если в силу внутренних процессов изменился размер - о таком надо сообщить "наверх" по иерархии
      * */
-    reportSizeChange(param) {
+    reportSizeHasChanged() {
         if (this.parent) this.parent.childHasAutoresized(this);
-    }
-
-    /**
-     * format = '%' | 'px'  - вернет значение float, в соответствии с переданным форматом
-     * если format не задан - вернет значение как оно записано в style
-     * */
-    getLeft(format) {
-        if (!format) return this.domElem.style('left');
-
-        var elem = this.getDomElem();
-        if (!elem) return null;
-
-        var pw = (this.domElem.parent) ? this.domElem.parent.getDomElem().offsetWidth : elem.offsetWidth;
-        return this.calcGeomParam(format, elem.style.left, elem.offsetLeft, pw);
     }
 
     left(val) {
         if (val === undefined || val == '%' || val == 'px')
-            return this.getLeft(val);
+            return __getLeft(this, val);
         return this.setGeomParam(lx.LEFT, val);
-    }
-
-    getRight(format) {
-        if (!format) return this.domElem.style('right');
-
-        var elem = this.getDomElem();
-        if (!elem) return null;
-
-        if (!this.domElem.parent) return undefined;
-        var pElem = this.domElem.parent.getDomElem();
-        if (!pElem) return undefined;
-        if (elem.style.right != '') {
-            var b = lx.Geom.splitGeomValue(elem.style.right);
-            if (format == '%') {
-                if ( b[1] != '%' ) b[0] = (b[0] / pElem.offsetWidth) * 100;
-                return b[0];
-            } else {
-                if ( b[1] != 'px' ) b[0] = b[0] * pElem.offsetWidth * 0.01;
-                return b[0];
-            }
-        } else {
-            var t = lx.Geom.splitGeomValue(elem.style.left),
-                h = lx.Geom.splitGeomValue(elem.style.width),
-                pw = pElem.offsetWidth;
-            if (format == '%') {
-                if ( t[1] != '%' ) t[0] = (t[0] / pw) * 100;
-                if ( h[1] != '%' ) h[0] = (h[0] / pw) * 100;
-                return 100 - t[0] - h[0];
-            } else {
-                if ( t[1] != 'px' ) t[0] = elem.offsetLeft;
-                if ( h[1] != 'px' ) h[0] = elem.offsetWidth;
-                return pw - t[0] - h[0];
-            }
-        }
     }
 
     right(val) {
         if (val === undefined || val == '%' || val == 'px')
-            return this.getRight(val);
+            return __getRight(this, val);
         return this.setGeomParam(lx.RIGHT, val);
-    }
-
-    getTop(format) {
-        if (!format) return this.domElem.style('top');
-
-        var elem = this.getDomElem();
-        if (!elem) return null;
-
-        var p = this.domElem.parent,
-            ph = (p) ? p.getDomElem().offsetHeight : elem.offsetHeight;
-        return this.calcGeomParam(format, elem.style.top, elem.offsetTop, ph);
     }
 
     top(val) {
         if (val === undefined || val == '%' || val == 'px')
-            return this.getTop(val);
+            return __getTop(this, val);
         return this.setGeomParam(lx.TOP, val);
-    }
-
-    getBottom(format) {
-        if (!format) return this.domElem.style('bottom');
-
-        var elem = this.getDomElem();
-        if (!elem) return null;
-
-        if (!this.domElem.parent) return undefined;
-        pElem = this.domElem.parent.getDomElem();
-        if (!pElem) return undefined;
-        if (elem.style.bottom != '') {
-            var b = lx.Geom.splitGeomValue(elem.style.bottom);
-            if (format == '%') {
-                if ( b[1] != '%' ) b[0] = (b[0] / pElem.clientHeight) * 100;
-                return b[0];
-            } else {
-                if ( b[1] != 'px' ) b[0] = b[0] * pElem.clientHeight * 0.01;
-                return b[0];
-            }
-        } else {
-            var t = lx.Geom.splitGeomValue(elem.style.top),
-                h = lx.Geom.splitGeomValue(elem.style.height),
-                ph = pElem.clientHeight;
-            if (format == '%') {
-                if ( t[1] != '%' ) t[0] = (t[0] / ph) * 100;
-                if ( h[1] != '%' ) h[0] = (h[0] / ph) * 100;
-                return 100 - t[0] - h[0];
-            } else {
-                if ( t[1] != 'px' ) t[0] = elem.offsetTop;
-                if ( h[1] != 'px' ) h[0] = elem.offsetHeight;
-                return ph - t[0] - h[0];
-            }
-        }
     }
 
     bottom(val) {
         if (val === undefined || val == '%' || val == 'px')
-            return this.getBottom(val);
+            return __getBottom(this, val);
         return this.setGeomParam(lx.BOTTOM, val);
-    }
-
-    getWidth(format) {
-        if (!format) return this.domElem.style('width');
-
-        var elem = this.getDomElem();
-        if (!elem) return null;
-
-        if (!this.domElem.parent) {
-            if (format == '%') return 100;
-            return elem.offsetWidth;
-        }
-        return this.calcGeomParam(format, elem.style.width,
-            elem.offsetWidth, this.domElem.parent.getDomElem().offsetWidth);
     }
 
     width(val) {
         if (val === undefined || val == '%' || val == 'px')
-            return this.getWidth(val);
+            return __getWidth(this, val);
         return this.setGeomParam(lx.WIDTH, val);
-    }
-
-    getHeight(format) {
-        if (!format) return this.domElem.style('height');
-
-        var elem = this.getDomElem();
-        if (!elem) return null;
-
-        if (!this.domElem.parent) {
-            if (format == '%') return 100;
-            return elem.offsetHeight;
-        }
-        return this.calcGeomParam(format, elem.style.height,
-            elem.offsetHeight, this.domElem.parent.getDomElem().offsetHeight);
     }
 
     height(val) {
         if (val === undefined || val == '%' || val == 'px')
-            return this.getHeight(val);
+            return __getHeight(this, val);
         return this.setGeomParam(lx.HEIGHT, val);
     }
 
@@ -794,8 +664,8 @@ class Rect #lx:namespace lx {
 
     getGeomMask(units = undefined) {
         var result = {};
-        result.pH = this.geomPriorityH().lxClone();
-        result.pV = this.geomPriorityV().lxClone();
+        result.pH = __getGeomPriorityH(this).lxClone();
+        result.pV = __getGeomPriorityV(this).lxClone();
         result[result.pH[0]] = this[lx.Geom.geomName(result.pH[0])](units);
         result[result.pH[1]] = this[lx.Geom.geomName(result.pH[1])](units);
         result[result.pV[0]] = this[lx.Geom.geomName(result.pV[0])](units);
@@ -823,25 +693,11 @@ class Rect #lx:namespace lx {
         return this;
     }
 
-    getGlobalGeomMask(units = undefined) {
-        var result = {};
-        result.pH = this.geomPriorityH().lxClone();
-        result.pV = this.geomPriorityV().lxClone();
-        //TODO - возвращает только в пикселях, units - не работает
-        var rect = this.getGlobalRect();
-        result[result.pH[0]] = rect[lx.Geom.geomName(result.pH[0])];
-        result[result.pH[1]] = rect[lx.Geom.geomName(result.pH[1])];
-        result[result.pV[0]] = rect[lx.Geom.geomName(result.pV[0])];
-        result[result.pV[1]] = rect[lx.Geom.geomName(result.pV[1])];
-        if (this.geom) result.geom = this.geom.lxClone();
-        return result;
-    }
-
     /**
      * Копия "как есть" - с приоритетами, без адаптаций под старые соответствующие значения
      * */
     copyGlobalGeom(geomMask, units = undefined) {
-        if (geomMask instanceof lx.Rect) geomMask = geomMask.getGlobalGeomMask(units);
+        if (geomMask instanceof lx.Rect) geomMask = __getGlobalGeomMask(geomMask, units);
 
         var pH = geomMask.pH,
             pV = geomMask.pV;
@@ -856,76 +712,35 @@ class Rect #lx:namespace lx {
         return this;
     }
 
-    geomPriority(param) {
-        if (lx.Geom.directionByGeom(param) == lx.HORIZONTAL)
-            this.geomPriorityH(param);
-        else this.geomPriorityV(param);
-    }
-
-    geomPriorityH(val, val2) {
-        if (val === undefined) return ((this.geom) ? this.geom.bpg : 0) || [lx.LEFT, lx.CENTER];
-
-        if (val2 !== undefined) {
-            if (!this.geom) this.geom = {};
-            var dropGeom = this.geomPriorityH().diff([val, val2])[0];
-            if (dropGeom === undefined) return this;
-            this.domElem.style(lx.Geom.geomName(dropGeom), '');
-            this.geom.bpg = [val, val2];
-            return this;
+    setGeomPriority(param1, param2) {
+        var dir1 = lx.Geom.directionByGeom(param1),
+            dir2 = lx.Geom.directionByGeom(param2);
+        if (dir1 == lx.HORIZONTAL) {
+            if (dir2 == lx.HORIZONTAL) {
+                __setGeomPriorityH(this, param1, param2);
+            } else if (dir2 == lx.VERTICAL) {
+                __setGeomPriorityH(this, param1);
+                __setGeomPriorityV(this, param2);
+            } else {
+                __setGeomPriorityH(this, param1);
+            }
+        } else if (dir1 == lx.VERTICAL) {
+            if (dir2 == lx.VERTICAL) {
+                __setGeomPriorityV(this, param1, param2);
+            } else if (dir2 == lx.HORIZONTAL) {
+                __setGeomPriorityV(this, param1);
+                __setGeomPriorityH(this, param2);
+            } else {
+                __setGeomPriorityV(this, param1);
+            }
         }
-
-        if (!this.geom) this.geom = {};
-
-        if (!this.geom.bpg) this.geom.bpg = [lx.LEFT, lx.CENTER];
-
-        if (this.geom.bpg[0] == val) return this;
-
-        if (this.geom.bpg[1] != val) switch (this.geom.bpg[1]) {
-            case lx.LEFT: this.domElem.style('left', ''); break;
-            case lx.CENTER: this.domElem.style('width', ''); break;
-            case lx.RIGHT: this.domElem.style('right', ''); break;
-        }
-
-        this.geom.bpg[1] = this.geom.bpg[0];
-        this.geom.bpg[0] = val;
-
-        return this;
-    }
-
-    geomPriorityV(val, val2) {
-        if (val === undefined) return ((this.geom) ? this.geom.bpv : 0) || [lx.TOP, lx.MIDDLE];
-
-        if (val2 !== undefined) {
-            if (!this.geom) this.geom = {};
-            var dropGeom = this.geomPriorityV().diff([val, val2])[0];
-            if (dropGeom === undefined) return this;
-            this.domElem.style(lx.Geom.geomName(dropGeom), '');
-            this.geom.bpv = [val, val2];
-            return this;
-        }
-
-        if (!this.geom) this.geom = {};
-        if (!this.geom.bpv) this.geom.bpv = [lx.TOP, lx.MIDDLE];
-
-        if (this.geom.bpv[0] == val) return this;
-
-        if (this.geom.bpv[1] != val) switch (this.geom.bpv[1]) {
-            case lx.TOP: this.domElem.style('top', ''); break;
-            case lx.MIDDLE: this.domElem.style('height', ''); break;
-            case lx.BOTTOM: this.domElem.style('bottom', ''); break;
-        }
-
-        this.geom.bpv[1] = this.geom.bpv[0];
-        this.geom.bpv[0] = val;
-
-        return this;
     }
 
     /**
      * Вычисляет процентное или пиксельное представление размера, переданного в любом формате, с указанием направления - длина или высота
      * Пример:
-     * elem.geomPart('50%', 'px', VERTICAL)  - вернет половину высоты элемента в пикселах
-     * */
+     * elem.geomPart('50%', 'px', lx.VERTICAL)  - вернет половину высоты элемента в пикселях
+     */
     geomPart(val, unit, direction) {
         if (val.isNumber) return +val;
         if (!val.isString) return NaN;
@@ -948,25 +763,6 @@ class Rect #lx:namespace lx {
         }
 
         return NaN;
-    }
-
-    /**
-     * Расчет для возврата значения в нужном формате
-     * val - как значение записано в стиле
-     * thisSize - размер самого элемента в пикселях
-     * parentSize - размер родительского элемента в пикселях
-     * */
-    calcGeomParam(format, val, thisSize, parentSize) {
-        if (format == 'px') return thisSize;
-
-        if (val == null) return null;
-
-        if ( val.charAt( val.length - 1 ) == '%' ) {
-            if (format == '%') return parseFloat(val);
-            return thisSize;
-        }
-
-        return ( thisSize * 100 ) / parentSize;
     }
 
     rect(format='px') {
@@ -1182,28 +978,28 @@ class Rect #lx:namespace lx {
         var rect = elem.getGlobalRect();
         switch (align) {
             case lx.TOP:
-                this.geomPriorityV(lx.TOP, lx.MIDDLE);
+                __setGeomPriorityV(this, lx.TOP, lx.MIDDLE);
                 this.top( rect.top+step+'px' );
                 break;
             case lx.BOTTOM:
-                this.geomPriorityV(lx.BOTTOM, lx.MIDDLE);
+                __setGeomPriorityV(this, lx.BOTTOM, lx.MIDDLE);
                 this.bottom( rect.bottom+step+'px' );
                 break;
             case lx.MIDDLE:
-                this.geomPriorityV(lx.TOP, lx.MIDDLE);
+                __setGeomPriorityV(this, lx.TOP, lx.MIDDLE);
                 this.top( rect.top + (elem.height('px') - this.height('px')) * 0.5 + step + 'px' );
                 break;
 
             case lx.LEFT:
-                this.geomPriorityH(lx.LEFT, lx.CENTER);
+                __setGeomPriorityH(this, lx.LEFT, lx.CENTER);
                 this.left( rect.left+step+'px' );
                 break;
             case lx.RIGHT:
-                this.geomPriorityH(lx.RIGHT, lx.CENTER);
+                __setGeomPriorityH(this, lx.RIGHT, lx.CENTER);
                 this.right( rect.right+step+'px' );
                 break;
             case lx.CENTER:
-                this.geomPriorityH(lx.LEFT, lx.CENTER);
+                __setGeomPriorityH(this, lx.LEFT, lx.CENTER);
                 this.left( rect.left + (elem.width('px') - this.width('px')) * 0.5 + step + 'px' );
                 break;
         };
@@ -1585,26 +1381,39 @@ class Rect #lx:namespace lx {
         return this;
     }
 
-    trigger(eventName, ...args) {#lx:client{
-        var elem = this.getDomElem();
-        if (!elem) return;
-        if ( this.disabled() || !elem.events || !(eventName in elem.events) ) return;
-
-        var res;
-        if (eventName == 'blur') {
-            elem.blur();
-            res = true;
-        } else {
-            res = [];
-            for (var i in elem.events[eventName]) {
-                var func = elem.events[eventName][i];
-                res.push( func.apply(this, args) );
+    trigger(eventName, ...args) {
+        #lx:client{
+            function runEventHandlers(context, handlersList, args) {
+                var res = [];
+                for (var i in handlersList) {
+                    var func = handlersList[i];
+                    res.push(func.apply(context, args));
+                }
+                if (res.isArray && res.length == 1) res = res[0];
+                return res;
             }
-        }
 
-        if (res.isArray && res.length == 1) res = res[0];
-        return res;
-    }}
+            if (this.getCommonEventNames().contains(eventName)) {
+                var events = this.elem ? this.elem.events : this.domElem.events;
+                if (!events || !(eventName in events)) return;
+                return runEventHandlers(this, events[eventName], args);
+            }
+
+            var elem = this.getDomElem();
+            if (!elem) return;
+            if (this.disabled() || !elem.events || !(eventName in elem.events)) return;
+
+            if (eventName == 'blur') {
+                elem.blur();
+                return true;
+            }
+            return runEventHandlers(this, elem.events[eventName], args);
+        }
+    }
+
+    getCommonEventNames() {
+        return [];
+    }
 
     #lx:server {
         /**
@@ -1714,11 +1523,11 @@ class Rect #lx:namespace lx {
             this.geom = {};
             if (arr[0] != '') {
                 var params = arr[0].split(',');
-                this.geomPriorityH(+params[0], +params[1]);
+                __setGeomPriorityH(this, +params[0], +params[1]);
             }
             if (arr[1] != '') {
                 var params = arr[1].split(',');
-                this.geomPriorityV(+params[0], +params[1]);
+                __setGeomPriorityV(this, +params[0], +params[1]);
             }
         }
 
@@ -1781,4 +1590,222 @@ class Rect #lx:namespace lx {
     }
     /* 8. Load */
     //==================================================================================================================
+}
+
+
+/**
+ * format = '%' | 'px'  - вернет значение float, в соответствии с переданным форматом
+ * если format не задан - вернет значение как оно записано в style
+ * */
+function __getLeft(self, format) {
+    if (!format) return self.domElem.style('left');
+
+    var elem = self.getDomElem();
+    if (!elem) return null;
+
+    var pw = (self.domElem.parent) ? self.domElem.parent.getDomElem().offsetWidth : elem.offsetWidth;
+    return __calcGeomParam(format, elem.style.left, elem.offsetLeft, pw);
+}
+
+function __getRight(self, format) {
+    if (!format) return self.domElem.style('right');
+
+    var elem = self.getDomElem();
+    if (!elem) return null;
+
+    if (!self.domElem.parent) return undefined;
+    var pElem = self.domElem.parent.getDomElem();
+    if (!pElem) return undefined;
+    if (elem.style.right != '') {
+        var b = lx.Geom.splitGeomValue(elem.style.right);
+        if (format == '%') {
+            if ( b[1] != '%' ) b[0] = (b[0] / pElem.offsetWidth) * 100;
+            return b[0];
+        } else {
+            if ( b[1] != 'px' ) b[0] = b[0] * pElem.offsetWidth * 0.01;
+            return b[0];
+        }
+    } else {
+        var t = lx.Geom.splitGeomValue(elem.style.left),
+            h = lx.Geom.splitGeomValue(elem.style.width),
+            pw = pElem.offsetWidth;
+        if (format == '%') {
+            if ( t[1] != '%' ) t[0] = (t[0] / pw) * 100;
+            if ( h[1] != '%' ) h[0] = (h[0] / pw) * 100;
+            return 100 - t[0] - h[0];
+        } else {
+            if ( t[1] != 'px' ) t[0] = elem.offsetLeft;
+            if ( h[1] != 'px' ) h[0] = elem.offsetWidth;
+            return pw - t[0] - h[0];
+        }
+    }
+}
+
+function __getTop(self, format) {
+    if (!format) return self.domElem.style('top');
+
+    var elem = self.getDomElem();
+    if (!elem) return null;
+
+    var p = self.domElem.parent,
+        ph = (p) ? p.getDomElem().offsetHeight : elem.offsetHeight;
+    return __calcGeomParam(format, elem.style.top, elem.offsetTop, ph);
+}
+
+function __getBottom(self, format) {
+    if (!format) return self.domElem.style('bottom');
+
+    var elem = self.getDomElem();
+    if (!elem) return null;
+
+    if (!self.domElem.parent) return undefined;
+    pElem = self.domElem.parent.getDomElem();
+    if (!pElem) return undefined;
+    if (elem.style.bottom != '') {
+        var b = lx.Geom.splitGeomValue(elem.style.bottom);
+        if (format == '%') {
+            if ( b[1] != '%' ) b[0] = (b[0] / pElem.clientHeight) * 100;
+            return b[0];
+        } else {
+            if ( b[1] != 'px' ) b[0] = b[0] * pElem.clientHeight * 0.01;
+            return b[0];
+        }
+    } else {
+        var t = lx.Geom.splitGeomValue(elem.style.top),
+            h = lx.Geom.splitGeomValue(elem.style.height),
+            ph = pElem.clientHeight;
+        if (format == '%') {
+            if ( t[1] != '%' ) t[0] = (t[0] / ph) * 100;
+            if ( h[1] != '%' ) h[0] = (h[0] / ph) * 100;
+            return 100 - t[0] - h[0];
+        } else {
+            if ( t[1] != 'px' ) t[0] = elem.offsetTop;
+            if ( h[1] != 'px' ) h[0] = elem.offsetHeight;
+            return ph - t[0] - h[0];
+        }
+    }
+}
+
+function __getWidth(self, format) {
+    if (!format) return self.domElem.style('width');
+
+    var elem = self.getDomElem();
+    if (!elem) return null;
+
+    if (!self.domElem.parent) {
+        if (format == '%') return 100;
+        return elem.offsetWidth;
+    }
+    return __calcGeomParam(format, elem.style.width,
+        elem.offsetWidth, self.domElem.parent.getDomElem().offsetWidth);
+}
+
+function __getHeight(self, format) {
+    if (!format) return self.domElem.style('height');
+
+    var elem = self.getDomElem();
+    if (!elem) return null;
+
+    if (!self.domElem.parent) {
+        if (format == '%') return 100;
+        return elem.offsetHeight;
+    }
+    return __calcGeomParam(format, elem.style.height,
+        elem.offsetHeight, self.domElem.parent.getDomElem().offsetHeight);
+}
+
+function __getGlobalGeomMask(self, units = undefined) {
+    var result = {};
+    result.pH = __getGeomPriorityH(self).lxClone();
+    result.pV = __getGeomPriorityV(self).lxClone();
+    //TODO - возвращает только в пикселях, units - не работает
+    var rect = self.getGlobalRect();
+    result[result.pH[0]] = rect[lx.Geom.geomName(result.pH[0])];
+    result[result.pH[1]] = rect[lx.Geom.geomName(result.pH[1])];
+    result[result.pV[0]] = rect[lx.Geom.geomName(result.pV[0])];
+    result[result.pV[1]] = rect[lx.Geom.geomName(result.pV[1])];
+    if (self.geom) result.geom = self.geom.lxClone();
+    return result;
+}
+
+/**
+ * Расчет для возврата значения в нужном формате
+ * val - как значение записано в стиле
+ * thisSize - размер самого элемента в пикселях
+ * parentSize - размер родительского элемента в пикселях
+ * */
+function __calcGeomParam(format, val, thisSize, parentSize) {
+    if (format == 'px') return thisSize;
+
+    if (val == null) return null;
+
+    if ( val.charAt( val.length - 1 ) == '%' ) {
+        if (format == '%') return parseFloat(val);
+        return thisSize;
+    }
+
+    return ( thisSize * 100 ) / parentSize;
+}
+
+function __getGeomPriorityH(self) {
+    return ((self.geom) ? self.geom.bpg : 0) || [lx.LEFT, lx.CENTER];
+}
+
+function __getGeomPriorityV(self) {
+    return ((self.geom) ? self.geom.bpv : 0) || [lx.TOP, lx.MIDDLE];
+}
+
+function __setGeomPriorityH(self, val, val2) {
+    if (val2 !== undefined) {
+        if (!self.geom) self.geom = {};
+        var dropGeom = __getGeomPriorityH(self).diff([val, val2])[0];
+        if (dropGeom === undefined) return self;
+        self.domElem.style(lx.Geom.geomName(dropGeom), '');
+        self.geom.bpg = [val, val2];
+        return self;
+    }
+
+    if (!self.geom) self.geom = {};
+
+    if (!self.geom.bpg) self.geom.bpg = [lx.LEFT, lx.CENTER];
+
+    if (self.geom.bpg[0] == val) return self;
+
+    if (self.geom.bpg[1] != val) switch (self.geom.bpg[1]) {
+        case lx.LEFT: self.domElem.style('left', ''); break;
+        case lx.CENTER: self.domElem.style('width', ''); break;
+        case lx.RIGHT: self.domElem.style('right', ''); break;
+    }
+
+    self.geom.bpg[1] = self.geom.bpg[0];
+    self.geom.bpg[0] = val;
+
+    return self;
+}
+
+function __setGeomPriorityV(self, val, val2) {
+    if (val2 !== undefined) {
+        if (!self.geom) self.geom = {};
+        var dropGeom = __getGeomPriorityV(self).diff([val, val2])[0];
+        if (dropGeom === undefined) return self;
+        self.domElem.style(lx.Geom.geomName(dropGeom), '');
+        self.geom.bpv = [val, val2];
+        return self;
+    }
+
+    if (!self.geom) self.geom = {};
+    if (!self.geom.bpv) self.geom.bpv = [lx.TOP, lx.MIDDLE];
+
+    if (self.geom.bpv[0] == val) return self;
+
+    if (self.geom.bpv[1] != val) switch (self.geom.bpv[1]) {
+        case lx.TOP: self.domElem.style('top', ''); break;
+        case lx.MIDDLE: self.domElem.style('height', ''); break;
+        case lx.BOTTOM: self.domElem.style('bottom', ''); break;
+    }
+
+    self.geom.bpv[1] = self.geom.bpv[0];
+    self.geom.bpv[0] = val;
+
+    return self;
 }
