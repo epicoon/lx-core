@@ -280,7 +280,7 @@ class DomElementDefinition #lx:namespace lx {
 				var item = this.actions[i],
 					funcName = item[0],
 					args = item[1];
-				if (args.isArray) this.owner[funcName].apply(this.owner, args);
+				if (args !== undefined && args.isArray) this.owner[funcName].apply(this.owner, args);
 				else this.owner[funcName].call(this.owner);
 			}
 

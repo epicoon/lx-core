@@ -260,10 +260,14 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 			$images = ['default' => $images];
 		}
 
-		foreach ($images as $key => $path) {
-			$relPath = '/' . $this->app->conductor->getRelativePath($this->getFullPath($path));
-			$images[$key] = $relPath;
-		}
+        foreach ($images as $key => $path) {
+            if (preg_match('/^(http:|https:)/', $path)) {
+                $images[$key] = $path;
+            } else {
+                $relPath = '/' . $this->app->conductor->getRelativePath($this->getFullPath($path));
+                $images[$key] = $relPath;
+            }
+        }
 
 		return $images;
 	}
