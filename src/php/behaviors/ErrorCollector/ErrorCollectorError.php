@@ -9,7 +9,8 @@ class ErrorCollectorError implements ToStringConvertableInterface
 	private string $title;
 	private string $description;
 	private array $data;
-	private Throwable $exception;
+	/** @var string|array|Throwable|null */
+	private $exception;
 
 	/**
 	 * @param string|array|Throwable $config
