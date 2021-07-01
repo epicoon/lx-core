@@ -13,5 +13,5 @@ interface EventListenerInterface
     /**
      * @param mixed $params
      */
-	public function trigger(string $eventName, array $params = null): void;
+	public function trigger(string $eventName, $params = null): void;
 }

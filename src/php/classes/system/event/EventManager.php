@@ -15,7 +15,10 @@ class EventManager implements EventManagerInterface
         $this->list[$eventName][] = $listener;
     }
 
-	public function trigger(string $eventName, array $params = []): void
+    /**
+     * @param mixed $params
+     */
+	public function trigger(string $eventName, $params = null): void
 	{
 		if (!array_key_exists($eventName, $this->list)) {
 			return;

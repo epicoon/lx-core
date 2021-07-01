@@ -611,7 +611,7 @@ class DbPostgres extends DbConnection
 
 	private function insert(string $query)
     {
-        preg_match('/^insert\s+into\s+(.+?)\s/', $query, $match);
+        preg_match('/^insert\s+into\s+(.+?)\s/i', $query, $match);
         $tableName = $match[1];
         $schema = $this->getTableSchema($tableName);
 
