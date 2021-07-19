@@ -4,25 +4,15 @@ namespace lx;
 
 use lx;
 
-/**
- * Class RequestHandler
- * @package lx
- */
 abstract class RequestHandler
 {
     use ObjectTrait;
     use ApplicationToolTrait;
 
-    /** @var ResourceContext */
-    protected $resourceContext;
+    protected ?ResourceContext $resourceContext = null;
+    protected ?ResponseInterface $response = null;
 
-    /** @var ResponseInterface */
-    protected $response;
-
-    /**
-     * @return AjaxRequestHandler|CommonRequestHandler|PageRequestHandler
-     */
-    public static function create()
+    public static function create(): RequestHandler
     {
         if (lx::$app->dialog->isPageLoad()) {
             return new PageRequestHandler();
@@ -38,7 +28,7 @@ abstract class RequestHandler
     /**
      * Launch of the response preparing
      */
-    public function run()
+    public function run(): void
     {
         $this->defineResourceContext();
         if (!$this->resourceContext) {
@@ -51,7 +41,7 @@ abstract class RequestHandler
     /**
      * Send the response
      */
-    public function send()
+    public function send(): void
     {
         $response = $this->prepareResponse();
 
@@ -67,21 +57,9 @@ abstract class RequestHandler
         }
     }
 
-    /**
-     * @return void
-     */
-    abstract protected function defineResponse();
-
-    /**
-     * @return ResponseInterface
-     */
-    abstract protected function prepareResponse();
-
-    /**
-     * @param ResponseInterface $response
-     * @return ResponseInterface
-     */
-    abstract protected function processProblemResponse($response);
+    abstract protected function defineResponse(): void;
+    abstract protected function prepareResponse(): ResponseInterface;
+    abstract protected function processProblemResponse(ResponseInterface $response): ResponseInterface;
 
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -93,14 +71,14 @@ abstract class RequestHandler
         if (SpecialAjaxRouter::checkDialog()) {
             $ajaxRouter = new SpecialAjaxRouter();
             $resourceContext = $ajaxRouter->route();
-            if ($resourceContext !== false) {
+            if ($resourceContext !== null) {
                 $this->resourceContext = $resourceContext;
             }
         } else {
             $router = $this->app->router;
             if ($router !== null) {
                 $resourceContext = $router->route();
-                if ($resourceContext !== false) {
+                if ($resourceContext !== null) {
                     $this->resourceContext = $resourceContext;
                 }
             }

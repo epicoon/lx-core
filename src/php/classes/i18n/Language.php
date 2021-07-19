@@ -3,11 +3,9 @@
 namespace lx;
 
 /**
- * Class Language
- * @package lx
- *
  * @property-read array $list
- * @property-read string $current
+ * @property-read string $currentCode
+ * @property-read string $currentName
  * @property-read array $codes
  */
 class Language implements FusionComponentInterface
@@ -33,7 +31,6 @@ class Language implements FusionComponentInterface
 	}
 
 	/**
-	 * @param string $name
 	 * @return mixed
 	 */
 	public function __get(string $name)
@@ -41,8 +38,10 @@ class Language implements FusionComponentInterface
 		switch ($name) {
 			case 'list':
 				return $this->_list;
-			case 'current':
+			case 'currentCode':
 				return $this->_current;
+            case 'currentName':
+                return $this->_list[$this->_current];
 			case 'codes':
 				return array_keys($this->_list);
 		}
@@ -53,8 +52,8 @@ class Language implements FusionComponentInterface
 	public function getCurrentData(): array
 	{
 		return [
-			'key' => $this->current,
-			'name' => $this->list[$this->current],
+			'code' => $this->currentCode,
+			'name' => $this->currentName,
 		];
 	}
 

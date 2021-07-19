@@ -175,7 +175,7 @@ trait ArrayTrait
 		return $this->getKeyByValue($value) !== null;
 	}
 
-    public function merge(iterable $iterable): iterable
+    public function merge(iterable $iterable): void
     {
         if (is_object($iterable) && method_exists($iterable, 'toArray')) {
             $iterable = $iterable->toArray();
@@ -188,7 +188,6 @@ trait ArrayTrait
         }
 
         $this->arrayValue = array_merge($this->arrayValue, $iterable);
-        return $this;
     }
 
 	public function toArray(): array

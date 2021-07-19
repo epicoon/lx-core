@@ -2,29 +2,18 @@
 
 namespace lx;
 
-/**
- * Class PluginI18nMap
- * @package lx
- */
 class PluginI18nMap extends I18nMap
 {
     const DEFAULT_FILE_NAME = 'assets/i18n/main.yaml';
 
-	/** @var array */
-	protected $fullMap;
+	protected ?array $fullMap = null;
 
-	/**
-	 * @return Plugin
-	 */
-	public function getPlugin()
+	public function getPlugin(): Plugin
 	{
 		return $this->owner;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getFullMap()
+	public function getFullMap(): array
 	{
 		if (!$this->fullMap) {
 			$selfMap = $this->getMap();
@@ -44,11 +33,7 @@ class PluginI18nMap extends I18nMap
 		return $this->fullMap;
 	}
 
-	/**
-	 * @param string $fileName
-	 * @return string
-	 */
-	protected function getFilePath($fileName)
+	protected function getFilePath(string $fileName): string
 	{
 		return $this->getPlugin()->conductor->getFullPath($fileName);
 	}

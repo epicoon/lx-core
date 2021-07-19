@@ -21,11 +21,6 @@ trait ObjectTrait
         return false;
     }
     
-    public static function construct(array $config = [], array $dependencies = [])
-    {
-        return lx::$app->diProcessor->create(static::class, $config, $dependencies);
-    }
-
     public function __construct(array $config = [])
     {
         $this->__objectConstruct($config);

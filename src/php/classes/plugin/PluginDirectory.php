@@ -2,19 +2,11 @@
 
 namespace lx;
 
-/**
- * Class PluginDirectory
- * @package lx
- */
-class PluginDirectory implements FusionComponentInterface
+class PluginDirectory extends Directory implements FusionComponentInterface
 {
 	use FusionComponentTrait;
 
-	/** @var Directory */
-	protected $dir;
-
     /**
-     * PluginDirectory constructor.
      * @param array|string $config
      */
 	public function __construct($config = [])
@@ -30,8 +22,7 @@ class PluginDirectory implements FusionComponentInterface
 			: ($config['path'] ?? null);
 
 		if ($path) {
-			$this->dir = new Directory($path);
-			$this->delegateMethodsCall('dir');
+		    parent::__construct($path);
 		} else {
 			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
@@ -40,18 +31,12 @@ class PluginDirectory implements FusionComponentInterface
 		}
 	}
 
-	/**
-	 * @return Plugin
-	 */
-	public function getPlugin()
+	public function getPlugin(): ?Plugin
 	{
 		return $this->owner;
 	}
 
-	/**
-	 * @return DataFileInterface|null
-	 */
-	public function getConfigFile()
+	public function getConfigFile(): ?DataFileInterface
 	{
 		$configPathes = \lx::$conductor->getPackageConfigNames();
 		$path = $this->getPath();

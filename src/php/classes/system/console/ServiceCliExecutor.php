@@ -21,7 +21,7 @@ class ServiceCliExecutor implements ServiceCliExecutorInterface
 
 	public static function getServiceArgument(): CliArgument
     {
-        return (new CliArgument())->setKey(['service', 's', 0])
+        return (new CliArgument())->setKeys(['service', 's', 0])
             ->setType(CliArgument::TYPE_STRING)
             ->setDescription('Service name');
     }

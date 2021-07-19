@@ -3,21 +3,13 @@
 namespace lx;
 
 /**
- * Class ServiceController
- * @package lx
- * 
  * @property-read Service $service
  */
 class ServiceController extends Resource
 {
-	/** @var Service */
-	private $_service;
+	private Service $_service;
 
-	/**
-	 * ServiceController constructor.
-	 * @param array $config
-	 */
-	public function __construct($config)
+	public function __construct(array $config)
 	{
 		parent::__construct($config);
 
@@ -25,10 +17,9 @@ class ServiceController extends Resource
 	}
 
 	/**
-	 * @param string $name
 	 * @return mixed
 	 */
-	public function __get($name)
+	public function __get(string $name)
 	{
 		if ($name == 'service') {
 			return $this->_service;
@@ -43,7 +34,7 @@ class ServiceController extends Resource
 	        'service' => [
                 'require' => true,
                 'instance' => Service::class,
-            ]
+            ],
         ]);
 	}
 }

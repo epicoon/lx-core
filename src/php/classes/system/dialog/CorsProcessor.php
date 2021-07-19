@@ -2,17 +2,12 @@
 
 namespace lx;
 
-/**
- * Class CorsProcessor
- * @package lx
- */
 class CorsProcessor implements FusionComponentInterface
 {
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
-	/** @var array - can be redefined by application components configuration */
-	protected $originMap = [];
+	protected array $originMap = [];
 
 	public function __construct(array $config = [])
 	{
@@ -29,11 +24,7 @@ class CorsProcessor implements FusionComponentInterface
 		$this->originMap = $originMap;
 	}
 
-	/**
-	 * @param array $requestHeaders
-	 * @return array
-	 */
-	public function getHeaders($requestHeaders)
+	public function getHeaders(array $requestHeaders): array
 	{
 		if (!isset($requestHeaders['origin'])) {
 			return [];

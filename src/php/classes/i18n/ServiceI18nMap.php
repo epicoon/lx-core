@@ -2,27 +2,16 @@
 
 namespace lx;
 
-/**
- * Class ServiceI18nMap
- * @package lx
- */
 class ServiceI18nMap extends I18nMap
 {
-	/** @var array */
-	protected $fullMap;
+	protected ?array $fullMap = null;
 
-	/**
-	 * @return Service
-	 */
-	public function getService()
+	public function getService(): Service
 	{
 		return $this->owner;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getFullMap()
+	public function getFullMap(): array
 	{
 		if (!$this->fullMap) {
 			$selfMap = $this->getMap();
@@ -33,11 +22,7 @@ class ServiceI18nMap extends I18nMap
 		return $this->fullMap;
 	}
 
-	/**
-	 * @param string $fileName
-	 * @return string
-	 */
-	protected function getFilePath($fileName)
+	protected function getFilePath(string $fileName): string
 	{
 		return $this->getService()->conductor->getFullPath($fileName);
 	}

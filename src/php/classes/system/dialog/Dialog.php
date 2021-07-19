@@ -2,10 +2,6 @@
 
 namespace lx;
 
-/**
- * Class Dialog
- * @package lx
- */
 class Dialog implements FusionComponentInterface
 {
 	use ApplicationToolTrait;
@@ -17,45 +13,19 @@ class Dialog implements FusionComponentInterface
 	const REQUEST_TYPE_AJAX = 'ajax';
 	const REQUEST_TYPE_CORS = 'cors';
 
-	/** @var string */
-	private $_serverName;
+	private string $_serverName;
+    private string $_serverAddr;
+	private string $_type;
+	private ?string $_clientIp = null;
+	private ?string $_clientIpFromProxy = null;
+	private ?string $_url = null;
+	private ?string $_route = null;
+	private ?array $_headers = null;
+	private ?string $_method = null;
+	private ?array $_params = null;
+	private ?Cookie $_cookie = null;
+	private ?DataObject $_location = null;
 
-    /** @var string */
-    private $_serverAddr;
-
-	/** @var string */
-	private $_type;
-
-	/** @var string */
-	private $_clientIp;
-
-	/** @var string */
-	private $_clientIpFromProxy;
-
-	/** @var string */
-	private $_url;
-
-	/** @var string */
-	private $_route;
-
-	/** @var array */
-	private $_headers;
-
-	/** @var string */
-	private $_method;
-
-	/** @var array */
-	private $_params;
-
-	/** @var Cookie */
-	private $_cookie;
-
-	/** @var DataObject */
-	private $_location;
-
-	/**
-	 * Dialog constructor.
-	 */
 	public function __construct(array $config = [])
 	{
 	    $this->__objectConstruct($config);
@@ -66,46 +36,30 @@ class Dialog implements FusionComponentInterface
 		$this->defineClientIp();
 	}
 
-    /**
-     * @return string
-     */
-	public function getServerName()
+	public function getServerName(): string
     {
         return $this->_serverName;
     }
 
-	/**
-	 * @return string
-	 */
-	public function getUrl()
+	public function getUrl(): string
 	{
 		if ($this->_url === null) $this->retrieveUrl();
 		return $this->_url;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getRoute()
+	public function getRoute(): string
 	{
 		if ($this->_route === null) $this->retrieveRoute();
 		return $this->_route;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getHeaders()
+	public function getHeaders(): array
 	{
 		if ($this->_headers === null) $this->retrieveHeaders();
 		return $this->_headers;
 	}
 
-	/**
-	 * @param string $name
-	 * @return string|null
-	 */
-	public function getHeader($name)
+	public function getHeader(string $name): ?string
 	{
 		$name = strtoupper($name);
 		$name = str_replace('-', '_', $name);
@@ -114,52 +68,36 @@ class Dialog implements FusionComponentInterface
 		return null;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getMethod()
+	public function getMethod(): string
 	{
 		if ($this->_method === null) $this->retrieveMethod();
 		return $this->_method;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isAjax()
+	public function isAjax(): bool
 	{
 		return $this->_type == self::REQUEST_TYPE_AJAX;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isCors()
+	public function isCors(): bool
 	{
 		return $this->_type == self::REQUEST_TYPE_CORS;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isPageLoad()
+	public function isPageLoad(): bool
 	{
 		return $this->_type == self::REQUEST_TYPE_PAGE_LOAD;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isAssetLoad()
+	public function isAssetLoad(): bool
 	{
 		return $this->_type == self::REQUEST_ASSET;
 	}
 
 	/**
-	 * @param string $data
 	 * @return Cookie|mixed
 	 */
-	public function getCookie($data = null)
+	public function getCookie(?string $data = null)
 	{
 		if ($this->_cookie === null) $this->retrieveCookie();
 
@@ -175,10 +113,9 @@ class Dialog implements FusionComponentInterface
 	}
 
 	/**
-	 * @param string $name
 	 * @return mixed
 	 */
-	public function getParam($name)
+	public function getParam(string $name)
 	{
 		if ($this->_params === null) {
 			$this->retrieveParams();
@@ -191,10 +128,7 @@ class Dialog implements FusionComponentInterface
 		return null;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getParams()
+	public function getParams(): array
 	{
 		if ($this->_params === null) {
 			$this->retrieveParams();
@@ -204,6 +138,8 @@ class Dialog implements FusionComponentInterface
 	}
 
 	/**
+     * TODO - сделать нормальный класс для Location
+     *
 	 * @return DataObject with parameters: [
 	 *     'href' => "http://main:80/subplugin?lang=en",
 	 *     'origin' => "http://main:80",
@@ -216,7 +152,7 @@ class Dialog implements FusionComponentInterface
 	 *     'searchArray' => ['lang' => 'en']
 	 * ]
 	 */
-	public function getLocation()
+	public function getLocation(): DataObject
 	{
 		if ($this->_location === null) {
 			$this->_location = $this->urlToLocation(
@@ -230,11 +166,7 @@ class Dialog implements FusionComponentInterface
 		return $this->_location;
 	}
 
-	/**
-	 * @param string $url
-	 * @return DataObject
-	 */
-	public function urlToLocation($url)
+	public function urlToLocation(string $url): DataObject
 	{
 		$result = ['href' => $url];
 
@@ -262,11 +194,7 @@ class Dialog implements FusionComponentInterface
 		return DataObject::create($result);
 	}
 
-	/**
-	 * @param string $text
-	 * @return array
-	 */
-	public function translateGetParams($text)
+	public function translateGetParams(string $text): array
 	{
 		$temp = urldecode($text);
         $pairs = explode('&', $temp);
@@ -288,10 +216,7 @@ class Dialog implements FusionComponentInterface
         return $params;
 	}
 
-    /**
-     * @param ResponseInterface $response
-     */
-	public function send($response)
+	public function send(ResponseInterface $response): void
 	{
 	    $response->applyResponseParams();
 
@@ -306,10 +231,7 @@ class Dialog implements FusionComponentInterface
         $this->echo($response->getDataString());
 	}
 
-	/**
-	 * Retireve all dialog components
-	 */
-	public function retrieveAll()
+	public function retrieveAll(): void
 	{
 		$this->getUrl();
 		$this->getRoute();
@@ -320,14 +242,11 @@ class Dialog implements FusionComponentInterface
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @param $data
-	 */
-	private function echo($data)
+	private function echo(string $data): void
 	{
 		ignore_user_abort(true);
 		set_time_limit(0);
@@ -342,10 +261,7 @@ class Dialog implements FusionComponentInterface
 		fastcgi_finish_request();
 	}
 
-	/**
-	 * Method adds all necessary headers for CORS protocol
-	 */
-	private function addCorsHeaders()
+	private function addCorsHeaders(): void
 	{
 		$corsProcessor = $this->app->corsProcessor;
 		if (!$corsProcessor) {
@@ -364,10 +280,7 @@ class Dialog implements FusionComponentInterface
 		}
 	}
 
-	/**
-	 * Trying to recieve client IP
-	 */
-	private function defineClientIp()
+	private function defineClientIp(): void
 	{
 		$this->_clientIp = $_SERVER['REMOTE_ADDR'];
 
@@ -377,10 +290,7 @@ class Dialog implements FusionComponentInterface
 		}
 	}
 
-	/**
-	 * Definition of request type
-	 */
-	private function defineType()
+	private function defineType(): void
 	{
 		$userAgent = $this->getHeader('USER_AGENT');
 		if (!$userAgent) {
@@ -408,7 +318,7 @@ class Dialog implements FusionComponentInterface
 		}
 	}
 
-	private function retrieveUrl()
+	private function retrieveUrl(): void
 	{
 		$requestUri = '';
 		if (isset($_SERVER['REQUEST_URI'])) {
@@ -427,7 +337,7 @@ class Dialog implements FusionComponentInterface
 		$this->_url = $requestUri;
 	}
 
-	private function retrieveRoute()
+	private function retrieveRoute(): void
 	{
 		$url = $this->getUrl();
 		$pos = strpos($url, '?');
@@ -441,7 +351,7 @@ class Dialog implements FusionComponentInterface
 		$this->_route = $url;
 	}
 
-	private function retrieveHeaders()
+	private function retrieveHeaders(): void
 	{
 		$this->_headers = [];
 		$headers = getallheaders();
@@ -452,12 +362,12 @@ class Dialog implements FusionComponentInterface
 		}
 	}
 
-	private function retrieveMethod()
+	private function retrieveMethod(): void
 	{
 		$this->_method = strtolower($_SERVER['REQUEST_METHOD']);
 	}
 
-	private function retrieveParams()
+	private function retrieveParams(): void
 	{
 		$get = [];
 		$url = $this->getUrl();
@@ -479,7 +389,7 @@ class Dialog implements FusionComponentInterface
 		$this->_params = $post + $get;
 	}
 
-	private function retrieveCookie()
+	private function retrieveCookie(): void
 	{
 		$this->_cookie = new Cookie();
 	}

@@ -10,7 +10,7 @@ class ApplicationConductor implements ConductorInterface
 	private array $aliases = [];
 
 	/**
-	 * @return string|array|null
+	 * @return mixed
 	 */
 	public function __get(string $name)
 	{
@@ -92,18 +92,18 @@ class ApplicationConductor implements ConductorInterface
 		return BaseFile::construct($path);
 	}
 
-	public function getSystemPath(?string $name = null)
+	public function getSystemPath(?string $name = null): string
 	{
 		return \lx::$conductor->getSystemPath($name);
 	}
 
-	public function setAliases(array $arr)
+	public function setAliases(array $arr): void
 	{
 		$this->aliases = [];
 		$this->addAliases($arr);
 	}
 
-	public function addAliases(array $arr)
+	public function addAliases(array $arr): void
 	{
 		foreach ($arr as $name => $path) {
 			$this->addAlias($name, $path);

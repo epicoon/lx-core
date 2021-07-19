@@ -20,7 +20,7 @@ class Cookie extends DataObject
 	/**
 	 * @param mixed $val
 	 */
-	public function set(string $name, $val, ?int $expire = null)
+	public function set(string $name, $val, ?int $expire = null): void
 	{
 		if ($val === null) {
 			$this->drop($name);

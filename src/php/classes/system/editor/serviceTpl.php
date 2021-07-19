@@ -24,7 +24,9 @@ $serviceCode = <<<EOT
 
 namespace ;
 
-class Service extends \lx\Service
+use lx\Service as lxService;
+
+class Service extends lxService
 {
 
 }

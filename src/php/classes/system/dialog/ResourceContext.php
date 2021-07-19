@@ -3,16 +3,13 @@
 namespace lx;
 
 /**
- * Requested resource is plugin or action:
- * 1. Plugin - will be returned plugin rendering result.
- * Object need to know service name and plugin name.
+ * Requested resource is a plugin or action:
+ * 1. Plugin - will be returned the plugin rendering result.
+ * Object has to know service name and plugin name.
  *	$this->data == ['service' => 'serviceName', 'plugin' => 'pluginName']
- * 2. Action - will be returned result of a method invoke.
- * Object need to know action class name and method name. It can also know service name.
+ * 2. Action - will be returned the result of a method invoke.
+ * Object has to know action class name and method name. It can also know service name.
  *	$this->data == ['service' => 'serviceName', 'class' => 'className', 'method' => 'methodName']
- *
- * Class ResourceContext
- * @package lx
  */
 class ResourceContext
 {
@@ -20,29 +17,17 @@ class ResourceContext
 	private Plugin $plugin;
 	private ?ResourceInterface $resource;
 
-	/**
-	 * ResourceContext constructor.
-	 * @param array $data
-	 */
-	public function __construct($data = [])
+	public function __construct(array $data = [])
 	{
 		$this->setData($data);
 	}
 
-	/**
-	 * @param array $data
-	 */
-	public function setData($data)
+	public function setData(array $data): void
 	{
 		$this->data = $data;
 	}
 
-	/**
-	 * @param string $methodName
-	 * @param array $params
-	 * @return ResponseInterface
-	 */
-	public function invoke($methodName = null, $params = null)
+	public function invoke(?string $methodName = null, ?array $params = null): ResponseInterface
 	{
 		if ($this->isAction()) {
 			return $this->invokeAction($methodName, $params);
@@ -55,10 +40,7 @@ class ResourceContext
 		return $this->getNotFoundResponse();
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isAction()
+	public function isAction(): bool
 	{
 		$data = $this->data;
 		return (
@@ -68,18 +50,12 @@ class ResourceContext
 		);
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isPlugin()
+	public function isPlugin(): bool
 	{
 		return isset($this->data['plugin']);
 	}
 
-	/**
-	 * @return Service|null
-	 */
-	public function getService()
+	public function getService(): ?Service
 	{
 		if (isset($this->data['service'])) {
 			return \lx::$app->getService($this->data['service']);
@@ -88,10 +64,7 @@ class ResourceContext
 		return null;
 	}
 
-	/**
-	 * @return Plugin|null
-	 */
-	public function getPlugin()
+	public function getPlugin(): ?Plugin
 	{
 		if (!$this->isPlugin()) {
 			return null;
@@ -142,16 +115,11 @@ class ResourceContext
     }
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @param string $methodName
-	 * @param array $params
-	 * @return ResponseInterface
-	 */
-	private function invokeAction($methodName, $params)
+	private function invokeAction(?string $methodName, ?array $params): ResponseInterface
 	{
 		$object = $this->getResource();
 		if (!$object) {
@@ -165,17 +133,13 @@ class ResourceContext
 
 		$params = $params ?? $this->data['params'] ?? [];
 
+		//TODO здесь нужен try catch с фиксацией 500-проблем 
 		$result = $object->runAction($methodName, $params);
 		$response = $this->prepareResponse($object, $result);
 		return $response;
 	}
 
-	/**
-	 * @param string $methodName
-	 * @param array $params
-	 * @return ResponseInterface
-	 */
-	private function invokePlugin($methodName, $params)
+	private function invokePlugin(?string $methodName, ?array $params): ResponseInterface
 	{
 		$plugin = $this->getPlugin();
 		$methodName = $methodName ?? Plugin::DEFAULT_RESOURCE_METHOD;
@@ -184,47 +148,23 @@ class ResourceContext
 		}
 
 		$params = $params ?? $this->data['params'] ?? [];
+
+        //TODO здесь нужен try catch с фиксацией 500-проблем 
 		$result = $plugin->runAction($methodName, $params);
         $response = $this->prepareResponse($plugin, $result);
         return $response;
 	}
 
-    /**
-     * @param Resource $object
-     * @param ResponseInterface|array|string|null $result
-     */
-	private function prepareResponse($object, $result)
+	private function prepareResponse(ResourceInterface $object, ?ResponseInterface $result): ResponseInterface
 	{
-	    if ($object->hasErrors()) {
-            return \lx::$app->diProcessor->createByInterface(ResponseInterface::class, [
-                $object,
-                ResponseCodeEnum::BAD_REQUEST_ERROR
-            ]);
-        }
-
         if ($result === null) {
             return \lx::$app->diProcessor->createByInterface(ResponseInterface::class, ['Ok']);
         }
 
-        if ($result instanceof ResponseInterface) {
-            return $result;
-        }
-
-        if (!is_object($result)) {
-            return \lx::$app->diProcessor->createByInterface(ResponseInterface::class, [$result]);
-        }
-
-        \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
-            '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-            'msg' => 'Wrong response class ' . get_class($result),
-        ]);
-        return $this->getNotFoundResponse();
+        return $result;
     }
     
-    /**
-     * @return ResponseInterface
-     */
-	private function getNotFoundResponse()
+	private function getNotFoundResponse(): ResponseInterface
     {
         return \lx::$app->diProcessor->createByInterface(ResponseInterface::class, [
             'Resource not found',

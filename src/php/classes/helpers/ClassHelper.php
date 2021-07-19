@@ -2,52 +2,38 @@
 
 namespace lx;
 
-/**
- * Class ClassHelper
- * @package lx
- */
 class ClassHelper
 {
-	/**
-	 * @param string $currentClass
-	 * @param string $baseClass
-	 * @return bool
-	 */
-	public static function checkInstance($currentClass, $baseClass)
+	public static function checkInstance(string $currentClass, string $baseClass): bool
 	{
 		return ($currentClass == $baseClass || is_subclass_of($currentClass, $baseClass));
 	}
 
-	/**
-	 * @param string $className
-	 * @return bool
-	 */
-	public static function exists($className)
+	public static function exists(string $className): bool
 	{
 		$autoloader = Autoloader::getInstance();
 		try {
 			if (class_exists($className)) {
 				return true;
 			}
-			return $autoloader->getClassPath($className) !== false;
+			return $autoloader->getClassPath($className) !== null;
 		} catch (\Exception $e) {
-			return $autoloader->getClassPath($className) !== false;
+			return $autoloader->getClassPath($className) !== null;
 		}
 	}
 
 	/**
-	 * @param string $className
+     * @param string|Object $class
 	 * @param array|string $interfaces
-	 * @return bool
 	 */
-	public static function implements($className, $interfaces)
+	public static function implements($class, $interfaces): bool
 	{
-		if (!self::exists($className)) {
+		if (!self::exists($class)) {
 			return false;
 		}
 
 		try {
-			$reflected = new \ReflectionClass($className);
+			$reflected = new \ReflectionClass($class);
 		} catch (\Exception $e) {
 			return false;
 		}
@@ -61,12 +47,10 @@ class ClassHelper
 		return true;
 	}
 
-	/**
-	 * @param string $class
-	 * @param string $property
-	 * @return bool
-	 */
-	public static function publicPropertyExists($class, $property)
+    /**
+     * @param string|Object $class
+     */
+	public static function publicPropertyExists($class, string $property): bool
 	{
 		if ( ! property_exists($class, $property)) {
 			return false;
@@ -77,12 +61,10 @@ class ClassHelper
 		return $reflProperty->isPublic();
 	}
 
-	/**
-	 * @param string $class
-	 * @param string $property
-	 * @return bool
-	 */
-	public static function protectedPropertyExists($class, $property)
+    /**
+     * @param string|Object $class
+     */
+	public static function protectedPropertyExists($class, string $property): bool
 	{
 		if ( ! property_exists($class, $property)) {
 			return false;
@@ -93,12 +75,10 @@ class ClassHelper
 		return $reflProperty->isProtected();
 	}
 
-	/**
-	 * @param string $class
-	 * @param string $property
-	 * @return bool
-	 */
-	public static function privatePropertyExists($class, $property)
+    /**
+     * @param string|Object $class
+     */
+	public static function privatePropertyExists($class, string $property): bool
 	{
 		if ( ! property_exists($class, $property)) {
 			return false;
@@ -109,12 +89,10 @@ class ClassHelper
 		return $reflProperty->isPrivate();
 	}
 
-	/**
-	 * @param string $class
-	 * @param string $method
-	 * @return bool
-	 */
-	public static function publicMethodExists($class, $method)
+    /**
+     * @param string|Object $class
+     */
+	public static function publicMethodExists($class, string $method): bool
 	{
 		if ( ! method_exists($class, $method)) {
 			return false;
@@ -125,12 +103,10 @@ class ClassHelper
 		return $reflMethod->isPublic();
 	}
 
-	/**
-	 * @param string $class
-	 * @param string $method
-	 * @return bool
-	 */
-	public static function protectedMethodExists($class, $method)
+    /**
+     * @param string|Object $class
+     */
+	public static function protectedMethodExists($class, string $method): bool
 	{
 		if ( ! method_exists($class, $method)) {
 			return false;
@@ -141,12 +117,10 @@ class ClassHelper
 		return $reflMethod->isProtected();
 	}
 
-	/**
-	 * @param string $class
-	 * @param string $method
-	 * @return bool
-	 */
-	public static function privateMethodExists($class, $method)
+    /**
+     * @param string|Object $class
+     */
+	public static function privateMethodExists($class, string $method): bool
 	{
 		if ( ! method_exists($class, $method)) {
 			return false;
@@ -158,12 +132,9 @@ class ClassHelper
 	}
 
 	/**
-	 * Method returns namespace for class or object
-	 *
-	 * @param mixed $obj
-	 * @return string
+	 * @param mixed $obj class or object
 	 */
-	public static function getNamespace($obj)
+	public static function getNamespace($obj): string
 	{
 		$reflected = new \ReflectionClass($obj);
 		if (!$reflected->inNamespace()) {
@@ -174,26 +145,18 @@ class ClassHelper
 	}
 
 	/**
-	 * Method splits name of the class for namespace and class own name
-	 *
-	 * @param string $className
-	 * @return array
+	 * @return array [namespace, ownClassName]
 	 */
-	public static function splitClassName($className)
+	public static function splitClassName(string $className): array
 	{
 		preg_match_all('/(.*)[.\\\]([^\\' . '\.]+)$/', $className, $matches);
 		return [$matches[1][0], $matches[2][0]];
 	}
 
-	/**
-	 * @param string $className
-	 * @param bool $all
-	 * @return array
-	 */
-	public static function getTraitNames($className, $all = false)
+	public static function getTraitNames(string $className, bool $all = false): array
 	{
 		$re = new \ReflectionClass($className);
-		if ( ! $all) {
+		if (!$all) {
 			return $re->getTraitNames();
 		}
 
@@ -216,11 +179,8 @@ class ClassHelper
 	 * 3. [...] parameters array only if $defaultClass defined
 	 *
 	 * @param string|array $config
-	 * @param string $defaultClass
-	 * @param array $defaultParams
-	 * @return array
 	 */
-	public static function prepareConfig($config, $defaultClass = null, $defaultParams = [])
+	public static function prepareConfig($config, ?string $defaultClass = null, array $defaultParams = []): ?array
 	{
 		$class = $defaultClass;
 		$params = $defaultParams;
@@ -252,11 +212,8 @@ class ClassHelper
 
 	/**
 	 * Method defines service name to which the class belongs
-	 *
-	 * @param string $className
-	 * @return string|null
 	 */
-	public static function defineServiceName($className)
+	public static function defineServiceName(string $className): ?string
 	{
 		$reflected = new \ReflectionClass($className);
 		if (!$reflected->inNamespace()) {
@@ -281,11 +238,8 @@ class ClassHelper
 
 	/**
 	 * Method defines service to which the class belongs
-	 * 
-	 * @param string $className
-	 * @return Service|null
 	 */
-	public static function defineService($className)
+	public static function defineService(string $className): ?Service
 	{
 		$serviceName = self::defineServiceName($className);
 		if (!$serviceName) {

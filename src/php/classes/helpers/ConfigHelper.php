@@ -4,18 +4,9 @@ namespace lx;
 
 use lx;
 
-/**
- * Class ConfigHelper
- * @package lx
- */
 class ConfigHelper
 {
-	/**
-	 * @param string $serviceName
-	 * @param array $config
-     * @return array
-	 */
-	public static function prepareServiceConfig($serviceName, $config)
+	public static function prepareServiceConfig(string $serviceName, array $config): array
 	{
 	    $result = [];
 	    if ($config['autoload']['psr-4'] ?? null) {
@@ -40,12 +31,7 @@ class ConfigHelper
         return $result;
 	}
 
-    /**
-     * @param string $name
-     * @param array $config
-     * @return array
-     */
-    public static function injectServiceConfig($name, $config)
+    public static function injectServiceConfig(string $name, array $config): array
     {
         $allInjections = lx::$app->getConfig('configInjection');
 
@@ -57,11 +43,7 @@ class ConfigHelper
         return ArrayHelper::mergeRecursiveDistinct($config, $injections, true);
     }
 
-	/**
-	 * @param array $commonConfig
-	 * @param array $config
-	 */
-	public static function preparePluginConfig($commonConfig, &$config)
+	public static function preparePluginConfig(array $commonConfig, array &$config): void
 	{
 		self::prepareConfig($commonConfig, $config);
 
@@ -74,13 +56,7 @@ class ConfigHelper
 		}
 	}
 
-	/**
-	 * @param string $name
-	 * @param string $prototype
-	 * @param array $injections
-	 * @param array $config
-	 */
-	public static function pluginInject($name, $prototype, $injections, &$config)
+	public static function pluginInject(string $name, ?string $prototype, array $injections, array &$config): void
 	{
 		if ($injections) {
 			if (array_key_exists($prototype, $injections)) {
@@ -101,11 +77,7 @@ class ConfigHelper
 		}
 	}
 
-	/**
-	 * @param array $commonConfig
-	 * @param array $config
-	 */
-	private static function prepareConfig(&$commonConfig, &$config)
+	private static function prepareConfig(array &$commonConfig, array &$config): void
 	{
 		$useAliases = isset($commonConfig['useCommonAliases'])
 			? $commonConfig['useCommonAliases']

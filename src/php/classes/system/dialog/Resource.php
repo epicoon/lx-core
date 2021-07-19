@@ -2,18 +2,12 @@
 
 namespace lx;
 
-/**
- * Class Resource
- * @package lx
- */
 class Resource implements ResourceInterface
 {
     use ObjectTrait;
 	use ApplicationToolTrait;
-	use ErrorCollectorTrait;
 
-	/** @var ResourceVoterInterface */
-	private $voter;
+	private ?ResourceVoterInterface $voter = null;
 
 	public function __construct(array $config = [])
 	{
@@ -136,10 +130,7 @@ class Resource implements ResourceInterface
         // pass
     }
 	
-	/**
-	 * @return array
-	 */
-	protected static function getOwnMethodsList()
+	protected static function getOwnMethodsList(): array
 	{
 		return [
 		    'runAction',
@@ -154,20 +145,15 @@ class Resource implements ResourceInterface
         ];
 	}
 
-	/**
-	 * @return array|null
-	 */
-	protected static function getActionMethodsList()
+	protected static function getActionMethodsList(): ?array
 	{
 		return null;
 	}
 
     /**
      * @param mixed $data
-     * @param int $code
-     * @return ResponseInterface
      */
-    protected function newResponse($data, $code = ResponseCodeEnum::OK)
+    protected function newResponse($data, int $code = ResponseCodeEnum::OK): ResponseInterface
     {
         return $this->app->diProcessor->createByInterface(ResponseInterface::class, [$data, $code]);
     }

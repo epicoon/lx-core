@@ -22,7 +22,7 @@ class DbPostgres extends DbConnection
                 . " password={$settings['password']}";
             $connection = pg_connect($str);
         } catch (\Exception $e) {
-            $this->addError($e->getMessage());
+            $this->addFlightRecord($e->getMessage());
             return false;
         }
 
@@ -38,7 +38,7 @@ class DbPostgres extends DbConnection
         
         $result = pg_close($this->connection);
         if (!$result) {
-            $this->addError(pg_last_error($this->connection));
+            $this->addFlightRecord(pg_last_error($this->connection));
             return false;
         }
 
@@ -282,7 +282,7 @@ class DbPostgres extends DbConnection
 
         $res = pg_query($this->connection, $query);
         if ($res === false) {
-            $this->addError(pg_last_error($this->connection));
+            $this->addFlightRecord(pg_last_error($this->connection));
             return false;
         }
         
@@ -308,7 +308,7 @@ class DbPostgres extends DbConnection
 
         $sampleRow = $rows[0] ?? null;
         if (!$sampleRow) {
-            $this->addError('Nothing to update');
+            $this->addFlightRecord('Nothing to update');
             return false;
         }
 
@@ -316,7 +316,7 @@ class DbPostgres extends DbConnection
         $pks = [];
         foreach ($sampleRow as $key => $value) {
             if (!$schema->hasField($key)) {
-                $this->addError("The table does not have column $key");
+                $this->addFlightRecord("The table does not have column $key");
                 return false;
             }
 
@@ -326,7 +326,7 @@ class DbPostgres extends DbConnection
             }
         }
         if (empty($pks)) {
-            $this->addError('There are no any primary keys for rows matching');
+            $this->addFlightRecord('There are no any primary keys for rows matching');
             return false;
         }
 
@@ -338,7 +338,7 @@ class DbPostgres extends DbConnection
                 if ($row !== $sampleRow) {
                     $diff = array_diff(array_keys($sampleRow), array_keys($row));
                     if (!empty($diff)) {
-                        $this->addError('All rows have to use the same structure');
+                        $this->addFlightRecord('All rows have to use the same structure');
                         return false;
                     }
                 }
@@ -370,7 +370,7 @@ class DbPostgres extends DbConnection
         
         $res = pg_query($this->connection, $query);
         if ($res === false) {
-            $this->addError(pg_last_error($this->connection));
+            $this->addFlightRecord(pg_last_error($this->connection));
             return false;
         }
 
@@ -559,14 +559,14 @@ class DbPostgres extends DbConnection
             try {
                 $queryObject = new DbSelectQuery($this, $query);
             } catch (\Exception $exception) {
-                $this->addError($exception->getMessage());
+                $this->addFlightRecord($exception->getMessage());
                 return false;
             }
         }
 
 		$res = pg_query($this->connection, $query);
 		if ($res === false) {
-			$this->addError(pg_last_error($this->connection));
+			$this->addFlightRecord(pg_last_error($this->connection));
 			return false;//TODO null
 		}
 
@@ -628,7 +628,7 @@ class DbPostgres extends DbConnection
 
         $res = pg_query($this->connection, $query);
         if ($res === false) {
-            $this->addError(pg_last_error($this->connection));
+            $this->addFlightRecord(pg_last_error($this->connection));
             return false;
         }
         if (!$withRetirning) {

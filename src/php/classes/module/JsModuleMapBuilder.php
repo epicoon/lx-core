@@ -2,16 +2,12 @@
 
 namespace lx;
 
-/**
- * Class JsModuleMapBuilder
- * @package lx
- */
 class JsModuleMapBuilder
 {
 	/**
 	 * Renew application list of services which has modules
 	 */
-	public function renewHead()
+	public function renewHead(): void
 	{
 		$list = PackageBrowser::getServicePathesList();
 		$names = [];
@@ -36,7 +32,7 @@ class JsModuleMapBuilder
 	/**
 	 * Renew modules meta-data in all services
 	 */
-	public function renewAllServices()
+	public function renewAllServices(): void
 	{
 		$list = PackageBrowser::getServicePathesList();
 		$names = [];
@@ -58,10 +54,8 @@ class JsModuleMapBuilder
 
 	/**
 	 * Renew modules meta-data in the service
-	 *
-	 * @param Service $service
 	 */
-	public function renewService($service)
+	public function renewService($service): Service
 	{
 		if ($this->serviceRenewProcess($service)) {
 			$this->addService($service->name);
@@ -73,7 +67,7 @@ class JsModuleMapBuilder
 	/**
 	 * Renew modules meta-data for core
 	 */
-	public function renewCore()
+	public function renewCore(): void
 	{
 		$dir = new Directory('@core');
 		$map = $this->makeMap($dir);
@@ -82,15 +76,11 @@ class JsModuleMapBuilder
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @param Service $service
-	 * @return bool
-	 */
-	private function serviceRenewProcess($service)
+	private function serviceRenewProcess(Service $service): bool
 	{
 		$map = $this->makeMap($service->directory);
 		$modulesDirectory = $service->conductor->getModuleMapDirectory();
@@ -106,11 +96,7 @@ class JsModuleMapBuilder
 		return true;
 	}
 
-	/**
-	 * @param Directory $dir
-	 * @return array
-	 */
-	private function makeMap($dir)
+	private function makeMap(DirectoryInterface $dir): array
 	{
 		$files = $dir->getAllFiles('*.js');
 		$map = [];
@@ -139,11 +125,7 @@ class JsModuleMapBuilder
 		return $map;
 	}
 
-	/**
-	 * @param string $code
-	 * @return array
-	 */
-	private function readModuleData($code)
+	private function readModuleData(string $code): array
 	{
 		$reg = '/#lx:module-data\s+{([^}]*?)}/';
 		preg_match_all($reg, $code, $matches);
@@ -166,10 +148,7 @@ class JsModuleMapBuilder
 		return $result;
 	}
 
-	/**
-	 * @param string $serviceName
-	 */
-	private function addService($serviceName)
+	private function addService(string $serviceName): void
 	{
 		$path = \lx::$conductor->getSystemPath('jsModulesMap.json');
 		$file = \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
@@ -182,10 +161,7 @@ class JsModuleMapBuilder
 		$file->put($data);
 	}
 
-	/**
-	 * @param string $serviceName
-	 */
-	private function delService($serviceName)
+	private function delService(string $serviceName): void
 	{
 		$path = \lx::$conductor->getSystemPath('jsModulesMap.json');
 		$file = \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);

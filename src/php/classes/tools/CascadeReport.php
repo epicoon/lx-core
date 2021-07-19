@@ -2,10 +2,6 @@
 
 namespace lx;
 
-/**
- * Class CascadeReport
- * @package lx
- */
 abstract class CascadeReport
 {
     const ACTION_ADD_ONE = 'addTo';
@@ -14,17 +10,14 @@ abstract class CascadeReport
     const COMPONENT_LIST = 'list';
     const COMPONENT_DICT = 'dict';
 
-    /** @var array */
-    private $data = [];
+    private array $data = [];
 
     abstract protected function getDataComponents(): array;
 
     /**
-     * @param string $name
-     * @param array $arguments
      * @return mixed
      */
-    public function __call($name, $arguments)
+    public function __call(string $name, array $arguments)
     {
         list($actionType, $dataComponentName) = $this->splitMethod($name);
         if (!$actionType) {
@@ -53,10 +46,7 @@ abstract class CascadeReport
         }
     }
 
-    /**
-     * @param CascadeReport $report
-     */
-    public function add($report)
+    public function add(CascadeReport $report): void
     {
         if (!$this->checkSubReport($report)) {
             return;
@@ -80,11 +70,7 @@ abstract class CascadeReport
         return true;
     }
 
-    /**
-     * @param string $name
-     * @return array
-     */
-    public function extract($name)
+    public function extract(string $name): array
     {
         if (!array_key_exists($name, $this->data)) {
             return [];
@@ -100,25 +86,17 @@ abstract class CascadeReport
         return $this->data;
     }
 
-    /**
-     * @param CascadeReport $subReport
-     * @return bool
-     */
-    public function checkSubReport($subReport)
+    public function checkSubReport(CascadeReport $subReport): bool
     {
         return true;
     }
 
 
-    /*******************************************************************************************************************
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * PRIVATE
-     ******************************************************************************************************************/
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-    /**
-     * @param string $dataComponentName
-     * @param array $arguments
-     */
-    private function addOne($dataComponentName, $arguments)
+    private function addOne(string $dataComponentName, array $arguments): void
     {
         if (empty($arguments)) {
             return;
@@ -140,11 +118,7 @@ abstract class CascadeReport
         }
     }
 
-    /**
-     * @param string $dataComponentName
-     * @param array $arguments
-     */
-    private function addList($dataComponentName, $arguments)
+    private function addList(string $dataComponentName, array $arguments): void
     {
         $arr = $arguments[0] ?? null;
         if (!is_array($arr)) {
@@ -164,10 +138,9 @@ abstract class CascadeReport
     }
 
     /**
-     * @param string $name
      * @return array [actionType, dataComponentName]
      */
-    private function splitMethod($name)
+    private function splitMethod(string $name): array
     {
         $regExp = '/^('
             . self::ACTION_ADD_ONE

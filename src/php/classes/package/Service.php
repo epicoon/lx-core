@@ -5,12 +5,8 @@ namespace lx;
 use lx;
 
 /**
- * Class Service
- * @package lx
- *
  * @property-read string $name
  * @property-read string $relativePath
- *
  * @property-read PackageDirectory $directory
  * @property-read ServiceConductor $conductor
  * @property-read ServiceRouter $router
@@ -29,9 +25,6 @@ class Service implements FusionInterface
 
 	/**
 	 * Don't use for service creation. Use Service::create() instead
-	 * 
-	 * Service constructor.
-	 * @param array $config
 	 */
 	public function __construct(array $config)
 	{
@@ -57,7 +50,6 @@ class Service implements FusionInterface
     }
 
     /**
-     * @param string $name
      * @return mixed
      */
     public function __get(string $name)
@@ -148,7 +140,6 @@ class Service implements FusionInterface
 	}
 
 	/**
-	 * @param string $key
 	 * @return mixed
 	 */
 	public function getConfig(?string $key = null)
@@ -255,11 +246,6 @@ class Service implements FusionInterface
         if ($index !== null) {
             $processConfig['processIndex'] = $index;
         }
-
-//        $supervisor = $this->app->processSupervisor;
-//        if (!$supervisor) {
-//            return;
-//        }
 
         $async = [];
         if (array_key_exists('out', $processConfig)) {
@@ -466,9 +452,9 @@ class Service implements FusionInterface
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	private function setName(string $name): void
 	{

@@ -2,14 +2,9 @@
 
 namespace lx;
 
-/**
- * Class Console
- * @package lx
- */
 class Console
 {
-	/** @var ConsoleInputContext */
-	private static $inputContext = null;
+	private static ?ConsoleInputContext $inputContext = null;
 
 	/**
 	 * Print a decorated string
@@ -18,10 +13,8 @@ class Console
 	 * Console::out('ERROR: ', $msg, ['color' => 'white', 'back' => 'red', 'decor' => 'b']);
 	 *
 	 * Look for available decore options in the method [[decorateString]]
-	 *
-	 * @param array ...$args
 	 */
-	public static function out(...$args)
+	public static function out(...$args): void
 	{
 		if (empty($args)) return;
 
@@ -29,10 +22,7 @@ class Console
 		echo($msg);
 	}
 
-	/**
-	 * @param array ...$args
-	 */
-	public static function outln(...$args)
+	public static function outln(...$args): void
 	{
 		if (empty($args)) {
 			echo PHP_EOL;
@@ -43,23 +33,12 @@ class Console
 		echo PHP_EOL;
 	}
 
-	/**
-	 * @param string $hint
-	 * @param array $hintDecor
-	 * @param array $textDecor
-	 * @param array $callbacks
-	 * @return string
-	 */
-	public static function in($hint = 'Input: ', $hintDecor = [], $textDecor = [], $callbacks = [])
+	public static function in(array $config): string
 	{
-		if (is_array($hint)) {
-			return self::in(
-				$hint['hintText'] ?? 'Input: ',
-				$hint['hintDecor'] ?? [],
-				$hint['textDecor'] ?? [],
-				$hint['callbacks'] ?? []
-			);
-		}
+	    $hint = $config['hintText'] ?? 'Input: ';
+	    $hintDecor = $config['hintDecor'] ?? [];
+	    $textDecor = $config['textDecor'] ?? [];
+	    $callbacks = $config['callbacks'] ?? [];
 
 		self::$inputContext = new ConsoleInputContext($hint, $hintDecor, $textDecor, $callbacks);
 		$result = self::$inputContext->run();
@@ -67,10 +46,7 @@ class Console
 		return $result;
 	}
 
-	/**
-	 * @return string|null
-	 */
-	public static function getCurrentInput()
+	public static function getCurrentInput(): ?string
 	{
 		if (self::$inputContext === null) {
 			return null;
@@ -79,10 +55,7 @@ class Console
 		return self::$inputContext->getText();
 	}
 
-	/**
-	 * @param string $text
-	 */
-	public static function replaceInput($text)
+	public static function replaceInput(string $text): void
 	{
 		if (self::$inputContext === null) {
 			return;
@@ -91,11 +64,7 @@ class Console
 		self::$inputContext->replace($text);
 	}
 
-	/**
-	 * @param array $table - array of rows, in each row array of columns with string values
-	 * @param string $char - character for align
-	 */
-	public static function normalizeTable($table, $char = ' ')
+	public static function alignTable(array $table, string $char = ' '): array
 	{
 	    if (empty($table)) {
 	        return $table;
@@ -129,15 +98,11 @@ class Console
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @param array $args
-	 * @return string
-	 */
-	private static function getString($args)
+	private static function getString(array $args): string
 	{
 		$opts = [];
 		if (is_array(end($args))) {
@@ -192,12 +157,8 @@ class Console
 	 * \033[45    background violet color
 	 * \033[46    background maritime color
 	 * \033[47    background gray color
-	 *
-	 * @param string $msg
-	 * @param array $opts
-	 * @return string
 	 */
-	private static function decorateString($msg, $opts)
+	private static function decorateString(string $msg, array $opts): string
 	{
 		$codes = [];
 		if (array_key_exists('color', $opts)) {

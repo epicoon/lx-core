@@ -3,22 +3,14 @@
 namespace lx;
 
 /**
- * Class Respondent
- * @package lx
- *
  * @property-read Service $service
  * @property-read Plugin $plugin
  */
 class Respondent extends Resource
 {
-	/** @var Plugin */
-	private $_plugin;
+	private Plugin $_plugin;
 
-	/**
-	 * Respondent constructor.
-	 * @param array $config
-	 */
-	public function __construct($config)
+	public function __construct(array $config)
 	{
 		parent::__construct($config);
 
@@ -26,10 +18,9 @@ class Respondent extends Resource
 	}
 
 	/**
-	 * @param string $name
-	 * @return Plugin|Service|mixed
+	 * @return mixed
 	 */
-	public function __get($name)
+	public function __get(string $name)
 	{
 		if ($name == 'plugin') return $this->getPlugin();
 		if ($name == 'service') return $this->getService();
@@ -47,10 +38,7 @@ class Respondent extends Resource
         ]);
 	}
 
-	/**
-	 * @return array
-	 */
-	protected static function getOwnMethodsList()
+	protected static function getOwnMethodsList(): array
 	{
 		return array_merge(parent::getOwnMethodsList(), [
 			'getPlugin',
@@ -60,34 +48,22 @@ class Respondent extends Resource
 		]);
 	}
 
-	/**
-	 * @return Plugin
-	 */
-	public function getPlugin()
+	public function getPlugin(): Plugin
 	{
 		return $this->_plugin;
 	}
 
-	/**
-	 * @return Service
-	 */
-	public function getService()
+	public function getService(): Service
 	{
 		return $this->getPlugin()->getService();
 	}
 
-	/**
-	 * @return Plugin
-	 */
-	public function getRootPlugin()
+	public function getRootPlugin(): Plugin
 	{
 		return $this->getPlugin()->getRootPlugin();
 	}
 
-	/**
-	 * @return Service
-	 */
-	public function getRootService()
+	public function getRootService(): Service
 	{
 		return $this->getPlugin()->getRootService();
 	}

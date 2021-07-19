@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use ReflectionClass;
+
 class DependencyProcessor
 {
 	private array $interfaces = [];
@@ -41,7 +43,7 @@ class DependencyProcessor
     /**
      * Validation creates dev-log messages if classes don't due to interfaces
      */
-    public function validate()
+    public function validate(): void
     {
         foreach ($this->interfaces as $interface => $class) {
             $re = new \ReflectionClass($class);
@@ -150,12 +152,9 @@ class DependencyProcessor
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	/**
-	 * @param \ReflectionClass $re
-	 * @param array $params
-	 * @param array $dependencies
 	 * @return mixed
 	 */
-	private function createProcess($re, $params, $dependencies)
+	private function createProcess(ReflectionClass $re, array $params, array $dependencies)
 	{
 		if (!$re->hasMethod('__construct')) {
 			return $re->newInstance();
@@ -232,12 +231,9 @@ class DependencyProcessor
 	}
 
 	/**
-	 * @param \ReflectionClass $re
-	 * @param array $params
-	 * @param array $dependencies
 	 * @return mixed
 	 */
-	private function createObject(\ReflectionClass $reflection, $params, $dependencies)
+	private function createObject(ReflectionClass $reflection, array $params, array $dependencies)
 	{
 		$config = $params;
 		$name = $reflection->getName();
@@ -283,12 +279,7 @@ class DependencyProcessor
 		return $reflection->newInstance($config);
 	}
 
-	/**
-	 * @param string $className
-	 * @param string $interfaceName
-	 * @return bool
-	 */
-	private function hasDefinitionForClass($className, $interfaceName)
+	private function hasDefinitionForClass(string $className, string $interfaceName): bool
 	{
 		if (!array_key_exists($className, $this->classes)) {
 			return false;
@@ -301,12 +292,7 @@ class DependencyProcessor
 		return true;
 	}
 
-    /**
-     * @param string $interfaceName
-     * @param string|null $contextClassName
-     * @return string|null
-     */
-    private function findClassForInterface($interfaceName, $contextClassName = null)
+    private function findClassForInterface(string $interfaceName, ?string $contextClassName = null): ?string
     {
         $classForInterface = null;
         if ($contextClassName !== null && array_key_exists($contextClassName, $this->classes)) {
@@ -325,10 +311,7 @@ class DependencyProcessor
         return $classForInterface;
     }
     
-    /**
-     * @param array $map
-     */
-    private function setDefaults($map)
+    private function setDefaults(array $map): void
     {
         foreach ($map as $interface => $class) {
             if (!array_key_exists($interface, $this->interfaces)) {

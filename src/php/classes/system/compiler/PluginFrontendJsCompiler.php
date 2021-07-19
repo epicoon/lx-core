@@ -2,35 +2,19 @@
 
 namespace lx;
 
-/**
- * Class PluginFrontendJsCompiler
- * @package lx
- */
 class PluginFrontendJsCompiler extends JsCompiler
 {
-    /** @var Plugin */
-    private $plugin;
+    private Plugin $plugin;
+    private array $compiledSnippets;
 
-    /** @var array */
-    private $compiledSnippets;
-
-    /**
-     * PluginFrontendJsCompiler constructor.
-     * @param Plugin $plugin
-     */
-    public function __construct($plugin)
+    public function __construct(Plugin $plugin)
     {
         parent::__construct($plugin->conductor);
         $this->plugin = $plugin;
         $this->compiledSnippets = [];
     }
 
-    /**
-     * @param string $code
-     * @param string|null $path
-     * @return string
-     */
-    protected function compileExtensions($code, $path = null)
+    protected function compileExtensions(string $code, ?string $path = null): string
     {
         $snippetNames = array_merge(
             $this->getNamesFromSetSnippet($code),
@@ -55,11 +39,7 @@ class PluginFrontendJsCompiler extends JsCompiler
         return $code;
     }
 
-    /**
-     * @param string $code
-     * @return array
-     */
-    private function getNamesFromSetSnippet($code)
+    private function getNamesFromSetSnippet(string $code): array
     {
         $reg = '/\.setSnippet\(\s*(?:[\'"]([^\'"]+?)[\'"]|{[^}]*?path\s*:\s*[\'"]([^\'"]+?)[\'"])/';
         preg_match_all($reg, $code, $matches);
@@ -80,11 +60,7 @@ class PluginFrontendJsCompiler extends JsCompiler
         return $result;
     }
 
-    /**
-     * @param string $code
-     * @return array
-     */
-    private function getNamesFromAddSnippet($code)
+    private function getNamesFromAddSnippet(string $code): array
     {
         $reg = '/\.addSnippet\(\s*[\'"]([^\'"]+?)[\'"]/';
         preg_match_all($reg, $code, $matches);
@@ -95,11 +71,7 @@ class PluginFrontendJsCompiler extends JsCompiler
         return $matches[1];
     }
 
-    /**
-     * @param string $code
-     * @return array
-     */
-    private function getNamesFromAddSnippets($code)
+    private function getNamesFromAddSnippets(string $code): array
     {
         $reg = '/\.addSnippets(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/';
         preg_match_all($reg, $code, $argsMatches);
@@ -125,12 +97,7 @@ class PluginFrontendJsCompiler extends JsCompiler
         return $result;
     }
 
-    /**
-     * @param string $name
-     * @param string $path
-     * @return string
-     */
-    private function compileSnippet($name, $path)
+    private function compileSnippet(string $name, string $path): string
     {
         $code = $this->compileFile($path);
         $code = "lx.SnippetMap.registerSnippetMaker('$name', function(Plugin, Snippet){{$code}});";
@@ -138,11 +105,7 @@ class PluginFrontendJsCompiler extends JsCompiler
         return $code;
     }
 
-    /**
-     * @param string $path
-     * @return bool
-     */
-    private function snippedAlreadyCompiled($path)
+    private function snippedAlreadyCompiled(string $path): bool
     {
         return in_array($path, $this->compiledSnippets);
     }

@@ -2,29 +2,14 @@
 
 namespace lx;
 
-/**
- * Class JsCompileDependencies
- * @package lx
- */
 class JsCompileDependencies
 {
-	/** @var array */
-	private $plugins;
+	private array $plugins;
+	private array $modules;
+	private array $scripts;
+	private array $i18n;
 
-	/** @var array */
-	private $modules;
-
-	/** @var array */
-	private $scripts;
-
-	/** @var array */
-	private $i18n;
-
-	/**
-	 * JsCompileDependencies constructor.
-	 * @param array $data
-	 */
-	public function __construct($data = null)
+	public function __construct(?array $data = null)
 	{
 		$this->plugins = isset($data['plugins']) ? array_values($data['plugins']) : [];
 		$this->modules = isset($data['modules']) ? array_values($data['modules']) : [];
@@ -32,95 +17,62 @@ class JsCompileDependencies
 		$this->i18n = isset($data['i18n']) ? array_values($data['i18n']) : [];
 	}
 
-	/**
-	 * @param array $data
-	 */
-	public function addPlugin($data)
+	public function addPlugin(array $data): void
 	{
 		$this->plugins[] = $data;
 	}
 
-	/**
-	 * @param array $arr
-	 */
-	public function addPlugins($arr)
+	public function addPlugins(array $arr): void
 	{
 		$this->plugins = array_merge($this->plugins, array_values($arr));
 	}
 
-	/**
-	 * @param string $moduleName
-	 */
-	public function addModule($moduleName)
+	public function addModule(string $moduleName): void
 	{
 		$this->modules[] = $moduleName;
 	}
 
-	/**
-	 * @param array $moduleNames
-	 */
-	public function addModules($moduleNames)
+	public function addModules(array $moduleNames): void
 	{
 		$this->modules = array_unique(array_merge($this->modules, array_values($moduleNames)));
 	}
 
-	/**
-	 * @param string $path
-	 */
-	public function addScript($path)
+	public function addScript(string $path): void
 	{
 		$this->scripts[] = $path;
 	}
 
-	/**
-	 * @param array $arr
-	 */
-	public function addScripts($arr)
+	public function addScripts(array $arr): void
 	{
 		$this->scripts = array_unique(array_merge($this->scripts, array_values($arr)));
 	}
 
-	/**
-	 * @param string $config
-	 */
-	public function addI18n($config)
+	public function addI18n(string $config): void
 	{
 		$this->i18n[md5(json_encode($config))] = $config;
 	}
 
-	/**
-	 * @param array $arr
-	 */
-	public function addI18ns($arr)
+	public function addI18ns(array $arr): void
 	{
 		foreach ($arr as $config) {
 			$this->i18n[md5(json_encode($config))] = $config;
 		}
 	}
 
-	/**
-	 * @param JsCompileDependencies|array $obj
-	 */
-	public function add($obj)
+	public function add(array $map): void
 	{
-		if (is_array($obj)) {
-			$arr = $obj;
-		} elseif (method_exists($obj, 'toArray')) {
-			$arr = $obj->toArray();
-		} else {
-			$arr = [];
-		}
-
 		$this->addPlugins($arr['plugins'] ?? []);
 		$this->addModules($arr['modules'] ?? []);
 		$this->addScripts($arr['scripts'] ?? []);
 		$this->addI18ns($arr['i18n'] ?? []);
 	}
 
-	/**
-	 * @return array
-	 */
-	public function toArray()
+	public function merge(JsCompileDependencies $dependencies): void
+    {
+        $this->add($dependencies->toArray());
+    }
+
+	public function toArray(): array
 	{
 		$result = [];
 		if (!empty($this->plugins)) {

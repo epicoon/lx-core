@@ -2,13 +2,6 @@
 
 namespace lx;
 
-require_once(__DIR__ . '/SintaxExtender.php');
-require_once(__DIR__ . '/Minimizer.php');
-
-/**
- * Class JsCompiler
- * @package lx
- */
 class JsCompiler
 {
 	const CONTEXT_CLIENT = 'client';
@@ -17,35 +10,16 @@ class JsCompiler
 	private static $extensionsLoaded = false;
 	private static $extensions = [];
 
-	/** @var string */
-	private $context;
+	private string $context;
+	private bool $buildModules;
+	private array $ignoreModules;
+	private array $allCompiledFiles;
+	private array $compiledFiles;
+	private SintaxExtender $sintaxExtender;
+	private ConductorInterface $conductor;
+	private ?JsCompileDependencies $dependencies;
 
-	/** @var bool */
-	private $buildModules;
-	
-	/** @var array */
-	private $ignoreModules;
-
-	/** @var array */
-	private $allCompiledFiles;
-
-	/** @var array */
-	private $compiledFiles;
-
-	/** @var SintaxExtender */
-	private $sintaxExtender;
-
-	/** @var ConductorInterface */
-	private $conductor;
-
-	/** @var JsCompileDependencies */
-	private $dependencies;
-
-	/**
-	 * JsCompiler constructor.
-	 * @param ConductorInterface $conductor
-	 */
-	public function __construct($conductor = null)
+	public function __construct(?ConductorInterface $conductor = null)
 	{
 		$this->conductor = $conductor ?? \lx::$app->conductor;
 		$this->sintaxExtender = new SintaxExtender($this);
@@ -55,12 +29,10 @@ class JsCompiler
 		$this->ignoreModules = [];
 		$this->allCompiledFiles = [];
 		$this->compiledFiles = [];
+		$this->dependencies = null;
 	}
 
-	/**
-	 * @param string $context
-	 */
-	public function setContext($context)
+	public function setContext(string $context): void
 	{
 		if ($context != self::CONTEXT_CLIENT && $context != self::CONTEXT_SERVER) {
 			return;
@@ -69,67 +41,42 @@ class JsCompiler
 		$this->context = $context;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getContext()
+	public function getContext(): string
 	{
 		return $this->context;
 	}
 
-	/**
-	 * @param bool $value
-	 */
-	public function setBuildModules($value)
+	public function setBuildModules(bool $value): void
 	{
 		$this->buildModules = $value;
 	}
 
-    /**
-     * @param array $list
-     */
-	public function ignoreModules($list)
+	public function ignoreModules(array $list): void
     {
         $this->ignoreModules = $list;
     }
 
-	/**
-	 * @return bool
-	 */
-	public function contextIsClient()
+	public function contextIsClient(): bool
 	{
 		return $this->context == self::CONTEXT_CLIENT;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function contextIsServer()
+	public function contextIsServer(): bool
 	{
 		return $this->context == self::CONTEXT_SERVER;
 	}
 
-	/**
-	 * @return JsCompileDependencies
-	 */
-	public function getDependencies()
+	public function getDependencies(): ?JsCompileDependencies
 	{
 		return $this->dependencies;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getCompiledFiles()
+	public function getCompiledFiles(): array
 	{
 		return $this->compiledFiles;
 	}
 
-	/**
-	 * @param string $path - full path to file
-	 * @return string
-	 */
-	public function compileFile($path)
+	public function compileFile(string $path): string
 	{
 		$this->dependencies = new JsCompileDependencies();
 
@@ -137,7 +84,7 @@ class JsCompiler
             return '';
         }
 
-        $this->reportFileCompiled($path);
+        $this->noteFileCompiled($path);
 
         $code = file_get_contents($path);
         $code = $this->compileCodeInnerDirectives($code, $path);
@@ -146,12 +93,7 @@ class JsCompiler
         return $code;
 	}
 
-	/**
-	 * @param string $code - JS-code text
-	 * @param string $path - path to file with this code if it's possible
-	 * @return string
-	 */
-	public function compileCode($code, $path = null)
+	public function compileCode(string $code, ?string $path = null): string
 	{
 		$this->dependencies = new JsCompileDependencies();
 
@@ -161,26 +103,16 @@ class JsCompiler
 		return $code;
 	}
 
-    /**
-     * @param string $code
-     * @param string|null $path
-     * @return string
-     */
-    protected function compileExtensions($code, $path = null)
+    protected function compileExtensions(string $code, ?string $path = null): string
     {
         return $code;
     }
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-    /**
-     * @param string $path
-     * @param bool $force - compile file only once or every time
-     * @return bool
-     */
-	private function checkFileCompileAvailable($path, $force = false)
+	private function checkFileCompileAvailable(string $path, bool $force = false): bool
     {
         if (!file_exists($path)) {
             return false;
@@ -193,10 +125,7 @@ class JsCompiler
         return true;
     }
 
-    /**
-     * @param string $path
-     */
-    private function reportFileCompiled($path)
+    private function noteFileCompiled(string $path): void
     {
         if (preg_match('/^' . addcslashes($this->conductor->getPath(), '/') . '\//', $path)
             && !in_array($path, $this->compiledFiles)
@@ -205,7 +134,10 @@ class JsCompiler
         }
         $this->allCompiledFiles[$path] = 1;
     }
-    
+
+    /**
+     * @return array<JsCompilerExtensionInterafce>
+     */
     private function getExtensions(): array
     {
         if (self::$extensionsLoaded === false) {
@@ -222,67 +154,38 @@ class JsCompiler
         return self::$extensions;
     }
 
-    /**
-     * @param string $code
-     * @param string|null $path
-     * @return string
-     */
-	private function compileCodeInnerDirectives($code, $path = null)
+	private function compileCodeInnerDirectives(string $code, ?string $path = null): string
     {
-        // Применяем расширения компилятора
         $extensions = $this->getExtensions();
-        /** @var JsCompilerExtensionInterafce $extension */
+
         foreach ($extensions as $extension) {
             $extension->setConductor($this->conductor);
             $code = $extension->beforeCutComments($code, $path);
         }
 
-        // Избавиться от комментариев
         $code = Minimizer::cutComments($code);
 
-        /** @var JsCompilerExtensionInterafce $extension */
         foreach ($extensions as $extension) {
             $code = $extension->afterCutComments($code, $path);
         }
 
-        // Удаляем директивы координации
         $code = $this->cutCoordinationDirectives($code);
-
-        // Разрешаем макросы
         $code = $this->processMacroses($code);
-
-        // Привести код к текущему контексту (клиент или сервер)
         $code = $this->applyContext($code);
-
-        // Применить расширенный синтаксис
         $code = $this->sintaxExtender->applyExtendedSintax($code, $path);
-
-        // Парсит конфиг-файлы
         $code = $this->loadConfig($code, $path);
-
-        // Ищет указания о подключении скриптов
         $code = $this->plugScripts($code);
-
-        // Приведение кода к выбранному моду
         $code = $this->checkMode($code);
 
         return $code;
     }
 
-    /**
-     * @param string $code
-     * @param string|null $path
-     * @return string
-     */
-    private function compileCodeOuterDirectives($code, $path = null)
+    private function compileCodeOuterDirectives(string $code, ?string $path = null): string
     {
-        // Проверка на объявление кода приватным
         list($code, $private) = $this->checkPrivate($code);
 
-        // Компилит вызовы кода конкатенационно
         $code = $this->plugAllRequires($code, $path);
 
-        // Приватный код означает, что мы оборачиваем его в анонимную функцию
         if ($private) {
             $code = '(function(){' . $code . '})();';
         }
@@ -293,7 +196,7 @@ class JsCompiler
     }
 
 	/**
-	 * Можно писать js-код под конкретный режим работы приложения при помощи директив:
+	 * You can write js-code for specific application mode by using directives:
 	 * #lx:mode-case: SOME_MODE_0
 	 *    ... some code
 	 * #lx:mode-case: SOME_MODE_1
@@ -301,8 +204,8 @@ class JsCompiler
      * #lx:mode-default:
      *    ... some code
 	 * #lx:mode-end;
-	 * */
-	private function checkMode($code)
+	 */
+	private function checkMode(string $code): string
 	{
 		$mode = \lx::$app->getConfig('mode');
 		$reg = '/#lx:mode-case[\w\W]*?#lx:mode-end;?/';
@@ -324,10 +227,7 @@ class JsCompiler
 		return $code;
 	}
 
-	/**
-	 * Определяет объявлен ли код приватным (надо ли его обернуть в анонимную функцию)
-	 * */
-	private function checkPrivate($code)
+	private function checkPrivate(string $code): array
 	{
 		$private = preg_match('/#lx:private/', $code);
 		$code = preg_replace('/#lx:private;?/', '', $code);
@@ -335,12 +235,12 @@ class JsCompiler
 	}
 
 	/**
-	 * Конкатенация кода по директиве #lx:require
-	 *    Поддерживаемые конструкции:
+	 * Concatenation code by directive #lx:require
+	 *    Available syntax:
 	 *    #lx:require ClassName;
 	 *    #lx:require { ClassName1, ClassName2 };
-	 * */
-	private function plugAllRequires($code, $path)
+	 */
+	private function plugAllRequires(string $code, ?string $path): string
 	{
         $parentDir = $path === null ? null : dirname($path) . '/';
 
@@ -349,7 +249,6 @@ class JsCompiler
 			$flags = $matches[1];
 			$requireName = $matches[2];
 
-			// R - флаг рекурсивного обхода подключаемого каталога
 			$flagsArr = [
 				'recursive' => (strripos($flags, 'R') !== false),
 				'force' => (strripos($flags, 'F') !== false),
@@ -362,11 +261,10 @@ class JsCompiler
 	}
 
 	/**
-	 * Собирает код из перечней, указанных в директиве #lx:require
-	 * */
-	private function plugRequire($requireName, $parentDir, $flags)
+	 * Build code by directive #lx:require
+	 */
+	private function plugRequire(string $requireName, ?string $parentDir, DataObject $flags): string
 	{
-		// Формируем массив с путями ко всем подключаемым файлам
 		$dirPathes = ($requireName[0] == '{')
 			? preg_split('/\s*,\s*/', trim(substr($requireName, 1, -1)))
 			: [$requireName];
@@ -392,11 +290,7 @@ class JsCompiler
 		return $code;
 	}
 
-	/**
-	 * @param $code
-	 * @return string
-	 */
-	private function plugAllModules($code)
+	private function plugAllModules(string $code): string
 	{
 		$pattern = '/(?<!\/ )(?<!\/)#lx:use\s+[\'"]?([^;]+?)[\'"]?;/';
 		preg_match_all($pattern, $code, $matches);
@@ -417,10 +311,15 @@ class JsCompiler
 		$filePathes = [];
 		foreach ($moduleNames as $moduleName) {
 		    if (in_array($moduleName, $this->ignoreModules) || !$moduleMap->moduleExists($moduleName)) {
+                //TODO зафиксировать проблему если модуль не существует
 		        continue;
             }
 
 		    $path = $moduleMap->getModulePath($moduleName);
+		    if (!$path) {
+		        //TODO зафиксировать проблему
+		        continue;
+            }
             $filePathes[] = $path;
 
             $data = $moduleMap->getModuleData($moduleName);
@@ -434,10 +333,7 @@ class JsCompiler
 		return $code;
 	}
 
-	/**
-	 * @param $moduleData
-	 */
-	private function applyModuleData($moduleData, $modulePath)
+	private function applyModuleData(array $moduleData, string $modulePath): void
 	{
 		$parentDir = dirname($modulePath);
 		if (isset($moduleData['i18n'])) {
@@ -449,12 +345,7 @@ class JsCompiler
 		}
 	}
 
-	/**
-	 * Компиляция группы взаимозависимых файлов
-	 * @param $fileNames - массив названий файлов (с расширением), которые надо скомпилировать
-	 * @return string
-	 */
-	private function compileFileGroup($fileNames, $flags)
+	private function compileFileGroup(array $fileNames, DataObject $flags): string
 	{
 		// Список данных по файлам - какие классы содержатся, какие наследуются извне
 		$list = [];
@@ -552,11 +443,11 @@ class JsCompiler
 		$result = [];
 		foreach ($list as $item) {
 		    $path = $item['path'];
-            if (!$this->checkFileCompileAvailable($path, $flags->force)) {
+            if (!$this->checkFileCompileAvailable($path, $flags->force ?? false)) {
                 continue;
             }
 
-            $this->reportFileCompiled($path);
+            $this->noteFileCompiled($path);
 
             $code = $item['code'];
             $code = $this->compileCodeOuterDirectives($code, $path);
@@ -566,11 +457,7 @@ class JsCompiler
 		return implode('', $result);
 	}
 
-    /**
-     * @param string $code
-     * @return string
-     */
-	private function processMacroses($code)
+	private function processMacroses(string $code): string
     {
         $regexp = '/(?<!\/\/ )(?<!\/\/)#lx:macros\s+(.+?)\s+(?P<re>{((?>[^{}]+)|(?P>re))*});?/';
 
@@ -586,11 +473,7 @@ class JsCompiler
         return $code;
     }
 
-    /**
-     * @param string $code
-     * @return string
-     */
-	private function applyContext($code)
+	private function applyContext(string $code): string
 	{
 		$regexpTail = '\s*(?P<re>{((?>[^{}]+)|(?P>re))*});?/';
 		if ($this->contextIsClient()) {
@@ -619,7 +502,7 @@ class JsCompiler
 		return $code;
 	}
 
-	private function cutCoordinationDirectives($code)
+	private function cutCoordinationDirectives(string $code): string
 	{
 		$regexps = [
 			'/#lx:module\s+[^;]+?;/',
@@ -633,10 +516,7 @@ class JsCompiler
 		return $code;
 	}
 
-	/**
-	 * Подключает скрипты, указанные в js-файлах
-	 * */
-	private function plugScripts($code)
+	private function plugScripts(string $code): string
 	{
 		$regExp = '/(?<!\/\/ )(?<!\/\/)#lx:script [\'"]?(.*?)[\'"]?;/';
 		return preg_replace_callback($regExp, function ($matches) {
@@ -647,10 +527,7 @@ class JsCompiler
 		}, $code);
 	}
 
-	/**
-	 * Загрузка js-данных из конфиг-файла
-	 * */
-	private function loadConfig($code, $path)
+	private function loadConfig(string $code, ?string $path): string
 	{
         $parentDir = $path === null ? null : dirname($path) . '/';
 

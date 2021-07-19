@@ -2,31 +2,16 @@
 
 namespace lx;
 
-/**
- * Class PluginEditor
- * @package lx
- */
 class PluginEditor
 {
-	/** @var Service */
-	private $service;
+	private Service $service;
 
-	/**
-	 * PluginEditor constructor.
-	 * @param Service $service
-	 */
-	public function __construct($service)
+	public function __construct(Service $service)
 	{
 		$this->service = $service;
 	}
 
-	/**
-	 * @param string $name
-	 * @param string $path
-	 * @param array $config
-	 * @return Plugin|null
-	 */
-	public function createPlugin($name, $path = null, $config = [])
+	public function createPlugin(string $name, ?string $path = null, array $config = []): ?Plugin
 	{
 		$servicePath = $this->service->getPath();
 		if ($path === null) {
@@ -120,14 +105,12 @@ class PluginEditor
 		return Plugin::create($this->service, $name, $fullPath);
 	}
 
-	/**
-	 * @param array $respondents
-	 * @param Directory $pluginDir
-	 * @param string $pluginNamespace
-	 * @param string $code
-	 * @return string
-	 */
-	private function createRespondents($respondents, $pluginDir, $pluginNamespace, $code)
+	private function createRespondents(
+	    array $respondents,
+        Directory $pluginDir,
+        string $pluginNamespace,
+        string $code
+    ): string
 	{
 		$text = 'respondents:';
 

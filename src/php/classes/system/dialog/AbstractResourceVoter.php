@@ -2,10 +2,6 @@
 
 namespace lx;
 
-/**
- * Class AbstractResourceVoter
- * @package lx
- */
 abstract class AbstractResourceVoter implements ResourceVoterInterface
 {
     use ObjectTrait;

@@ -2,29 +2,14 @@
 
 namespace lx;
 
-/**
- * Class HtmlHead
- * @package lx
- */
 class HtmlHead
 {
-	/** @var string */
-	private $title = 'lx';
+	private string $title = 'lx';
+	private ?string $icon = null;
+	private ?array $css = null;
+	private ?array $scripts = null;
 
-	/** @var string */
-	private $icon = null;
-
-	/** @var array */
-	private $css = null;
-
-	/** @var array */
-	private $scripts = null;
-
-	/**
-	 * HtmlHead constructor.
-	 * @param array $config
-	 */
-	public function __construct($config)
+	public function __construct(array $config)
 	{
 		$config = DataObject::create($config);
 		if ($config->title) {
@@ -41,10 +26,7 @@ class HtmlHead
 		}
 	}
 
-	/**
-	 * @return string
-	 */
-	public function render()
+	public function render(): string
 	{
 		return "<title>{$this->title}</title>"
 			. $this->getIcon()
@@ -55,43 +37,31 @@ class HtmlHead
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @return string
-	 */
-	private function getLxCss()
+	private function getLxCss(): string
 	{
 		return '<link href="'
 			. ($this->getCssPath() . '/main.css')
 			. '" type="text/css" rel="stylesheet">';
 	}
 
-	/**
-	 * @return string
-	 */
-	private function getLxJs()
+	private function getLxJs(): string
 	{
 		$path = $this->getJsPath() . '/core.js';
 		return '<script src="' . $path . '"></script>';
 	}
 
-	/**
-	 * @return string
-	 */
-	private function getIcon()
+	private function getIcon(): string
 	{
 		return '<link rel="shortcut icon" href="'
 			. ($this->icon ? $this->icon : ($this->getCssPath() . '/img/icon.png'))
 			. '" type="image/png">';
 	}
 
-	/**
-	 * @return string
-	 */
-	private function getCss()
+	private function getCss(): string
 	{
 		$result = '';
 		if (!$this->css) {
@@ -105,10 +75,7 @@ class HtmlHead
 		return $result;
 	}
 
-	/**
-	 * @return string
-	 */
-	private function getScripts()
+	private function getScripts(): string
 	{
 		$result = '';
 		if (!$this->scripts) {
@@ -126,18 +93,12 @@ class HtmlHead
 		return $result;
 	}
 
-    /**
-     * @return string
-     */
-    private function getCssPath()
+    private function getCssPath(): string
     {
         return '/' . \lx::$app->conductor->getRelativePath(\lx::$conductor->webCss);
     }
 
-	/**
-	 * @return string
-	 */
-	private function getJsPath()
+	private function getJsPath(): string
 	{
 		return '/' . \lx::$app->conductor->getRelativePath(\lx::$conductor->webJs);
 	}

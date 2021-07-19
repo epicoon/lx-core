@@ -22,6 +22,7 @@ class DbConnectionRegistry
             ]);
             return null;
         }
+
         if (!ClassHelper::implements($connectionClass, DbConnectionInterface::class)) {
             \lx::devLog(['_' => [__FILE__, __CLASS__, __METHOD__, __LINE__],
                 '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT & DEBUG_BACKTRACE_IGNORE_ARGS),
@@ -35,7 +36,7 @@ class DbConnectionRegistry
         if (!$connection->connect()) {
             \lx::devLog(['_' => [__FILE__, __CLASS__, __METHOD__, __LINE__],
                 '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT & DEBUG_BACKTRACE_IGNORE_ARGS),
-                'msg' => "Error while '$connectionClass' connection creating: " . $connection->getFirstError(),
+                'msg' => "Error while '$connectionClass' connection creating: " . $connection->getFirstFlightRecord(),
             ]);
 
             return null;
@@ -71,7 +72,7 @@ class DbConnectionRegistry
                 $this->list[$key]['count']++;
                 \lx::devLog(['_' => [__FILE__, __CLASS__, __METHOD__, __LINE__],
                     '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT & DEBUG_BACKTRACE_IGNORE_ARGS),
-                    'msg' => "Error while '$key' connection close: " . $connection->getFirstError(),
+                    'msg' => "Error while '$key' connection close: " . $connection->getFirstFlightRecord(),
                 ]);
                 return false;
             }

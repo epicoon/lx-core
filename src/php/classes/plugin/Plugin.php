@@ -5,9 +5,6 @@ namespace lx;
 use lx;
 
 /**
- * Class Plugin
- * @package lx
- *
  * @property-read string $name
  * @property-read string $relativePath
  * @property-read string $prototype
@@ -20,7 +17,7 @@ class Plugin extends Resource implements FusionInterface
 	use FusionTrait;
 
 	const DEFAULT_RESOURCE_METHOD = 'run';
-	const AJAX_SOURCE_METHOD = 'ajaxResponse';
+	const AJAX_RESOURCE_METHOD = 'handleAjaxResponse';
 
 	const CACHE_NONE = 'none';
 	const CACHE_ON = 'on';
@@ -28,53 +25,25 @@ class Plugin extends Resource implements FusionInterface
 	const CACHE_BUILD = 'build';
 	const CACHE_SMART = 'smart';
 
-	/** @var string */
-	public $title = null;
+	const EVENT_BEFORE_GET_AUTO_LINKS = 'pluginEventBeforeGetAutoLinks';
+    const EVENT_BEFORE_GET_CSS_ASSETS = 'pluginEventBeforeGetCssAssets';
 
-	/** @var string */
-	public $icon = null;
+	public ?string $title = null;
+	public ?string $icon = null;
+	public DataObject $attributes;
+	protected Service $service;
+	protected string $_name;
+	protected string $_path;
+	protected ?string $_prototype = null;
+	protected array $config;
+	private string $anchor;
+	private string $rootSnippetKey;
+	private array $dependencies = [];
+	private array $onLoadList = [];
+	private array $scripts = [];
+	private array $css = [];
 
-	/** @var DataObject */
-	public $attributes;
-
-	/** @var Service */
-	protected $service = null;
-
-	/** @var string */
-	protected $_name;
-
-	/** @var string */
-	protected $_path;
-
-	/** @var string */
-	protected $_prototype = null;
-
-	/** @var array */
-	protected $config;
-
-	/** @var string */
-	private $anchor;
-
-	/** @var string */
-	private $rootSnippetKey;
-
-	/** @var array */
-	private $dependencies = [];
-
-	/** @var array */
-	private $onLoadList = [];
-
-	/** @var array */
-	private $scripts = [];
-
-	/** @var array */
-	private $css = [];
-
-	/**
-	 * Plugin constructor.
-	 * @param array $data
-	 */
-	public function __construct($data)
+	public function __construct(array $data)
 	{
 	    parent::__construct($data);
 
@@ -99,6 +68,9 @@ class Plugin extends Resource implements FusionInterface
 		$this->init();
 	}
 
+    /**
+     * Define in child
+     */
 	protected function init(): void
 	{
 		// pass
@@ -106,22 +78,18 @@ class Plugin extends Resource implements FusionInterface
 
 	/**
 	 * Define in child
-	 *
-	 * @return array
 	 */
-	protected function widgetBasicCssList()
+	protected function widgetBasicCssList(): array
 	{
 		return [];
 	}
 
-	/**
-	 * @param Service $service
-	 * @param string $pluginName
-	 * @param string $pluginPath
-	 * @param string $prototype
-	 * @return Plugin|null
-	 */
-	public static function create($service, $pluginName, $pluginPath, $prototype = null)
+	public static function create(
+	    Service $service,
+        string $pluginName,
+        string $pluginPath,
+        ?string $prototype = null
+    ): ?Plugin
 	{
 		$dir = new PluginDirectory($pluginPath);
 		if (!$dir->exists()) {
@@ -151,10 +119,9 @@ class Plugin extends Resource implements FusionInterface
 	}
 
 	/**
-	 * @param string $name
 	 * @return mixed
 	 */
-	public function __get($name)
+	public function __get(string $name)
 	{
 		switch ($name) {
 			case 'name':
@@ -179,18 +146,12 @@ class Plugin extends Resource implements FusionInterface
 		];
 	}
 
-	/**
-	 * @return Service
-	 */
-	public function getService()
+	public function getService(): Service
 	{
 		return $this->service;
 	}
 
-	/**
-	 * @return Plugin|null
-	 */
-	public function getPrototypePlugin()
+	public function getPrototypePlugin(): ?Plugin
 	{
 		if ($this->prototype) {
 			return $this->app->getPlugin($this->prototype);
@@ -199,10 +160,7 @@ class Plugin extends Resource implements FusionInterface
 		return null;
 	}
 
-	/**
-	 * @return Service|null
-	 */
-	public function getPrototypeService()
+	public function getPrototypeService(): ?Service
 	{
 		if ($this->prototype) {
 			$serviceName = explode(':', $this->prototype)[0];
@@ -212,10 +170,7 @@ class Plugin extends Resource implements FusionInterface
 		return null;
 	}
 
-	/**
-	 * @return Plugin
-	 */
-	public function getRootPlugin()
+	public function getRootPlugin(): Plugin
 	{
 		if (!$this->prototype) {
 			return $this;
@@ -224,10 +179,7 @@ class Plugin extends Resource implements FusionInterface
 		return $this->app->getPlugin($this->prototype)->getRootPlugin();
 	}
 
-	/**
-	 * @return Service
-	 */
-	public function getRootService()
+	public function getRootService(): Service
 	{
 		if (!$this->prototype) {
 			return $this->getService();
@@ -236,75 +188,48 @@ class Plugin extends Resource implements FusionInterface
 		return $this->app->getPlugin($this->prototype)->getRootPlugin()->getService();
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getPath()
+	public function getPath(): string
 	{
 		return $this->conductor->getPath();
 	}
 
-	/**
-	 * @param string $fileName
-	 * @return string
-	 */
-	public function getFilePath($fileName)
+	public function getFilePath(string $fileName): string
 	{
 		return $this->conductor->getFullPath($fileName);
 	}
 
-    /**
-     * @param string $name
-     * @return File
-     */
-    public function createFile($name)
+    public function createFile(string $name): File
     {
         $fullName = $this->conductor->getFullPath($name);
         return new File($fullName);
     }
 
-	/**
-	 * @param string $name
-	 * @return BaseFile|null
-	 */
-	public function getFile($name)
+	public function getFile(string $name): ?CommonFileInterface
 	{
 		return $this->conductor->getFile($name);
 	}
 
-    /**
-     * @param string $name
-     * @return File
-     */
-    public function prepareFile($name)
+    public function prepareFile(string $name): CommonFileInterface
     {
         return $this->getFile($name) ?? $this->createFile($name);
     }
 
-	/**
-	 * @param string $name
-	 * @return BaseFile|null
-	 */
-	public function findFile($name)
+	public function findFile(string $name): ?CommonFileInterface
 	{
 		return $this->directory->find($name);
 	}
 
 	/**
-	 * @param string $key
 	 * @return mixed
 	 */
-	public function getConfig($key = null)
+	public function getConfig(?string $key = null)
 	{
 		if ($key === null) return $this->config;
 		if (!isset($this->config[$key])) return null;
 		return $this->config[$key];
 	}
 
-    /**
-     * @return string|null
-     */
-	public function getTitle()
+	public function getTitle(): ?string
     {
         $title = $this->getConfig('title');
         if (!$title) {
@@ -314,10 +239,7 @@ class Plugin extends Resource implements FusionInterface
         return I18nHelper::translate($title, $this->i18nMap);
     }
 
-    /**
-     * @return string|null
-     */
-    public function getIcon()
+    public function getIcon(): ?string
     {
         $icon = $this->getConfig('icon');
         if (!$icon) {
@@ -327,11 +249,7 @@ class Plugin extends Resource implements FusionInterface
         return $this->app->conductor->getRelativePath($icon, lx::$app->sitePath);
     }
 
-	/**
-	 * @param string $name
-	 * @return Respondent|null
-	 */
-	public function getRespondent($name)
+	public function getRespondent(string $name): ?Respondent
 	{
 		return $this->conductor->getRespondent($name);
 	}
@@ -349,19 +267,13 @@ class Plugin extends Resource implements FusionInterface
 
 	/**
 	 * Define in child
-	 *
-	 * @param array $data
-	 * @return ResponseInterface
 	 */
-	protected function ajaxResponse($data)
+	protected function handleAjaxResponse(array $data): ResponseInterface
 	{
 		return $this->prepareErrorResponse('Resource not found', ResponseCodeEnum::NOT_FOUND);
 	}
 
-    /**
-     * @return array
-     */
-	public function getCacheInfo()
+	public function getCacheInfo(): array
     {
         return [
             'type' => $this->getConfig('cacheType'),
@@ -369,136 +281,87 @@ class Plugin extends Resource implements FusionInterface
         ];
     }
 
-    /**
-     * @return bool
-     */
-    public function cacheExists()
+    public function cacheExists(): bool
     {
         $dir = new Directory($this->conductor->getSnippetsCachePath());
         return $dir->exists();
     }
 
-    /**
-     * Build plugin cache if not exist
-     */
-    public function buildCache()
+    public function buildCache(): void
     {
         if (!$this->cacheExists()) {
             $this->renewCache();
         }
     }
 
-	/**
-	 * Renew plugin cache
-	 */
-	public function renewCache()
+	public function renewCache(): void
 	{
 		$builder = new PluginBuildContext(['plugin' => $this]);
 		$builder->buildCache();
 	}
 
-	/**
-	 * Drop plugin cache
-	 */
-	public function dropCache()
+	public function dropCache(): void
 	{
 		$dir = new Directory($this->conductor->getSnippetsCachePath());
 		$dir->remove();
 	}
 
-	/**
-	 * Define in child
-	 *
-	 * @param array $attributes
-	 * @return array
-	 */
-	public function beforeAddAttributes($attributes)
+	public function beforeAddAttributes(array $attributes): array
 	{
 		return $attributes;
 	}
 
-	/**
-	 * Define in child
-	 *
-	 * @param array $attributes
-	 */
-	public function afterAddAttributes($attributes)
+	public function afterAddAttributes(array $attributes): void
 	{
 		// pass
 	}
 
-	/**
-	 * Define in child
-	 */
-	public function beforeCompile()
+	public function beforeCompile(): void
 	{
 		// pass
 	}
 
-	/**
-	 * Define in child
-	 */
-	public function afterCompile()
+	public function afterCompile(): void
 	{
 		// pass
 	}
 	
 	/**
-	 * @param string $name
 	 * @param mixed $value
 	 */
-	public function setConfig($name, $value)
+	public function setConfig(string $name, $value): void
 	{
 		$this->config[$name] = $value;
 	}
 
-	/**
-	 * @param string $anchor
-	 */
-	public function setAnchor($anchor)
+	public function setAnchor(string $anchor): void
 	{
 		$this->anchor = $anchor;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getAnchor()
+	public function getAnchor(): string
 	{
 		return $this->anchor;
 	}
 
-	/**
-	 * @param string $key
-	 */
-	public function setRootSnippetKey($key)
+	public function setRootSnippetKey(string $key): void
 	{
 		$this->rootSnippetKey = $key;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getRootSnippetKey()
+	public function getRootSnippetKey(): string
 	{
 		return $this->rootSnippetKey;
 	}
 
-	/**
-	 * Method returns ResourceContext for ajax-request
-	 *
-	 * @param string $respondent
-	 * @param array $data
-	 * @return ResourceContext|false
-	 */
-	public function getResourceContext($respondent, $data)
+	public function getResourceContext(string $respondent, array $data): ?ResourceContext
 	{
 		if (!isset($data['attributes']) || !isset($data['data'])) {
 			lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Wrong data in ajax-request for plugin '{$this->name}'",
 			]);
-			return false;
+			return null;
 		}
 
 		$this->attributes->setProperties($data['attributes']);
@@ -510,15 +373,12 @@ class Plugin extends Resource implements FusionInterface
 
 		return new ResourceContext([
 			'object' => $this,
-			'method' => self::AJAX_SOURCE_METHOD,
+			'method' => self::AJAX_RESOURCE_METHOD,
 			'params' => [$requestData],
 		]);
 	}
 
-	/**
-	 * @param array $attributes
-	 */
-	public function addAttributes($attributes)
+	public function addAttributes(array $attributes): void
 	{
 		$attributes = $this->beforeAddAttributes($attributes);
 		if ($attributes === false) {
@@ -533,61 +393,44 @@ class Plugin extends Resource implements FusionInterface
 	}
 
 	/**
-	 * @param string $name
 	 * @param mixed $value
 	 */
-	public function addAttribute($name, $value)
+	public function addAttribute(string $name, $value): void
 	{
 		$this->attributes->$name = $value;
 	}
 
 	/**
 	 * @param array|string $config
-	 * @return $this
 	 */
-	public function addScript($config)
+	public function addScript($config): void
 	{
 		$asset = new JsScriptAsset($this, $config);
 		$path = $asset->getPath();
 		if ($path && !array_key_exists($path, $this->scripts)) {
 			$this->scripts[$path] = $asset;
 		}
-		return $this;
 	}
 
-	/**
-	 * @param string $path
-	 * @return $this
-	 */
-	public function addCss($path)
+	public function addCss(string $path): void
 	{
 		$path = $this->conductor->getAssetPath($path);
 		if ($path) {
 			$this->css[$path] = true;
 		}
-		return $this;
 	}
 
-	/**
-	 * @param string $code
-	 */
-	public function onLoad($code)
+	public function onLoad(string $code): void
 	{
 		$this->onLoadList[] = $code;
 	}
 
-	/**
-	 * @param array $list
-	 */
-	public function setDependencies($list)
+	public function setDependencies(array $list): void
 	{
 		$this->dependencies = $list;
 	}
 
-	/**
-	 * @param array $dependencies
-	 */
-	public function addDependencies($dependencies)
+	public function addDependencies(array $dependencies): void
 	{
 		$this->dependencies = ArrayHelper::mergeRecursiveDistinct(
 			$this->dependencies,
@@ -595,10 +438,7 @@ class Plugin extends Resource implements FusionInterface
 		);
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getModuleDependencies()
+	public function getModuleDependencies(): array
 	{
 		if (isset($this->dependencies['modules'])) {
 			return $this->dependencies['modules'];
@@ -608,14 +448,11 @@ class Plugin extends Resource implements FusionInterface
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * METHODS FOR BUILDER
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @return array
-	 */
-	public function getBuildData()
+	public function getBuildData(): array
 	{
 		$result = [
 			'serviceName' => $this->service->name,
@@ -640,10 +477,7 @@ class Plugin extends Resource implements FusionInterface
 		return $result;
 	}
 
-	/**
-	 * @param array $data
-	 */
-	public function applyBuildData($data)
+	public function applyBuildData(array $data): void
 	{
 		if (isset($data['title'])) {
 			$this->title = $data['title'];
@@ -666,10 +500,7 @@ class Plugin extends Resource implements FusionInterface
 		}
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getSelfInfo()
+	public function getSelfInfo(): array
 	{
 		$config = $this->config;
 		$info = [
@@ -698,10 +529,7 @@ class Plugin extends Resource implements FusionInterface
 		return $info;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getOriginScripts()
+	public function getOriginScripts(): array
 	{
 		$assets = [
 			'from-code' => [],
@@ -729,10 +557,7 @@ class Plugin extends Resource implements FusionInterface
 		return $result;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getOriginCss()
+	public function getOriginCss(): array
 	{
 		$assets = [
 			'from-code' => array_keys($this->css),
@@ -752,18 +577,12 @@ class Plugin extends Resource implements FusionInterface
 		return $result;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getOriginImagePathes()
+	public function getOriginImagePathes(): array
 	{
 		return $this->conductor->getImagePathesInSite();
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getScripts()
+	public function getScripts(): array
 	{
 		$list = $this->getOriginScripts();
 		$arr = [];
@@ -772,11 +591,11 @@ class Plugin extends Resource implements FusionInterface
 		}
 
 		$linksMap = AssetCompiler::getLinksMap($arr);
-		$appCycler = $this->app->lifeCycle;
-		if ($appCycler) {
-			$appCycler->beforeReturnAutoLinkPathes($linksMap['origins'], $linksMap['links']);
-		}
-
+		$this->app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
+		    $linksMap['origins'],
+            $linksMap['links']
+        ]);
+		
 		foreach ($linksMap['names'] as $key => $name) {
 			$list[$key]['path'] = $name;
 		}
@@ -784,47 +603,36 @@ class Plugin extends Resource implements FusionInterface
 		return $list;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getCss()
+	public function getCss(): array
 	{
 		$list = $this->getOriginCss();
 		$linksMap = AssetCompiler::getLinksMap($list);
-		$appCycler = $this->app->lifeCycle;
-		if ($appCycler) {
-			$appCycler->beforeReturnAutoLinkPathes($linksMap['origins'], $linksMap['links']);
-		}
+        $this->app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
+            $linksMap['origins'],
+            $linksMap['links']
+        ]);
 
 		return $linksMap['names'];
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getImagePathes()
+	public function getImagePathes(): array
 	{
 		$list = $this->getOriginImagePathes();
 		$linksMap = AssetCompiler::getLinksMap($list);
-		$appCycler = $this->app->lifeCycle;
-		if ($appCycler) {
-			$appCycler->beforeReturnAutoLinkPathes($linksMap['origins'], $linksMap['links']);
-		}
+        $this->app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
+            $linksMap['origins'],
+            $linksMap['links']
+        ]);
 
 		return $linksMap['names'];
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @param string $respondentName
-	 * @param array $respondentParams
-	 * @return ResourceContext|false
-	 */
-	private function ajaxResponseByRespondent($respondentName, $respondentParams)
+	private function ajaxResponseByRespondent(string $respondentName, array $respondentParams): ?ResourceContext
 	{
 		$respInfo = preg_split('/[^\w\d_]/', $respondentName);
 		$respondent = $this->getRespondent($respInfo[0] ?? '');
@@ -834,7 +642,7 @@ class Plugin extends Resource implements FusionInterface
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Respondent '$respondentName' is not found",
 			]);
-			return false;
+			return null;
 		}
 
 		$methodName = $respInfo[1] ?? '';
@@ -843,7 +651,7 @@ class Plugin extends Resource implements FusionInterface
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Method '$methodName' for respondent '$respondentName' is not found",
 			]);
-			return false;
+			return null;
 		}
 
 		return new ResourceContext([

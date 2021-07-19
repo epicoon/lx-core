@@ -2,10 +2,6 @@
 
 namespace lx;
 
-/**
- * Class User
- * @package lx
- */
 class User implements UserInterface, FusionComponentInterface
 {
 	use ApplicationToolTrait;
@@ -39,7 +35,6 @@ class User implements UserInterface, FusionComponentInterface
 	}
 
 	/**
-	 * @param string $name
 	 * @param mixed $value
 	 */
 	public function __set(string $name, $value)

@@ -2,44 +2,18 @@
 
 namespace lx;
 
-/**
- * Class ConsoleInputContext
- * @package lx
- */
 class ConsoleInputContext
 {
-	/** @var string */
-	private $hint;
+	private string $hint;
+	private array $hintDecor;
+	private array $textDecor;
+	private array $callbacks;
+	private array $intercepts;
+	private array $enteredChars;
+	private int $cursorPosition;
+	private bool $passwordMode;
 
-	/** @var array */
-	private $hintDecor;
-
-	/** @var array */
-	private $textDecor;
-
-	/** @var array */
-	private $callbacks;
-
-	/** @var array */
-	private $intercepts;
-
-	/** @var array */
-	private $enteredChars;
-
-	/** @var int */
-	private $cursorPosition;
-
-	/** @var bool */
-	private $passwordMode;
-
-	/**
-	 * ConsoleInputContext constructor.
-	 * @param string $hint
-	 * @param array $hintDecor
-	 * @param array $textDecor
-	 * @param array $callbacks
-	 */
-	public function __construct($hint, $hintDecor, $textDecor, $callbacks)
+	public function __construct(string $hint, array $hintDecor, array $textDecor, array $callbacks)
 	{
 		$this->hint = $hint;
 		$this->hintDecor = $hintDecor;
@@ -55,23 +29,12 @@ class ConsoleInputContext
 		$this->cursorPosition = 0;
 	}
 
-
-	/*******************************************************************************************************************
-	 * PUBLIC
-	 ******************************************************************************************************************/
-
-	/**
-	 * @param bool $mode
-	 */
-	public function setPasswordMode($mode = true)
+	public function setPasswordMode(bool $mode = true): void
 	{
 		$this->passwordMode = $mode;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function run()
+	public function run(): string
 	{
 		// $interceptedCodes = [9];
 		readline_callback_handler_install('', function () {
@@ -119,27 +82,19 @@ class ConsoleInputContext
 		return implode('', $this->enteredChars);
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getText()
+	public function getText(): string
 	{
 		return implode('', $this->enteredChars);
 	}
 
-	/**
-	 * @param array|string $text
-	 */
-	public function replace($text)
+	public function replace(string $text): void
 	{
 		$arr = [];
-		if (is_string($text)) {
-			$i = 0;
-			$len = mb_strlen($text);
-			while ($i < $len) $arr[] = mb_substr($text, $i++, 1);
-		} elseif (is_array($text)) {
-			$arr = $text;
-		}
+        $i = 0;
+        $len = mb_strlen($text);
+        while ($i < $len) {
+            $arr[] = mb_substr($text, $i++, 1);
+        }
 
 		$this->innerClear();
 		$this->enteredChars = $arr;
@@ -147,24 +102,18 @@ class ConsoleInputContext
 		$this->cursorTo(count($this->enteredChars));
 	}
 
-	/**
-	 * Clear printed text
-	 */
-	public function clear()
+	public function clear(): void
 	{
 		$this->innerClear();
 		$this->enteredChars = [];
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @param string $strChar
-	 */
-	private function insChar($strChar)
+	private function insChar(string $strChar): void
 	{
 		$cursorPosition = $this->cursorPosition;
 		$this->innerClear();
@@ -173,10 +122,7 @@ class ConsoleInputContext
 		$this->cursorTo($cursorPosition + 1);
 	}
 
-	/**
-	 * Action for backspace
-	 */
-	private function backspace()
+	private function backspace(): void
 	{
 		if ($this->cursorPosition == 0) {
 			return;
@@ -189,10 +135,7 @@ class ConsoleInputContext
 		$this->cursorTo($cursorPosition - 1);
 	}
 
-	/**
-	 * Clear printed text process
-	 */
-	private function innerClear()
+	private function innerClear(): void
 	{
 		echo "\r";
 		echo str_repeat(' ', mb_strlen($this->hint) + count($this->enteredChars) + 1);
@@ -201,10 +144,7 @@ class ConsoleInputContext
 		$this->cursorPosition = 0;
 	}
 
-	/**
-	 * Print text process
-	 */
-	private function printEntered()
+	private function printEntered(): void
 	{
 		if (empty($this->enteredChars)) {
 			return;
@@ -218,10 +158,7 @@ class ConsoleInputContext
 		echo "\033[" . count($this->enteredChars) . "D";
 	}
 
-	/**
-	 * @param int $newPosition
-	 */
-	private function cursorTo($newPosition)
+	private function cursorTo(int $newPosition): void
 	{
 		if ($newPosition == $this->cursorPosition) {
 			return;
@@ -238,10 +175,7 @@ class ConsoleInputContext
 		$this->cursorPosition = $newPosition;
 	}
 
-	/**
-	 * @param string $strChar
-	 */
-	private function driveCursor($strChar)
+	private function driveCursor(string $strChar): void
 	{
 		$arr = [
 			$strChar,
@@ -278,23 +212,18 @@ class ConsoleInputContext
 			if ($arr[2] == 'A') {
 				if (array_key_exists('up', $this->callbacks)) {
 					list($context, $func) = $this->extractCallback($this->callbacks, 'up');
-					$this->callCallback($context, $func);
+					$this->runCallback($context, $func);
 				}
 			} elseif ($arr[2] == 'B') {
 				if (array_key_exists('down', $this->callbacks)) {
 					list($context, $func) = $this->extractCallback($this->callbacks, 'down');
-					$this->callCallback($context, $func);
+					$this->runCallback($context, $func);
 				}
 			}
 		}
 	}
 
-	/**
-	 * @param array $arr
-	 * @param string $key
-	 * @return array
-	 */
-	private function extractCallback($arr, $key)
+	private function extractCallback(array $arr, string $key): array
 	{
 		$context = null;
 		$func = null;
@@ -311,7 +240,7 @@ class ConsoleInputContext
 	 * @param object|null $context
 	 * @param string|callable $func
 	 */
-	private function callCallback($context, $func)
+	private function runCallback($context, $func): void
 	{
 		if ($func === null) return;
 		if (!is_object($context) && is_callable($func)) {

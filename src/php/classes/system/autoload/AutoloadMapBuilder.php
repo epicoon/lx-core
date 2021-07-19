@@ -2,26 +2,13 @@
 
 namespace lx;
 
-/**
- * Class AutoloadMapBuilder
- * @package lx
- */
 class AutoloadMapBuilder
 {
-	/** @var array */
-	private $packagesMap = [];
-
-	/** @var array */
-	private $bootstrapFiles = [];
-
-	/** @var array */
-	private $namespacesMap = [];
-
-	/** @var array */
-	private $classes = [];
-
-	/** @var array */
-	private $directories = [];
+	private array $packagesMap = [];
+	private array $bootstrapFiles = [];
+	private array $namespacesMap = [];
+	private array $classes = [];
+	private array $directories = [];
 
 	/**
 	 * Makes file 'autoload.json'
@@ -29,7 +16,7 @@ class AutoloadMapBuilder
 	 * Finds recursively in these directories for packages
 	 * Package is a directory with special configuration file
 	 */
-	public function createCommonAutoloadMap()
+	public function createCommonAutoloadMap(): void
 	{
 		$map = \lx::$app->getConfig('packagesMap');
 
@@ -46,14 +33,11 @@ class AutoloadMapBuilder
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * Save all maps to file
-	 */
-	private function save()
+	private function save(): void
 	{
 		$data = [
 			'packages' => $this->packagesMap,
@@ -67,17 +51,13 @@ class AutoloadMapBuilder
 		$file->put($data);
 	}
 
-	/**
-	 * @param string $path
-	 */
-	private function analizeDirectory($path)
+	private function analizeDirectory(string $path): void
 	{
 		$config = $this->tryGetPackageConfig($path);
 
 		if ($config === null) {
 			$dir = new Directory($path);
 			$subDirs = $dir->getDirectoryNames();
-			$subDirs = $subDirs->toArray();
 			foreach ($subDirs as $subDir) {
 				$this->analizeDirectory($path . '/' . $subDir);
 			}
@@ -87,11 +67,7 @@ class AutoloadMapBuilder
 		$this->analizePackage($path, $config->get());
 	}
 
-	/**
-	 * @param string $packagePath
-	 * @param array $config
-	 */
-	private function analizePackage($packagePath, $config)
+	private function analizePackage(string $packagePath, array $config): void
 	{
 		$packageName = $config['name'];
 		$relativePackagePath = explode(\lx::$app->sitePath . '/', $packagePath)[1];
@@ -148,11 +124,7 @@ class AutoloadMapBuilder
 		}
 	}
 
-	/**
-	 * @param string $path
-	 * @return DataFileInterface|null
-	 */
-	private function tryGetPackageConfig($path)
+	private function tryGetPackageConfig(string $path): ?DataFileInterface
 	{
 		return (new PackageDirectory($path))->getConfigFile();
 	}

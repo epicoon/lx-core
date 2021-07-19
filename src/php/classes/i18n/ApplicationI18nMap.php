@@ -2,37 +2,21 @@
 
 namespace lx;
 
-/**
- * Class ApplicationI18nMap
- * @package lx
- */
 class ApplicationI18nMap extends I18nMap
 {
-	/** @var array */
-	private $used = [];
+	private array $used = [];
 
-	/**
-	 * @param string $name
-	 * @return bool
-	 */
-	public function inUse($name)
+	public function inUse(string $name): bool
 	{
 		return array_search($name, $this->used) !== false;
 	}
 
-	/**
-	 * @param string $name
-	 */
-	public function noteUse($name)
+	public function noteUse(string $name): void
 	{
 		$this->used[] = $name;
 	}
 
-	/**
-	 * @param string $fileName
-	 * @return string
-	 */
-	protected function getFilePath($fileName)
+	protected function getFilePath(string $fileName): string
 	{
 		return $this->app->conductor->getFullPath($fileName);
 	}

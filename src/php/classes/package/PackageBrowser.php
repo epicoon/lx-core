@@ -2,24 +2,14 @@
 
 namespace lx;
 
-/**
- * Class PackageBrowser
- * @package lx
- */
 class PackageBrowser
 {
-	/**
-	 * @return array
-	 */
-	public static function getPackagePathesList()
+	public static function getPackagePathesList(): array
 	{
 		return Autoloader::getInstance()->map->packages;
 	}
 
-	/**
-	 * @return array
-	 */
-	public static function getServicePathesList()
+	public static function getServicePathesList(): array
 	{
 		$list = self::getPackagePathesList();
 		$result = [];
@@ -34,9 +24,9 @@ class PackageBrowser
 	}
 
 	/**
-	 * @return Service[]
+	 * @return array<Service>
 	 */
-	public static function getServicesList()
+	public static function getServicesList(): array
 	{
 		$list = self::getServicePathesList();
 		foreach ($list as $name => &$value) {
@@ -47,11 +37,7 @@ class PackageBrowser
 		return $list;
 	}
 
-	/**
-	 * @param string $packagePath
-	 * @return bool
-	 */
-	public static function checkDirectoryIsPackage($packagePath)
+	public static function checkDirectoryIsPackage(string $packagePath): bool
 	{
 		$fullPath = \lx::$app->conductor->getFullPath($packagePath);
 
@@ -64,11 +50,7 @@ class PackageBrowser
 		return $configFile !== null;
 	}
 
-	/**
-	 * @param string $packagePath
-	 * @return bool
-	 */
-	public static function checkDirectoryIsService($packagePath)
+	public static function checkDirectoryIsService(string $packagePath): bool
 	{
 		$fullPath = \lx::$app->conductor->getFullPath($packagePath);
 
@@ -86,11 +68,7 @@ class PackageBrowser
 		return array_key_exists('service', $config);
 	}
 
-	/**
-	 * @param string $packageName
-	 * @return bool
-	 */
-	public static function checkPackageIsService($packageName)
+	public static function checkPackageIsService(string $packageName): bool
 	{
 		$list = self::getPackagePathesList();
 		if (!array_key_exists($packageName, $list)) {
@@ -99,5 +77,4 @@ class PackageBrowser
 
 		return self::checkDirectoryIsService($list[$packageName]);
 	}
-
 }

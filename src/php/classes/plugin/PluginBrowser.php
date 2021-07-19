@@ -2,29 +2,9 @@
 
 namespace lx;
 
-/**
- * Class PluginBrowser
- * @package lx
- */
 class PluginBrowser
 {
-	/** @var Plugin */
-	private $plugin;
-
-	/**
-	 * PluginBrowser constructor.
-	 * @param Plugin $plugin
-	 */
-	public function __construct($plugin)
-	{
-		$this->plugin = $plugin;
-	}
-
-	/**
-	 * @param string $path
-	 * @return bool
-	 */
-	public static function checkDirectoryIsPlugin($path)
+	public static function checkDirectoryIsPlugin(string $path): bool
 	{
 		$fullPath = \lx::$app->conductor->getFullPath($path);
 
@@ -48,11 +28,7 @@ class PluginBrowser
 		return false;
 	}
 
-	/**
-	 * @param Service $service
-	 * @return array
-	 */
-	public static function getPluginsDataMap($service)
+	public static function getPluginsDataMap(Service $service): array
 	{
 		return [
 			'dynamic' => $service->getDynamicPluginsDataList(),

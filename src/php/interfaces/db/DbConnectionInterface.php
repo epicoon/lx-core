@@ -2,7 +2,7 @@
 
 namespace lx;
 
-interface DbConnectionInterface extends ErrorCollectorInterface
+interface DbConnectionInterface extends FlightRecorderHolderInterface
 {
     public function __construct(array $settings);
     public function connect(): bool;

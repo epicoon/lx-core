@@ -4,7 +4,9 @@ namespace lx;
 
 use Throwable;
 
-class ErrorCollectorError implements ToStringConvertableInterface
+//TODO на текущий момент не используется
+// Раньше было повеление ErrorCollector, этот класс оттуда, в персперкиве может стать подтипом записи
+class FlightError implements ToStringConvertableInterface
 {
 	private string $title;
 	private string $description;
@@ -33,7 +35,7 @@ class ErrorCollectorError implements ToStringConvertableInterface
 		$this->exception = $config['exception'] ?? null;
 	}
 
-	public function getInfo(): array
+	public function toArray(): array
 	{
 		$result = [];
 		if ($this->title != '') {

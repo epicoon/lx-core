@@ -4,15 +4,23 @@ namespace lx;
 
 use lx;
 
-class DevApplicationLifeCycleManager implements ApplicationLifeCycleManagerInterface, FusionComponentInterface
+class DevApplicationLifeCycleManager implements FusionComponentInterface, EventListenerInterface
 {
     use ApplicationToolTrait;
     use FusionComponentTrait;
+    use EventListenerTrait;
 
-    /**
-     * Method called as the first step in [[lx::$app->run()]]
-     */
-    public function beforeRun(): void
+    public static function getEventHandlersMap(): array
+    {
+        return [
+            AbstractApplication::EVENT_BEFORE_RUN => 'beforeApplicationRun',
+            AbstractApplication::EVENT_AFTER_RUN => 'afterApplicationRun',
+            Plugin::EVENT_BEFORE_GET_AUTO_LINKS => 'beforeReturnAutoLinkPathes',
+            Plugin::EVENT_BEFORE_GET_CSS_ASSETS => 'beforeGetPluginCssAssets',
+        ];
+    }
+
+    public function beforeApplicationRun(): void
     {
         $compiler = new AssetCompiler();
 
@@ -23,17 +31,11 @@ class DevApplicationLifeCycleManager implements ApplicationLifeCycleManagerInter
         $file->put($coreCode);
     }
 
-    /**
-     * Method called as last step in [[lx::$app->run()]]
-     */
-    public function afterRun(): void
+    public function afterApplicationRun(): void
     {
         // pass
     }
 
-    /**
-     * Method called as the first step in [[lx\PluginConductor::getCssAssets()]]
-     */
     public function beforeGetPluginCssAssets(Plugin $plugin): void
     {
         $css = $plugin->getConfig('css');
@@ -49,12 +51,6 @@ class DevApplicationLifeCycleManager implements ApplicationLifeCycleManagerInter
         }
     }
 
-    /**
-     * Method called as last step in:
-     * - [[lx\Plugin::getScripts()]]
-     * - [[lx\Plugin::getCss()]]
-     * - [[lx\Plugin::getImagePathes()]]
-     */
     public function beforeReturnAutoLinkPathes(array $originalPathes, array $linkPathes): void
     {
         $compiler = new AssetCompiler();

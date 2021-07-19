@@ -2,178 +2,156 @@
 
 namespace lx;
 
-/**
- * Class NodeJsExecutor
- * @package lx
- */
 class NodeJsExecutor
 {
-	/** @var string */
-    private $filePath = null;
+    private ?JsCompiler $compiler;
+    private ?I18nMap $i18nMap = null;
+    private ?string $code = null;
+    private string $prevCode = '';
+    private string $postCode = '';
+    private ?string $filePath = null;
+    private ?FileInterface $file = null;
+    private array $requires = [];
+    private array $modules = [];
 
-	/** @var JsCompiler */
-    private $compiler;
-
-    /** @var I18nMap|array */
-    private $i18nMap;
-
-	/**
-	 * NodeJsExecutor constructor.
-	 * @param JsCompiler $compiler
-	 */
-    public function __construct($compiler = null)
+    public function __construct(?JsCompiler $compiler = null)
     {
 		$this->compiler = $compiler ?? new JsCompiler();
-		$this->i18nMap = [];
 	}
-
-	/**
-	 * @param JsCompiler $compiler
-	 */
-	public function setCompiler($compiler)
+	
+	public function reset()
     {
-    	$this->compiler = $compiler;
-	}
-
-    /**
-     * @param I18nMap|array $i18nMap
-     */
-	public function setI18nMap($i18nMap)
+        $this->compiler = null;
+        $this->i18nMap = null;
+        $this->resetCode();
+    }
+    
+    public function resetCode()
     {
-        $this->i18nMap = $i18nMap;
+        $this->code = null;
+        $this->prevCode = '';
+        $this->postCode = '';
+        $this->filePath = null;
+        $this->file = null;
+        $this->requires = [];
+        $this->modules = [];
     }
 
-	/**
-	 * @return JsCompiler
-	 */
-	public function getCompiler() {
-    	return $this->compiler;
+    public function getCompiler(): ?JsCompiler
+    {
+        return $this->compiler;
+    }
+
+	public function setCompiler(JsCompiler $compiler): NodeJsExecutor
+    {
+    	$this->compiler = $compiler;
+    	return $this;
 	}
 
-	/**
-	 * @param array $config
-	 * @return array|string|false
-	 */
-    public function run($config)
+	public function setI18nMap(I18nMap $i18nMap): NodeJsExecutor
     {
-		if (isset($config['code'])) {
-			return $this->runCode($config);
-		}
-
-		if (isset($config['file']) || isset($config['path'])) {
-			return $this->runFile($config);
-		}
-
-		return false;
-	}
-
-	/**
-	 * @param string $path
-	 * @param array $requires
-	 * @param array $modules
-	 * @param string $prevCode
-	 * @param string $postCode
-	 * @return array|string|false
-	 */
-    public function runFile($path, $requires = [], $modules = [], $prevCode = '', $postCode = '')
+        $this->i18nMap = $i18nMap;
+        return $this;
+    }
+    
+    public function setCode(string $code): NodeJsExecutor
     {
-    	if (is_array($path)) {
-    		return $this->runFile(
-    			$path['file'] ?? $path['path'],
-				$path['requires'] ?? [],
-				$path['modules'] ?? [],
-				$path['prevCode'] ?? '',
-				$path['postCode'] ?? ''
-			);
-		} elseif (is_string($path)) {
-            $this->filePath = $path;
-            $code = file_get_contents($path);
-            $code = $this->useJsCompiler($code, $requires, $modules, $prevCode, $postCode);
-        } elseif ($path instanceof File) {
-            $this->filePath = $path->getPath();
-            $code = $path->get();
-            $code = $this->useJsCompiler($code, $requires, $modules, $prevCode, $postCode);
-            if (!empty($this->i18nMap)) {
-                $code = I18nHelper::localize($code, $this->i18nMap);
+        $this->code = $code;
+        return $this;
+    }
+
+    public function setPrevCode(string $code): NodeJsExecutor
+    {
+        $this->prevCode = $code;
+        return $this;
+    }
+
+    public function setPostCode(string $code): NodeJsExecutor
+    {
+        $this->postCode = $code;
+        return $this;
+    }
+
+    public function setPath(string $path): NodeJsExecutor
+    {
+        $this->filePath = $path;
+        return $this;
+    }
+
+    public function setFile(FileInterface $file): NodeJsExecutor
+    {
+        $this->file = $file;
+        return $this;
+    }
+
+    public function setRequires(array $requires): NodeJsExecutor
+    {
+        $this->requires = $requires;
+        return $this;
+    }
+
+    public function setModules(array $modules): NodeJsExecutor
+    {
+        $this->modules = $modules;
+        return $this;
+    }
+    
+    public function getCode(): ?string
+    {
+        if ($this->code) {
+            return $this->code;
+        }
+        
+        if ($this->file && $this->file->exists()) {
+            $this->code = $this->file->get();
+            return $this->code;
+        }
+        
+        if ($this->filePath) {
+            $file = new File($this->filePath);
+            if ($file->exists()) {
+                $this->file = $file;
+                $this->code = $this->file->get();
+                return $this->code;
             }
-        } else {
-			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
-				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-				'msg' => 'Invalide subject for node-js executing',
-			]);
-            return false;
+        }
+        
+        return null;
+    }
+
+    public function getFullCode(): string
+    {
+        $code = $this->getCode() ?? '';
+        return $this->prevCode . $code . $this->postCode;
+    }
+
+    /**
+	 * @return mixed
+	 */
+    public function run()
+    {
+        $code = $this->getFullCode();
+        if ($code == '') {
+            return null;
+        }
+        
+        if ($this->compiler) {
+            $code = $this->useJsCompiler($code);
+        }
+
+        if ($this->i18nMap) {
+            $code = I18nHelper::localize($code, $this->i18nMap);
         }
 
         return $this->runCodeForce($code);
-    }
-
-	/**
-	 * @param string $code
-	 * @param array $requires
-	 * @param array $modules
-	 * @param string $filePath
-	 * @return array|string|false
-	 */
-    public function runCode($code, $requires = [], $modules = [], $filePath = null)
-    {
-    	if (is_array($code)) {
-    		return $this->runCode(
-    			$code['code'],
-				$code['requires'] ?? [],
-				$code['modules'] ?? [],
-				$code['file'] ?? $code['filePath'] ?? null
-			);
-		}
-
-        $this->filePath = $filePath;
-        $code = $this->useJsCompiler($code, $requires, $modules);
-        return $this->runCodeForce($code);
-    }
-
-	/**
-	 * @param string $code
-	 * @return array|string|false
-	 */
-	public function runCodeForce($code)
-    {
-		$file = \lx::$conductor->getTempFile('js');
-		$file->put($code);
-		$command = 'node ' . $this->getExecJs() . ' "' . $file->getPath() . '"';
-		$result = \lx::exec($command);
-		$result = preg_replace('/\s$/', '', $result);
-		$result = json_decode($result, true);
-
-		foreach ($result['log'] as $msg) {
-			\lx::$app->log($msg['data'], $msg['category']);
-		}
-
-		foreach ($result['dump'] as $item) {
-			\lx::dump($item);
-		}
-
-		if ($result['error'] != 0) {
-			$this->processError($result['error'], $result['result'], $file);
-			return false;
-		}
-
-		$file->remove();
-		return $result['result'];
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @param string $code
-	 * @param array $requires
-	 * @param array $modules
-	 * @param string $prevCode
-	 * @param string $postCode
-	 * @return string
-	 */
-	private function useJsCompiler($code, $requires = [], $modules = [], $prevCode = '', $postCode = '')
+	private function useJsCompiler(string $code): string
     {
         $compilerContext = $this->compiler->getContext();
         $this->compiler->setContext(JsCompiler::CONTEXT_SERVER);
@@ -181,14 +159,14 @@ class NodeJsExecutor
         $core = $this->compiler->compileCode('#lx:require @core/js/lx.js;', $this->filePath);
 
         $commonCode = '';
-        foreach ($modules as $module) {
+        foreach ($this->modules as $module) {
         	$commonCode .= '#lx:use ' . $module . ';';
 		}
         
-		foreach ($requires as $require) {
+		foreach ($this->requires as $require) {
 			$commonCode .= '#lx:require ' . $require . ';';
 		}
-		$commonCode .= $prevCode . $code . $postCode;
+		$commonCode .= $code;
 
         $result = $core . $this->compiler->compileCode($commonCode, $this->filePath);
 
@@ -196,42 +174,36 @@ class NodeJsExecutor
         return $result;
     }
 
-	/**
-	 * @param string $text
-	 * @return string
-	 */
-    private function normalizeQuotes($text)
+    /**
+     * @return mixed
+     */
+    private function runCodeForce(string $code)
     {
-        $result = preg_replace_callback('/\'[^\']*?"[^\']*?\'/', function($matches) {
-            $str = $matches[0];
-            $str = preg_replace('/"/', '#lx:dqm;', $str);
-            return $str;
-        }, $text);
+        $file = \lx::$conductor->getTempFile('js');
+        $file->put($code);
+        $command = 'node ' . $this->getExecJs() . ' "' . $file->getPath() . '"';
+        $result = \lx::exec($command);
+        $result = preg_replace('/\s$/', '', $result);
+        $result = json_decode($result, true);
 
-        $regexp = '/"([^"]*?)"/';
-        preg_match_all($regexp, $result, $matches);
-        $result = preg_replace('/"[^"]*?"/', '№№№№', $result);
-        $matches = $matches[1];
-        foreach ($matches as &$str) {
-            $str = preg_replace('/\'/', '\\\'', $str);
+        foreach ($result['log'] as $msg) {
+            \lx::$app->log($msg['data'], $msg['category']);
         }
-        unset($str);
 
-        $i = 0;
-        $result = preg_replace_callback('/№№№№/', function($match) use ($matches, &$i) {
-            $str = $matches[$i++];
-            return "'$str'";
-        }, $result);
+        foreach ($result['dump'] as $item) {
+            \lx::dump($item);
+        }
 
-        return $result;
+        if ($result['error'] != 0) {
+            $this->processError($result['error'], $result['result'], $file);
+            return false;
+        }
+
+        $file->remove();
+        return $result['result'];
     }
 
-	/**
-	 * @param int $errorCode
-	 * @param array $errorData
-	 * @param File $file
-	 */
-	private function processError($errorCode, $errorData, $file)
+	private function processError(int $errorCode, array $errorData, File $file): void
     {
 		$msg = 'Error ';
 		if ($errorCode == 1) {
@@ -292,10 +264,8 @@ class NodeJsExecutor
 		]);
 	}
 
-	/**
-	 * @return string
-	 */
-    private function getExecJs() {
+    private function getExecJs(): string
+    {
         return \lx::$conductor->jsNode;
     }
 }

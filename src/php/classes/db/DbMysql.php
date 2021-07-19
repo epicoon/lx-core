@@ -24,7 +24,7 @@ class DbMysql extends DbConnection
                 mysqli_close($connection);
             }
             
-            $this->addError($e->getMessage());
+            $this->addFlightRecord($e->getMessage());
             return false;
         }
 
@@ -41,7 +41,7 @@ class DbMysql extends DbConnection
 
         $result = mysqli_close($this->connection);
         if (!$result) {
-            $this->addError(pg_last_error($this->connection));
+            $this->addFlightRecord(pg_last_error($this->connection));
             return false;
         }
 

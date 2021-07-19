@@ -2,33 +2,19 @@
 
 namespace lx;
 
-/**
- * Class AjaxRequestHandler
- * @package lx
- */
 class AjaxRequestHandler extends RequestHandler
 {
-    /**
-     * @return void
-     */
-    protected function defineResponse()
+    protected function defineResponse(): void
     {
         $this->response = $this->resourceContext->invoke();
     }
 
-    /**
-     * @return ResponseInterface
-     */
-    protected function prepareResponse()
+    protected function prepareResponse(): ResponseInterface
     {
         return $this->response;
     }
 
-    /**
-     * @param ResponseInterface $response
-     * @return ResponseInterface
-     */
-    protected function processProblemResponse($response)
+    protected function processProblemResponse(ResponseInterface $response): ResponseInterface
     {
         return $response;
     }

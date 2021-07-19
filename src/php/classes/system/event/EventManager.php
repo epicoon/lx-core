@@ -25,7 +25,8 @@ class EventManager implements EventManagerInterface
 		}
 
 		$list = $this->list[$eventName];
-		foreach ($list as $listener) {
+		/** @var EventListenerInterface $listener */
+        foreach ($list as $listener) {
 			$listener->trigger($eventName, $params);
 		}
 	}

@@ -2,32 +2,18 @@
 
 namespace lx;
 
-/**
- * Class CliArgumentsList
- * @package lx
- */
 class CliArgumentsList
 {
-    /** @var array */
-    private $data;
-    
-    /** @var bool */
-    private $validated;
+    private array $data = [];
+    private bool $validated;
 
-    /**
-     * CliArgumentsList constructor.
-     * @param array $data
-     */
-    public function __construct($data)
+    public function __construct(array $data)
     {
         $this->data = $data;
         $this->validated = false;
     }
 
-    /**
-     * @param array $data
-     */
-    public function setValidatedData($data)
+    public function setValidatedData(array $data): void
     {
         $this->data = [];
         foreach ($data as $item) {
@@ -39,15 +25,8 @@ class CliArgumentsList
         $this->validated = true;
     }
 
-    /**
-     * @return bool
-     */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
-        if (!$this->data) {
-            return true;
-        }
-
         return empty($this->data);
     }
 
@@ -55,7 +34,7 @@ class CliArgumentsList
      * @param string|int|array $key
      * @return bool
      */
-    public function has($key)
+    public function has($key): bool
     {
         $keys = (array)$key;
         foreach ($keys as $one) {
@@ -64,7 +43,7 @@ class CliArgumentsList
     }
 
     /**
-     * @param string|int $key
+     * @param array|string|int $key
      * @return mixed
      */
     public function get($key)

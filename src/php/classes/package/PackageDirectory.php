@@ -2,19 +2,11 @@
 
 namespace lx;
 
-/**
- * Class PackageDirectory
- * @package lx
- */
-class PackageDirectory implements FusionComponentInterface
+class PackageDirectory extends Directory implements FusionComponentInterface
 {
 	use FusionComponentTrait;
 
-	/** @var Directory */
-	protected $dir;
-
     /**
-     * PackageDirectory constructor.
      * @param string|array $config
      */
 	public function __construct($config)
@@ -30,8 +22,7 @@ class PackageDirectory implements FusionComponentInterface
 			: ($config['path'] ?? null);
 
 		if ($path) {
-			$this->dir = new Directory($path);
-			$this->delegateMethodsCall('dir');
+		    parent::__construct($path);
 		} else {
 			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
@@ -40,10 +31,7 @@ class PackageDirectory implements FusionComponentInterface
 		}
 	}
 
-	/**
-	 * @return Service
-	 */
-	public function getService()
+	public function getService(): ?Service
 	{
 		return $this->owner;
 	}
@@ -51,10 +39,8 @@ class PackageDirectory implements FusionComponentInterface
 	/**
 	 * Any package has to have configuration file
 	 * If it doesn't have that file, this directory is not package
-	 *
-	 * @return DataFileInterface|null
 	 */
-	public function getConfigFile()
+	public function getConfigFile(): ?DataFileInterface
 	{
 		$configPathes = \lx::$conductor->getPackageConfigNames();
 		$path = $this->getPath();
@@ -73,10 +59,8 @@ class PackageDirectory implements FusionComponentInterface
 
 	/**
 	 * Method checks directory is lx-package (it has to have special lx-configuration file)
-	 *
-	 * @return bool
 	 */
-	public function isLx()
+	public function isLx(): bool
 	{
 		$lxConfigPathes = \lx::$conductor->getLxPackageConfigNames();
 		$path = $this->getPath();

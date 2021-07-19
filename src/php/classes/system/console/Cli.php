@@ -2,51 +2,24 @@
 
 namespace lx;
 
-/**
- * Class Cli
- * @package lx\
- */
 class Cli
 {
-	/** @var Service|null */
-	private $service = null;
+	private ?Service $service = null;
+	private ?Plugin $plugin = null;
+	private CliProcessor $processor;
+	private ?CliCommandsList $commandsList = null;
+	private array $processParams = [];
+	private ?string $inProcess = null;
+	private array $args = [];
+	private array $commandsHistory = [];
+	private int $commandsHistoryIndex = 0;
 
-	/** @var Plugin|null */
-	private $plugin = null;
-
-	/** @var CliProcessor */
-	private $processor;
-
-	/** @var array */
-	private $commandsList = [];
-
-	/** @var array */
-	private $processParams = [];
-
-	/** @var string|false */
-	private $inProcess = false;
-
-	/** @var array */
-	private $args = [];
-
-	/** @var array */
-	private $commandsHistory = [];
-
-	/** @var int */
-	private $commandsHistoryIndex = 0;
-
-	/**
-	 * Cli constructor.
-	 */
 	public function __construct()
 	{
 		$this->processor = new CliProcessor();
 	}
 
-	/**
-	 * Cycle for console enter
-	 */
-	public function run()
+	public function run(): void
 	{
 		$command = null;
 		while (!$this->checkCommand($command, '\q')) {
@@ -55,15 +28,11 @@ class Cli
 	}
 
 
-	/**************************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 *************************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @param string|null $command
-	 * @return string|null
-	 */
-	private function cycle($command)
+	private function cycle(?string $command): ?string
 	{
 		if ($this->inProcess) {
 			$this->handleCommand($this->inProcess);
@@ -96,7 +65,8 @@ class Cli
 					// TAB
 					9 => function () use ($locationText) {
 						$currentInput = Console::getCurrentInput();
-						$command = $this->autoCompleteCommand($currentInput);
+						
+						$command = $this->processor->autoCompleteCommand($currentInput, $this->getCommandsList());
 						if ($command) {
 							if ($command['common'] == $currentInput) {
 								Console::outln();
@@ -134,10 +104,7 @@ class Cli
 		return $command;
 	}
 
-	/**
-	 * @return string
-	 */
-	private function getLocationText()
+	private function getLocationText(): string
 	{
 		$result = 'lx-cli<';
 		if ($this->plugin !== null) {
@@ -150,13 +117,16 @@ class Cli
 		return $result;
 	}
 
-	/**
-	 * @param string $commandName
-	 */
-	private function handleCommand($commandName)
+	private function handleCommand(string $commandName): void
 	{
 		$this->processor->setParams($this->processParams);
-		$result = $this->processor->handleCommand($commandName, $this->args, $this->service, $this->plugin);
+		$result = $this->processor->handleCommand(
+		    $commandName,
+            CliProcessor::COMMAND_TYPE_CONSOLE,
+            $this->args,
+            $this->service,
+            $this->plugin
+        );
 		foreach ($result['params'] as $key => $value) {
 			$this->processParams[$key] = $value;
 		}
@@ -165,7 +135,7 @@ class Cli
 		}
 		foreach ($result['output'] as $row) {
 			if ($row[0] == 'in') {
-				$this->processParams[$result['need']] = Console::in($row[1], $row[2]);
+				$this->processParams[$result['need']] = Console::in(['hintText' => $row[1], 'hintDecor' => $row[2]]);
 				$this->inProcess = $commandName;
 				return;
 			}
@@ -175,7 +145,7 @@ class Cli
 		if ($result['keepProcess']) {
 			$this->inProcess = $commandName;
 		} else {
-			$this->inProcess = false;
+			$this->inProcess = null;
 			$this->processParams = [];
 		}
 
@@ -183,22 +153,13 @@ class Cli
 		$this->plugin = $this->processor->getPlugin();
 	}
 
-	/**
-	 * @param string $command
-	 * @return bool
-	 */
-	private function validateCommandName($command)
+	private function validateCommandName(string $command): bool
 	{
 	    $commands = $this->getCommandsList();
 	    return $commands->commandExists($command);
 	}
 
-	/**
-	 * @param string $command
-	 * @param string $expectedCommand
-	 * @return bool
-	 */
-	private function checkCommand($command, $expectedCommand)
+	private function checkCommand(?string $command, string $expectedCommand): bool
 	{
 	    if ($command === null) {
 	        return false;
@@ -207,61 +168,12 @@ class Cli
 	    return $command == $expectedCommand;
 	}
 
-	/**
-	 * Method tries to complete part of entered command
-	 * If there are several due alternatives will be returned the closest common part and array of alternatives
-	 *
-	 * @param string $text
-	 * @return array|false
-	 */
-	private function autoCompleteCommand($text)
+	private function getCommandsList(): CliCommandsList
 	{
-		$len = mb_strlen($text);
-		if ($len == 0 || $text[0] == '\\') {
-			return false;
-		}
-
-		$matches = [];
-		$names = $this->getCommandsList()->getCommandNames();
-        foreach ($names as $command) {
-            if ($command != $text && preg_match('/^' . $text . '/', $command)) {
-                $matches[] = $command;
-            }
-        }
-
-		if (empty($matches)) {
-			return false;
-		}
-
-		$commonPart = $text;
-		$i = $len;
-		while (true) {
-			$latterMatch = true;
-			if ($i >= mb_strlen($matches[0])) break;
-			$latter = $matches[0]{$i};
-			foreach ($matches as $command) {
-				if ($i >= mb_strlen($command)) break(2);
-				if ($latter != $command[$i]) break(2);
-			}
-			$commonPart .= $latter;
-			$i++;
-		}
-
-		return [
-			'common' => $commonPart,
-			'matches' => $matches
-		];
-	}
-
-	/**
-	 * @return CliCommandsList
-	 */
-	private function getCommandsList()
-	{
-		if (empty($this->commandsList)) {
+		if (!$this->commandsList) {
             $this->commandsList = $this->processor->getCommandsList()->getSubList([
 				CliProcessor::COMMAND_TYPE_COMMON,
-				CliProcessor::COMMAND_TYPE_CONSOLE_ONLY,
+				CliProcessor::COMMAND_TYPE_CONSOLE,
 			]);
 		}
 

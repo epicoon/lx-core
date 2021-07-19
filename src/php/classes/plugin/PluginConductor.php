@@ -213,11 +213,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
      */
 	public function getCssAssets(): array
 	{
-		$appCycler = $this->app->lifeCycle;
-		if ($appCycler) {
-			$appCycler->beforeGetPluginCssAssets($this->getPlugin());
-		}
-
+        $this->app->events->trigger(Plugin::EVENT_BEFORE_GET_CSS_ASSETS, $this->getPlugin());
 		$plugin = $this->getPlugin();
 		$css = $plugin->getConfig('css');
 		if (!$css) {

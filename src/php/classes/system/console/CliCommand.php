@@ -2,53 +2,35 @@
 
 namespace lx;
 
-/**
- * Class CliCommand
- * @package lx
- */
 class CliCommand
 {
-    /** @var array */
-    private $data;
+    private array $data;
 
-    /**
-     * CliCommand constructor.
-     * @param array $config
-     */
-    public function __construct($config)
+    public function __construct(array $config)
     {
         $this->data = $config;
         $this->data['command'] = (array)$this->data['command'];
     }
 
-    /**
-     * @return array
-     */
-    public function getNames()
+    public function getNames(): array
     {
         return $this->data['command'];
     }
 
-    /**
-     * @return int
-     */
-    public function getType()
+    public function getType(): int
     {
         return $this->data['type'] ?? CliProcessor::COMMAND_TYPE_COMMON;
     }
 
-    /**
-     * @return string
-     */
-    public function getDescription()
+    public function getDescription(): string
     {
         return $this->data['description'] ?? 'Description not defined';
     }
 
     /**
-     * @return CliArgument[]
+     * @return array<CliArgument>
      */
-    public function getArguments()
+    public function getArguments(): array
     {
         return $this->data['arguments'] ?? [];
     }
@@ -61,11 +43,7 @@ class CliCommand
         return $this->data['handler'] ?? null;
     }
 
-    /**
-     * @param CliArgumentsList $arguments
-     * @return array
-     */
-    public function validateInput($arguments)
+    public function validateInput(CliArgumentsList $arguments): array
     {
         $argumentsDefinition = $this->data['arguments'] ?? [];
         if (empty($argumentsDefinition)) {
@@ -82,7 +60,7 @@ class CliCommand
         ];
         /** @var CliArgument $definition */
         foreach ($argumentsDefinition as $definition) {
-            $key = $definition->getKey();
+            $key = $definition->getKeys();
             $value = $arguments->get($key);
             if ($value === null) {
                 if ($definition->isMandatory()) {
@@ -115,21 +93,21 @@ class CliCommand
             if (!empty($errors['required'])) {
                 $report[] = 'This command requres mandatory parameters:';
                 foreach ($errors['required'] as $definition) {
-                    $report[] = '* ' . implode(' or ', (array)$definition->getKey()) . '. '
+                    $report[] = '* ' . implode(' or ', $definition->getKeys()) . '. '
                         . $definition->getDescription();
                 }
             }
             if (!empty($errors['typeMismatch'])) {
                 $report[] = 'Parameter type mismatches:';
                 foreach ($errors['typeMismatch'] as $definition) {
-                    $report[] = '* ' . implode(' or ', (array)$definition->getKey()) . ': '
+                    $report[] = '* ' . implode(' or ', $definition->getKeys()) . ': '
                         . $definition->getType() . '. ' . $definition->getDescription();
                 }
             }
             if (!empty($errors['enumMismatch'])) {
                 $report[] = 'Parameter enum mismatches:';
                 foreach ($errors['enumMismatch'] as $definition) {
-                    $report[] = '* ' . implode(' or ', (array)$definition->getKey()) . ': '
+                    $report[] = '* ' . implode(' or ', $definition->getKeys()) . ': '
                         . 'available values - ' . implode(', ', $definition->getEnum()) . '. '
                         . $definition->getDescription();
                 }
@@ -141,10 +119,7 @@ class CliCommand
         return [];
     }
     
-    /**
-     * @return array
-     */
-    public function toArray()
+    public function toArray(): array
     {
         return $this->data;
     }

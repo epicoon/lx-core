@@ -2,17 +2,9 @@
 
 namespace lx;
 
-/**
- * Class HtmlHelper
- * @package lx
- */
 class HtmlHelper
 {
-	/**
-	 * @param array $data
-	 * @return string
-	 */
-	public static function rendetScriptTag($data)
+	public static function rendetScriptTag(array $data): string
 	{
 		$path = $data['path'];
 		$code = [

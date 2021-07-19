@@ -2,10 +2,6 @@
 
 namespace lx;
 
-/**
- * Class ArrayHelper
- * @package lx
- */
 class ArrayHelper
 {
     public static function iterableToArray(iterable $iterable): array
@@ -32,9 +28,8 @@ class ArrayHelper
     
     /**
      * @param mixed $array
-     * @return bool
      */
-    public static function isEmpty($array)
+    public static function isEmpty($array): bool
     {
         if ($array === null || $array === '') {
             return true;
@@ -52,7 +47,7 @@ class ArrayHelper
             return empty($array->toArray());
         }
         
-        if ($array instanceof iterable) {
+        if (is_iterable($array)) {
             foreach ($array as $item) {
                 return false;
             }
@@ -71,17 +66,14 @@ class ArrayHelper
         );
     }
 
-	/**
-	 * @param array $array
-	 * @param string $field
-	 * @return array
-	 */
-	public static function map($array, $field)
+	public static function map(iterable $array, string $field): array
 	{
 		$result = [];
 
 		foreach ($array as $value) {
-			if (!is_array($value) || !array_key_exists($field, $value)) continue;
+			if (!(is_iterable($value)) || !isset($value[$field])) {
+			    continue;
+            }
 			$result[$value[$field]] = $value;
 		}
 
@@ -89,14 +81,12 @@ class ArrayHelper
 	}
 
 	/**
-	 * @param static $key
-	 * @param array $array
 	 * @param mixed $default
 	 * @return mixed
 	 */
-	public static function extract($key, &$array, $default = null)
+	public static function extract(string $key, iterable &$array, $default = null)
 	{
-		if (!array_key_exists($key, $array)) {
+		if (!isset($array[$key])) {
 			return $default;
 		}
 
@@ -105,32 +95,22 @@ class ArrayHelper
 		return $result;
 	}
 
-    /**
-     * @param array $array
-     * @param string $columnName
-     * @return array
-     */
-	public static function getColumn($array, $columnName)
+	public static function getColumn(iterable $array, string $columnName): array
     {
         $result = [];
         foreach ($array as $row) {
-            if (is_array($row) && array_key_exists($columnName, $row)) {
+            if ((is_iterable($row)) && isset($row[$columnName])) {
                 $result[] = $row[$columnName];
             }
         }
         return $result;
     }
 
-	/**
-	 * @param array $array
-	 * @param array $path
-	 * @return bool
-	 */
-	public static function pathExists($array, $path)
+	public static function pathExists(iterable $array, array $path): bool
 	{
 		$currentArray = $array;
 		foreach ($path as $key) {
-			if (!is_array($currentArray) || !array_key_exists($key, $currentArray)) {
+			if (!(is_iterable($currentArray)) || !isset($currentArray[$key])) {
 				return false;
 			}
 
@@ -140,20 +120,15 @@ class ArrayHelper
 		return true;
 	}
 
-	/**
-	 * @param array $array
-	 * @param array $path
-	 * @return array
-	 */
-	public static function createPath($array, $path)
+	public static function createPath(iterable $array, iterable $path): iterable
 	{
 		$currentArray = &$array;
 		foreach ($path as $key) {
-			if (!is_array($currentArray)) {
+			if (!(is_iterable($currentArray))) {
 				return $array;
 			}
 
-			if (!array_key_exists($key, $currentArray)) {
+			if (!isset($key, $currentArray)) {
 				$currentArray[$key] = [];
 			}
 
@@ -163,19 +138,14 @@ class ArrayHelper
 		return $array;
 	}
 
-	/**
-	 * @param array $arr
-	 * @return bool
-	 */
-	public static function deepEmpty($arr)
+	public static function deepEmpty(iterable $arr): bool
 	{
 		$rec = function ($arr) use (&$rec) {
-			if (empty($arr)) {
+			if (self::isEmpty($arr)) {
 				return true;
 			}
-
 			foreach ($arr as $value) {
-				if (is_array($value)) {
+				if (is_iterable($value)) {
 					$empty = $rec($value);
 					if (!$empty) {
 						return false;
@@ -185,23 +155,18 @@ class ArrayHelper
 				}
 			}
 		};
+
 		return $rec($arr);
 	}
 
-	/**
-	 * @param array $array1
-	 * @param array $array2
-	 * @param bool $rewrite
-	 * @return array
-	 */
-	public static function mergeRecursiveDistinct($array1, $array2, $rewrite = false)
+	public static function mergeRecursiveDistinct(iterable $array1, iterable $array2, bool $rewrite = false): iterable
 	{
 		$merged = $array1;
 		foreach ($array2 as $key => $value) {
-			if (is_array($value) && array_key_exists($key, $merged) && is_array($merged[$key])) {
+			if ((is_iterable($value)) && isset($merged[$key]) && (is_iterable($merged[$key]))) {
 				$merged[$key] = self::mergeRecursiveDistinct($merged[$key], $value, $rewrite);
 			} else {
-				if (!array_key_exists($key, $merged) || $rewrite) {
+				if (!isset($merged[$key]) || $rewrite) {
 					$merged[$key] = $value;
 				}
 			}
@@ -210,11 +175,7 @@ class ArrayHelper
 		return $merged;
 	}
 
-	/**
-	 * @param array $array
-	 * @return bool
-	 */
-	public static function isAssoc($array)
+	public static function isAssoc(iterable $array): bool
 	{
 		$counter = 0;
 		foreach ($array as $key => $value) {
@@ -230,11 +191,8 @@ class ArrayHelper
 	 * Method recieves array of accosiated arrays with same keys
 	 * Extract keys in the individual field
 	 * Transfer arrays to countable with values order according to keys order
-	 *
-	 * @param array $arr
-	 * @return array
 	 */
-	public static function valuesStable($arr)
+	public static function valuesStable(array $arr): array
 	{
 		$keys = array_keys($arr[0]);
 		$rows = [];
@@ -255,14 +213,10 @@ class ArrayHelper
 
 	/**
 	 * Convert array to JS-like code string
-	 *
-	 * @param array $array
-	 * @return string
 	 */
-	public static function arrayToJsCode($array)
+	public static function arrayToJsCode(array $array): string
 	{
 		$rec = function ($val) use (&$rec) {
-			// на рекурсию
 			if (is_array($val)) {
 				$arr = [];
 				$keys = [];
@@ -303,12 +257,7 @@ class ArrayHelper
 		return $result;
 	}
 
-    /**
-     * @param array $array
-     * @param int $level
-     * @return string
-     */
-	public static function arrayToPhpCode($value, $level = 0)
+	public static function arrayToPhpCode(array $value, int $indent = 0): string
     {
         if (empty($value)) {
             return '[]';
@@ -320,7 +269,7 @@ class ArrayHelper
 
         $out = '';
         $tab = '    ';
-        $margin = str_repeat($tab, $level++);
+        $margin = str_repeat($tab, $indent++);
 
         $out .= '[' . PHP_EOL;
         foreach ($value as $key => $row) {
@@ -332,7 +281,7 @@ class ArrayHelper
             }
 
             if (is_array($row)) {
-                $out .= self::arrayToPhpCode($row, $level);
+                $out .= self::arrayToPhpCode($row, $indent);
             } elseif (is_null($row)) {
                 $out .= 'null';
             } elseif (is_numeric($row)) {

@@ -2,17 +2,9 @@
 
 namespace lx;
 
-/**
- * Class JsModuleProvider
- * @package lx
- */
 class JsModuleProvider extends Resource
 {
-	/**
-	 * @param array $list
-	 * @return string
-	 */
-	public function getModulesCode($list, $except = [])
+	public function getModulesCode(array $list, array $except = []): string
 	{
 		$modulesCode = '';
 		foreach ($list as $moduleName) {
@@ -22,16 +14,12 @@ class JsModuleProvider extends Resource
 		$compiler->setBuildModules(true);
 		$compiler->ignoreModules($except);
 		$modulesCode = $compiler->compileCode($modulesCode);
-		$modulesCode = I18nHelper::localize($modulesCode, $this->app->i18nMap->getMap());
+		$modulesCode = I18nHelper::localize($modulesCode, $this->app->i18nMap);
 
 		return $modulesCode;
 	}
 
-    /**
-     * @param array $list
-     * @return ResponseInterface
-     */
-	public function getModulesRequest($list)
+	public function getModulesRequest(array $list): ResponseInterface
     {
         $code = $this->getModulesCode($list['need'], $list['have']);
         return \lx::$app->diProcessor->createByInterface(ResponseInterface::class, [$code]);

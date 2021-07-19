@@ -2,12 +2,8 @@
 
 namespace lx;
 
-/**
- * Class UserEventsEnum
- * @package lx
- */
 class UserEventsEnum
 {
-	const NEW_USER = 'newUser';
+	const AFTER_USER_CREATED = 'afterUserCreated';
 	const BEFORE_USER_DELETE = 'beforeUserDelete';
 }

@@ -2,7 +2,7 @@
 
 namespace lx;
 
-interface ResponseInterface extends ErrorCollectorInterface
+interface ResponseInterface
 {
     public function setWarning(): void;
     public function applyResponseParams(): void;

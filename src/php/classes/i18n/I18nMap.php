@@ -2,10 +2,6 @@
 
 namespace lx;
 
-/**
- * Class I18nMap
- * @package lx
- */
 abstract class I18nMap implements FusionComponentInterface
 {
 	use ApplicationToolTrait;
@@ -13,37 +9,24 @@ abstract class I18nMap implements FusionComponentInterface
 
 	const DEFAULT_FILE_NAME = 'i18n';
 
-	/** @var array */
-	protected $map = null;
-	
-	/** @var array */
-	protected $tags;
+	protected ?array $map = null;
+	protected ?array $tags;
 
-	/**
-	 * @return array
-	 */
-	public function getMap()
+	public function getMap(): array
 	{
 		if ($this->map === null) {
 			$this->loadMap();
 		}
 
-		return $this->map;
+		return $this->map ?? [];
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getFullMap()
+	public function getFullMap(): array
 	{
 		return $this->getMap();
 	}
 
-	/**
-	 * @param iterable $map
-	 * @param bool $rewrite
-	 */
-	public function add($map, $rewrite = false)
+	public function add(iterable $map, bool $rewrite = false): void
 	{
 		if (!is_array($map) && is_object($map) && method_exists($map, 'toArray')) {
 			$map = $map->toArray();
@@ -59,32 +42,20 @@ abstract class I18nMap implements FusionComponentInterface
 
 	/**
 	 * This method helps to use files with code (not with configuration)
-	 *
-	 * @return array
 	 */
-	protected function files()
+	protected function files(): array
 	{
 		return [];
 	}
 
-	/**
-	 * @param string $fileName
-	 * @return string
-	 */
-	abstract protected function getFilePath($fileName);
+	abstract protected function getFilePath(string $fileName): string;
 
 	/**
 	 * @return string|array
 	 */
 	abstract protected function getFilesFromConfig();
 
-	/**
-	 * @param array $map1
-	 * @param array $map2
-	 * @param bool $rewrite
-	 * @return array
-	 */
-	protected function mapMerge($map1, $map2, $rewrite = false)
+	protected function mapMerge(array $map1, array $map2, bool $rewrite = false): array
 	{
 		$codes = $this->app->language->codes;
 
@@ -116,7 +87,7 @@ abstract class I18nMap implements FusionComponentInterface
 	/**
 	 * Method loads all files with translations
 	 */
-	private function loadMap()
+	private function loadMap(): void
 	{
 		if ($this->map !== null) {
 			return;
@@ -128,10 +99,7 @@ abstract class I18nMap implements FusionComponentInterface
 		$this->map = $this->mapMerge($mapFromConfig, $mapFromMethod);
 	}
 
-	/**
-	 * @return array
-	 */
-	private function getMapFromMethodFiles()
+	private function getMapFromMethodFiles(): array
 	{
 		$fileNames = $this->files();
 		$result = [];
@@ -142,10 +110,7 @@ abstract class I18nMap implements FusionComponentInterface
 		return $result;
 	}
 
-	/**
-	 * @return array
-	 */
-	private function getMapFromConfigFiles()
+	private function getMapFromConfigFiles(): array
 	{
         $filesFromConfig = $this->getFilesFromConfig();
 
@@ -165,11 +130,7 @@ abstract class I18nMap implements FusionComponentInterface
 		return $result;
 	}
 
-	/**
-	 * @param string $fileName
-	 * @return array
-	 */
-	private function loadFromFile($fileName)
+	private function loadFromFile(string $fileName): array
 	{
 		$path = $this->getFilePath($fileName);
 

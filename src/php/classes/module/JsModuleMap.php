@@ -4,54 +4,33 @@ namespace lx;
 
 use lx;
 
-/**
- * Class JsModuleMap
- * @package lx
- */
 class JsModuleMap
 {
-	/** @var array */
-	private static $map;
+	private static ?array $map = null;
 
-    /**
-     * @param string s$moduleName
-     * @return bool
-     */
-	public function moduleExists($moduleName)
+	public function moduleExists(string $moduleName): bool
     {
         $map = $this->getMap();
         return array_key_exists($moduleName, $map);
     }
 
-	/**
-	 * @param string $moduleName
-	 * @return array|null
-	 */
-	public function getModuleInfo($moduleName)
+	public function getModuleInfo(string $moduleName): ?array
 	{
 		$map = $this->getMap();
 		return $map[$moduleName] ?? null;
 	}
 
-    /**
-     * @param string s$moduleName
-     * @return array
-     */
-	public function getModuleData($moduleName)
+	public function getModuleData(string $moduleName): array
     {
         $map = $this->getMap();
         $info = $map[$moduleName] ?? [];
         return $info['data'] ?? [];
     }
 
-    /**
-     * @param string s$moduleName
-     * @return string|false
-     */
-    public function getModulePath($moduleName)
+    public function getModulePath(string $moduleName): ?string
     {
         if (!$this->moduleExists($moduleName)) {
-            return false;
+            return null;
         }
 
         $map = $this->getMap();
@@ -59,11 +38,7 @@ class JsModuleMap
         return $info['path'];
     }
 
-    /**
-     * @param string s$moduleName
-     * @return Service|null
-     */
-    public function getModuleService($moduleName)
+    public function getModuleService(string $moduleName): ?Service
     {
         if (!$this->moduleExists($moduleName)) {
             return null;
@@ -74,11 +49,12 @@ class JsModuleMap
         return lx::$app->getService($info['service']);
     }
 
-    /**
-	 * @return array
-	 */
-	public function getMap()
+	public function getMap(bool $reload = false): array
 	{
+	    if ($reload) {
+	        self::$map = null;
+        }
+	    
 		if (!self::$map) {
 		    $app = lx::$app;
 			$path = $app->conductor->getFullPath('@core/jsModulesMap.json');

@@ -2,22 +2,11 @@
 
 namespace lx;
 
-/**
- * Class I18nHelper
- * @package lx
- */
 class I18nHelper
 {
-	/**
-	 * @param string $data - text for internacionalization
-	 * @param I18nMap|array $map - map of translates
-     * @return string
-	 */
-	public static function localize($data, $map)
+	public static function localize(string $data, I18nMap $map): string
 	{
-        if ($map instanceof I18nMap) {
-            $map = $map->getFullMap();
-        }
+        $map = $map->getFullMap();
 
 		preg_match_all('/#lx:i18n([\w\W]*?)i18n:lx#/', $data, $matches);
 		$keys = array_unique($matches[1]);
@@ -48,32 +37,21 @@ class I18nHelper
 		return $data;
 	}
 
-	/**
-	 * @param Plugin $plugin - Plugin which is context for internacionalization
-	 * @param string $data - text for internacionalization
-     * @return string
-	 */
-	public static function localizePlugin($plugin, $data)
+	public static function localizePlugin(Plugin $plugin, string $data): string
 	{
-		$map = $plugin->i18nMap;
-		$fullMap = $map->getFullMap();
-		return self::localize($data, $fullMap);
+	    return self::localize($data, $plugin->i18nMap);
 	}
 
 	/**
-	 * @param string $key - key of string to translate
 	 * @param I18nMap|array $map - map of translates
-     * @param array $params
-     * @param string|null $lang
-     * @return string
 	 */
-	public static function translate($key, $map, $params = [], $lang = null)
+	public static function translate(string $key, $map, array $params = [], ?string $lang = null): string
 	{
 	    if ($map instanceof I18nMap) {
 	        $map = $map->getFullMap();
         }
 
-		$lang = $lang ?? \lx::$app->language->current;
+		$lang = $lang ?? \lx::$app->language->currentCode;
 
 		if (array_key_exists($lang, $map) && array_key_exists($key, $map[$lang])) {
 		    $str = $map[$lang][$key];
@@ -96,9 +74,8 @@ class I18nHelper
 
 	/**
 	 * @param string $params - example: 'k1: v1, k2: v2'
-     * @return string
 	 */
-	private static function parseParams($params)
+	private static function parseParams(string $params): string
 	{
         $result = [];
 		$arr = preg_split('/\s*,\s*/', trim($params, ':'));

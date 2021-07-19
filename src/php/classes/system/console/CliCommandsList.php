@@ -2,23 +2,13 @@
 
 namespace lx;
 
-/**
- * Class CliCommandsList
- * @package lx
- */
 class CliCommandsList
 {
-    /** @var array */
-    private $map;
+    private array $map = [];
+    /** @var array<CliCommand> */
+    private array $list;
 
-    /** @var CliCommand[] */
-    private $list;
-
-    /**
-     * @param array|null $types
-     * @return CliCommandsList
-     */
-    public function getSubList($types = null)
+    public function getSubList(?array $types = null): CliCommandsList
     {
         if ($types === null) {
             return $this;
@@ -39,34 +29,24 @@ class CliCommandsList
     }
 
     /**
-     * @return CliCommand[]
+     * @return array<CliCommand>
      */
-    public function getCommands()
+    public function getCommands(): array
     {
         return $this->list;
     }
 
-    /**
-     * @return array
-     */
-    public function getCommandNames()
+    public function getCommandNames(): array
     {
         return array_keys($this->map);
     }
 
-    /**
-     * @param string $name
-     * @return CliCommand|null
-     */
-    public function getCommand($name)
+    public function getCommand(string $name): ?CliCommand
     {
         return $this->map[$name] ?? null;
     }
 
-    /**
-     * @param array $list
-     */
-    public function setCommands($list)
+    public function setCommands(array $list): void
     {
         $this->list = [];
         foreach ($list as $command) {
@@ -82,19 +62,12 @@ class CliCommandsList
         }
     }
 
-    /**
-     * @param string $name
-     * @return bool
-     */
-    public function commandExists($name)
+    public function commandExists(string $name): bool
     {
         return array_key_exists($name, $this->map);
     }
 
-    /**
-     * @param $name
-     */
-    public function removeCommand($name)
+    public function removeCommand(string $name): void
     {
         $index = null;
         $names = [];
@@ -117,10 +90,7 @@ class CliCommandsList
         }
     }
 
-    /**
-     * @return array
-     */
-    public function toArray()
+    public function toArray(): array
     {
         $result = [];
         foreach ($this->list as $command) {

@@ -2,10 +2,6 @@
 
 namespace lx;
 
-/**
- * Class CliArgument
- * @package lx
- */
 class CliArgument
 {
     const TYPE_FREE = 'free';
@@ -19,106 +15,65 @@ class CliArgument
     const PROBLEM_TYPE_MISMATCH = 1;
     const PROBLEM_ENUM_MISMATCH = 2;
 
-    /** @var array|null */
-    private $key;
+    private array $keys;
+    private string $type;
+    private ?array $enum;
+    private string $description;
+    private bool $isMandatory;
+    private bool $isFlag;
 
-    /** @var string */
-    private $type;
-
-    /** @var array|null */
-    private $enum;
-
-    /** @var string */
-    private $description;
-
-    /** @var bool */
-    private $isMandatory;
-
-    /** @var bool */
-    private $isFlag;
-
-    /**
-     * CliArgument constructor.
-     */
     public function __construct()
     {
-        $this->key = null;
+        $this->keys = [];
         $this->type = self::TYPE_FREE;
         $this->enum = null;
-        $this->description = 'Description not defined';
+        $this->description = 'Description does not defined';
         $this->isMandatory = false;
         $this->isFlag = false;
     }
 
-    /**
-     * @param string|int|array $key
-     * @return $this
-     */
-    public function setKey($key)
+    public function setKeys(array $key): CliArgument
     {
-        $this->key = (array)$key;
+        $this->keys = $key;
         return $this;
     }
 
-    /**
-     * @param string $type
-     * @return $this
-     */
-    public function setType($type)
+    public function setType(string $type): CliArgument
     {
         $this->type = $type;
         return $this;
     }
 
-    /**
-     * @param array $enum
-     * @return $this
-     */
-    public function setEnum($enum)
+    public function setEnum(array $enum): CliArgument
     {
         $this->enum = $enum;
         return $this;
     }
 
-    /**
-     * @param string $text
-     */
-    public function setDescription($text)
+    public function setDescription(string $text): CliArgument
     {
         $this->description = $text;
         return $this;
     }
 
-    /**
-     * @return $this
-     */
-    public function setMandatory()
+    public function setMandatory(): CliArgument
     {
         $this->isMandatory = true;
         return $this;
     }
 
-    /**
-     * @return $this
-     */
-    public function setFlag()
+    public function setFlag(): CliArgument
     {
         $this->isFlag = true;
         return $this;
     }
 
-    /**
-     * @return string|int|array
-     */
-    public function getKey()
+    public function getKeys(): array
     {
-        return $this->key;
+        return $this->keys;
     }
 
-    /**
-     * @return string
-     */
-    public function getType()
+    public function getType(): string
     {
         if ($this->isFlag) {
             return self::TYPE_FLAG;
@@ -131,42 +86,30 @@ class CliArgument
         return $this->type;
     }
 
-    /**
-     * @return array
-     */
-    public function getEnum()
+    public function getEnum(): ?array
     {
         return $this->enum;
     }
 
-    /**
-     * @return string
-     */
-    public function getDescription()
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    /**
-     * @return bool
-     */
-    public function isMandatory()
+    public function isMandatory(): bool
     {
         return $this->isMandatory;
     }
 
-    /**
-     * @return bool
-     */
-    public function isFlag()
+    public function isFlag(): bool
     {
         return $this->isFlag;
     }
 
     /**
-     * @param $value
+     * @param mixed $value
      */
-    public function validateValue($value)
+    public function validateValue($value): int
     {
         if ($this->isFlag && $value !== true) {
             return self::PROBLEM_TYPE_MISMATCH;

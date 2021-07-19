@@ -2,18 +2,12 @@
 
 namespace lx;
 
-/**
- * Class SpecialAjaxRouter
- * @package lx
- */
 class SpecialAjaxRouter
 {
 	/**
 	 * Method defines if request is special AJAX
-	 *
-	 * @return bool
 	 */
-	public static function checkDialog()
+	public static function checkDialog(): bool
 	{
 		$dialog = \lx::$app->dialog;
 		return (
@@ -21,28 +15,22 @@ class SpecialAjaxRouter
 		);
 	}
 
-	/**
-	 * @return ResourceContext|false
-	 */
-	public function route()
+	public function route(): ?ResourceContext
 	{
 		switch (\lx::$app->dialog->getHeader('lx-type')) {
 			case 'service': return $this->serviceAjaxResponse();
 			case 'plugin': return $this->pluginAjaxResponse();
 			case 'widget': return $this->widgetAjaxResponse();
 		}
-		return false;
+		return null;
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @return ResourceContext
-	 */
-	private function serviceAjaxResponse()
+	private function serviceAjaxResponse(): ResourceContext
 	{
 		$type = \lx::$app->dialog->getHeader('lx-service');
 
@@ -57,10 +45,7 @@ class SpecialAjaxRouter
 		}
 	}
 
-	/**
-	 * @return ResourceContext|false
-	 */
-	private function pluginAjaxResponse()
+	private function pluginAjaxResponse(): ?ResourceContext
 	{
 		$meta = \lx::$app->dialog->getHeader('lx-plugin');
 		if ($meta === null) {
@@ -68,7 +53,7 @@ class SpecialAjaxRouter
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => 'Plugin-ajax-request without plugin!',
 			]);
-			return false;
+			return null;
 		}
 
 		$arr = explode(' ', $meta);
@@ -79,17 +64,14 @@ class SpecialAjaxRouter
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Plugin '$pluginName' not found",
 			]);
-			return false;
+			return null;
 		}
 
 		$respondentName = $arr[1] ?? null;
 		return $plugin->getResourceContext($respondentName, \lx::$app->dialog->getParams());
 	}
 
-	/**
-	 * @return ResourceContext|false
-	 */
-	private function widgetAjaxResponse()
+	private function widgetAjaxResponse(): ?ResourceContext
 	{
 		$meta = \lx::$app->dialog->getHeader('lx-widget');
 
@@ -99,12 +81,12 @@ class SpecialAjaxRouter
 		$widgetName = $data['backend'] ?? '';
 
 		if (!ClassHelper::exists($widgetName)) {
-			return false;
+			return null;
 		}
 
 		$ref = new \ReflectionClass($widgetName);
 		if (!$ref->isSubclassOf(Rect::class)) {
-			return false;
+			return null;
 		}
 
 		$methodName = $arr[1];

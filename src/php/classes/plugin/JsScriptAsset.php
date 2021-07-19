@@ -2,39 +2,23 @@
 
 namespace lx;
 
-/**
- * Class JsScriptAsset
- * @package lx
- */
 class JsScriptAsset
 {
 	const LOCATION_HEAD = 'head';
 	const LOCATION_BODY_BEGIN = 'body-begin';
 	const LOCATION_BODY_END = 'body-end';
 
-	/** @var Plugin */
-	private $plugin;
-
-	/** @var string */
-	private $path;
-
-	/** @var string */
-	private $location;
-
-	/** @var bool */
-	private $parallel;
-
-	/** @var string */
-	private $onLoad;
-
-	/** @var string */
-	private $onError;
+	private Plugin $plugin;
+	private string $path;
+	private string $location;
+	private bool $parallel;
+	private string $onLoad;
+	private string $onError;
 
 	/**
-	 * JsScriptAsset constructor.
 	 * @param array|string $config
 	 */
-	public function __construct($plugin, $config)
+	public function __construct(Plugin $plugin, $config)
 	{
 		$this->plugin = $plugin;
 
@@ -51,18 +35,12 @@ class JsScriptAsset
 		$this->onError = $config['onError'] ?? '';
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getPath()
+	public function getPath(): string
 	{
 		return $this->path;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function toArray()
+	public function toArray(): array
 	{
 		$result = [
 			'path' => $this->path

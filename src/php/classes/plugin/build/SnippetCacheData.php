@@ -2,71 +2,43 @@
 
 namespace lx;
 
-/**
- * Class SnippetCacheData
- * @package lx
- */
 class SnippetCacheData
 {
     use ObjectTrait;
 	use ApplicationToolTrait;
 
-	/** @var SnippetBuildContext */
-	private $snippetBuildContext;
-
-	/** @var string */
-	private $buildType;
-
-	/** @var Directory */
-	private $dir;
-
-	/** @var File */
-	private $mainFile;
-
-	/** @var File */
-	private $mapFile;
-
-	/** @var array */
-	private $map;
+	private SnippetBuildContext $snippetBuildContext;
+	private string $buildType;
+	private ?Directory $dir = null;
+	private ?File $mainFile = null;
+	private ?File $mapFile = null;
+	private ?array $map = null;
 
 	public function __construct(SnippetBuildContext $snippetBuildContext)
 	{
 		$this->snippetBuildContext = $snippetBuildContext;
-		$this->map = null;
 	}
 
-	/**
-	 * @return Plugin
-	 */
-	public function getPlugin()
+	public function getPlugin(): Plugin
 	{
 		return $this->snippetBuildContext->getPlugin();
 	}
 
-	/**
-	 * @param string $buildType
-	 */
-	public function initBuildType($buildType)
+	public function initBuildType(string $buildType): void
 	{
 		$this->buildType = $buildType;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isEmpty()
+	public function isEmpty(): bool
 	{
 		$this->retrieveFiles();
 		return !$this->mainFile || !$this->mapFile;
 	}
 
-	/**
-	 * @return array|false
-	 */
-	public function get()
+	public function get(): ?array
 	{
 		if ($this->isEmpty()) {
-			return false;
+			return null;
 		}
 
 		$map = $this->mapFile->get();
@@ -79,13 +51,7 @@ class SnippetCacheData
 		];
 	}
 
-	/**
-	 * @param string $rootKey
-	 * @param array $snippets
-	 * @param array $snippetsData
-	 * @param array $commonData
-	 */
-	public function renew($rootKey, $snippets, $snippetsData, $commonData)
+	public function renew(string $rootKey, array $snippets, array $snippetsData, array $commonData): void
 	{
 		$plugin = $this->getPlugin();
 		$snippetBundlesDir = new Directory($plugin->conductor->getSnippetsCachePath());
@@ -138,12 +104,7 @@ class SnippetCacheData
 		$mapFile->put($map);
 	}
 
-	/**
-	 * @param array $changed
-	 * @param array $snippets
-	 * @return array
-	 */
-	public function smartRenew($changed, $snippets)
+	public function smartRenew(array $changed, array $snippets): array
 	{
 		$plugin = $this->getPlugin();
 		$cachePath = $plugin->conductor->getSnippetsCachePath();
@@ -229,10 +190,7 @@ class SnippetCacheData
 		];
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getDiffs()
+	public function getDiffs(): array
 	{
 		$plugin = $this->getPlugin();
 		$cachePath = $plugin->conductor->getSnippetsCachePath();
@@ -260,10 +218,7 @@ class SnippetCacheData
 		return $changes;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getMap()
+	public function getMap(): array
 	{
 		if ($this->map === null) {
 			$this->retrieveFiles();
@@ -278,16 +233,12 @@ class SnippetCacheData
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * ** * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @param File $cacheFile
-	 * @param array $fileNames
-	 * @return bool
-	 */
-	private function checkCacheIsOutdated($cacheFile, $fileNames) {
+	private function checkCacheIsOutdated(File $cacheFile, array $fileNames): bool
+    {
 		foreach ($fileNames as $name) {
 			$file = new File($name);
 			if ($file->isNewer($cacheFile)) {
@@ -298,11 +249,7 @@ class SnippetCacheData
 		return false;
 	}
 
-	/**
-	 * @param array $commonDependencies
-	 * @param array $dependencies
-	 */
-	private function processDependencies($commonDependencies, &$dependencies)
+	private function processDependencies(array $commonDependencies, array &$dependencies): void
 	{
 		$commonDependencies->add($dependencies);
 		if (!isset($dependencies['plugins'])) {
@@ -315,12 +262,7 @@ class SnippetCacheData
 		unset($dependency);
 	}
 
-	/**
-	 * @param array $dependencies
-	 * @param array $oldDependencies
-	 * @return array
-	 */
-	private function restoreDependencies($dependencies, $oldDependencies)
+	private function restoreDependencies(array $dependencies, array $oldDependencies): array
 	{
 		if (!isset($oldDependencies['plugins']) || !isset($dependencies['plugins'])) {
 			return $dependencies;
@@ -336,9 +278,9 @@ class SnippetCacheData
 	}
 
 	/**
-	 * Retrieve main file to the field [[$this->mainFile]] and map file fo the field [[$this->>mapFile]]
+	 * Retrieve main file to the field [[$this->mainFile]] and map file fo the field [[$this->mapFile]]
 	 */
-	private function retrieveFiles()
+	private function retrieveFiles(): void
 	{
 		if ($this->dir !== null) {
 			return;
@@ -348,7 +290,7 @@ class SnippetCacheData
 		$path = $plugin->conductor->getSnippetsCachePath();
 		$dir = new Directory($path);
 		if (!$dir->exists()) {
-			$this->dir = false;
+			$this->dir = null;
 			return;
 		}
 

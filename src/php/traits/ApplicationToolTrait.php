@@ -3,9 +3,6 @@
 namespace lx;
 
 /**
- * Trait ApplicationToolTrait
- * @package lx
- *
  * @property HttpApplication|ConsoleApplication|ProcessApplication $app
  */
 trait ApplicationToolTrait

@@ -5,13 +5,12 @@ namespace lx;
 use lx;
 
 /**
- * Class AbstractApplication
- * @package lx
- *
  * @property-read string $sitePath
  * @property-read Directory $directory
  * @property-read ApplicationConductor $conductor
  * @property-read ServicesMap $services
+ * @property-read ServiceProvider $serviceProvider
+ * @property-read PluginProvider $pluginProvider
  * @property-read DependencyProcessor $diProcessor
  * @property-read EventManagerInterface $events
  * @property-read LoggerInterface $logger
@@ -20,6 +19,9 @@ abstract class AbstractApplication implements FusionInterface
 {
     use ObjectTrait;
     use FusionTrait;
+    
+    const EVENT_BEFORE_RUN = 'beforeApplicationRun';
+    const EVENT_AFTER_RUN = 'afterApplicationRun';
 
     private string $id;
     private int $pid;
@@ -112,7 +114,6 @@ abstract class AbstractApplication implements FusionInterface
     }
 
 	/**
-	 * @param $name string
 	 * @return mixed
 	 */
 	public function __get(string $name)
@@ -126,6 +127,10 @@ abstract class AbstractApplication implements FusionInterface
 				return $this->_conductor;
 			case 'services':
 				return $this->_services;
+            case 'serviceProvider':
+                return new ServiceProvider($this);
+            case 'pluginProvider':
+                return new PluginProvider($this);
             case 'diProcessor':
                 return $this->_diProcessor;
             case 'events':
@@ -152,7 +157,6 @@ abstract class AbstractApplication implements FusionInterface
 
 	/**
 	 * @param string|array $data
-	 * @param string $locationInfo
 	 */
 	public function log($data, ?string $locationInfo = null)
 	{
@@ -167,7 +171,6 @@ abstract class AbstractApplication implements FusionInterface
 	}
 
 	/**
-	 * @param string|null $param
 	 * @return mixed
 	 */
 	public function getConfig(?string $param = null)
@@ -200,7 +203,6 @@ abstract class AbstractApplication implements FusionInterface
 
 	/**
 	 * @param string|array $mode
-	 * @return bool
 	 */
 	public function isMode($mode): bool
 	{
@@ -238,31 +240,6 @@ abstract class AbstractApplication implements FusionInterface
 		return null;
 	}
 
-	/**
-	 * @param string|File $file
-	 * @return Service|null
-	 */
-	public function getServiceByFile($file): ?Service
-	{
-		if (is_string($file)) {
-			$filePath = $this->conductor->getFullPath($file);
-		} elseif ($file instanceof File) {
-			$filePath = $file->getPath();
-		} else {
-			return null;
-		}
-
-		$map = Autoloader::getInstance()->map->packages;
-		foreach ($map as $name => $servicePath) {
-			$fullServicePath = addcslashes($this->sitePath . '/' . $servicePath, '/');
-			if (preg_match('/^' . $fullServicePath . '\//', $filePath)) {
-				return $this->getService($name);
-			}
-		}
-
-		return null;
-	}
-
 	public function getPackagePath(string $name): ?string
 	{
 		$map = Autoloader::getInstance()->map;
@@ -274,36 +251,9 @@ abstract class AbstractApplication implements FusionInterface
 		return $this->conductor->getFullPath($path);
 	}
 
-    /**
-     * @param string|array $fullPluginName
-     */
-	public function getPlugin($fullPluginName, array $attributes = [], string $onLoad = ''): ?Plugin
+	public function getPlugin(string $pluginName): ?Plugin
 	{
-		if (is_array($fullPluginName)) {
-			return $this->getPlugin(
-				$fullPluginName['name'] ?? $fullPluginName['plugin'] ?? '',
-				$fullPluginName['attributes'] ?? [],
-				$fullPluginName['onLoad'] ?? ''
-			);
-		}
-
-		$arr = explode(':', $fullPluginName);
-		if (count($arr) != 2) return null;
-		$serviceName = $arr[0];
-		$pluginName = $arr[1];
-
-		$service = $this->getService($serviceName);
-		if (!$service) return null;
-
-		$plugin = $service->getPlugin($pluginName);
-		if (!empty($attributes)) {
-			$plugin->addAttributes($attributes);
-		}
-
-		if ($onLoad != '') {
-			$plugin->onLoad($onLoad);
-		}
-		return $plugin;
+	    return $this->pluginProvider->getPluginByName($pluginName);
 	}
 
 	public function getPluginPath(string $serviceName, ?string $pluginName = null): ?string

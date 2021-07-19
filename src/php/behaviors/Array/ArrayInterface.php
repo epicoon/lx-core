@@ -42,6 +42,6 @@ interface ArrayInterface extends \ArrayAccess, \IteratorAggregate
 	 * @param mixed $value
 	 */
 	public function contains($value): bool;
-	public function merge(iterable $array): iterable;
+	public function merge(iterable $array): void;
 	public function toArray(): array;
 }

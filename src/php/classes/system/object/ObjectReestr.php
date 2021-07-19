@@ -4,22 +4,12 @@ namespace lx;
 
 use ReflectionClass;
 
-/**
- * Class ObjectReestr
- * @package lx
- */
 class ObjectReestr
 {
-    /** @var array */
-    private static $traits = [];
+    private static array $traits = [];
+    private static array $traitMap = [];
 
-    /** @var array */
-    private static $traitMap = [];
-
-    /**
-     * @return array
-     */
-    public static function getTraitMap($className)
+    public static function getTraitMap(string $className): array
     {
         if (empty(self::$traitMap) || !array_key_exists($className, self::$traitMap)) {
             self::$traitMap[$className] = ClassHelper::getTraitNames($className, true);
@@ -28,23 +18,16 @@ class ObjectReestr
         return self::$traitMap[$className];
     }
 
-    /**
-     * @param string $traitName
-     * @return array
-     */
-    public static function getTraitInfo($traitName)
+    public static function getTraitInfo(string $traitName): array
     {
-        if ( ! array_key_exists($traitName, self::$traits)) {
+        if (!array_key_exists($traitName, self::$traits)) {
             self::loadTraitInfo($traitName);
         }
 
         return self::$traits[$traitName];
     }
 
-    /**
-     * @param string $traitName
-     */
-    private static function loadTraitInfo($traitName)
+    private static function loadTraitInfo(string $traitName): void
     {
         try {
             $trait = new ReflectionClass($traitName);

@@ -4,10 +4,7 @@ namespace lx;
 
 class Minimizer
 {
-	/**
-	 * Удаление всех комментариев
-	 */
-	public static function cutComments($text)
+	public static function cutComments(string $text): string
 	{
 		$text = preg_replace('/\/\/\*.*?(\\\n|\n|$)/', '', $text);
 		$text = preg_replace('/\/\*[\w\W]*?\*\//', '', $text);
@@ -15,10 +12,7 @@ class Minimizer
 		return $text;
 	}
 
-	/**
-	 * Удаление всех ненужных пробельных символов
-	 */
-	public static function clearSpaces($text)
+	public static function clearSpaces(string $text): string
 	{
 		// Экранировать строки
 		list ($text, $strings) = self::maskStrings($text);
@@ -54,7 +48,7 @@ class Minimizer
 		return $text;
 	}
 
-	private static function maskStrings($text)
+	private static function maskStrings(string $text): array
 	{
 		$parts = preg_split('/(?:(\'[^\']*?\')|("[^"]*?")|(`[^`]*?`))/', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
 		$maskedText = '';
@@ -83,7 +77,7 @@ class Minimizer
 		return [$maskedText, $stringsMap];
 	}
 
-	private static function returnStrings($text, $strings)
+	private static function returnStrings(string $text, array $strings): string
 	{
 		$result = preg_replace_callback('/#lx:_mstr\[(\d+?),(\d+?)\]/', function ($match) use ($strings) {
 			return $strings[$match[1]][$match[2]];

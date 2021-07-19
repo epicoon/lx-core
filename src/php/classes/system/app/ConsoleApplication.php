@@ -2,22 +2,12 @@
 
 namespace lx;
 
-/**
- * Class ConsoleApplication
- * @package lx
- */
 class ConsoleApplication extends BaseApplication
 {
-    /** @var string */
-    protected $command;
+    protected string $command = '';
+	protected array $args = [];
 
-	/** @var array */
-	protected $args;
-
-    /**
-     * @param array $argv
-     */
-	public function setArguments($argv)
+	public function setArguments(array $argv): void
     {
         $lx = array_shift($argv);
         $this->command = array_shift($argv);

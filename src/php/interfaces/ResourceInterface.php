@@ -2,7 +2,7 @@
 
 namespace lx;
 
-interface ResourceInterface extends ErrorCollectorInterface
+interface ResourceInterface
 {
     public function beforeAction(): void;
     public function beforeSuccessfulAction(): void;

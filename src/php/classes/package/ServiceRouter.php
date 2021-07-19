@@ -2,35 +2,21 @@
 
 namespace lx;
 
-/**
- * Class ServiceRouter
- * @package lx
- */
 class ServiceRouter implements FusionComponentInterface
 {
 	use FusionComponentTrait;
 
-	/**
-	 * @return Service
-	 */
-	public function getService()
+	public function getService(): Service
 	{
 		return $this->owner;
 	}
 
-	/**
-	 * @param array $serviceRouteData
-	 * @return ResourceContext|false
-	 */
-	public function route($serviceRouteData)
+	public function route(array $serviceRouteData): ?ResourceContext
 	{
 		return $this->determineRouteData($serviceRouteData);
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getMap()
+	public function getMap(): array
 	{
 		$map = $this->getService()->getConfig('routes');
 		return $map ?? [];
@@ -53,11 +39,8 @@ class ServiceRouter implements FusionComponentInterface
 	 *
 	 *     'route/e' => ['plugin' => 'somePlugin'],
 	 * ]
-	 *
-	 * @param array $routeData
-	 * @return ResourceContext|false
 	 */
-	protected function determineRouteData($routeData)
+	protected function determineRouteData(array $routeData): ?ResourceContext
 	{
 		$resource = $routeData;
 		if (isset($resource['route'])) {
@@ -66,12 +49,12 @@ class ServiceRouter implements FusionComponentInterface
 
 			$map = $this->getMap();
 			if (!array_key_exists($route, $map)) {
-				return false;
+				return null;
 			}
 
 			$data = $map[$route];
 			if (!$this->validateConditions($data)) {
-				return false;
+				return null;
 			}
 
 			if (is_string($data)) {
@@ -83,13 +66,13 @@ class ServiceRouter implements FusionComponentInterface
 				if ($info) {
 					$arr = $this->getControllerData($info);
 					if (!$arr) {
-						return false;
+						return null;
 					}
 					$resource['class'] = $arr[0];
 					$resource['method'] = $arr[1];
 				} elseif (isset($data['plugin'])) {
 					if (!$this->getService()->pluginExists($data['plugin'])) {
-						return false;
+						return null;
 					}
 					$resource['plugin'] = $data['plugin'];
 				}
@@ -99,11 +82,7 @@ class ServiceRouter implements FusionComponentInterface
 		return new ResourceContext($resource);
 	}
 
-	/**
-	 * @param string $nameWithAction
-	 * @return array|false
-	 */
-	protected function getControllerData($nameWithAction)
+	protected function getControllerData(string $nameWithAction): ?array
 	{
 		$arr = explode('::', $nameWithAction);
 		$className = $arr[0];
@@ -113,14 +92,10 @@ class ServiceRouter implements FusionComponentInterface
 			return [$className, $actionMethod];
 		}
 
-		return false;
+		return null;
 	}
 
-	/**
-	 * @param array $data
-	 * @return bool
-	 */
-	private function validateConditions($data)
+	private function validateConditions(array $data): bool
 	{
 		if (!is_array($data)) {
 			return true;

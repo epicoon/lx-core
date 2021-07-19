@@ -2,45 +2,19 @@
 
 namespace lx;
 
-/**
- * Class Request
- * @package lx
- */
 Class Request
 {
-	/** @var bool */
-	private $returnAsString;
+	private bool $returnAsString;
+	private ?string $url = null;
+	private string $method = 'post';
+	private array $headers = [];
+	private array $options = [];
+	private array $params = [];
+	private ?string $response = null;
+	private ?array $info = null;
+	private ?string $error = null;
 
-	/** @var string */
-	private $url = null;
-
-	/** @var string */
-	private $method = 'post';
-
-	/** @var array */
-	private $headers = [];
-
-	/** @var array */
-	private $options = [];
-
-	/** @var array */
-	private $params = [];
-
-	/** @var string */
-	private $response = null;
-
-	/** @var array */
-	private $info = null;
-
-	/** @var string */
-	private $error = null;
-
-	/**
-	 * Request constructor.
-	 * @param string $url
-	 * @param array $params
-	 */
-	public function __construct($url = null, $params = [])
+	public function __construct(?string $url = null, array $params = [])
 	{
 		if ($url) {
 			$tempUrl = explode('?', $url);
@@ -56,27 +30,17 @@ Class Request
 		$this->returnAsString = true;
 	}
 
-	/**
-	 * @param string $method
-	 */
-	public function setMethod($method)
+	public function setMethod(string $method): void
 	{
 		$this->method = strtolower($method);
 	}
 
-	/**
-	 * @param string $method
-	 * @return bool
-	 */
-	public function checkMethod($method)
+	public function checkMethod(string $method): bool
 	{
 		return $this->method == strtolower($method);
 	}
 
-	/**
-	 * @param array $headers
-	 */
-	public function addHeaders($headers)
+	public function addHeaders(array $headers): void
 	{
 		foreach ($headers as $key => $value) {
 			if (is_numeric($key)) {
@@ -88,37 +52,25 @@ Class Request
 		}
 	}
 
-	/**
-	 * @param string $header
-	 * @param string $value
-	 */
-	public function addHeader($header, $value)
+	public function addHeader(string $header, string $value): void
 	{
 		$this->headers[$header] = $value;
 	}
 
-	/**
-	 * @param array $options
-	 */
-	public function setOptions($options)
+	public function setOptions(array $options): void
 	{
 		$this->options = $options;
 	}
 
 	/**
-	 * @param int $key
 	 * @param mixed $value
 	 */
-	public function setOption($key, $value)
+	public function setOption(int $key, $value): void
 	{
 		$this->options[$key] = $value;
 	}
 
-	/**
-	 * @param array $options
-	 * @param bool $rewrite
-	 */
-	public function addOptions($options, $rewrite = false)
+	public function addOptions(array $options, bool $rewrite = false): void
 	{
 		foreach ($options as $key => $value) {
 			if (!$rewrite && array_key_exists($key, $this->options)) {
@@ -129,28 +81,20 @@ Class Request
 		}
 	}
 
-	/**
-	 * @param array $params
-	 */
-	public function setParams($params)
+	public function setParams(array $params): void
 	{
 		$this->params = $params;
 	}
 
 	/**
-	 * @param string $name
 	 * @param mixed $value
 	 */
-	public function setParam($name, $value)
+	public function setParam(string $name, $value): void
 	{
 		$this->params[$name] = $value;
 	}
 
-	/**
-	 * @param array $params
-	 * @param bool $rewrite
-	 */
-	public function addParams($params, $rewrite = false)
+	public function addParams(array $params, bool $rewrite = false): void
 	{
 		foreach ($params as $key => $param) {
 			if (!$rewrite && array_key_exists($key, $this->params)) {
@@ -161,19 +105,15 @@ Class Request
 		}
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getResponse()
+	public function getResponse(): string
 	{
 		return $this->response;
 	}
 
 	/**
-	 * @param string $key
-	 * @return array|string|null
+	 * @return mixed
 	 */
-	public function getInfo($key = null)
+	public function getInfo(?string $key = null)
 	{
 		if ($key === null) {
 			return $this->info;
@@ -186,19 +126,12 @@ Class Request
 		return null;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getError()
+	public function getError(): ?string
 	{
 		return $this->error;
 	}
 
-	/**
-	 * @param array $params
-	 * @return string|false
-	 */
-	public function send($params = [])
+	public function send(array $params = []): ?string
 	{
 		$url = null;
 		if ($this->url) $url = $this->url;
@@ -236,10 +169,12 @@ Class Request
 			}
 		}
 
-		$this->response = curl_exec($ch);
-		if ($this->response === false) {
+		$response = curl_exec($ch);
+		if ($response === false) {
 			$this->error = curl_error($ch);
-		}
+		} else {
+		    $this->response = $response;
+        }
 
 		$this->info = curl_getinfo($ch);
 

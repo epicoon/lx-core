@@ -4,7 +4,7 @@ namespace lx;
 
 abstract class DbConnection implements DbConnectionInterface
 {
-    use ErrorCollectorTrait;
+    use FlightRecorderHolderTrait;
 
     const SELECT_TYPE_BOTH = 1;
 	const SELECT_TYPE_ASSOC = 2;

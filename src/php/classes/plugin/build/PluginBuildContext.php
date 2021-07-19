@@ -96,7 +96,8 @@ class PluginBuildContext implements ContextTreeInterface
 	{
 		if (isset($dependencies['plugins'])) {
 			foreach ($dependencies['plugins'] as $pluginInfo) {
-				$plugin = $this->app->getPlugin($pluginInfo);
+//				$plugin = $this->app->getPlugin($pluginInfo);
+                $plugin = $this->app->pluginProvider->getPluginByConfig($pluginInfo);
 				$plugin->setAnchor($pluginInfo['anchor']);
 				$context = $this->add(['plugin' => $plugin]);
 				$context->compile();
@@ -215,7 +216,7 @@ class PluginBuildContext implements ContextTreeInterface
 		$this->mainJs = $this->compileJs($plugin->conductor->getJsMain());
 	}
 
-	private function compileJs(File $file): string
+	private function compileJs(?File $file): string
 	{
 		$fileExists = $file && $file->exists();
 		$code = '';

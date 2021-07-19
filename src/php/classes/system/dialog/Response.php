@@ -6,8 +6,6 @@ use lx;
 
 class Response implements ResponseInterface
 {
-    use ErrorCollectorTrait;
-
     private int $code;
     private bool $isWarning = false;
     private string $type;
@@ -22,14 +20,7 @@ class Response implements ResponseInterface
     public function __construct($data, int $code = ResponseCodeEnum::OK)
     {
         $this->code = $code;
-
-        if ($data !== null) {
-            if ($code == ResponseCodeEnum::OK) {
-                $this->data = $data;
-            } else {
-                $this->addError($data);
-            }
-        }
+        $this->data = $data;
     }
 
     public function setWarning(): void
@@ -50,7 +41,7 @@ class Response implements ResponseInterface
 
     public function isForbidden(): bool
     {
-        return $this->code == ResponseCodeEnum::FORBIDDEN;
+        return $this->getCode() == ResponseCodeEnum::FORBIDDEN;
     }
 
     public function isSuccessfull(): bool
@@ -119,13 +110,8 @@ class Response implements ResponseInterface
     private function getFullData()
     {
         if (!isset($this->fullData)) {
-            if ($this->hasErrors()) {
-                $data = [];
-                /** @var ErrorCollectorError $error */
-                foreach ($this->getErrors() as $error) {
-                    $data[] = $error->getInfo()['description'];
-                }
-                $this->fullData = $data;
+            if (!$this->isSuccessfull()) {
+                $this->fullData = $this->data;
             } else {
                 $data = $this->data;
                 $dump = lx::getDump();

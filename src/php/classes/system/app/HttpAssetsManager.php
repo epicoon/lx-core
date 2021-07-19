@@ -2,21 +2,13 @@
 
 namespace lx;
 
-/**
- * Class HttpAssetsManager
- * @package lx
- */
 class HttpAssetsManager implements FusionComponentInterface
 {
     use FusionComponentTrait;
 
-    /** @var string */
-    protected $colorSchemaModule = 'lx.ColorSchema.white';
+    protected string $colorSchemaModule = 'lx.ColorSchema.white';
 
-    /**
-     * @return string
-     */
-    public function getCssColorSchema()
+    public function getCssColorSchema(): string
     {
         return $this->colorSchemaModule;
     }

@@ -2,31 +2,16 @@
 
 namespace lx;
 
-/**
- * Class Math
- * @package lx
- */
 class Math
 {
-	/** @var int */
-	private static $counter = 0;
+	private static int $counter = 0;
 
-	/**
-	 * @return string
-	 */
-	public static function randHash()
+	public static function randHash(): string
 	{
 		return md5('' . (self::$counter++) . '_' . time() . '_' . rand(0, PHP_INT_MAX));
 	}
 
-	/**
-	 * @param int $min
-	 * @param int $max
-	 * @param bool $crypt
-	 * @return int
-	 * @throws \Exception
-	 */
-	public static function rand($min, $max, $crypt = false)
+	public static function rand(int $min, int $max, bool $crypt = false): int
 	{
 		if ($crypt) {
 			return \random_int($min, $max);
@@ -35,23 +20,21 @@ class Math
 		return \rand($min, $max);
 	}
 
-	/**
-	 * @param float $probability - value from interval [0; 1]
-	 * @return bool
-	 */
-	public static function gamble($probability)
+	public static function gamble(float $probability): bool
 	{
+	    if ($probability <= 0.0) {
+	        return false;
+        }
+	    if ($probability >= 1.0) {
+	        return true;
+        }
+	    
 		$param = $probability * 1000;
 		$rand = self::rand(1, 1000);
 		return $rand <= $param;
 	}
 
-    /**
-     * @param array $array
-     * @return array
-     * @throws \Exception
-     */
-	public static function shuffleArray($array)
+	public static function shuffleArray(array $array): array
     {
         for ($i=0, $l=count($array); $i<$l; $i++) {
             $rand = Math::rand(0, $l - 1);
@@ -66,13 +49,11 @@ class Math
 	/**
 	 * Change the number system from decimal to custom system
 	 * You can use basis up to 62
-	 *
-	 * @param int $n
-	 * @param int $basis
-	 * @return string
 	 */
-	public static function decChangeNotation($n, $basis)
+	public static function decChangeNotation(int $n, int $basis): string
 	{
+	    $basis = self::intToRange($basis, 2, 62);
+	    
 		$str = '';
 		$q = floor($n / $basis);
 		while ($q) {
@@ -89,12 +70,21 @@ class Math
 		$str = "$a$str";
 		return $str;
 	}
+	
+	public static function intToRange(int $value, int $min, int $max): int
+    {
+        if ($value > $max) {
+            return $max;
+        }
+        
+        if ($value < $min) {
+            return $min;
+        }
+        
+        return $value;
+    }
 
-	/**
-	 * @param float $val
-	 * @return int
-	 */
-	public static function roundToZero($val)
+	public static function roundToZero(float $val): int
 	{
 		if ($val > 0) return floor($val);
 		if ($val < 0) return ceil($val);
@@ -103,18 +93,23 @@ class Math
 
 	/**
 	 * Calculate result from string, example: '(11 + 44) * 3'
-	 *
-	 * @param string $str
-	 * @return float|false
 	 */
-	public static function calculate($str)
+	public static function calculate(string $str): ?float
 	{
-		if ($str == '') return 0;
-		if (is_numeric($str)) return $str;
+		if ($str == '') {
+		    return 0.0;
+        }
+		if (is_numeric($str)) {
+		    return (float)$str;
+        }
 		$str = preg_replace('/^=/', '', $str);
 		$str = str_replace(' ', '', $str);
-		if (preg_match('/[^\d.()+\-*\/]/', $str)) return false;
-		if (is_numeric($str)) return $str;
+		if (preg_match('/[^\d.()+\-*\/]/', $str)) {
+		    return null;
+        }
+		if (is_numeric($str)) {
+		    return (float)$str;
+        }
 
 		$calc = function($op0, $op1, $opr) {
 			switch ($opr) {

@@ -3,9 +3,6 @@
 namespace lx;
 
 /**
- * Class AutoloadMap
- * @package lx
- *
  * @property-read array $packages
  * @property-read array $files
  * @property-read array $namespaces
@@ -13,32 +10,15 @@ namespace lx;
  */
 class AutoloadMap
 {
-	/** @var string */
-	private $sitePath;
+	private string $sitePath;
+	private string $autoloadMapPath;
+	private string $autoloadMapCachePath;
+	private array $_packages = [];
+	private array $_files = [];
+	private array $_namespaces = [];
+	private array $_classes = [];
 
-	/** @var string */
-	private $autoloadMapPath;
-
-	/** @var string */
-	private $autoloadMapCachePath;
-
-	/** @var array */
-	private $_packages = [];
-
-	/** @var array */
-	private $_files = [];
-
-	/** @var array */
-	private $_namespaces = [];
-
-	/** @var array */
-	private $_classes = [];
-
-	/**
-	 * AutoloadMap constructor.
-	 * @param string $sitePath
-	 */
-	public function __construct($sitePath)
+	public function __construct(string $sitePath)
 	{
 		$this->sitePath = $sitePath;
 		$systemPath = \lx::$conductor->getSystemPath();
@@ -48,11 +28,7 @@ class AutoloadMap
 		$this->load();
 	}
 
-	/**
-	 * @param string $name
-	 * @return array|null
-	 */
-	public function __get($name)
+	public function __get(string $name): ?array
 	{
 		switch ($name) {
 			case 'packages'   :
@@ -71,7 +47,7 @@ class AutoloadMap
 	/**
 	 * Renew map and rebuild cache
 	 */
-	public function reset()
+	public function reset(): void
 	{
 		if ($this->loadForce()) {
 			$this->makeCache();
@@ -79,11 +55,11 @@ class AutoloadMap
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	private function load()
+	private function load(): void
 	{
 		if (!file_exists($this->autoloadMapCachePath)
 			|| filemtime($this->autoloadMapPath) > filemtime($this->autoloadMapCachePath)
@@ -99,7 +75,7 @@ class AutoloadMap
 	 * Cache file as opposite to 'autoload.json' has already built block 'classes'
 	 * according to 'classmap' autoload configurations
 	 */
-	private function makeCache()
+	private function makeCache(): void
 	{
 		$data = json_encode([
 			'packages' => $this->_packages,
@@ -114,7 +90,7 @@ class AutoloadMap
 	/**
 	 * Load map from 'autoloadCache.json'
 	 */
-	private function loadCache()
+	private function loadCache(): void
 	{
 		$file = new File($this->autoloadMapCachePath);
 		$data = $file->get();
@@ -129,7 +105,7 @@ class AutoloadMap
 	/**
 	 * Load map from 'autoload.json'
 	 */
-	private function loadForce()
+	private function loadForce(): bool
 	{
 		$file = new File($this->autoloadMapPath);
 		if (!$file->exists()) {
@@ -153,10 +129,7 @@ class AutoloadMap
 		return true;
 	}
 
-	/**
-	 * @param array $data
-	 */
-	private function parseClasses($data)
+	private function parseClasses(array $data): void
 	{
 		$sitePath = $this->sitePath . '/';
 

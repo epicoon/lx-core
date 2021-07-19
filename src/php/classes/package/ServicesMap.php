@@ -2,38 +2,21 @@
 
 namespace lx;
 
-/**
- * Class ServicesMap
- * @package lx
- */
 class ServicesMap
 {
-	/** @var array */
-	private $map = [];
+	private array $map = [];
 
-	/**
-	 * @param string $serviceName
-	 * @return bool
-	 */
-	public function exists($serviceName)
+	public function exists(string $serviceName): bool
 	{
 		return array_key_exists($serviceName, Autoloader::getInstance()->map->packages);
 	}
 
-	/**
-	 * @param string $serviceName
-	 * @return bool
-	 */
-	public function has($serviceName)
+	public function has(string $serviceName): bool
 	{
 		return array_key_exists($serviceName, $this->map);
 	}
 
-	/**
-	 * @param string $serviceName
-	 * @return Service
-	 */
-	public function get($serviceName)
+	public function get(string $serviceName): ?Service
 	{
 		if (!$this->has($serviceName)) {
 			Service::create($serviceName);
@@ -42,11 +25,7 @@ class ServicesMap
 		return $this->map[$serviceName] ?? null;
 	}
 
-	/**
-	 * @param string $serviceName
-	 * @param Service $service
-	 */
-	public function register($serviceName, $service)
+	public function register(string $serviceName, Service $service): void
 	{
 		$this->map[$serviceName] = $service;
 	}

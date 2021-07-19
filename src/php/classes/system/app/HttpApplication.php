@@ -3,10 +3,6 @@
 namespace lx;
 
 /**
- * Class HttpApplication
- * @package lx
- *
- * @property-read ApplicationLifeCycleManagerInterface|null $lifeCycle
  * @property-read Router $router
  * @property-read Dialog $dialog
  * @property-read UserInterface|null $user
@@ -15,11 +11,7 @@ namespace lx;
  */
 class HttpApplication extends BaseApplication
 {
-	/**
-	 * HttpApplication constructor.
-     * @param array $config
-	 */
-	public function __construct($config = [])
+	public function __construct(array $config = [])
 	{
 		parent::__construct($config);
         $this->settings = [
@@ -30,7 +22,6 @@ class HttpApplication extends BaseApplication
 	protected static function getDefaultComponents(): array
     {
         return array_merge(parent::getDefaultComponents(), [
-            'lifeCycle' => ApplicationLifeCycleManagerInterface::class,
             'assets' => HttpAssetsManager::class,
             'router' => Router::class,
             'dialog' => Dialog::class,
@@ -42,25 +33,17 @@ class HttpApplication extends BaseApplication
 
 	public function run(): void
 	{
-		if ($this->lifeCycle) {
-			$this->lifeCycle->beforeRun();
-		}
-
+	    $this->events->trigger(self::EVENT_BEFORE_RUN);
+	    
 		$this->authenticateUser();
-
 		$requestHandler = RequestHandler::create();
 		$requestHandler->run();
 		$requestHandler->send();
 
-		if ($this->lifeCycle) {
-			$this->lifeCycle->afterRun();
-		}
+		$this->events->trigger(self::EVENT_AFTER_RUN);
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getCommonJs()
+	public function getCommonJs(): array
 	{
 		$compiler = new JsCompiler();
 
@@ -73,27 +56,18 @@ class HttpApplication extends BaseApplication
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * Method defines current user
-	 */
-	private function authenticateUser()
+	private function authenticateUser(): void
 	{
 		if ($this->user && $this->userManager && $this->authenticationGate) {
 			$this->authenticationGate->authenticateUser();
 		}
 	}
 
-	/**
-	 * Global JS-code executed before plugin rise
-	 *
-	 * @param JsCompiler $compiler
-	 * @return string
-	 */
-	private function compileJsBootstrap($compiler)
+	private function compileJsBootstrap(JsCompiler $compiler): string
 	{
 		$path = $this->getConfig('jsBootstrap');
 		if (!$path) {
@@ -114,13 +88,7 @@ class HttpApplication extends BaseApplication
 		return $code;
 	}
 
-	/**
-	 * Global JS-code executed after plugin rise
-	 *
-	 * @param JsCompiler $compiler
-	 * @return string
-	 */
-	private function compileJsMain($compiler)
+	private function compileJsMain(JsCompiler $compiler): string
 	{
 		$path = $this->getConfig('jsMain');
 		if (!$path) {

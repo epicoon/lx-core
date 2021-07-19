@@ -2,22 +2,14 @@
 
 namespace lx;
 
-/**
- * Class Router
- * @package lx
- */
 class Router implements FusionComponentInterface
 {
 	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
-	/** @var array */
-	protected $routes = [];
+	protected array $routes = [];
 
-	/**
-	 * @return ResourceContext|false
-	 */
-	public function route()
+	public function route(): ?ResourceContext
 	{
 		foreach ($this->routes as $routeKey => $data) {
 			$routeData = $this->determineRouteData($data);
@@ -32,36 +24,31 @@ class Router implements FusionComponentInterface
 
 			$serviceRouteData = $this->determineServiceRouteData($routeData, $serviceRoute);
 			if (!isset($serviceRouteData['service'])) {
-				return false;
+				return null;
 			}
 
 			$service = $this->app->getService($serviceRouteData['service']);
 			if (!$service) {
-				return false;
+				return null;
 			}
 
 			$serviceRouter = $service->router;
 			if (!$serviceRouter) {
-				return false;
+				return null;
 			}
 
 			return $serviceRouter->route($serviceRouteData);
 		}
 
-		return false;
+		return null;
 	}
 
 
-	/**************************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 *************************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @param array $routeData
-	 * @param string $route
-	 * @return array
-	 */
-	private function determineServiceRouteData($routeData, $route)
+	private function determineServiceRouteData(array $routeData, string $route): array
 	{
 		if (isset($routeData['service'])) {
 			return [
@@ -113,9 +100,8 @@ class Router implements FusionComponentInterface
 
 	/**
 	 * @param array|string $data
-	 * @return array
 	 */
-	private function determineRouteData($data)
+	private function determineRouteData($data): array
 	{
 		if (is_string($data)) {
 			return ['service' => $data];
@@ -124,15 +110,10 @@ class Router implements FusionComponentInterface
 		return $data;
 	}
 
-	/**
-	 * @param string $routeKey
-	 * @param string $route
-	 * @return string|false
-	 */
-	private function determineServiceRoute($routeKey, $route)
+	private function determineServiceRoute(string $routeKey, string $route): ?string
 	{
 		if (!$this->validateRouteKey($routeKey, $route)) {
-			return false;
+			return null;
 		}
 
 		$serviceRoute = $route;
@@ -150,12 +131,7 @@ class Router implements FusionComponentInterface
 		return $serviceRoute;
 	}
 
-	/**
-	 * @param string $routeKey
-	 * @param string $route
-	 * @return bool
-	 */
-	private function validateRouteKey($routeKey, $route)
+	private function validateRouteKey(string $routeKey, string $route): bool
 	{
 		if ($routeKey[0] == '~') {
 			$reg = preg_replace('/^~/', '/', str_replace('/', '\/', $routeKey)) . '/';
@@ -170,11 +146,7 @@ class Router implements FusionComponentInterface
 		return $routeKey == $route;
 	}
 
-	/**
-	 * @param array $routeData
-	 * @return bool
-	 */
-	private function validateRouteData($routeData)
+	private function validateRouteData(array $routeData): bool
 	{
 		if (isset($routeData['on-mode']) && !$this->app->isMode($routeData['on-mode'])) {
 			return false;

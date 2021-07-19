@@ -2,10 +2,6 @@
 
 namespace lx;
 
-/**
- * Class StringHelper
- * @package lx
- */
 class StringHelper
 {
 	public static function camelToSnake(string $string): string
@@ -16,9 +12,7 @@ class StringHelper
 	}
 
     /**
-     * @param string $string
      * @param string|array $delimiter
-     * @return string
      */
 	public static function snakeToCamel(string $string, $delimiter = '_'): string
 	{

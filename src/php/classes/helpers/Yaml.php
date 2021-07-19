@@ -2,44 +2,22 @@
 
 namespace lx;
 
-/**
- * Class Yaml
- * @package lx
- */
 class Yaml
 {
-	/** @var string */
-	private $text = '';
+	private string $text = '';
+	private ?array $parsed = null;
+	private ?string $referencesRootPath = null;
+	private array $templates = [];
+	private array $references = [];
 
-	/** @var array */
-	private $parsed = null;
-
-	/** @var string */
-	private $referencesRootPath = null;
-
-	/** @var array */
-	private $templates = [];
-
-	/** @var array */
-	private $references = [];
-
-	/**
-	 * Yaml constructor.
-	 * @param string $text
-	 * @param string $referencesRootPath
-	 */
-	public function __construct($text = null, $referencesRootPath = null)
+	public function __construct(?string $text = null, ?string $referencesRootPath = null)
 	{
 		if ($text !== null) {
 			$this->reset($text, $referencesRootPath);
 		}
 	}
 
-    /**
-     * @param File|string $file
-     * @return array
-     */
-    public static function runParseFile($file)
+    public static function runParseFile(FileInterface $file): ?array
     {
         if (is_string($file)) {
             $file = new File($file);
@@ -52,22 +30,13 @@ class Yaml
         return self::runParse($file->get(), $file->getParentDirPath());
     }
 
-    /**
-     * @param string $text
-     * @param string $referencesRootPath
-     * @return array
-     */
-    public static function runParse($text = null, $referencesRootPath = null)
+    public static function runParse(?string $text = null, ?string $referencesRootPath = null): ?array
     {
         $instance = new self();
         return $instance->parse($text, $referencesRootPath);
     }
 
-	/**
-	 * @param string $text
-	 * @param string $referencesRootPath
-	 */
-	public function reset($text, $referencesRootPath = null)
+	public function reset(string $text, ?string $referencesRootPath = null): void
 	{
 		$this->text = $text;
 		$this->parsed = null;
@@ -76,11 +45,7 @@ class Yaml
 		$this->references = [];
 	}
 
-    /**
-     * @param File|string $file
-     * @return array
-     */
-	public function parseFile($file)
+	public function parseFile(FileInterface $file): ?array
     {
         if (is_string($file)) {
             $file = new File($file);
@@ -93,16 +58,15 @@ class Yaml
         return $this->parse($file->get(), $file->getParentDirPath());
     }
 
-	/**
-	 * @param string $text
-	 * @param string $referencesRootPath
-	 * @return array
-	 */
-	public function parse($text = null, $referencesRootPath = null)
+	public function parse(?string $text = null, ?string $referencesRootPath = null): ?array
 	{
 		if ($text !== null) $this->reset($text, $referencesRootPath);
-
-		if ($this->parsed !== null) return $this->parsed;
+		if ($this->parsed !== null) {
+		    return $this->parsed;
+        }
+		if ($this->text === '') {
+		    return [];
+        }
 
 		$this->templates = [];
 		$text = preg_replace('/\r\n/', chr(10), $this->text);
@@ -116,51 +80,21 @@ class Yaml
 		return $result;
 	}
 
-	/**
-	 * @param string $text
-	 * @param string $referencesRootPath
-	 * @return string
-	 */
-	public function parseToJson($text = null, $referencesRootPath = null)
-	{
-		return json_encode($this->parse($text, $referencesRootPath));
-	}
 
-	/**
-	 * Transform YAML-text to JS-like code string
-	 *
-	 * @param string $text
-	 * @param string $referencesRootPath
-	 * @return string
-	 */
-	public function parseToJs($text = null, $referencesRootPath = null)
-	{
-		$arr = $this->parse($text, $referencesRootPath);
-		return ArrayHelper::arrayToJsCode($arr);
-	}
-
-
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	/**
 	 * Local extension of YAML - multi-line commetns
-	 *
-	 * @param string $text
-	 * @return string
 	 */
-	private function cutMultiLineComments($text)
+	private function cutMultiLineComments(string $text): string
 	{
 		$text = preg_replace('/(^|\n)###\n[\w\W]*?###(\n|$)/', '', $text);
 		return $text;
 	}
 
-	/**
-	 * @param string $text
-	 * @return string
-	 */
-	private function extractReferences($text)
+	private function extractReferences(string $text): string
 	{
 		return preg_replace_callback('/\^ref (.*?)(\n|$)/', function ($matches) {
 			$path = $matches[1];
@@ -183,11 +117,8 @@ class Yaml
 
 	/**
 	 * Creating of basic navigation array
-	 *
-	 * @param string $text
-	 * @return array
 	 */
-	private function toArray($text)
+	private function toArray(string $text): array
 	{
 		$text = preg_replace('/^\n+/', '', $text);
 		$text = preg_replace('/\n+$/', '', $text);
@@ -295,11 +226,7 @@ class Yaml
 		return $source;
 	}
 
-	/**
-	 * @param string $text
-	 * @return int
-	 */
-	private function identifySpaceStep($text)
+	private function identifySpaceStep(string $text): int
 	{
 		$min = INF;
 		preg_match_all('/\n( +)/', $text, $matches);
@@ -312,11 +239,8 @@ class Yaml
 
 	/**
 	 * Process the navigation array item
-	 *
-	 * @param array $source
-	 * @return array
 	 */
-	private function translateSource($source)
+	private function translateSource(array $source): array
 	{
 		if (empty($source)) return [];
 		$result = [];
@@ -333,7 +257,7 @@ class Yaml
 	 * If the templates themselves have pointers, they will be dereferenced,
 	 * but recursive links will be dereferenced only once
 	 */
-	private function prepareTemplates()
+	private function prepareTemplates(): void
 	{
 		// If the templates themselves have links to other templates
 		$this->templates = $this->applyTemplates($this->templates);
@@ -346,13 +270,10 @@ class Yaml
 	}
 
 	/**
-	 * The applying of templates is done after the parsing process,
+	 * Applying of templates is done after parsing process,
 	 * so that links can be declared after pointers
-	 *
-	 * @param array $arr
-	 * @return array
 	 */
-	private function applyTemplates($arr)
+	private function applyTemplates(array $arr): array
 	{
 		foreach ($arr as $key => $item) {
 			if (is_string($item) && strlen($item) && $item[0] == '*') {
@@ -380,11 +301,8 @@ class Yaml
 
 	/**
 	 * Transformation of the navigation array item source (one yaml-line as as fact) to key and value
-	 *
-	 * @param array $source
-	 * @return array
 	 */
-	private function translateSourceElement($source)
+	private function translateSourceElement(array $source): array
 	{
 		$content = $source['source'];
 		$row = $this->rowCutComments($source['row']);
@@ -398,11 +316,7 @@ class Yaml
 		return [$key, $value];
 	}
 
-	/**
-	 * @param string $text
-	 * @return string
-	 */
-	private function rowCutComments($text)
+	private function rowCutComments(string $text): string
 	{
 		$parts = preg_split('/(?:(\'.*?\')|(".*?"))/', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
 		$result = '';
@@ -417,12 +331,10 @@ class Yaml
 	/**
 	 * Transformation of the navigation array item source,
 	 * which is an element of the enumeration (in yaml it is a line starting with '-')
-	 *
-	 * @param string $sourceRow
-	 * @param array $content
-	 * @return array
+     *
+     * @param string|array $content
 	 */
-	private function translateEnumElement($sourceRow, $content)
+	private function translateEnumElement(string $sourceRow, $content): array
 	{
 		$key = null;
 		$value = null;
@@ -478,12 +390,8 @@ class Yaml
 	/**
 	 * Transformation of the navigation array item source,
 	 * which is not an element of the enumeration
-	 *
-	 * @param string $row
-	 * @param array $content
-	 * @return array
 	 */
-	private function translateNotEnumElement($row, $content)
+	private function translateNotEnumElement(string $row, array $content): array
 	{
 		$key = null;
 		$value = null;
@@ -528,20 +436,12 @@ class Yaml
 		return [$key, $value];
 	}
 
-	/**
-	 * @param string $template
-	 * @param array $value
-	 */
-	private function addTemplate($template, $value)
+	private function addTemplate(string $template, array $value): void
 	{
 		$this->templates[$template] = $value;
 	}
 
-	/**
-	 * @param string $sourceString
-	 * @return array
-	 */
-	private function splitJsonLikeString($sourceString)
+	private function splitJsonLikeString(string $sourceString): array
 	{
 		preg_match_all('/^\[\s*(.*?)\s*\]$/', $sourceString, $matches);
 		if (empty($matches[1])) {
@@ -574,20 +474,23 @@ class Yaml
 
 	/**
 	 * Converting a string that came from YAML - incl. options with inline arrays and JS-like data
-	 *
-	 * @param string $sourceString
-	 * @return array
+     *
+     * @return string|array
 	 */
-	private function translateString($sourceString)
+	private function translateString(string $sourceString)
 	{
 		$str = $sourceString;
-		if ($str == '') return $sourceString;
+		if ($str == '') {
+		    return $sourceString;
+        }
 
 		if ($str[0] == '{' || $str[0] == '[') {
 			$str = str_replace('{', '[', $str);
 			$str = str_replace('}', ']', $str);
 		}
-		if ($str[0] != '[') return $sourceString;
+		if ($str[0] != '[') {
+		    return $sourceString;
+        }
 
 		$parts = $this->splitJsonLikeString($str);
 		$result = [];
@@ -610,11 +513,8 @@ class Yaml
 
 	/**
 	 * Converting a true string (already without inline arrays and JS-like data), but it may contain 'key: value'
-	 *
-	 * @param string $value
-	 * @return array
 	 */
-	private function translateStringDeep($value)
+	private function translateStringDeep(string $value): array
 	{
 		$arr = preg_split('/\s*,\s*/', $value);
 		$result = [];

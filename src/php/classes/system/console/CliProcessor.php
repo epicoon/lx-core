@@ -4,56 +4,30 @@ namespace lx;
 
 use lx;
 
-/**
- * Class CliProcessor
- * @package lx
- */
 class CliProcessor
 {
 	const COMMAND_TYPE_COMMON = 5;
-	const COMMAND_TYPE_CONSOLE_ONLY = 10;
-	const COMMAND_TYPE_WEB_ONLY = 15;
+	const COMMAND_TYPE_CONSOLE = 10;
+	const COMMAND_TYPE_WEB = 15;
 
-    /** @var CliCommandsList */
-    private $_commandsList;
+    private ?CliCommandsList $_commandsList = null;
+	private ?array $_servicesList = null;
+	private ?int $currentCommandType = null;
+	private ?Service $service = null;
+	private ?Plugin $plugin = null;
+	private CliArgumentsList $args;
+	private array $consoleMap = [];
+	private ?string $needParam = null;
+	private array $params = [];
+	private array $invalidParams = [];
+	private bool $keepProcess = false;
+	private array $data = [];
 
-	/** @var array */
-	private $_servicesList;
-
-	/** @var Service|null */
-	private $service;
-
-	/** @var Plugin|null */
-	private $plugin;
-
-	/** @var CliArgumentsList */
-	private $args = [];
-
-	/** @var array */
-	private $consoleMap = [];
-
-	/** @var string|false */
-	private $needParam = false;
-
-	/** @var array */
-	private $params = [];
-
-	/** @var array */
-	private $invalidParams = [];
-
-	/** @var bool */
-	private $keepProcess = false;
-
-	/** @var array */
-	private $data = [];
-
-    /**
-     * @return array
-     */
-	private function getSelfCommands()
+	private function getSelfCommands(): array
     {
         return [
             [
+                'type' => self::COMMAND_TYPE_CONSOLE,
                 'command' => ['\q'],
                 'description' => 'Exit CLI mode',
             ],
@@ -63,7 +37,7 @@ class CliProcessor
                 'description' => 'Show available commands list',
                 'arguments' => [
                     $this->initArgument([0])
-                        ->setType(CliArgument::TYPE_INTEGER)
+                        ->setType(CliArgument::TYPE_STRING)
                         ->setDescription('Command name'),
                 ],
                 'handler' => 'showHelp',
@@ -192,22 +166,18 @@ class CliProcessor
 
     /**
      * @param string|int|array $key
-     * @return CliArgument
      */
-    public function initArgument($key = null)
+    public function initArgument($key = null): CliArgument
     {
         $arg = new CliArgument();
         if ($key !== null) {
-            $arg->setKey($key);
+            $arg->setKeys((array)$key);
         }
 
         return $arg;
     }
 	
-	/**
-	 * @return CliCommandsList
-	 */
-	public function getCommandsList()
+	public function getCommandsList(): CliCommandsList
 	{
 	    if (!$this->_commandsList) {
             $list = new CliCommandsList();
@@ -223,54 +193,102 @@ class CliProcessor
 	    return $this->_commandsList;
 	}
 
-	/**
-	 * @param string $commandName
-	 * @param array $args
-	 * @param Service|null $service
-	 * @param Plugin|null $plugin
-	 * @return array
-	 */
-	public function handleCommand($commandName, $args, $service, $plugin)
+	public function handleCommand(
+	    string $commandName,
+        int $commandType,
+        array $args,
+        ?Service $service,
+        ?Plugin $plugin
+    ): array
 	{
 		$this->service = $service;
 		$this->plugin = $plugin;
 		$this->args = new CliArgumentsList($args);
 		$this->consoleMap = [];
-		$this->needParam = false;
+		$this->needParam = null;
 
+		$this->currentCommandType = $commandType;
 		$this->invokeCommand($commandName);
 		return $this->getResult();
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getData()
+    /**
+     * Method tries to complete part of entered command
+     * If there are several due alternatives will be returned the closest common part and array of alternatives
+     */
+    public function autoCompleteCommand(string $command, CliCommandsList $commandsList): ?array
+    {
+        $commandArray = preg_split('/ +/', $command);
+        $count = count($commandArray);
+        if ($count == 1) {
+            $base = '';
+            $text = $command;
+        } elseif ($count == 2) {
+            $base = $commandArray[0] . ' ';
+            if ($base != '\\h ' && $base != 'help ') {
+                return null;
+            }
+            $text = $commandArray[1];
+        } else {
+            return null;
+        }
+
+        $len = mb_strlen($text);
+        if ($len == 0 || $text[0] == '\\') {
+            return null;
+        }
+
+        $matches = [];
+        $names = $commandsList->getCommandNames();
+        foreach ($names as $command) {
+            if ($command != $text && preg_match('/^' . $text . '/', $command)) {
+                $matches[] = $command;
+            }
+        }
+
+        if (empty($matches)) {
+            return null;
+        }
+
+        $commonPart = $text;
+        $i = $len;
+        while (true) {
+            $latterMatch = true;
+            if ($i >= mb_strlen($matches[0])) break;
+            $latter = $matches[0]{$i};
+            foreach ($matches as $command) {
+                if ($i >= mb_strlen($command)) break(2);
+                if ($latter != $command[$i]) break(2);
+            }
+            $commonPart .= $latter;
+            $i++;
+        }
+
+        return [
+            'common' => $base . $commonPart,
+            'matches' => $matches
+        ];
+    }
+
+	public function getData(): array
 	{
 		return $this->data;
 	}
 
-	/**
-	 * @param array $data
-	 */
-	public function setData($data)
+	public function setData(array $data): void
 	{
 		$this->data = $data;
 	}
 
 	/**
-	 * @param string $name
 	 * @param mixed $value
 	 */
-	public function addData($name, $value)
+	public function addData(string $name, $value): void
 	{
 		$this->data[$name] = $value;
 	}
 
-	/**
-	 * @return array
-	 */
-	public function getServicesList()
+	public function getServicesList(): array
 	{
 		if ($this->_servicesList === null) {
 			$this->resetServicesList();
@@ -278,44 +296,33 @@ class CliProcessor
 		return $this->_servicesList;
 	}
 
-	/**
-	 * @return Service|null
-	 */
-	public function getService()
+	public function getService(): ?Service
 	{
 		return $this->service;
 	}
 
-	/**
-	 * @return Plugin|null
-	 */
-	public function getPlugin()
+	public function getPlugin(): ?Plugin
 	{
 		return $this->plugin;
 	}
 
-	/**
-	 * @param array $params
-	 */
-	public function setParams($params)
+	public function setParams(array $params): void
 	{
 		$this->params = $params;
 	}
 
 	/**
-	 * @param string $name
 	 * @param mixed $value
 	 */
-	public function setParam($name, $value)
+	public function setParam(string $name, $value): void
 	{
 		$this->params[$name] = $value;
 	}
 
 	/**
-	 * @param string $name
 	 * @return mixed
 	 */
-	public function getParam($name)
+	public function getParam(string $name)
 	{
 		if (!array_key_exists($name, $this->params)) {
 			return null;
@@ -324,19 +331,12 @@ class CliProcessor
 		return $this->params[$name];
 	}
 
-    /**
-     * @param string $name
-     * @return bool
-     */
-	public function hasParam($name)
+	public function hasParam(string $name): bool
     {
         return array_key_exists($name, $this->params);
     }
 
-	/**
-	 * @return array
-	 */
-	public function getResult()
+	public function getResult(): array
 	{
 		$result = [
 			'output' => $this->consoleMap,
@@ -353,10 +353,7 @@ class CliProcessor
 		return $result;
 	}
 
-	/**
-	 * @param string $name
-	 */
-	public function invalidateParam($name)
+	public function invalidateParam(string $name): void
 	{
 		unset($this->params[$name]);
 		$this->invalidParams[] = $name;
@@ -366,37 +363,25 @@ class CliProcessor
 	/**
 	 * Method to be used by CLI executors to stop process
 	 */
-	public function done()
+	public function done(): void
 	{
 		$this->params = [];
 		$this->invalidParams = [];
 		$this->keepProcess = false;
+		$this->currentCommandType = null;
 	}
 
-	/**
-	 * @param string $text
-	 * @param array $decor
-	 */
-	public function out($text, $decor = [])
+	public function out(string $text, array $decor = []): void
 	{
 		$this->consoleMap[] = ['out', $text, $decor];
 	}
 
-	/**
-	 * @param string $text
-	 * @param array $decor
-	 */
-	public function outln($text = '', $decor = [])
+	public function outln(string $text = '', array $decor = []): void
 	{
 		$this->consoleMap[] = ['outln', $text, $decor];
 	}
 
-	/**
-	 * @param string $needParam
-	 * @param string $text
-	 * @param array $decor
-	 */
-	public function in($needParam, $text, $decor = [])
+	public function in(string $needParam, string $text, array $decor = []): void
 	{
 		$this->needParam = $needParam;
 		$this->consoleMap[] = ['in', $text, $decor];
@@ -424,10 +409,8 @@ class CliProcessor
      *
      * Example for arguments by keys:
      * lx-cli<app>: command -k=arg1 --key="arg2 by several words"
-     *
-     * @param string $input
      */
-    public function parseInput($input)
+    public function parseInput(string $input): array
     {
         $arr = StringHelper::smartSplit($input, ['delimiter' => ' ', 'save' => ['[]', '"']]);
         $command = array_shift($arr);
@@ -475,19 +458,16 @@ class CliProcessor
     }
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE FOR CONSOLE COMMANDS
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * Method makes description for commands automatically based on command keys
-	 */
-	private function showHelp()
+	private function showHelp(): void
 	{
 	    if ($this->args->isEmpty()) {
             $list = $this->getCommandsList()->getSubList([
                 self::COMMAND_TYPE_COMMON,
-                self::COMMAND_TYPE_CONSOLE_ONLY,
+                $this->currentCommandType,
             ]);
 
             $arr = [];
@@ -498,7 +478,7 @@ class CliProcessor
                 ];
             }
 
-            $arr = Console::normalizeTable($arr, '.');
+            $arr = Console::alignTable($arr, '.');
             foreach ($arr as $row) {
                 $this->out($row[0] . ': ', ['decor' => 'b']);
                 $this->outln($row[1]);
@@ -523,7 +503,7 @@ class CliProcessor
 	    if (!empty($args)) {
 	        $this->outln('* Arguments:');
 	        foreach ($args as $argument) {
-                $keys = (array)$argument->getKey();
+                $keys = $argument->getKeys();
                 $this->out('  - ' . implode(', ', $keys) . ': ');
                 if ($argument->isMandatory()) {
                     $this->out('mandatory', ['decor' => 'b']);
@@ -542,10 +522,7 @@ class CliProcessor
         }
 	}
 
-	/**
-	 * Move to a service
-	 */
-	private function move()
+	private function move(): void
 	{
 		// Return to application
 		if ($this->args->isEmpty()) {
@@ -624,10 +601,7 @@ class CliProcessor
 		}
 	}
 
-	/**
-	 * Prints full path to application or service or plugin due to current location or entered argument
-	 */
-	private function fullPath()
+	private function fullPath(): void
 	{
 		if ($this->args->isEmpty()) {
 			if ($this->plugin) {
@@ -686,13 +660,13 @@ class CliProcessor
 		$this->outln('Wrong entered parameters');
 	}
 
-	private function resetAutoloadMap()
+	private function resetAutoloadMap(): void
 	{
 		(new AutoloadMapBuilder())->createCommonAutoloadMap();
 		$this->outln('Done');
 	}
 
-	private function resetJsAutoloadMap()
+	private function resetJsAutoloadMap(): void
 	{
 	    switch ($this->args->get('mode')) {
             case 'core':
@@ -736,7 +710,7 @@ class CliProcessor
 		$this->outln('Done');
 	}
 
-	private function showServices()
+	private function showServices(): void
 	{
 		$temp = $this->getServicesList();
 		$data = [];
@@ -748,7 +722,7 @@ class CliProcessor
 				'path' => $value['path'],
 			];
 		}
-		$data = Console::normalizeTable($data);
+		$data = Console::alignTable($data);
 
 		$this->outln('Services list:', ['decor' => 'b']);
 		$counter = 0;
@@ -764,7 +738,7 @@ class CliProcessor
 		}
 	}
 
-	private function showPlugins()
+	private function showPlugins(): void
 	{
 		$service = null;
 		$serviceName = $this->args->get('service');
@@ -814,7 +788,7 @@ class CliProcessor
 					'path' => $path
 				];
 			}
-			$data = Console::normalizeTable($data);
+			$data = Console::alignTable($data);
 			foreach ($data as $value) {
 				$name = $value['name'];
 				$path = $value['path'];
@@ -826,7 +800,7 @@ class CliProcessor
 		}
 	}
 
-	private function createService()
+	private function createService(): void
 	{
 		$dirs = lx::$app->getConfig('packagesMap');
 		if ($dirs) {
@@ -891,7 +865,7 @@ class CliProcessor
 		$this->done();
 	}
 
-	private function createPlugin()
+	private function createPlugin(): void
 	{
 		if ($this->service === null) {
 			$this->outln("Plugins are belonging to services. Enter the service");
@@ -962,7 +936,7 @@ class CliProcessor
 		$this->done();
 	}
 
-	private function cacheManage()
+	private function cacheManage(): void
     {
         $plugin = null;
         $pluginName = $this->args->get('plugin');
@@ -1057,7 +1031,7 @@ class CliProcessor
                     'state' => $info['exists'] ? 'exists' : 'no',
                 ];
             }
-            $data = Console::normalizeTable($data);
+            $data = Console::alignTable($data);
             foreach ($data as $row) {
                 $this->out('  * ' . $row['name'] . ': ');
                 $this->out('type: ', ['decor' => 'b']);
@@ -1069,14 +1043,11 @@ class CliProcessor
     }
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE FOR PROCESSOR INNER WORK
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * Actualization of services information
-	 */
-	private function resetServicesList()
+	private function resetServicesList(): void
 	{
 		$services = PackageBrowser::getServicePathesList();
 		$data = [];
@@ -1091,11 +1062,7 @@ class CliProcessor
 		$this->_servicesList = $data;
 	}
 
-	/**
-	 * @param string $name
-	 * @param string $path
-	 */
-	private function createServiceProcess($name, $path)
+	private function createServiceProcess(string $name, string $path): void
 	{
 		$editor = new ServiceEditor();
 		$service = $editor->createService($name, $path);
@@ -1108,12 +1075,7 @@ class CliProcessor
 		}
 	}
 
-	/**
-	 * @param Service $service
-	 * @param string $name
-	 * @param string $path
-	 */
-	private function createPluginProcess($service, $name, $path)
+	private function createPluginProcess(Service $service, string $name, string $path): void
 	{
 		$editor = new PluginEditor($service);
 
@@ -1127,10 +1089,7 @@ class CliProcessor
 		}
 	}
 
-	/**
-	 * @param string $commandName
-	 */
-	private function invokeCommand($commandName)
+	private function invokeCommand(string $commandName): void
 	{
 	    $commands = $this->getCommandsList();
 	    $command = $commands->getCommand($commandName);
@@ -1168,10 +1127,7 @@ class CliProcessor
         }
 	}
 
-	/**
-	 * @return array
-	 */
-	private function loadCommandsExtensionList()
+	private function loadCommandsExtensionList(): array
 	{
 	    $result = [];
 

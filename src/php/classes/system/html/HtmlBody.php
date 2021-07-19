@@ -2,36 +2,19 @@
 
 namespace lx;
 
-/**
- * Class HtmlBody
- * @package lx
- */
 class HtmlBody
 {
-	/** @var string */
-	private $js;
+	private string $js;
+	private array $beginScripts = [];
+	private array $endScripts = [];
 
-	/** @var array */
-	private $beginScripts = [];
-
-	/** @var array */
-	private $endScripts = [];
-
-	/**
-	 * HtmlBody constructor.
-	 * @param array $pageData
-	 * @param string $js
-	 */
-	public function __construct($pageData, $js)
+	public function __construct(array $pageData, string $js)
 	{
 		$this->js = $js;
 		$this->initScripts($pageData);
 	}
 
-	/**
-	 * @return string
-	 */
-	public function render()
+	public function render(): string
 	{
 		return
 			$this->renderBeginScripts() .
@@ -44,14 +27,11 @@ class HtmlBody
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @return string
-	 */
-	private function renderBeginScripts()
+	private function renderBeginScripts(): string
 	{
 		$result = '';
 		foreach ($this->beginScripts as $script) {
@@ -60,10 +40,7 @@ class HtmlBody
 		return $result;
 	}
 
-	/**
-	 * @return string
-	 */
-	private function renderEndScripts()
+	private function renderEndScripts(): string
 	{
 		$result = '';
 		foreach ($this->endScripts as $script) {
@@ -72,10 +49,7 @@ class HtmlBody
 		return $result;
 	}
 
-	/**
-	 * @param array $data
-	 */
-	private function initScripts($data)
+	private function initScripts(array $data): void
 	{
 		$scripts = $data['scripts'] ?? null;
 		if (!$scripts) {

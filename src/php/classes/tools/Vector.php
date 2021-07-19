@@ -2,16 +2,11 @@
 
 namespace lx;
 
-/**
- * Class Vector
- * @package lx
- */
 class Vector implements ArrayInterface
 {
 	use ArrayTrait;
 
 	/**
-	 * Vector constructor.
 	 * @param mixed ...$args
 	 */
 	public function __construct(...$args)
@@ -31,45 +26,41 @@ class Vector implements ArrayInterface
 		$this->__constructArray($arr);
 	}
 
-	/**
-	 * @param int $len
-	 * @return Vector
-	 */
-	public static function create($len = 0)
+	public static function create(int $len = 0): Vector
 	{
 		return new self(array_fill(0, $len, 0));
 	}
 
 	/**
 	 * @param mixed $el
-	 * @return $this
 	 */
-	public function push($el)
+	public function push($el): void
 	{
 		$this->arrayValue[] = $el;
-		return $this;
 	}
 
 	/**
 	 * @param mixed $el
 	 */
-	public function pushUnique($el)
+	public function pushUnique($el): bool
 	{
-		if (!$this->contains($el)) {
-			$this->push($el);
-		}
+        if ($this->contains($el)) {
+            return false;
+        }
+	    
+        $this->push($el);
+        return true;
 	}
 
-	public function merge(iterable $elems): iterable
+	public function merge(iterable $elems): void
 	{
-        return $this->insert($this->len(), $elems);
+        $this->insert($this->len(), $elems);
 	}
 
 	/**
 	 * @param mixed $el
-	 * @return bool
 	 */
-	public function remove($el)
+	public function remove($el): bool
 	{
 		$index = $this->getKeyByValue($el);
 		if ($index === null) return false;
@@ -77,22 +68,12 @@ class Vector implements ArrayInterface
 		return true;
 	}
 
-	/**
-	 * @param string $str
-	 * @return string
-	 */
-	public function join($str)
+	public function join(string $str): string
 	{
 		return implode($str, $this->arrayValue);
 	}
 
-	/**
-	 * @param int $index
-	 * @param int $count
-	 * @param iterable $replacement
-	 * @return $this
-	 */
-	public function splice($index, $count = 1, $replacement = [])
+	public function splice(int $index, int $count = 1, iterable $replacement = []): void
 	{
 	    if (!empty($replacement)) {
             if (is_object($replacement) && method_exists($replacement, 'toArray')) {
@@ -109,33 +90,21 @@ class Vector implements ArrayInterface
         }
 	    
 		array_splice($this->arrayValue, $index, $count, $replacement);
-		return $this;
 	}
 
-	/**
-	 * @param int $index
-	 * @param iterable $elems
-	 * @return $this
-	 */
-	public function insert($index, $elems)
+	public function insert(int $index, iterable $elems): void
 	{
-		return $this->splice($index, 0, $elems);
+		$this->splice($index, 0, $elems);
 	}
 
-	/**
-	 * @param callable $func
-	 */
-	public function each($func)
+	public function each(callable $func): void
 	{
 		foreach ($this->arrayValue as $i => $item) {
 			$func($item, $i, $this);
 		}
 	}
 
-	/**
-	 * @param callable $func
-	 */
-	public function eachRevert($func)
+	public function eachRevert(callable $func): void
 	{
 		for ($i = $this->len() - 1; $i >= 0; $i--) {
 			$func($this->arrayValue[$i], $i, $this);
@@ -143,11 +112,9 @@ class Vector implements ArrayInterface
 	}
 
 	/**
-	 * @param int $i0
-	 * @param int $i1
 	 * @return mixed
 	 */
-	public function maxOnRange($i0 = 0, $i1 = null)
+	public function maxOnRange(int $i0 = 0, ?int $i1 = null)
 	{
 		if ($i1 === null || $i1 >= $this->len()) {
 			$i1 = $this->len() - 1;

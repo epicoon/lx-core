@@ -2,18 +2,9 @@
 
 namespace lx;
 
-/**
- * Class ServiceEditor
- * @package lx
- */
 class ServiceEditor
 {
-	/**
-	 * @param string $name
-	 * @param string $path
-	 * @return Service|null
-	 */
-	public function createService($name, $path)
+	public function createService(string $name, string $path): ?Service
 	{
 		$serviceRootPath = \lx::$app->conductor->getFullPath($path);
 		$fullPath = $serviceRootPath . '/' . $name;
@@ -58,11 +49,7 @@ class ServiceEditor
 		return \lx::$app->getService($name);
 	}
 
-	/**
-	 * @param string $name
-	 * @return string
-	 */
-	private function defineNamespace($name)
+	private function defineNamespace(string $name): string
 	{
 		$namespace = $name;
 		preg_match_all('/^([^\/]+?)\//', $namespace, $matches);

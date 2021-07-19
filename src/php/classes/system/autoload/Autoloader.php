@@ -3,9 +3,6 @@
 namespace lx;
 
 /**
- * Class Autoloader
- * @package lx
- *
  * @property-read string $sitePath
  * @property-read AutoloadMap $map
  */
@@ -13,42 +10,24 @@ class Autoloader
 {
 	const CLASS_MAIN_FILE = '_main';
 
-	/** @var string */
-	private $_sitePath;
+	private string $_sitePath;
+	private string $srcPath;
+	private string $phpPath;
+	private ?AutoloadMap $_map = null;
+	private ?array $_systemClassMap = null;
+	private static ?Autoloader $instance = null;
 
-	/** @var string */
-	private $srcPath;
-
-	/** @var string */
-	private $phpPath;
-
-	/** @var AutoloadMap */
-	private $_map = null;
-
-	/** @var array */
-	private $_systemClassMap = null;
-
-	/** @var Autoloader */
-	private static $instance = null;
-
-	/**
-	 * Autoloader constructor is private
-	 */
 	private function __construct()
 	{
+	    // singletone
 	}
 
-	/**
-	 * Clone magic method is private
-	 */
 	private function __clone()
 	{
+        // singletone
 	}
 
-	/**
-	 * @return Autoloader
-	 */
-	public static function getInstance()
+	public static function getInstance(): Autoloader
 	{
 		if (self::$instance === null) {
 			self::$instance = new self();
@@ -57,11 +36,7 @@ class Autoloader
 		return self::$instance;
 	}
 
-	/**
-	 * @param string $sitePath
-	 * @param string $srcPath
-	 */
-	public function init($sitePath, $srcPath)
+	public function init(string $sitePath, string $srcPath): void
 	{
 		$this->_sitePath = $sitePath;
 		$this->srcPath = $srcPath;
@@ -73,10 +48,9 @@ class Autoloader
 	}
 
 	/**
-	 * @param string $name
 	 * @return AutoloadMap|string|null
 	 */
-	public function __get($name)
+	public function __get(string $name)
 	{
 		if ($name == 'sitePath') {
 			return $this->_sitePath;
@@ -89,36 +63,36 @@ class Autoloader
 		return null;
 	}
 
-	/**
-	 * @param string $className
-	 * @return string|false
-	 */
-	public function getClassPath($className)
+	public function getClassPath(string $className): ?string
 	{
 		$path = $this->getSystemClassPath($className);
-		if ($path !== false) return $path;
+		if ($path !== null) {
+		    return $path;
+        }
 
 		$path = $this->getClientClassPath($className);
-		if ($path !== false) return $path;
+		if ($path !== null) {
+		    return $path;
+        }
 
 		$path = $this->getClassPathWithNamespaceMap($className);
-		if ($path !== false) return $path;
+		if ($path !== null) {
+		    return $path;
+        }
 
 		$path = $this->getClassPathWithClassMap($className);
-		if ($path !== false) return $path;
+		if ($path !== null) {
+		    return $path;
+        }
 
-		return false;
+		return null;
 	}
 
-	/**
-	 * @param string $className
-	 * @return bool
-	 */
-	public function load($className)
+	public function load(string $className): bool
 	{
 		$path = $this->getClassPath($className);
 
-		if ($path === false) {
+		if ($path === null) {
 			return false;
 		}
 
@@ -127,19 +101,15 @@ class Autoloader
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	/**
-	 * @param string $className
-	 * @return string|false
-	 */
-	private function getSystemClassPath($className)
+	private function getSystemClassPath(string $className): ?string
 	{
 		$arr = explode('\\', $className);
 		if (empty($arr) || count($arr) != 2 || $arr[0] != 'lx') {
-			return false;
+			return null;
 		}
 
 		$name = $arr[1];
@@ -151,27 +121,20 @@ class Autoloader
 			}
 		}
 
-		return false;
+		return null;
 	}
 
-	/**
-	 * @param string $className
-	 * @return string|false
-	 */
-	private function getClientClassPath($className)
+	private function getClientClassPath(string $className): ?string
 	{
 		$path = $this->sitePath . '/' . str_replace('\\', '/', $className) . '.php';
 		if (file_exists($path)) {
 			return $path;
 		}
-		return false;
+
+		return null;
 	}
 
-	/**
-	 * @param string $className
-	 * @return string|false
-	 */
-	private function getClassPathWithNamespaceMap($className)
+	private function getClassPathWithNamespaceMap(string $className): ?string
 	{
 		$namespaces = $this->map->namespaces;
 		foreach ($namespaces as $namespace => $data) {
@@ -215,14 +178,10 @@ class Autoloader
 			}
 		}
 
-		return false;
+		return null;
 	}
 
-	/**
-	 * @param string $className
-	 * @return string|false
-	 */
-	private function getClassPathWithClassMap($className)
+	private function getClassPathWithClassMap(string $className): ?string
 	{
 		$classes = $this->map->classes;
 		if (array_key_exists($className, $classes)) {
@@ -231,6 +190,7 @@ class Autoloader
 				return $path;
 			}
 		}
-		return false;
+
+		return null;
 	}
 }

@@ -4,26 +4,20 @@ namespace lx;
 
 class SintaxExtender
 {
-	/** @var JsCompiler */
-	private $compiler;
-	private $currentPath;
-	private $currentService;
+	private JsCompiler $compiler;
+	private ?string $currentPath;
+	private ?Service $currentService;
 
-	/**
-	 * SintaxExtender constructor.
-	 * @param $compiler JsCompiler
-	 */
-	public function __construct($compiler) {
+	public function __construct(JsCompiler $compiler)
+    {
 		$this->compiler = $compiler;
 
 		$this->currentPath = null;
 		$this->currentService = null;
 	}
 
-	/**
-	 *
-	 * */
-	public function applyExtendedSintax($code, $path) {
+	public function applyExtendedSintax(string $code, ?string $path): string
+    {
 		// #lx:php(php-code) => mixed
 		$reg = '/#lx:php(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/';
 		$code = preg_replace_callback($reg, function($match) {
@@ -226,7 +220,8 @@ class SintaxExtender
 		return $code;
 	}
 
-	private function applyExtendedSintaxForClasses($code, $path) {
+	private function applyExtendedSintaxForClasses(string $code, ?string $path): string
+    {
 		// Работа со всеми классами
 		$reg = '/class\s+\b(.+?)\b([^{]*)(?P<re>{((?>[^{}]+)|(?P>re))*})/';
 		preg_match_all($reg, $code, $matches);
@@ -417,7 +412,9 @@ class SintaxExtender
 		return $code;
 	}
 
-	private function applyHtmlTemplater($code) {
+	//TODO есть сервис шаблонизации, этот функционал можно переосмыслить и перенести туда
+	private function applyHtmlTemplater(string $code): string
+    {
 		$reg = '/#lx:(?P<tpl>\<((?>[^<>]+)|(?P>tpl))*\>)/';
 		return preg_replace_callback($reg, function($match) {
 			$tpl = $match['tpl'];
@@ -601,17 +598,19 @@ class SintaxExtender
 		}, $code);
 	}
 
-	private function inClassReg($keyword) {
+	private function inClassReg(string $keyword): string
+    {
 		return '/(}|;|{)\s*#lx:'.$keyword.'[\s\r]+([^;]+)?[\s\r]*;/';
 	}
 
-	private function getCurrentService($path) {
+	private function getCurrentService(?string $path): ?Service
+    {
 		if ($this->currentPath == $path) {
 			return $this->currentService;
 		}
 
 		$this->currentPath = $path;
-		$this->currentService = \lx::$app->getServiceByFile($path);
+		$this->currentService = \lx::$app->serviceProvider->setFileName($path)->getService();
 		return $this->currentService;
 	}
 }

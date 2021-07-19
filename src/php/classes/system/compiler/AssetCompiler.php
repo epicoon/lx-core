@@ -2,17 +2,9 @@
 
 namespace lx;
 
-/**
- * Class AssetCompiler
- * @package lx
- */
 class AssetCompiler
 {
-	/**
-	 * @param array $map
-	 * @return array
-	 */
-	public static function getLinksMap($map)
+	public static function getLinksMap(array $map): array
 	{
 		$result = [
 			'origins' => [],
@@ -49,10 +41,7 @@ class AssetCompiler
 		return $result;
 	}
 
-	/**
-	 * Link plugins css and images to web directory
-	 */
-	public function makePluginsAssetLinks()
+	public function makePluginsAssetLinks(): void
 	{
 		$services = PackageBrowser::getServicesList();
 		foreach ($services as $service) {
@@ -77,11 +66,7 @@ class AssetCompiler
 		}
 	}
 
-	/**
-	 * @param $originalPathes
-	 * @param $linkPathes
-	 */
-	public function createLinks($originalPathes, $linkPathes)
+	public function createLinks(array $originalPathes, array $linkPathes): void
 	{
 		$sitePath = \lx::$conductor->sitePath;
 		foreach ($linkPathes as $key => $path) {
@@ -101,10 +86,7 @@ class AssetCompiler
 		}
 	}
 
-	/**
-	 * Move core-css to web directory
-	 */
-	public function copyLxCss()
+	public function copyLxCss(): void
 	{
 		$coreCssPath = \lx::$conductor->core . '/css';
 		$dir = new \lx\Directory($coreCssPath);
@@ -113,10 +95,7 @@ class AssetCompiler
 		$dir->clone($webCssPath);
 	}
 
-	/**
-	 * @param string $directoryPath
-	 */
-	public function compileCssInDirectory($directoryPath)
+	public function compileCssInDirectory(string $directoryPath): void
 	{
 		$d = new Directory($directoryPath);
 		if (!$d->exists()) {
@@ -154,16 +133,13 @@ class AssetCompiler
                 $compiler = new JsCompiler();
                 $compiler->setBuildModules(true);
                 $exec = new NodeJsExecutor($compiler);
-                $cssCode = $exec->runFile($pare['js']);
+                $cssCode = $exec->setFile($pare['js'])->run();
 				$pare['css']->put($cssCode);
 			}
 		}
 	}
 
-	/**
-	 * Rebuild core-css
-	 */
-	public function compileLxCss()
+	public function compileLxCss(): void
 	{
 		$path = \lx::$conductor->webCss;
 		$cssFile = new File($path . '/main.css');
@@ -176,15 +152,12 @@ class AssetCompiler
 		    $compiler = new JsCompiler();
 		    $compiler->setBuildModules(true);
 			$exec = new NodeJsExecutor($compiler);
-            $res = $exec->runFile($cssJsFile);
+            $res = $exec->setFile($cssFile)->run();
 			$cssFile->put($res);
 		}
 	}
 
-	/**
-	 * @return string
-	 */
-	public function compileJsCore()
+	public function compileJsCore(): string
 	{
 		$path = \lx::$conductor->jsCore;
 		$code = file_get_contents($path);
@@ -203,4 +176,3 @@ class AssetCompiler
 		return $code;
 	}
 }
-

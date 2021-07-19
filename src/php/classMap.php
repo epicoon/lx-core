@@ -12,6 +12,8 @@ return [
 	'HttpApplication' => 'classes/system/app',
 	'ConsoleApplication' => 'classes/system/app',
 
+    'PluginProvider' => 'classes/system/app',
+    'ServiceProvider' => 'classes/system/app',
     'HttpAssetsManager' => 'classes/system/app',
 	'ApplicationConductor' => 'classes/system/app',
 	'ApplicationLogger' => 'classes/system/app',
@@ -53,12 +55,16 @@ return [
     'CliCommand' => 'classes/system/console',
     'CliCommandsList' => 'classes/system/console',
 	'ServiceCliExecutor' => 'classes/system/console',
+
 	'JsCompiler' => 'classes/system/compiler',
     'JsCompilerExtension' => 'classes/system/compiler',
     'PluginFrontendJsCompiler' => 'classes/system/compiler',
 	'JsCompileDependencies' => 'classes/system/compiler',
 	'AssetCompiler' => 'classes/system/compiler',
 	'NodeJsExecutor' => 'classes/system/compiler',
+    'Minimizer' => 'classes/system/compiler',
+    'SintaxExtender' => 'classes/system/compiler',
+
     'HtmlHead' => 'classes/system/html',
 	'HtmlBody' => 'classes/system/html',
 	'HtmlHelper' => 'classes/system/html',
@@ -114,8 +120,6 @@ return [
 	'Request' => 'classes/tools',
 	'Vector' => 'classes/tools',
     'CascadeReport' => 'classes/tools',
-    'FlightRecorder' => 'classes/tools/flightRecorder',
-    'FlightRecorderHolderTrait' => 'classes/tools/flightRecorder',
     'Undefined' => 'classes/tools',
 
 	'BaseFile' => 'classes/file',
@@ -159,16 +163,16 @@ return [
 	'FusionComponentTrait' => 'behaviors/Fusion',
 	'FusionComponentList' => 'behaviors/Fusion',
 
-	'ErrorCollectorInterface' => 'behaviors/ErrorCollector',
-	'ErrorCollectorTrait' => 'behaviors/ErrorCollector',
-	'ErrorCollectorList' => 'behaviors/ErrorCollector',
-	'ErrorCollectorError' => 'behaviors/ErrorCollector',
+    'FlightRecorderHolderInterface' => 'behaviors/FlightRecorderHolder',
+    'FlightRecorderHolderTrait' => 'behaviors/FlightRecorderHolder',
+    'FlightRecorderInterface' => 'behaviors/FlightRecorderHolder',
+    'FlightRecorder' => 'behaviors/FlightRecorderHolder',
+	'FlightError' => 'behaviors/FlightRecorderHolder',
 
 
 	/*******************************************************************************************************************
 	 * Interfaces
 	 ******************************************************************************************************************/
-	'ApplicationLifeCycleManagerInterface' => 'interfaces',
 	'ConductorInterface' => 'interfaces',
     'ResponseInterface' => 'interfaces',
     'RendererInterface' => 'interfaces',

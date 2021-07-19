@@ -3,16 +3,12 @@
 namespace lx;
 
 /**
- * Class BaseApplication
- * @package lx
- *
  * @property-read Language $language
  * @property-read ApplicationI18nMap $i18nMap
  */
 abstract class BaseApplication extends AbstractApplication
 {
-    /** @var array */
-    protected $settings;
+    protected array $settings = [];
 
     protected static function getDefaultComponents(): array
     {
@@ -22,36 +18,26 @@ abstract class BaseApplication extends AbstractApplication
         ]);
     }
 
-    /**
-     * @return array
-     */
-    public function getBuildData()
+    public function getBuildData(): array
     {
         return [
             'settings' => $this->settings,
         ];
     }
 
-    /**
-     * @param array $data
-     */
-    public function applyBuildData($data)
+    public function applyBuildData(array $data): void
     {
     }
 
-    /**
-     * @return array
-     */
-    public function getSettings()
+    public function getSettings(): array
     {
         return $this->settings;
     }
 
     /**
-     * @param string $name
      * @return mixed
      */
-    public function getSetting($name)
+    public function getSetting(string $name)
     {
         if (array_key_exists($name, $this->settings))
             return $this->settings[$name];
@@ -59,10 +45,9 @@ abstract class BaseApplication extends AbstractApplication
     }
 
     /**
-     * @param string $name
      * @param mixed $value
      */
-    public function addSetting($name, $value)
+    public function addSetting(string $name, $value)
     {
         $this->settings[$name] = $value;
     }
@@ -70,7 +55,7 @@ abstract class BaseApplication extends AbstractApplication
     /**
      * @param array|string $config
      */
-    public function useI18n($config)
+    public function useI18n($config): void
     {
         $map = [];
         if (is_array($config)) {

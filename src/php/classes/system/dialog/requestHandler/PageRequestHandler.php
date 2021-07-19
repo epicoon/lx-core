@@ -2,22 +2,12 @@
 
 namespace lx;
 
-/**
- * Class PageRequestHandler
- * @package lx
- */
 class PageRequestHandler extends RequestHandler
 {
-    /** @var string|null */
-    private $title = null;
+    private ?string $title = null;
+    private ?string $icon = null;
 
-    /** @var string|null */
-    private $icon = null;
-
-    /**
-     * @return void
-     */
-    protected function defineResponse()
+    protected function defineResponse(): void
     {
         //TODO костыльно (1/2)
         if ($this->resourceContext->isPlugin()) {
@@ -39,10 +29,7 @@ class PageRequestHandler extends RequestHandler
         $this->response = $response;
     }
 
-    /**
-     * @return ResponseInterface
-     */
-    protected function prepareResponse()
+    protected function prepareResponse(): ResponseInterface
     {
         if ($this->resourceContext && $this->resourceContext->isPlugin()) {
             return $this->renderPlugin();
@@ -51,12 +38,9 @@ class PageRequestHandler extends RequestHandler
         return $this->response;
     }
     
-    /**
-     * @param ResponseInterface $response
-     * @return ResponseInterface
-     */
-    protected function processProblemResponse($response)
+    protected function processProblemResponse(ResponseInterface $response): ResponseInterface
     {
+        /** @var RendererInterface $renderer */
         $renderer = $this->app->diProcessor->createByInterface(RendererInterface::class);
         $result = $renderer->render($response->getCode() . '.php');
 
@@ -65,10 +49,7 @@ class PageRequestHandler extends RequestHandler
         return $newResponse;
     }
 
-    /**
-     * @return ResponseInterface
-     */
-    private function renderPlugin()
+    private function renderPlugin(): ResponseInterface
     {
         $pluginData = $this->response->getData();
         $pluginInfo = addcslashes($pluginData['pluginInfo'], '\\');
@@ -84,6 +65,7 @@ class PageRequestHandler extends RequestHandler
         $settings = ArrayHelper::arrayToJsCode($this->app->getSettings());
         $js = "lx.start($settings, `$modules`, `$jsBootstrap`, `$pluginInfo`, `$jsMain`);";
 
+        /** @var RendererInterface $renderer */
         $renderer = $this->app->diProcessor->createByInterface(RendererInterface::class);
 
         //TODO костыльно (2/2)
