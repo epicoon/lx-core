@@ -927,7 +927,7 @@ class CliProcessor
 			$this->done();
 			return;
 		}
-		if (!is_numeric($i) || $i <= 0 || $i > count($dirs)) {
+		if (!is_numeric($i) || $i <= 0 || $i > count($pluginDirs)) {
 			$this->invalidateParam('index');
 			return;
 		}

@@ -2,7 +2,8 @@
 
 namespace lx;
 
-interface LoggerInterface {
+interface LoggerInterface
+{
 	/**
 	 * @param mixed $data
 	 */

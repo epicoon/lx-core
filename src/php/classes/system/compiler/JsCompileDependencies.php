@@ -61,10 +61,10 @@ class JsCompileDependencies
 
 	public function add(array $map): void
 	{
-		$this->addPlugins($arr['plugins'] ?? []);
-		$this->addModules($arr['modules'] ?? []);
-		$this->addScripts($arr['scripts'] ?? []);
-		$this->addI18ns($arr['i18n'] ?? []);
+		$this->addPlugins($map['plugins'] ?? []);
+		$this->addModules($map['modules'] ?? []);
+		$this->addScripts($map['scripts'] ?? []);
+		$this->addI18ns($map['i18n'] ?? []);
 	}
 
 	public function merge(JsCompileDependencies $dependencies): void

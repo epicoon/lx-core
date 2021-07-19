@@ -51,7 +51,7 @@ class SnippetCacheData
 		];
 	}
 
-	public function renew(string $rootKey, array $snippets, array $snippetsData, array $commonData): void
+	public function renew(string $rootKey, array $snippets, array $snippetsData, string $commonData): void
 	{
 		$plugin = $this->getPlugin();
 		$snippetBundlesDir = new Directory($plugin->conductor->getSnippetsCachePath());
@@ -249,7 +249,7 @@ class SnippetCacheData
 		return false;
 	}
 
-	private function processDependencies(array $commonDependencies, array &$dependencies): void
+	private function processDependencies(JsCompileDependencies $commonDependencies, array &$dependencies): void
 	{
 		$commonDependencies->add($dependencies);
 		if (!isset($dependencies['plugins'])) {

@@ -52,8 +52,6 @@ class EggMenu extends lx.Box #lx:namespace lx {
 	}
 
 	buildMenu(menuInfo) {
-		if (menuInfo.lxEmpty) return;
-
 		this.setBuildMode(true);
 		var widget = menuInfo.widget || lx.Box,
 			config = menuInfo.config || {},

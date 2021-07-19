@@ -2,17 +2,10 @@
 
 namespace lx;
 
-/**
- * Class DevLogger
- * @package lx
- */
 class DevLogger implements LoggerInterface
 {
-	/** @var int */
-	private $truncateLimit = 1000;
-
-	/** @var int */
-	private $truncateGoal = 100;
+	private int $truncateLimit = 1000;
+	private int $truncateGoal = 100;
 
 	/**
 	 * @param string|array $data
@@ -36,7 +29,7 @@ class DevLogger implements LoggerInterface
 	/**
 	 * Truncates count of messages in the log-file
 	 */
-	public function truncate()
+	public function truncate(): void
 	{
 		$dir = $this->getLogDirectory();
 		$files = $dir->getFiles()->toArray();
@@ -47,15 +40,14 @@ class DevLogger implements LoggerInterface
 	}
 
 
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 	/**
 	 * @param string|array $data
-	 * @return string
 	 */
-	private function prepareMessage($data)
+	private function prepareMessage($data): string
 	{
 		if (empty($data)) {
 			return '';
@@ -142,10 +134,7 @@ class DevLogger implements LoggerInterface
 		return $result;
 	}
 
-	/**
-	 * @param File $file
-	 */
-	private function truncateFile($file)
+	private function truncateFile(FileInterface $file): void
 	{
 		$msgList = $this->readFile($file);
 		if (count($msgList) <= $this->truncateLimit) {
@@ -158,22 +147,14 @@ class DevLogger implements LoggerInterface
 		$this->rewriteFile($file, $msgList);
 	}
 
-	/**
-	 * @param File $file
-	 * @return array
-	 */
-	private function readFile($file)
+	private function readFile(FileInterface $file): array
 	{
 		$text = $file->get();
 		$list = explode($this->msgDelimiter(), $text);
 		return $list;
 	}
 
-	/**
-	 * @param File $file
-	 * @param string $msg
-	 */
-	private function writeFile($file, $msg)
+	private function writeFile(FileInterface $file, string $msg): void
 	{
 		if (!$file->exists()) {
 			$file->put($msg);
@@ -184,40 +165,27 @@ class DevLogger implements LoggerInterface
 		$file->append($msg);
 	}
 
-	/**
-	 * @param File $file
-	 * @param array $msgList
-	 */
-	private function rewriteFile($file, $msgList)
+	private function rewriteFile(FileInterface $file, array $msgList): void
 	{
 		$text = implode($this->msgDelimiter(), $msgList);
 		$file->put($text);
 	}
 
-	/**
-	 * @return string
-	 */
-	private function msgDelimiter()
+	private function msgDelimiter(): string
 	{
 		return PHP_EOL . PHP_EOL
 			. '-------------------------------'
 			. PHP_EOL . PHP_EOL;
 	}
 
-	/**
-	 * @return Directory
-	 */
-	private function getLogDirectory()
+	private function getLogDirectory(): DirectoryInterface
 	{
 		$dir = new Directory($this->getLogPath());
 		$dir->make();
 		return $dir;
 	}
 
-	/**
-	 * @return string
-	 */
-	private function getLogPath()
+	private function getLogPath(): string
 	{
 		return \lx::$conductor->devLog;
 	}

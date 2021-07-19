@@ -52,7 +52,7 @@ class PluginEditor
 			foreach ($psr as $prefix => $path) {
 				foreach ((array)$path as $pathI) {
 					$rPath = $pathI == '' ? $servicePath : $servicePath . '/' . $pathI;
-					if (strpos($fullPath, $rPath) == 0) {
+					if (strpos($fullPath, $rPath) === 0) {
 						$subPath = explode($rPath . '/', $fullPath)[1];
 						$namespace = $prefix . str_replace('/', '\\', $subPath);
 						break 2;

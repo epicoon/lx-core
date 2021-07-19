@@ -4,10 +4,6 @@ namespace lx;
 
 use Exception;
 
-/**
- * Class ApplicationLogger
- * @package lx
- */
 class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 {
 	use ApplicationToolTrait;
@@ -16,17 +12,10 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 	const DEFAULT_CATEGORY = 'common';
 	const DEFAULT_LOG_PATH = '@site/log';
 
-	/** @var string */
-	protected $path;
-
-	/** @var int */
-	protected $messagesCountForFile = 10000;
-
-	/** @var array|null */
-	protected $allowedCategories = null;
-
-	/** @var array */
-	protected $ignoredCategories = [];
+	protected ?string $path = null;
+	protected int $messagesCountForFile = 10000;
+	protected ?array $allowedCategories = null;
+	protected array $ignoredCategories = [];
 
     public function init(array $config): void
     {
@@ -94,20 +83,14 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 		$file->put($msg, FILE_APPEND);
 	}
 
-	/**
-	 * @return Directory
-	 */
-	protected function getLogDirectory()
+	protected function getLogDirectory(): DirectoryInterface
 	{
 		$dir = new Directory($this->getLogPath());
 		$dir->make();
 		return $dir;
 	}
 
-	/**
-	 * @return string
-	 */
-	protected function getLogPath()
+	protected function getLogPath(): string
 	{
 		$path = $this->path ?? self::DEFAULT_LOG_PATH;
 		return $this->app->conductor->getFullPath($path);
@@ -115,11 +98,8 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 
 	/**
 	 * @param array|string $data
-     * @param array $source
-	 * @param int $index
-	 * @return string
 	 */
-	protected function prepareData($data, $source, $index)
+	protected function prepareData($data, array $source, int $index): string
 	{
         $date = new \DateTime();
         $date = $date->format('Y-m-d h:i:s');

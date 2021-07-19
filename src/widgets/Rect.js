@@ -1240,7 +1240,7 @@ class Rect #lx:namespace lx {
     /*
      * Сниппет с выходом на плагин, он же корневой сниппет в данном плагине
      * */
-    rootSnippet() {
+    getRootSnippet() {
         #lx:server { return Snippet; }
         if (this.plugin) return this;
         return this.ancestor({hasProperty: 'plugin'});
@@ -1248,7 +1248,7 @@ class Rect #lx:namespace lx {
 
     getPlugin() {
         #lx:server { return Plugin; }
-        var root = this.rootSnippet();
+        var root = this.getRootSnippet();
         if (!root) return null;
         return root.plugin;
     }

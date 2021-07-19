@@ -75,7 +75,7 @@ class I18nHelper
 	/**
 	 * @param string $params - example: 'k1: v1, k2: v2'
 	 */
-	private static function parseParams(string $params): string
+	private static function parseParams(string $params): array
 	{
         $result = [];
 		$arr = preg_split('/\s*,\s*/', trim($params, ':'));

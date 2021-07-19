@@ -238,6 +238,12 @@ class Box extends lx.Rect #lx:namespace lx {
     }
 
     #lx:client {
+        getInnerPlugin() {
+            var container = __getContainer(this);
+            if (!container.plugin) return null;
+            return container.plugin;
+        }
+        
         setSnippet(config, attributes = null) {
             if (config.isString) {
                 config = {path: config};
