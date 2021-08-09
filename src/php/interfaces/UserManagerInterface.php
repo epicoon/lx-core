@@ -8,6 +8,11 @@ interface UserManagerInterface
     public function getAuthFieldName(): string;
     public function getPasswordFieldName(): string;
 
+    /**
+     * @return mixed
+     */
+    public function getAuthField(ModelInterface $userModel);
+
     public function identifyUserById(int $id, ?UserInterface $defaultUser = null): ?UserInterface;
 
     /**
