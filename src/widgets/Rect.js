@@ -1759,15 +1759,17 @@ function __setGeomPriorityH(self, val, val2) {
     if (val2 !== undefined) {
         if (!self.geom) self.geom = {};
         var dropGeom = __getGeomPriorityH(self).diff([val, val2])[0];
+        self.geom.bpg = [val, val2];
         if (dropGeom === undefined) return self;
         self.domElem.style(lx.Geom.geomName(dropGeom), '');
-        self.geom.bpg = [val, val2];
         return self;
     }
 
     if (!self.geom) self.geom = {};
 
-    if (!self.geom.bpg) self.geom.bpg = [lx.LEFT, lx.CENTER];
+    if (!self.geom.bpg) self.geom.bpg = (val==lx.RIGHT)
+        ? [lx.RIGHT, lx.CENTER]
+        : [lx.LEFT, lx.CENTER];
 
     if (self.geom.bpg[0] == val) return self;
 
@@ -1777,9 +1779,7 @@ function __setGeomPriorityH(self, val, val2) {
         case lx.RIGHT: self.domElem.style('right', ''); break;
     }
 
-    self.geom.bpg[1] = self.geom.bpg[0];
-    self.geom.bpg[0] = val;
-
+    self.geom.bpg[1] = val;
     return self;
 }
 
@@ -1787,14 +1787,16 @@ function __setGeomPriorityV(self, val, val2) {
     if (val2 !== undefined) {
         if (!self.geom) self.geom = {};
         var dropGeom = __getGeomPriorityV(self).diff([val, val2])[0];
+        self.geom.bpv = [val, val2];
         if (dropGeom === undefined) return self;
         self.domElem.style(lx.Geom.geomName(dropGeom), '');
-        self.geom.bpv = [val, val2];
         return self;
     }
 
     if (!self.geom) self.geom = {};
-    if (!self.geom.bpv) self.geom.bpv = [lx.TOP, lx.MIDDLE];
+    if (!self.geom.bpv) self.geom.bpv = (val==lx.BOTTOM)
+        ? [lx.BOTTOM, lx.MIDDLE]
+        : [lx.TOP, lx.MIDDLE];
 
     if (self.geom.bpv[0] == val) return self;
 
@@ -1804,8 +1806,6 @@ function __setGeomPriorityV(self, val, val2) {
         case lx.BOTTOM: self.domElem.style('bottom', ''); break;
     }
 
-    self.geom.bpv[1] = self.geom.bpv[0];
-    self.geom.bpv[0] = val;
-
+    self.geom.bpv[1] = val;
     return self;
 }

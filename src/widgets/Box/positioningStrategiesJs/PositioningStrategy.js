@@ -90,13 +90,13 @@ class PositioningStrategy #lx:namespace lx {
 		}
 
 		if (geom.lxEmpty) return;
+		if ( geom.l !== undefined ) this.setParam(elem, lx.LEFT, geom.l);
 		if ( geom.r !== undefined ) this.setParam(elem, lx.RIGHT, geom.r);
 		if ( geom.w !== undefined ) this.setParam(elem, lx.WIDTH, geom.w);
-		if ( geom.l !== undefined ) this.setParam(elem, lx.LEFT, geom.l);
 
+		if ( geom.t !== undefined ) this.setParam(elem, lx.TOP, geom.t);
 		if ( geom.b !== undefined ) this.setParam(elem, lx.BOTTOM, geom.b);
 		if ( geom.h !== undefined ) this.setParam(elem, lx.HEIGHT, geom.h);
-		if ( geom.t !== undefined ) this.setParam(elem, lx.TOP, geom.t);
 		elem.trigger('resize');
 	}
 

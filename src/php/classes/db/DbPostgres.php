@@ -93,6 +93,10 @@ class DbPostgres extends DbConnection
                         $default = $matches[1];
                     }
 
+                    if ($type == DbTableField::TYPE_BOOLEAN) {
+                        $default = (strtolower($default) === 'false') ? false : true;
+                    }
+
                     $definition['default'] = $default;
                 }
             }
@@ -216,7 +220,6 @@ class DbPostgres extends DbConnection
 
         $fks = [];
         foreach ($constraints as $constraint) {
-            $fieldName = $constraint['column_name'];
             $fks[$constraint['fk_name']][] = [
                 'field' => $constraint['field'],
                 'relTable' => $constraint['rel_table'],
@@ -255,7 +258,7 @@ class DbPostgres extends DbConnection
 
     public function tableExists(string $name): bool
     {
-        list($schemaName, $shortTableName) = $this->splitTableName($tableName);
+        list($schemaName, $shortTableName) = $this->splitTableName($name);
         $res = $this->select("
             SELECT * FROM pg_tables where schemaname='{$schemaName}' AND tablename='{$shortTableName}'
         ", DbConnection::SELECT_TYPE_NUM, false);
@@ -469,7 +472,7 @@ class DbPostgres extends DbConnection
         $definition = $this->fieldToString($field);
         //TODO if ($field->isFk())
 
-        return "ALTER TABLE {$tableName} ADD COLUMN {$field->getName()} {$definition}";
+        return "ALTER TABLE {$tableName} ADD COLUMN {$definition}";
     }
 
     public function getDelColumnQuery(string $tableName, string $fieldName): string

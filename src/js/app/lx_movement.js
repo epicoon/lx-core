@@ -22,6 +22,9 @@ lx.move = function(event) {
 	var el = (this.moveParams.parentMove || this.moveParams.parentResize) ? this.parent : this;
 	lx.WidgetHelper.bringToFront(el);
 
+	delete el.geom.bpg;
+	delete el.geom.bpv;
+
 	if (this.moveParams.parentResize) {
 		var p = this.parent;
 		movedDelta.x = X - p.left('px') - p.width('px');

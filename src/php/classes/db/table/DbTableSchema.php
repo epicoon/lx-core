@@ -117,7 +117,7 @@ class DbTableSchema
     {
         $field = new DbTableField($definition);
         $this->fields[$field->getName()] = $field;
-        if ($field->isPk()) {
+        if ($field->isPk() && !in_array($field->getName(), $this->pkNames)) {
             $this->pkNames[] = $field->getName();
         }
         return $field;

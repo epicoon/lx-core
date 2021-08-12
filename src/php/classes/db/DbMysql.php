@@ -232,7 +232,7 @@ class DbMysql extends DbConnection
 
 			if (!isset($data['type'])) {
 				if (preg_match('/^varchar/', $item['data_type'])) $data['type'] = 'string';
-				else if ($item['data_type'] == 'int') $data['type'] = 'integer';
+				else if ($item['data_type'] == 'int') $data['type'] = 'integer';//TODO PhpTypeEnum::
 				else $data['type'] = $item['data_type'];
 			}
 
