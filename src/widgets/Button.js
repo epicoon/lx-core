@@ -3,8 +3,8 @@
 #lx:use lx.Box;
 
 class Button extends lx.Box #lx:namespace lx {
-	#lx:client postBuild(config) {
-		super.postBuild(config);
+	#lx:client clientBuild(config) {
+		super.clientBuild(config);
 		this.align(lx.CENTER, lx.MIDDLE);
 		this.on('mousedown', lx.Event.preventDefault);
 	}

@@ -79,6 +79,11 @@ class DataObject implements ArrayInterface
 	{
 		return (array_key_exists($name, $this->arrayValue) && $this->arrayValue[$name] === null);
 	}
+	
+	public function hasProperty(string $name): bool
+    {
+        return array_key_exists($name, $this->arrayValue);
+    }
 
     /**
      * @param mixed $val

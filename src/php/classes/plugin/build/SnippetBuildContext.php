@@ -166,7 +166,10 @@ class SnippetBuildContext implements ContextTreeInterface
 		$cacheData = $this->cacheData->smartRenew($changed, $snippets);
 		$this->getPlugin()->setRootSnippetKey($cacheData['rootSnippetKey']);
 		$this->getPlugin()->applyBuildData($cacheData['pluginModif']);
-		$this->pluginBuildContext->applayDependencies($cacheData['dependencies']);
+
+		/** @var JsCompileDependencies $dependencies */
+		$dependencies = $cacheData['dependencies'];
+		$this->pluginBuildContext->applayDependencies($dependencies->toArray());
 		return $cacheData['cache'];
 	}
 

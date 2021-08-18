@@ -42,7 +42,7 @@ class Application #lx:namespace lx {
 
 function __getPrefix() {
     if (prefix === null) {
-        var time = Math.floor((new Date()).getTime() * 0.001);
+        var time = (new Date()).getTime();
         prefix = '' + lx.Math.decChangeNotation(time, 62);
     }
     return prefix;

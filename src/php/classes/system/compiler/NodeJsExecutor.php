@@ -75,12 +75,14 @@ class NodeJsExecutor
     public function setPath(string $path): NodeJsExecutor
     {
         $this->filePath = $path;
+        $this->file = new File($path);
         return $this;
     }
 
     public function setFile(FileInterface $file): NodeJsExecutor
     {
         $this->file = $file;
+        $this->filePath = $file->getPath();
         return $this;
     }
 

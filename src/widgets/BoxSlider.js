@@ -35,8 +35,8 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 	}
 
 	#lx:client {
-		postBuild(config) {
-			super.postBuild(config);
+		clientBuild(config) {
+			super.clientBuild(config);
 			if (this->pre) this->pre.click(()=> this.timer.swapSlides(-1));
 			if (this->post) this->post.click(()=> this.timer.swapSlides(1));
 		}

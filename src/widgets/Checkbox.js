@@ -16,8 +16,8 @@ class Checkbox extends lx.Rect #lx:namespace lx {
 	}
 
 	#lx:client {
-		postBuild(config) {
-			super.postBuild(config);
+		clientBuild(config) {
+			super.clientBuild(config);
 			this.on('mousedown', lx.Event.preventDefault);
 			this.on('mouseup', self::click);
 		}

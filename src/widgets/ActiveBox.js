@@ -2,6 +2,8 @@
 
 #lx:private;
 
+#lx:use lx.Box;
+
 class ActiveBox extends lx.Box #lx:namespace lx {
 	//TODO - тут подразумеваются пиксели. Бардак с единицами измерения продолжается...
 	#lx:const
@@ -53,8 +55,8 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 	}
 
 	#lx:client {
-		postBuild(config) {
-			super.postBuild(config);
+		clientBuild(config) {
+			super.clientBuild(config);
 
 			if (this.width() === null) this.width(this.width('px')+'px');
 			if (this.height() === null) this.height(this.height('px')+'px');

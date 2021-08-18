@@ -35,8 +35,8 @@ class Slider extends lx.Box #lx:namespace lx {
 		});
 	}
 
-	#lx:client postBuild(config) {
-		super.postBuild(config);
+	#lx:client clientBuild(config) {
+		super.clientBuild(config);
 
 		var h = this.height('px'),
 			w = this.width('px'),

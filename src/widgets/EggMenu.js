@@ -78,8 +78,8 @@ class EggMenu extends lx.Box #lx:namespace lx {
 	}
 
 	#lx:client {
-		postBuild(config) {
-			super.postBuild(config);
+		clientBuild(config) {
+			super.clientBuild(config);
 
 			if (this.basicCss.onMove) {
 				this->top.on('moveBegin', ()=>{

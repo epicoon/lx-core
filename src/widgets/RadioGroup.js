@@ -18,8 +18,8 @@ class RadioGroup extends lx.LabeledGroup #lx:namespace lx {
 		this.value(config.defaultValue || 0);
 	}
 
-	#lx:client postBuild(config) {
-		super.postBuild(config);
+	#lx:client clientBuild(config) {
+		super.clientBuild(config);
 		this.radios().each(a=>a.on('change', _handler_onChange));
 		this.labels().each(l=>{
 			l.style('cursor', 'pointer');

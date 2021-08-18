@@ -85,8 +85,8 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 		};
 	}
 
-	#lx:client postBuild(config) {
-		super.postBuild(config);
+	#lx:client clientBuild(config) {
+		super.clientBuild(config);
 		if (!this->label) return;
 		this->label.each((l)=>{
 			l.on('click', function() {

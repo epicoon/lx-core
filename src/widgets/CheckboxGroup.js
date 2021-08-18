@@ -18,8 +18,8 @@ class CheckboxGroup extends lx.LabeledGroup #lx:namespace lx {
 		if (config.defaultValue !== undefined) this.value(config.defaultValue);
 	}
 
-	#lx:client postBuild(config) {
-		super.postBuild(config);
+	#lx:client clientBuild(config) {
+		super.clientBuild(config);
 		this.checkboxes().each((a)=>a.on('change', _handler_onChange));
 		this.labels().each(l=>{
 			l.style('cursor', 'pointer');

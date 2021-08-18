@@ -74,8 +74,8 @@ class MultiBox extends lx.Box #lx:namespace lx {
 		if (config.animation) this.animation = config.animation;
 	}
 
-	#lx:client postBuild(config) {
-		super.postBuild(config);
+	#lx:client clientBuild(config) {
+		super.clientBuild(config);
 
 		if (this.animation) {
 			var duration = this.animation.isNumber ? this.animation : 300;

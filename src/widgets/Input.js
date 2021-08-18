@@ -19,8 +19,8 @@ class Input extends lx.Rect #lx:namespace lx {
 	}
 
 	#lx:client {
-		postBuild(config) {
-			super.postBuild(config);
+		clientBuild(config) {
+			super.clientBuild(config);
 			this.on('focus', self::setEntry );
 			this.on('blur', self::unsetEntry );
 		}

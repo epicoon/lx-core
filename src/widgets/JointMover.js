@@ -62,8 +62,8 @@ class JointMover extends lx.Rect #lx:namespace lx {
         });
     }
 
-    postBuild(config) {
-        super.postBuild(config);
+    clientBuild(config) {
+        super.clientBuild(config);
         this.actualize();
 
         this.parent.map('%');

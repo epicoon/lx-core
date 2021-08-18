@@ -96,7 +96,6 @@ class PluginBuildContext implements ContextTreeInterface
 	{
 		if (isset($dependencies['plugins'])) {
 			foreach ($dependencies['plugins'] as $pluginInfo) {
-//				$plugin = $this->app->getPlugin($pluginInfo);
                 $plugin = $this->app->pluginProvider->getPluginByConfig($pluginInfo);
 				$plugin->setAnchor($pluginInfo['anchor']);
 				$context = $this->add(['plugin' => $plugin]);

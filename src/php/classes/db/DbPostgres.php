@@ -74,6 +74,9 @@ class DbPostgres extends DbConnection
             $type = $field['data_type'];
             if (preg_match('/^character/', $type)) {
                 $type = DbTableField::TYPE_STRING;
+            } elseif (preg_match('/^timestamp/', $type)) {
+                //TODO use with timezone
+                $type = DbTableField::TYPE_TIMESTAMP;
             }
             $definition['type'] = $type;
 

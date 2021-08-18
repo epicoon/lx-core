@@ -87,8 +87,8 @@ class TreeBox extends lx.Box #lx:namespace lx {
 	}
 
 	#lx:client {
-		postBuild(config) {
-			super.postBuild(config);
+		clientBuild(config) {
+			super.clientBuild(config);
 
 			var work = this->work,
 				move = this->move;

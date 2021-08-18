@@ -26,7 +26,7 @@ class Calendar extends lx.Input #lx:namespace lx {
 	}
 
 	#lx:client {
-		postBuild(config) {
+		clientBuild(config) {
 			this.on('mouseup', _handler_open);
 		}
 

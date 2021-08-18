@@ -56,8 +56,8 @@ class Dropbox extends lx.Box #lx:namespace lx {
 	}
 
 	#lx:client {
-		postBuild(config) {
-			super.postBuild(config);
+		clientBuild(config) {
+			super.clientBuild(config);
 			if (!this.data.isArray && !this.data.is(lx.Dict))
 				this.data = new lx.Dict(this.data);
 			this.click(_handler_open);

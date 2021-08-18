@@ -11,7 +11,7 @@
 
 /* * 1. Constructor
  * build(config)
- * postBuild(config)
+ * clientBuild(config)
  * postUnpack(config)
  * positioning()
  * static onresize()
@@ -87,8 +87,8 @@ class Box extends lx.Rect #lx:namespace lx {
             this.childrenByKeys = {};
         }
 
-        postBuild(config) {
-            super.postBuild(config);
+        clientBuild(config) {
+            super.clientBuild(config);
             this.on('resize', self::onresize);
             this.on('scrollBarChange', self::onresize);
         }

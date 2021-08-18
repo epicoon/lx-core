@@ -18,7 +18,7 @@ class Rect #lx:namespace lx {
         this.applyConfig(config);
         this.build(config);
 
-        #lx:client { this.postBuild(config); };
+        #lx:client { this.clientBuild(config); };
 
         if (this.getZShift() && this.style('z-index') === null)
             this.style('z-index', this.getZShift());
@@ -58,7 +58,7 @@ class Rect #lx:namespace lx {
     }
 
     /**
-     * Строительство элемента на и на клиенте и на сервере
+     * Строительство элемента и на клиенте и на сервере
      * */
     build(config={}) {
     }
@@ -174,7 +174,7 @@ class Rect #lx:namespace lx {
          * Метод, вызываемый в конструкторе для выполенния действий, когда сущность действительно построена, связи (с родителем) выстроены
          * Логика общая для создания элемента и на клиенте и для допиливания при получении от сервера
          * */
-        postBuild(config={}) {
+        clientBuild(config={}) {
             this.on('scroll', lx.checkDisplay);
             if (!config) return;
             if (config.disabled !== undefined) this.disabled(config.disabled);
@@ -1573,7 +1573,7 @@ class Rect #lx:namespace lx {
         postLoad() {
             var config = this.lxExtract('__postBuild') || {};
             this.postUnpack(config);
-            this.postBuild(config);
+            this.clientBuild(config);
         }
 
         restoreLinks(loader) {
