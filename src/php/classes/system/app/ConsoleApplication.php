@@ -22,7 +22,20 @@ class ConsoleApplication extends BaseApplication
 
 		switch ($this->command) {
 			case 'cli':
-				(new Cli())->run();
+			    if (empty($this->args)) {
+                    (new Cli())->run();
+                } else {
+                    $processor = new CliProcessor();
+                    $argsStr = implode(' ', $this->args);
+                    list($command, $args) = $processor->parseInput($argsStr);
+                    $result = $processor->handleCommand(
+                        $command,
+                        CliProcessor::COMMAND_TYPE_CONSOLE,
+                        $args,
+                        null, null
+                    );
+                    //TODO допилить логирование ошибок и настройку вывода в консоль если надо
+                }
 				break;
 
             case 'run':
