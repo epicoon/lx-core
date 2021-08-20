@@ -54,7 +54,7 @@ class Vector implements ArrayInterface
 
 	public function merge(iterable $elems): void
 	{
-        $this->insert($this->len(), $elems);
+        $this->insert($this->count(), $elems);
 	}
 
 	/**
@@ -106,7 +106,7 @@ class Vector implements ArrayInterface
 
 	public function eachRevert(callable $func): void
 	{
-		for ($i = $this->len() - 1; $i >= 0; $i--) {
+		for ($i = $this->count() - 1; $i >= 0; $i--) {
 			$func($this->arrayValue[$i], $i, $this);
 		}
 	}
@@ -116,8 +116,8 @@ class Vector implements ArrayInterface
 	 */
 	public function maxOnRange(int $i0 = 0, ?int $i1 = null)
 	{
-		if ($i1 === null || $i1 >= $this->len()) {
-			$i1 = $this->len() - 1;
+		if ($i1 === null || $i1 >= $this->count()) {
+			$i1 = $this->count() - 1;
 		}
 
 		$max = $this->arrayValue[$i0];

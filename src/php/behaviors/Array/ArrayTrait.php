@@ -67,7 +67,7 @@ trait ArrayTrait
 		return empty($this->arrayValue);
 	}
 
-	public function len(): int
+	public function count(): int
 	{
 		return count($this->arrayValue);
 	}
@@ -134,7 +134,7 @@ trait ArrayTrait
 			return $this->arrayValue[$keys[count($keys) - 1]];
 		}
 
-		return $this->arrayValue[$this->len() - 1];
+		return $this->arrayValue[$this->count() - 1];
 	}
 
 	/**

@@ -152,10 +152,18 @@ class Box extends lx.Rect #lx:namespace lx {
 
         if ( config.text ) this.text( config.text );
 
-        if (config.positioning) this.setPositioning(config.positioning, config);
-        if (config.stream) this.stream(config.stream.isObject ? config.stream : {});
-        if (config.grid) this.grid(config.grid.isObject ? config.grid : {});
-        if (config.slot) this.slot(config.slot.isObject ? config.slot : {});
+        if (config.positioning)
+            this.setPositioning(config.positioning, config);
+        else if (config.stream)
+            this.stream(config.stream.isObject ? config.stream : {});
+        else if (config.streamProportional)
+            this.streamProportional(config.streamProportional.isObject ? config.streamProportional : {});
+        else if (config.grid)
+            this.grid(config.grid.isObject ? config.grid : {});
+        else if (config.gridProportional)
+            this.gridProportional(config.gridProportional.isObject ? config.gridProportional : {});
+        else if (config.slot)
+            this.slot(config.slot.isObject ? config.slot : {});
     }
 
     getCommonEventNames() {

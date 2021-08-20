@@ -11,7 +11,7 @@ interface ArrayInterface extends \ArrayAccess, \IteratorAggregate
 	public function getIndex(): int;
 	public function isAssoc(): bool;
 	public function isEmpty(): bool;
-	public function len(): int;
+	public function count(): int;
 	public function clear(): void;
 	/**
 	 * @return mixed
