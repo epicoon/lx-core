@@ -10,7 +10,7 @@ abstract class I18nMap implements FusionComponentInterface
 	const DEFAULT_FILE_NAME = 'i18n';
 
 	protected ?array $map = null;
-	protected ?array $tags;
+	protected ?array $tags = null;
 
 	public function getMap(): array
 	{
