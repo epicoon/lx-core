@@ -199,7 +199,7 @@ class DependencyProcessor
 					? $parameter->getDefaultValue()
 					: null;
 				continue;
-			} elseif ($this->typeIsPrimitive($type)) {
+			} elseif ($this->typeIsPrimitive($type->getName())) {
                 $default = $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : new Undefined();
                 if ($default instanceof Undefined) {
                     throw new \Exception("DI-processor can't create an instance of the $name"
