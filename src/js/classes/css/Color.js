@@ -35,17 +35,35 @@ class Color #lx:namespace lx {
 				this.G = colorsMap[name][1];
 				this.B = colorsMap[name][2];
 			} else {
-				this.R = 0;
-				this.G = 0;
-				this.B = 0;
+				color = color.replace(' ', '');
+				if (color.match(/^rgba?\(\d{1,3},\d{1,3},\d{1,3}(,(0\.\d|\d))?\)/)) {
+					color = color.replace(/^rgba?\(/, '');
+					color = color.replace(')', '');
+					color = color.split(',');
+					this.R = color[0];
+					this.G = color[1];
+					this.B = color[2];
+					if (color.len == 4) this.alpha = color[3];
+				} else {
+					this.R = 0;
+					this.G = 0;
+					this.B = 0;
+				}
 			}
 			return;
 		}
 
-		if (color.isArray && color.len == 3) {
-			this.R = color[0];
-			this.G = color[1];
-			this.B = color[2];
+		if (color.isArray) {
+			if (color.len == 3) {
+				this.R = color[0];
+				this.G = color[1];
+				this.B = color[2];
+			} else if (color.len == 4) {
+				this.R = color[0];
+				this.G = color[1];
+				this.B = color[2];
+				this.alpha = color[3];
+			}
 			return;
 		}
 
@@ -163,7 +181,7 @@ class Color #lx:namespace lx {
 		return this;
 	}
 
-	fadeOut() {
+	fadeOut(delta) {
 		this.alpha = __clamp(this.alpha + delta/100);
 		return this;
 	}
@@ -202,6 +220,16 @@ class Color #lx:namespace lx {
 		return [this.R, this.G, this.B];
 	}
 
+	[Symbol.toPrimitive](hint) {
+		switch (hint) {
+			case 'number':
+				return this.toNumber();
+			case 'string':
+			default:
+				return this.toString();
+		}
+	}
+
 	toNumber() {
 		var sR = this.R.toString(16),
 			sG = this.G.toString(16),
@@ -213,6 +241,17 @@ class Color #lx:namespace lx {
 	}
 
 	toString() {
+		if (this.alpha != 1) return 'rgba('
+			+ this.R
+			+ ', '
+			+ this.G
+			+ ', '
+			+ this.B
+			+ ', '
+			+ this.alpha
+			+ ')';
+
+
 		var sR = this.R.toString(16),
 			sG = this.G.toString(16),
 			sB = this.B.toString(16);
@@ -220,6 +259,18 @@ class Color #lx:namespace lx {
 		if (sG.length < 2) sG = '0' + sG;
 		if (sB.length < 2) sB = '0' + sB;
 		return '#' + sR + sG + sB;
+	}
+
+	toStringWithAlfa() {
+		return 'rgba('
+			+ this.R
+			+ ', '
+			+ this.G
+			+ ', '
+			+ this.B
+			+ ', '
+			+ this.alpha
+			+ ')';
 	}
 }
 
