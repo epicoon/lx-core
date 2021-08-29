@@ -458,7 +458,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 				parent: this,
 				key: 'label',
 				left: tw.leafHeight + tw.step + 'px',
-				css: 'lx-TW-Label'
+				css: tw.basicCss.label
 			});
 
 			if ( tw.leafConstructor ) tw.leafConstructor(this);

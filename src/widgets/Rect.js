@@ -308,7 +308,18 @@ class Rect #lx:namespace lx {
             }
         }
         if (!basicCss) basicCss = this.getBasicCss();
-        if (basicCss) this.setBasicCss(basicCss);
+        if (basicCss) {
+            if (basicCss.isString) {
+                this.setBasicCss(basicCss);
+                return;
+            }
+
+            let defaultBasicCss = this.getBasicCss();
+            for (let key in defaultBasicCss)
+                if (!(key in basicCss))
+                    basicCss[key] = defaultBasicCss[key];
+            this.setBasicCss(basicCss);
+        }
     }
 
     /**
