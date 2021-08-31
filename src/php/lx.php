@@ -100,6 +100,10 @@ class lx
             $command .= " > $msgLogPath 2>$errorLogPath &";
         }
 
+        if (self::$app->getParam('showCommand')) {
+            self::$app->setParam('showCommand', $command);
+        }
+
         return shell_exec($command);
     }
 

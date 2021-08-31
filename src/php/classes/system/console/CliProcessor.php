@@ -410,7 +410,7 @@ class CliProcessor
      * Example for arguments by keys:
      * lx-cli<app>: command -k=arg1 --key="arg2 by several words"
      */
-    public function parseInput(string $input): array
+    public static function parseInput(string $input): array
     {
         $arr = StringHelper::smartSplit($input, ['delimiter' => ' ', 'save' => ['[]', '"']]);
         $command = array_shift($arr);

@@ -19,25 +19,21 @@ class ConsoleApplication extends BaseApplication
 		if (!isset($this->command)) {
 			return;
 		}
+		
+		if ($this->command == 'cli') {
+		    $this->processCli();
+		    return;
+        }
+
+        $argsStr = $this->command . ' ' . implode(' ', $this->args);
+        list($command, $args) = CliProcessor::parseInput($argsStr);
+        $showCommandInConsole = $args['v'] ?? false;
+        $showCommandInFile = $args['f'] ?? false;
+        if ($showCommandInConsole || $showCommandInFile) {
+            $this->setParam('showCommand', true);
+        }
 
 		switch ($this->command) {
-			case 'cli':
-			    if (empty($this->args)) {
-                    (new Cli())->run();
-                } else {
-                    $processor = new CliProcessor();
-                    $argsStr = implode(' ', $this->args);
-                    list($command, $args) = $processor->parseInput($argsStr);
-                    $result = $processor->handleCommand(
-                        $command,
-                        CliProcessor::COMMAND_TYPE_CONSOLE,
-                        $args,
-                        null, null
-                    );
-                    //TODO допилить логирование ошибок и настройку вывода в консоль если надо
-                }
-				break;
-
             case 'run':
                 $serviceName = $this->args[0] ?? '';
                 $service = $this->getService($serviceName);
@@ -60,5 +56,30 @@ class ConsoleApplication extends BaseApplication
 				//TODO можно реализовать какие-то команды безоболочечные
 				break;
 		}
+        
+        if ($showCommandInConsole) {
+            echo $this->getParam('showCommand') . PHP_EOL;
+        }
+        if ($showCommandInFile) {
+            $this->log($this->getParam('showCommand'), 'command-run');
+        }
 	}
+	
+	private function processCli(): void
+    {
+        if (empty($this->args)) {
+            (new Cli())->run();
+        } else {
+            $processor = new CliProcessor();
+            $argsStr = implode(' ', $this->args);
+            list($command, $args) = $processor->parseInput($argsStr);
+            $result = $processor->handleCommand(
+                $command,
+                CliProcessor::COMMAND_TYPE_CONSOLE,
+                $args,
+                null, null
+            );
+            //TODO допилить логирование ошибок и настройку вывода в консоль если надо
+        }
+    }
 }

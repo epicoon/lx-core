@@ -27,6 +27,7 @@ abstract class AbstractApplication implements FusionInterface
     private int $pid;
     private string $_sitePath;
     private array $_config;
+    private array $_params;
     private ?array $defaultServiceConfig = null;
     private ?array $defaultPluginConfig = null;
     private ApplicationConductor $_conductor;
@@ -72,6 +73,7 @@ abstract class AbstractApplication implements FusionInterface
         );
         $this->_diProcessor = new $diConfig['class']($diConfig['params']);
 
+        $this->_params = [];
         $this->_config = $config;
         if ($useGlobalConfig) {
             $this->renewConfig();
@@ -185,6 +187,22 @@ abstract class AbstractApplication implements FusionInterface
 
 		return null;
 	}
+
+    /**
+     * @param mixed $value
+     */
+	public function setParam(string $name, $value): void
+    {
+        $this->_params[$name] = $value;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getParam(string $name)
+    {
+        return $this->_params[$name] ?? null;
+    }
 
 	public function getDefaultServiceConfig(): array
 	{
