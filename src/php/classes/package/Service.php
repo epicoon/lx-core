@@ -221,7 +221,7 @@ class Service implements FusionInterface
         return array_key_exists($name, $processesConfig);
     }
 
-	public function runProcess(string $name, ?int $index = null): void
+	public function runProcess(string $name, ?int $index = null): ?string
     {
         $processesConfig = $this->getConfig('processes') ?? [];
         if (!array_key_exists($name, $processesConfig)) {
@@ -229,7 +229,7 @@ class Service implements FusionInterface
                 '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
                 'msg' => "Service process '$name' does not exist",
             ]);
-            return;
+            return null;
         }
 
         $processData = $processesConfig[$name];
@@ -247,14 +247,17 @@ class Service implements FusionInterface
             $processConfig['processIndex'] = $index;
         }
 
-        $async = [];
-        if (array_key_exists('out', $processConfig)) {
-            $out = $processConfig['out'];
-            unset($processConfig['out']);
-            $async = [
-                'message_log' => $out['message_log'] ?? '/dev/null',
-                'error_log' => $out['error_log'] ?? '/dev/null',
-            ];
+        $asyncFlag = $processConfig['async'] ?? true;
+        if ($asyncFlag) {
+            $async = [];
+            if (array_key_exists('out', $processConfig)) {
+                $out = $processConfig['out'];
+                unset($processConfig['out']);
+                $async = [
+                    'message_log' => $out['message_log'] ?? '/dev/null',
+                    'error_log' => $out['error_log'] ?? '/dev/null',
+                ];
+            }
         }
 
         //TODO $index надо узнавать точно. Если он неизвестен, то не факт, что это 1
@@ -264,7 +267,7 @@ class Service implements FusionInterface
             $processConfig['logDirectory'] = '@site/log/process/' . $name . '_' . ($index ?? 1);
         }
 
-        if (empty($async)) {
+        if ($asyncFlag && empty($async)) {
             $async = [
                 'message_log_file' => $processConfig['logDirectory'] . '/_dump.log',
                 'error_log_file' => $processConfig['logDirectory'] . '/_error.log',
@@ -275,14 +278,14 @@ class Service implements FusionInterface
         if (!empty($processConfig)) {
             $args[] = json_encode($processConfig);
         }
-        
-        \lx::exec(
+
+        return \lx::exec(
             [
                 'executor' => 'php',
                 'script' => $this->conductor->getFullPath('@core/../process.php'),
                 'args' => $args
             ],
-            $async
+            $asyncFlag ? $async : false
         );
     }
 

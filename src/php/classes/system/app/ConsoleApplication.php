@@ -48,8 +48,13 @@ class ConsoleApplication extends BaseApplication
                     return;
                 }
 
-                $service->runProcess($processName);
-                echo 'Process has run' . PHP_EOL;
+                echo 'Process is running' . PHP_EOL;
+                $result = $service->runProcess($processName);
+                if ($result === null) {
+                    echo 'Done' . PHP_EOL;
+                } else {
+                    echo $result . PHP_EOL;
+                }
                 break;
 
 			default:
