@@ -255,7 +255,7 @@ class CliProcessor
         while (true) {
             $latterMatch = true;
             if ($i >= mb_strlen($matches[0])) break;
-            $latter = $matches[0]{$i};
+            $latter = $matches[0][$i];
             foreach ($matches as $command) {
                 if ($i >= mb_strlen($command)) break(2);
                 if ($latter != $command[$i]) break(2);

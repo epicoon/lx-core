@@ -39,6 +39,13 @@
         "name": "lx.CheckboxGroup",
         "path": "widgets\/CheckboxGroup.js"
     },
+    "lx.ConfirmPopup": {
+        "name": "lx.ConfirmPopup",
+        "path": "widgets\/ConfirmPopup\/ConfirmPopup.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
+    },
     "lx.Dropbox": {
         "name": "lx.Dropbox",
         "path": "widgets\/Dropbox.js"
@@ -62,6 +69,13 @@
     "lx.Input": {
         "name": "lx.Input",
         "path": "widgets\/Input.js"
+    },
+    "lx.InputPopup": {
+        "name": "lx.InputPopup",
+        "path": "widgets\/InputPopup\/InputPopup.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
     },
     "lx.JointMover": {
         "name": "lx.JointMover",
