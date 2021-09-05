@@ -99,17 +99,12 @@ class Rect #lx:namespace lx {
 
         if (config.style) {
             for (var i in config.style) {
-                if (i in this) {
-                    if ( config.style[i].isArray )
-                        this[i].apply( this, config.style[i] );
+                if (i == 'fill') {  //TODO list of available methods (roundCorners, rotate, picture)
+                    if (config.style[i].isArray)
+                        this[i].apply(this, config.style[i]);
                     else
-                        this[i].call( this, config.style[i] );
-                } else {
-                    if ( config.style[i].isArray )
-                        this.style.apply( this, i, config.style[i] );
-                    else
-                        this.style.call( this, i, config.style[i] );
-                }
+                        this[i].call(this, config.style[i]);
+                } else this.domElem.style(i, config.style[i]);
             }
         }
 
@@ -417,19 +412,19 @@ class Rect #lx:namespace lx {
 
     opacity(val) {
         if (val != undefined) {
-            this.style('opacity', val);
+            this.domElem.style('opacity', val);
             return this;
         }
-        return this.style('opacity');
+        return this.domElem.style('opacity');
     }
 
     fill(color) {
-        this.style('backgroundColor', color);
+        this.domElem.style('backgroundColor', color);
         return this;
     }
 
     overflow(val) {
-        this.style('overflow', val);
+        this.domElem.style('overflow', val);
         // if (val == 'auto') this.on('scroll', lx.checkDisplay);
         return this;
     }

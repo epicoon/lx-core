@@ -17,6 +17,7 @@
 
 class InputPopup extends lx.Box #lx:namespace lx {
     modifyConfigBeforeApply(config) {
+    	config.key = config.key || 'inputPopup';
     	config.style = {display: 'none'};
         return config;
     }

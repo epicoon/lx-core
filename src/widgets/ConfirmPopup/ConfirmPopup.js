@@ -16,6 +16,7 @@
 
 class ConfirmPopup extends lx.Box #lx:namespace lx {
     modifyConfigBeforeApply(config) {
+    	config.key = config.key || 'confirmPopup';
     	config.style = {display: 'none'};
         return config;
     }
