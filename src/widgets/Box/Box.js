@@ -641,6 +641,12 @@ class Box extends lx.Rect #lx:namespace lx {
 
     //==================================================================================================================
     /* 3. Content navigation */
+
+    isEmpty() {
+        var container = __getContainer(this);
+        return container.children.isEmpty();
+    }
+
     /**
      *
      * */
