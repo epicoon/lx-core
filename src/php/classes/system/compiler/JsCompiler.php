@@ -170,10 +170,10 @@ class JsCompiler
         }
 
         $code = $this->cutCoordinationDirectives($code);
+        $code = $this->parseYaml($code, $path);
         $code = $this->processMacroses($code);
         $code = $this->applyContext($code);
         $code = $this->sintaxExtender->applyExtendedSintax($code, $path);
-        $code = $this->parseYaml($code, $path);
         $code = $this->loadConfig($code, $path);
         $code = $this->plugScripts($code);
         $code = $this->checkMode($code);
@@ -458,19 +458,24 @@ class JsCompiler
 		return implode('', $result);
 	}
 
-	private function processMacroses(string $code): string
+	private function processMacroses(string $code, ?string $macrosesSrc = null): string
     {
+        if ($macrosesSrc === null) {
+            $macrosesSrc = $code;
+        }
         $regexp = '/(?<!\/\/ )(?<!\/\/)#lx:macros\s+(.+?)\s+(?P<re>{((?>[^{}]+)|(?P>re))*});?/';
 
-        preg_match_all($regexp, $code, $matches);
+        preg_match_all($regexp, $macrosesSrc, $matches);
         if (!empty($matches[0])) {
             foreach ($matches[1] as $i => $name) {
                 $text = preg_replace('/(?:^{|}$)/', '', $matches['re'][$i]);
-                $code = preg_replace('/#\b' . $name . '\b/', $text, $code);
+                $code = preg_replace('/>>>\b' . $name . '\b/', $text, $code);
             }
         }
-        
-        $code = preg_replace($regexp, '', $code);
+
+        if ($code === $macrosesSrc) {
+            $code = preg_replace($regexp, '', $code);
+        }
         return $code;
     }
 
@@ -542,6 +547,7 @@ class JsCompiler
 
             $data = Yaml::runParse($yaml, $path);
             $result = ArrayHelper::arrayToJsCode($data);
+            $result = $this->processMacroses($result, $yaml);
             return $result;
         }, $code);
 

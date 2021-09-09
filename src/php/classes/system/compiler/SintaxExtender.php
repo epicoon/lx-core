@@ -209,7 +209,7 @@ class SintaxExtender
 		//=====================================================================================================================
 
 
-		$reg = '/#lx:i18n(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/';
+		$reg = '/\'?#lx:i18n(?P<therec>\(((?>[^()]+)|(?P>therec))*\))\'?/';
 		$code = preg_replace_callback($reg, function($match) {
 			return '\'#lx:i18n' . addcslashes(trim($match['therec'], '()'), '\'') . 'i18n:lx#\'';
 		}, $code);
