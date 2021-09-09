@@ -197,6 +197,10 @@ function __bindMatrix(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 	c.beforeMethod('removeAt', __matrixHandlerOnRemove);
 	c.beforeMethod('clear',    __matrixHandlerOnClear );
 	c.afterMethod('set',       __matrixHandlerOnSet   );
+	if (c.lxHasMethod('reset')) {
+		c.beforeMethod('reset', ()=>widget.useRenderCache());
+		c.afterMethod('reset', ()=>widget.applyRenderCache());
+	}
 }
 
 function __unbindMatrix(widget) {

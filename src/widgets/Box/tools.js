@@ -23,6 +23,10 @@ class BoxChildren {
         return this.data.contains(el);
     }
 
+    indexOf(el) {
+        return this.data.indexOf(el);
+    }
+
     get(num) {
         if (num >= this.data.length) return null;
         return this.data[num];

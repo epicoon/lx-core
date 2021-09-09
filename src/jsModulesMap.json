@@ -85,6 +85,10 @@
         "name": "lx.LabeledGroup",
         "path": "widgets\/LabeledGroup.js"
     },
+    "lx.LanguageSwitcher": {
+        "name": "lx.LanguageSwitcher",
+        "path": "widgets\/LanguageSwitcher.js"
+    },
     "lx.MessageBox": {
         "name": "lx.MessageBox",
         "path": "widgets\/MessageBox.js"

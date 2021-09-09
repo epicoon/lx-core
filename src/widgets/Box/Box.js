@@ -55,7 +55,8 @@
  * streamDirection()
  * grid(config)
  * gridProportional(config={})
- * gridAutoSize(config={})
+ * gridStream(config={})
+ * gridAdaptive(config={})
  * slot(config)
  * setIndents(config)
  *
@@ -162,6 +163,10 @@ class Box extends lx.Rect #lx:namespace lx {
             this.grid(config.grid.isObject ? config.grid : {});
         else if (config.gridProportional)
             this.gridProportional(config.gridProportional.isObject ? config.gridProportional : {});
+        else if (config.gridStream)
+            this.gridStream(config.gridStream.isObject ? config.gridStream : {});
+        else if (config.gridAdaptive)
+            this.gridAdaptive(config.gridAdaptive.isObject ? config.gridAdaptive : {});
         else if (config.slot)
             this.slot(config.slot.isObject ? config.slot : {});
     }
@@ -304,7 +309,8 @@ class Box extends lx.Rect #lx:namespace lx {
                 });
 
                 var container = __getContainer(this);
-                if (container !== this) container.applyRenderCache();
+                if (container !== this) container.applyRenderCache()
+                else this.startPositioning();
                 return;
             }
 
@@ -683,6 +689,11 @@ class Box extends lx.Rect #lx:namespace lx {
         return c.at(0);
     }
 
+    getChildIndex(child) {
+        var container = __getContainer(this);
+        return container.children.indexOf(child);
+    }
+
     contains(key) {
         var container = __getContainer(this);
 
@@ -882,6 +893,16 @@ class Box extends lx.Rect #lx:namespace lx {
     gridProportional(config={}) {
         config.type = lx.GridPositioningStrategy.TYPE_PROPORTIONAL;
         return this.grid(config);
+    }
+
+    gridStream(config={}) {
+        config.type = lx.GridPositioningStrategy.TYPE_STREAM;
+        return this.grid(config);
+    }
+
+    gridAdaptive(config={}) {
+        config.type = lx.GridPositioningStrategy.TYPE_ADAPTIVE;
+        return this.grid(config);        
     }
 
     slot(config) {

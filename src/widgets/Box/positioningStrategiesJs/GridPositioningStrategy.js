@@ -59,6 +59,8 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 	#lx:const
 		TYPE_SIMPLE = 1,
 		TYPE_PROPORTIONAL = 2,
+		TYPE_STREAM = 3,
+		TYPE_ADAPTIVE = 4,
 		DEAULT_COLUMNS_AMOUNT = 12,
 
 		COLUMN_MIN_WIDTH = '40px',
@@ -67,8 +69,10 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 	init(config={}) {
 		//TODO direction?
 		this.type = config.type || self::TYPE_SIMPLE;
-		this.cols = config.cols || self::DEAULT_COLUMNS_AMOUNT;
-		this.map = new lx.BitMap(this.cols);
+		if (this.type !== self::TYPE_ADAPTIVE)
+			this.cols = config.cols || self::DEAULT_COLUMNS_AMOUNT;
+		if (this.type == self::TYPE_SIMPLE || this.type == self::TYPE_PROPORTIONAL)
+			this.map = new lx.BitMap(this.cols);
 
 		if (config.minHeight !== undefined) this.minHeight = config.minHeight;
 		if (config.minWidth !== undefined) this.minWidth = config.minWidth;
@@ -84,15 +88,25 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		}
 
 		this.owner.addClass('lxps-grid-v');
-		this.owner.style('grid-template-columns', 'repeat(' + this.cols + ',1fr)');
-		if (this.type == self::TYPE_SIMPLE) {
+		if (this.type == self::TYPE_ADAPTIVE)
+			this.owner.style(
+				'grid-template-columns',
+				'repeat(auto-fill,minmax('
+					+ lx.getFirstDefined(this.minWidth, self::COLUMN_MIN_WIDTH)
+					+ ',1fr))'
+			);
+		else
+			this.owner.style('grid-template-columns', 'repeat(' + this.cols + ',1fr)');
+		if (this.type != self::TYPE_PROPORTIONAL) {
 			this.owner.height('auto');
 		}
 		this.setIndents(config);
 	}
 	
 	#lx:server packProcess() {
-		var str = ';c:' + this.cols + ';t:' + this.type;
+		var str = ';t:' + this.type;
+		if (this.cols !== undefined)
+			str += ';c:' + this.cols;
 		if (this.minHeight)
 			str += ';mh:' + this.minHeight;
 		if (this.minWidth)
@@ -101,24 +115,26 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 			str += ';mxh:' + this.maxHeight;
 		if (this.maxWidth)
 			str += ';mxw:' + this.maxWidth;
-		str += ';m:' + this.map.toString();
+		if (this.map !== undefined)
+			str += ';m:' + this.map.toString();
 		return str;
 	}
 
 	#lx:client unpackProcess(config) {
-		this.cols = +config.c;
 		this.type = +config.t;
+		if (config.c !== undefined) this.cols = +config.c;
 		if (config.mh) this.minHeight = config.mh;
 		if (config.mw) this.minWidth = config.mw;
 		if (config.mxh) this.maxHeight = config.mxh;
 		if (config.mxw) this.maxWidth = config.mxw;
-		this.map = config.m == ''
-			? new lx.BitMap(this.cols)
-			: lx.BitMap.createFromString(config.m);
+		if (config.m !== undefined)
+			this.map = config.m == ''
+				? new lx.BitMap(this.cols)
+				: lx.BitMap.createFromString(config.m);
 	}
 
 	reset() {
-		this.map.fullReset();
+		if (this.map) this.map.fullReset();
 	}
 
 	/**
@@ -126,20 +142,12 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 	 * */
 	allocate(elem, config) {
 		elem.style('position', 'relative');
-		elem.style(
-			'min-height',
-			config.minHeight !== undefined
-				? config.minHeight
-				: (this.minHeight === undefined ? self::ROW_MIN_HEIGHT : this.minHeight)
-		);
-		elem.style(
-			'min-width',
-			config.minWidth !== undefined
-				? config.minWidth
-				: (this.minWidth === undefined ? self::COLUMN_MIN_WIDTH : this.minWidth)
-		);
-		if (this.maxHeight) elem.style('max-height', this.maxHeight);
-		if (this.maxWidth) elem.style('max-width', this.maxWidth);
+		elem.style('min-height', lx.getFirstDefined(config.minHeight, this.minHeight, self::ROW_MIN_HEIGHT));
+		elem.style('min-width', lx.getFirstDefined(config.minWidth, this.minWidth, self::COLUMN_MIN_WIDTH));
+		var maxHeight = lx.getFirstDefined(config.maxHeight, this.maxHeight),
+			maxWidth = lx.getFirstDefined(config.maxWidth, this.maxWidth);
+		if (maxHeight) elem.style('max-height', maxHeight);
+		if (maxWidth) elem.style('max-width', maxWidth);
 
 		__allocate(this, elem, config);
 	}
@@ -164,31 +172,31 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
  * PRIVATE
  *****************************************************************************************************************************/
 function __allocate(self, elem, config) {
-	var geom = self.geomFromConfig(config);
-	if (!geom.w) geom.w = 1;
-	if (!geom.h) geom.h = 1;
-	var params = __getInGridParams(self, geom);
-	if (params.needSetBit)
-		self.map.setSpace(params.needSetBit);
-	self.owner.style('grid-template-rows', 'repeat(' + self.map.y + ',1fr)');
-	elem.style('grid-area', params.params.join('/'));
+	if (self.type == lx.GridPositioningStrategy.TYPE_SIMPLE || self.type == lx.GridPositioningStrategy.TYPE_PROPORTIONAL) {
+		var geom = self.geomFromConfig(config);
+		if (!geom.w) geom.w = 1;
+		if (!geom.h) geom.h = 1;
+		var params = __prepareInGridParams(self, geom),
+			rows = self.map.y;
+
+		self.owner.style('grid-template-rows', 'repeat(' + rows + ',1fr)');
+		elem.style('grid-area', params.join('/'));
+	}
 }
 
-function __getInGridParams(self, geom) {
+function __prepareInGridParams(self, geom) {
 	if (geom.l !== undefined && geom.t === undefined) geom.t = 0;
 	if (geom.t !== undefined && geom.l === undefined) geom.l = 0;
+	if (geom.w > self.map.x) geom.w = self.map.x;
 	var needSetBit = geom.l === undefined;
 	if (!needSetBit) {
 		if (geom.t+geom.h > self.map.y) self.map.setY(geom.t+geom.h);
-		return {
-			needSetBit,
-			params: [
-				geom.t+1,
-				geom.l+1,
-				geom.t+geom.h+1,
-				geom.l+geom.w+1
-			]
-		};
+		return [
+			geom.t+1,
+			geom.l+1,
+			geom.t+geom.h+1,
+			geom.l+geom.w+1
+		];
 	}
 
 	var crds = self.map.findSpace(geom.w, geom.h);;
@@ -198,13 +206,11 @@ function __getInGridParams(self, geom) {
 	}
 
 	var l = crds[0], t = crds[1];
-	return {
-		needSetBit: [l, t, geom.w, geom.h],
-		params: [
-			t+1,
-			l+1,
-			t+geom.h+1,
-			l+geom.w+1
-		]
-	};
+	self.map.setSpace([l, t, geom.w, geom.h]);
+	return [
+		t+1,
+		l+1,
+		t+geom.h+1,
+		l+geom.w+1
+	];
 }

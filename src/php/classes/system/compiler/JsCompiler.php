@@ -173,6 +173,7 @@ class JsCompiler
         $code = $this->processMacroses($code);
         $code = $this->applyContext($code);
         $code = $this->sintaxExtender->applyExtendedSintax($code, $path);
+        $code = $this->parseYaml($code, $path);
         $code = $this->loadConfig($code, $path);
         $code = $this->plugScripts($code);
         $code = $this->checkMode($code);
@@ -527,6 +528,26 @@ class JsCompiler
 		}, $code);
 	}
 
+	private function parseYaml(string $code, ?string $path): string
+    {
+        $pattern = '/#lx:yaml:(?: |\t)*+(?:\r|\n|\r\n)([\w\W]+?)#lx:yaml;/';
+
+        $code = preg_replace_callback($pattern, function ($matches) use ($path) {
+            $yaml = $matches[1];
+            preg_match('/^(( |\t)*?)\S/', $yaml, $shift);
+            $shift = $shift[1];
+            if ($shift !== null && $shift != '') {
+                $yaml = preg_replace('/(^|\r|\n|\r\n)' . $shift . '/', '$1', $yaml);
+            }
+
+            $data = Yaml::runParse($yaml, $path);
+            $result = ArrayHelper::arrayToJsCode($data);
+            return $result;
+        }, $code);
+
+        return $code;
+    }
+
 	private function loadConfig(string $code, ?string $path): string
 	{
         $parentDir = $path === null ? null : dirname($path) . '/';
@@ -542,7 +563,6 @@ class JsCompiler
 
 			$data = $file->get();
 			$result = ArrayHelper::arrayToJsCode($data);
-
 			return $result;
 		}, $code);
 

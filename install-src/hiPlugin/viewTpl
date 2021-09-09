@@ -5,7 +5,7 @@
  * */
 
 #lx:use lx.Button;
-#lx:use lx.tools.widget.LanguageSwitcher;
+#lx:use lx.LanguageSwitcher;
 
 var height = '60px';
 
@@ -19,9 +19,7 @@ head.begin();
 	var doc = new lx.Button({width: 3, key: 'doc'});
 	var demo = new lx.Button({width: 3, key: 'demo'});
 
-	if (lx.classExists('lx.tools.widget.LanguageSwitcher')) {
-		new lx.tools.widget.LanguageSwitcher({width: 2});
-	}
+    new lx.LanguageSwitcher({width: 2});
 head.end();
 
 lbl.text(#lx:i18n(title));

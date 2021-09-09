@@ -60,7 +60,9 @@ class Yaml
 
 	public function parse(?string $text = null, ?string $referencesRootPath = null): ?array
 	{
-		if ($text !== null) $this->reset($text, $referencesRootPath);
+		if ($text !== null) {
+		    $this->reset($text, $referencesRootPath);
+        }
 		if ($this->parsed !== null) {
 		    return $this->parsed;
         }
@@ -121,7 +123,11 @@ class Yaml
 	private function toArray(string $text): array
 	{
 		$text = preg_replace('/^\n+/', '', $text);
-		$text = preg_replace('/\n+$/', '', $text);
+        $text = preg_replace_callback('/(\r|\n|\r\n)(\t+)/', function ($matches) {
+            $tabsCount = strlen($matches[2]);
+            return $matches[1] . str_repeat('  ', $tabsCount);
+        }, $text);
+        $text = preg_replace('/\n+ *$/', '', $text);
 		$arr = preg_split('/\n/', $text);
 
 		$routerStack = [];
@@ -234,6 +240,7 @@ class Yaml
 			$len = strlen($match);
 			if ($len < $min) $min = $len;
 		}
+
 		return $min;
 	}
 

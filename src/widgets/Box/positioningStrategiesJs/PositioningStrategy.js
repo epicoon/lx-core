@@ -104,6 +104,7 @@ class PositioningStrategy #lx:namespace lx {
 	 * Актуализация позиций элементов в контейнере
 	 */
 	actualizeProcess() {
+		//TODO а если размер не менялся?
 		this.owner.getChildren().each((a)=>a.trigger('resize'));
 	}
 
