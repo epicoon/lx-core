@@ -460,8 +460,10 @@ class JsCompiler
 
 	private function processMacroses(string $code, ?string $macrosesSrc = null): string
     {
+        $needRemove = false;
         if ($macrosesSrc === null) {
             $macrosesSrc = $code;
+            $needRemove = true;
         }
         $regexp = '/(?<!\/\/ )(?<!\/\/)#lx:macros\s+(.+?)\s+(?P<re>{((?>[^{}]+)|(?P>re))*});?/';
 
@@ -473,7 +475,7 @@ class JsCompiler
             }
         }
 
-        if ($code === $macrosesSrc) {
+        if ($needRemove) {
             $code = preg_replace($regexp, '', $code);
         }
         return $code;
