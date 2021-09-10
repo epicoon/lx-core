@@ -84,23 +84,6 @@ class DbTableEditor
             return false;
         }
 
-        foreach ($this->schema->getFields() as $field) {
-            if ($field->isFk()) {
-                $fk = $field->getDefinition()['fk'];
-                $query = $db->getAddForeignKeyQuery(
-                    $this->schema->getName(),
-                    $field->getName(),
-                    $fk['table'],
-                    $fk['field']
-                );
-                $result = $db->query($query);
-                if (!$result) {
-                    $db->transactionRollback();
-                    return false;
-                }
-            }
-        }
-
         $db->transactionCommit();
         return true;
     }

@@ -60,7 +60,7 @@ class Plugin extends Resource implements FusionInterface
 		$config = $data['config'];
 		$commonConfig = $this->app->getDefaultPluginConfig();
 		ConfigHelper::preparePluginConfig($commonConfig, $config);
-		$injections = $this->app->getConfig('configInjection');
+		$injections = $this->app->getConfig('configInjection') ?? [];
 		ConfigHelper::pluginInject($this->name, $this->prototype, $injections, $config);
 		$this->config = $config;
 

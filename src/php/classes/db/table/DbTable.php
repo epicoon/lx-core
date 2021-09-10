@@ -45,6 +45,11 @@ class DbTable
         }
         $query = "SELECT $fields FROM {$this->name}";
         $condition = $this->parseCondition($condition);
+        if (!$this->validateCondition($condition)) {
+            return [];
+        }
+        $condition = $this->renderCondition($condition);
+
         if ($condition) $query .= $condition;
 
         $result = $this->db->query($query);
@@ -96,8 +101,15 @@ class DbTable
         $temp = implode(', ', $temp);
 
         $condition = $this->parseCondition($condition);
+        if (!$this->validateCondition($condition)) {
+            return false;
+        }
+        $condition = $this->renderCondition($condition);
+
         $query = "UPDATE {$this->name} SET $temp";
-        if ($condition !== null) $query .= $condition;
+        if ($condition !== null) {
+            $query .= $condition;
+        }
 
         return $this->db->query($query);
     }
@@ -108,6 +120,11 @@ class DbTable
     public function delete($condition = null): bool
     {
         $condition = $this->parseCondition($condition);
+        if (!$this->validateCondition($condition)) {
+            return false;
+        }
+        $condition = $this->renderCondition($condition);
+
         $query = 'DELETE FROM ' . $this->name;
         if ($condition !== null) {
             $query .= $condition;
@@ -123,14 +140,14 @@ class DbTable
     /**
      * @param array|string|int|null $condition
      */
-    protected function parseCondition($condition): ?string
+    private function parseCondition($condition): DataObject
     {
-        if ($condition === null) {
-            return null;
-        }
-
         $data = new DataObject();
         $data->where = [];
+
+        if ($condition === null) {
+            return $data;
+        }
 
         // Проверка что это число
         if (filter_var($condition, FILTER_VALIDATE_INT) !== false) {
@@ -182,6 +199,26 @@ class DbTable
                     $data->where += $isIds ? [$this->pkName() => $where] : $where;
                 }
             }
+        }
+
+        return $data;
+    }
+
+    private function validateCondition(DataObject $data): bool
+    {
+        foreach ($data->where as $key => $value) {
+            if (is_array($value) && empty($value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function renderCondition(DataObject $data): ?string
+    {
+        if ($data->isEmpty()) {
+            return null;
         }
 
         $schema = $this->getSchema();
