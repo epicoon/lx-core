@@ -111,7 +111,7 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
             . ') ---]]' . PHP_EOL;
 
 		if (!is_string($data)) {
-			$data = json_encode($data);
+			$data = json_encode($data, JSON_PRETTY_PRINT);
 		}
 		$result .= $data . PHP_EOL;
 

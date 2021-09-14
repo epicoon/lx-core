@@ -40,7 +40,9 @@ class Yaml
 	{
 		$this->text = $text;
 		$this->parsed = null;
-		$this->referencesRootPath = \lx::$app->conductor->getFullPath($referencesRootPath);
+        if ($this->referencesRootPath !== null) {
+            $this->referencesRootPath = \lx::$app->conductor->getFullPath($referencesRootPath);
+        }
 		$this->templates = [];
 		$this->references = [];
 	}
@@ -351,16 +353,19 @@ class Yaml
 			return [null, $this->translateString($row)];
 		}
 
-		preg_match_all('/((?:[\w_.!\/$\\\ -][\w\d_.!\/$\\\ -]*?)|(?:<<)):\s*(.*)/', $row, $matches);
-
-		// For type '- value'
-		if (empty($matches[0])) {
-			$value = $row;
-		// For type '- key: value'
-		} else {
-			$key = $matches[1][0];
-			$value = $matches[2][0];
-		}
+        if ($row[0] == '\'' || $row[0] == '"') {
+            $value = $row;
+        } else {
+            preg_match_all('/((?:[\w_.!\/$\\\ -][\w\d_.!\/$\\\ -]*?)|(?:<<)):\s*(.*)/', $row, $matches);
+            // For type '- value'
+            if (empty($matches[0])) {
+                $value = $row;
+                // For type '- key: value'
+            } else {
+                $key = $matches[1][0];
+                $value = $matches[2][0];
+            }
+        }
 
 		// If there isn't a key
 		if ($key === null) {
@@ -568,7 +573,12 @@ class Yaml
                 $val = preg_replace('/^!!str\s*/', '', $val);
             }
 
+            if ($val == '') {
+                return $val;
+            }
+
 			$last = mb_strlen($val) - 1;
+
 			if ($val[0] == '"' && $val[$last] == '"') {
                 $val = preg_replace('/(^"|"$)/', '', $val);
             }

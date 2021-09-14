@@ -8,6 +8,7 @@ class ServiceCliExecutor implements ServiceCliExecutorInterface
 {
 	protected CliProcessor $processor;
 	protected ?Service $service = null;
+    protected ?Plugin $plugin = null;
 
 	public function setProcessor(CliProcessor $processor): void
 	{
@@ -24,6 +25,13 @@ class ServiceCliExecutor implements ServiceCliExecutorInterface
         return (new CliArgument())->setKeys(['service', 's', 0])
             ->setType(CliArgument::TYPE_STRING)
             ->setDescription('Service name');
+    }
+
+    public static function getPluginArgument(): CliArgument
+    {
+        return (new CliArgument())->setKeys(['plugin', 'p', 0])
+            ->setType(CliArgument::TYPE_STRING)
+            ->setDescription('Plugin name');
     }
 
     public function defineService(): bool
@@ -47,7 +55,32 @@ class ServiceCliExecutor implements ServiceCliExecutorInterface
             $this->service = $processor->getService();
         }
 
-        return true;
+        return $this->service !== null;
+    }
+
+    public function definePlugin(): bool
+    {
+        if ($this->plugin) {
+            return true;
+        }
+
+        $processor = $this->processor;
+        $pluginName = $processor->getArg('plugin');
+        if ($pluginName) {
+            $plugin = lx::$app->getPlugin($pluginName);
+            if ($plugin) {
+                $this->plugin = $plugin;
+            } else {
+                $processor->outln("Plugin '$pluginName' not found");
+                return false;
+            }
+        }
+
+        if ($this->plugin === null) {
+            $this->plugin = $processor->getPlugin();
+        }
+
+        return $this->plugin !== null;
     }
 
     public function sendPlugin(array $config): void
