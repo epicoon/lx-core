@@ -531,9 +531,6 @@ class CliProcessor
 			return;
 		}
 
-		$name = null;
-
-		// Check named arguments
 		$index = $this->args->get('index');
 		if ($index !== null) {
 		    $index--;
@@ -544,61 +541,26 @@ class CliProcessor
 			}
 
             $name = array_keys($services)[$index];
+            $this->service = lx::$app->getService($name);
 			$this->plugin = null;
+            return;
 		}
 
-		if ($name === null) {
-            $serviceName = $this->args->get('service');
-            if ($serviceName !== null && Service::exists($serviceName)) {
-                $name = $serviceName;
-            }
+        $name = $this->args->get(0);
+        if (Service::exists($name)) {
+            $this->service = lx::$app->getService($name);
+            $this->plugin = null;
+            return;
         }
 
-		if ($name === null) {
-		    $pluginName = $this->args->get('plugin');
-		    if ($pluginName !== null) {
-		        $name = $pluginName;
-            }
+        $plugin = lx::$app->getPlugin($name);
+        if ($plugin) {
+            $this->service = $plugin->getService();
+            $this->plugin = $plugin;
+            return;
         }
 
-		// Check the first unnamed parameter
-		if ($name === null) {
-			$name = $this->args->get(0);
-		}
-
-		if ($name === null) {
-			$msg = $this->service
-				? 'Entered parameters are wrong. Enter service (or plugin) name or use keys -i or --index to point service'
-				: 'Entered parameters are wrong. Enter service name or use keys -i or --index to point service';
-			$this->outln($msg);
-			return;
-		}
-
-		if ($this->service !== null) {
-			if (array_key_exists($name, $this->getServicesList())) {
-				$this->plugin = null;
-			} else {
-				$list = PluginBrowser::getPluginsDataMap($this->service);
-				if (array_key_exists($name, $list['dynamic'])) {
-					$this->outln('Only static plugins are available for edit from console');
-					return;
-				}
-				if (!array_key_exists($name, $list['static'])) {
-					$this->outln("Plugin '$name' is not exist");
-					return;
-				}
-
-				$this->plugin = $this->service->getPlugin($name);
-				return;
-			}
-		}
-
-		try {
-			$this->service = lx::$app->getService($name);
-		} catch (\Exception $e) {
-			$this->outln("Service '$name' not found");
-			return;
-		}
+        $this->outln('Destination not found');
 	}
 
 	private function fullPath(): void
