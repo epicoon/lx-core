@@ -11,7 +11,18 @@
 
 #lx:client {
 	let instance = null;
-	let onEnterCallback = null;
+	let callbackHolder = {
+		yesCallback: null,
+		noCallback: null,
+		yes: function(callback) {
+			this.yesCallback = callback;
+			return this;
+		},
+		no: function(callback) {
+			this.noCallback = callback;
+			return this;
+		}
+	};
 }
 
 class ConfirmPopup extends lx.Box #lx:namespace lx {
@@ -34,10 +45,11 @@ class ConfirmPopup extends lx.Box #lx:namespace lx {
 			popup->stream.top(top + 'px');
 
 			popup.show();
-			onEnterCallback = callback;
+			if (callback) callbackHolder.yesCallback = callback;
 
-			lx.keydown(13, __onEnter);
-			lx.keydown(27, __close);
+			lx.keydown(13, __onYes);
+			lx.keydown(27, __onNo);
+			return callbackHolder;
 	    }
 
 	    close() {
@@ -88,23 +100,35 @@ class ConfirmPopup extends lx.Box #lx:namespace lx {
 			new lx.Button({parent:buttons, key:'no', width:1, text:#lx:i18n(No)});
 		inputPopupStream.end();
 
-		inputPopupStream->>yes.click(__onEnter);
-		inputPopupStream->>no.click(__close);
+		inputPopupStream->>yes.click(__onYes);
+		inputPopupStream->>no.click(__onNo);
 	}
 
-	function __onEnter() {
-		if (onEnterCallback) {
-			if (onEnterCallback.isFunction) onEnterCallback();
-			else if (onEnterCallback.isArray)
-				onEnterCallback[1].call(onEnterCallback[0]);
+	function __onYes() {
+		let yesCallback = callbackHolder.yesCallback;
+		if (yesCallback) {
+			if (yesCallback.isFunction) yesCallback();
+			else if (yesCallback.isArray)
+				yesCallback[1].call(yesCallback[0]);
+		} 
+		__close();
+	}
+
+	function __onNo() {
+		let noCallback = callbackHolder.noCallback;
+		if (noCallback) {
+			if (noCallback.isFunction) noCallback();
+			else if (noCallback.isArray)
+				noCallback[1].call(noCallback[0]);
 		} 
 		__close();
 	}
 
 	function __close() {
 		__getInstance().hide();
-		onEnterCallback = null;
-		lx.keydownOff(13, __onEnter);
-		lx.keydownOff(27, __close);
+		callbackHolder.yesCallback = null;
+		callbackHolder.noCallback = null;
+		lx.keydownOff(13, __onYes);
+		lx.keydownOff(27, __onNo);
 	}
 }
