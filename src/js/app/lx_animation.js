@@ -8,7 +8,7 @@ lx.useTimers(bool)
 lx.go()
 */
 
-let timers = undefined,
+let timers = null,
 	actions = [];
 
 lx.addAction = function(f, ctx) {
@@ -31,7 +31,7 @@ lx.removeTimer = function(timer) {
 
 lx.useTimers = function(bool) {
 	if (!bool) {
-		timers = undefined;
+		timers = null;
 		return;
 	}
 
@@ -45,7 +45,7 @@ lx.useTimers = function(bool) {
 		},
 		go: function() {
 			for (var i=0; i<this.data.length; i++) {
-				if (this.data[i].go != undefined)
+				if (this.data[i].go !== undefined)
 					this.data[i].go();
 			}
 		}
@@ -53,7 +53,7 @@ lx.useTimers = function(bool) {
 };
 
 lx.doActions = function() {
-	if (timers != undefined) timers.go();
+	if (timers !== null) timers.go();
 
 	for (var i=0, l=actions.length; i<l; i++) {
 		var f = actions[i].func,

@@ -15,7 +15,7 @@ class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx 
 		this.sequense = Sequense.create(this);
 
 		if (config.direction === undefined)
-			config.direction = (this.owner && this.owner.parent && this.owner.parent.streamDirection() === lx.VERTICAL)
+			config.direction = (this.owner && this.owner.parent && this.owner.parent.getStreamDirection() === lx.VERTICAL)
 				? lx.HORIZONTAL
 				: lx.VERTICAL;
 		this.direction = config.direction;

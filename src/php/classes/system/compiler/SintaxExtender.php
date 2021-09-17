@@ -290,9 +290,9 @@ class SintaxExtender
 
 				if ($namespace) {
 					$str = "lx.createNamespace('$namespace');";
-					$str .= "if('$class' in $namespace)return;";
+					$str .= "if('$class' in lx.globalContext.$namespace)return;";
 					$str .= $implementResult;
-					$str .= "$class.__namespace='$namespace';$namespace.$class=$class;";
+					$str .= "$class.__namespace='$namespace';lx.globalContext.$namespace.$class=$class;";
 					$implementResult = $str;
 				}
 

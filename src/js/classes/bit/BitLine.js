@@ -22,13 +22,16 @@ class BitLine #lx:namespace lx {
 
 		this.len = len || self::BASIS;
 		this.innerLen = Math.floor((this.len - 1) / self::BASIS) + 1;
-		if (this.innerLen == this.map.len) return;
-		if (this.innerLen < this.map.len) {
-			this.map = this.map.slice(0, this.innerLen);
-		} else {
+		if (this.innerLen > this.map.len) {
 			var len = this.map.len;
 			for (var i=len; i<this.innerLen; i++) this.map.push(0);
+			return;
 		}
+		if (this.innerLen < this.map.len) {
+			this.map = this.map.slice(0, this.innerLen);
+		}
+		for (var i=this.len, l=this.innerLen*self::BASIS; i<l; i++)
+			this.unsetBit(i);
 	}
 
 	setBit(i, amt = 1) {

@@ -35,6 +35,7 @@ lx.keydown = function(key, func) {
 		for (var k in key) this.keydown(k, key[k]);
 		return;
 	}
+
 	key = key.isNumber ? 'k_' + key : 'c_' + key;
 
 	if (!keydownHandlers[key])
@@ -72,7 +73,10 @@ lx.keyup = function(key, func) {
 	keyupHandlers[key].push(func);
 };
 
-lx.keyPressed = function(key) { if (pressedKeys) return pressedKeys[key]; return false; };
+lx.keyPressed = function(key) {
+	if (key.isString) key = key.charCodeAt(0);
+	if (pressedKeys) return pressedKeys[key]; return false;
+};
 
 lx.shiftPressed = function() { return this.keyPressed(16); };
 

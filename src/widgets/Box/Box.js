@@ -52,7 +52,7 @@
  * stream(config)
  * streamProportional(config={})
  * streamAutoSize(config={})
- * streamDirection()
+ * getStreamDirection()
  * grid(config)
  * gridProportional(config={})
  * gridStream(config={})
@@ -203,7 +203,7 @@ class Box extends lx.Rect #lx:namespace lx {
     //==================================================================================================================
     /* 2. Content managment */
 
-    getContainer() {
+    getContainerBox() {
         return __getContainer(this);
     }
 
@@ -878,7 +878,7 @@ class Box extends lx.Rect #lx:namespace lx {
         return this.stream(config);
     }
 
-    streamDirection() {
+    getStreamDirection() {
         if (!this.positioningStrategy || this.positioningStrategy.lxClassName != 'StreamPositioningStrategy')
             return false;
         return this.positioningStrategy.direction;

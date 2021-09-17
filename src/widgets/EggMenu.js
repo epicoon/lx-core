@@ -61,8 +61,8 @@ class EggMenu extends lx.Box #lx:namespace lx {
 		if (!config.geom) config.geom = true;
 
 		var menu = new widget(config);
-		menu.setGeomPriority(lx.CENTER, lx.LEFT);
-		menu.setGeomPriority(lx.MIDDLE, lx.TOP);
+		menu.setGeomPriority(lx.WIDTH, lx.LEFT);
+		menu.setGeomPriority(lx.HEIGHT, lx.TOP);
 
 		//TODO некрасиво, но это частый класс для меню
 		if (menu.lxFullClassName == 'lx.ActiveBox')

@@ -42,7 +42,7 @@ Object.defineProperty(Object.prototype, "lxCompare", {
 			var leftKeys = left.lxGetKeys()
 				rightKeys = right.lxGetKeys();
 			if (leftKeys.len != rightKeys.len) return false;
-			if (leftKeys.diff(rightKeys).len || rightKeys.diff(leftKeys).len) return false;
+			if (leftKeys.lxDiff(rightKeys).len || rightKeys.lxDiff(leftKeys).len) return false;
 
 			for (var i in left) if (!rec(left[i], right[i])) return false;
 			return true;
@@ -51,15 +51,7 @@ Object.defineProperty(Object.prototype, "lxCompare", {
 	}
 });
 
-
-
-
-
-
-
-
-
-
+//TODO
 Object.defineProperty(Object.prototype, "lxDiff", {
 	value: function(obj) {
 
@@ -92,7 +84,7 @@ Object.defineProperty(Object.prototype, "lxDiff", {
 
 		if (!this.isArray && !this.isObject) return this;
 
-		// var result = (this.isArray) ? [] : {};
+		var result = (this.isArray) ? [] : {};
 
 
 		var trace = [undefined];
@@ -104,18 +96,18 @@ Object.defineProperty(Object.prototype, "lxDiff", {
 
 			// var fieldNames = schema.fields.lxGetKeys(),
 			// 	oldFieldNames = oldSchema.fields.lxGetKeys(),
-			// 	addedFields = fieldNames.diff(oldFieldNames),
-			// 	deletedFields = oldFieldNames.diff(fieldNames);
+			// 	addedFields = fieldNames.lxDiff(oldFieldNames),
+			// 	deletedFields = oldFieldNames.lxDiff(fieldNames);
 
 
-			console.log(deep);
-			console.log(from);
-			console.log(to);
+			// console.log(deep);
+			// console.log(from);
+			// console.log(to);
 
 			for (var i in from) {
 				trace[deep - 1] = i;
 
-				console.log(trace);
+				// console.log(trace);
 
 				var val = from[i];
 				if (val.isArray) {
@@ -294,7 +286,7 @@ Object.defineProperty(Object.prototype, "is", {
 });
 
 
-Object.defineProperty(String.prototype, "repeat", {
+Object.defineProperty(String.prototype, "lxRepeat", {
 	value: function(multiplier) {
 		var buf = '';
 		for (var i=0; i<multiplier; i++) {
@@ -304,7 +296,7 @@ Object.defineProperty(String.prototype, "repeat", {
 	}
 });
 
-Object.defineProperty(String.prototype, "ucFirst", {
+Object.defineProperty(String.prototype, "lxUcFirst", {
 	value: function() {
 		if (this == '') return this;
 		return this[0].toUpperCase() + this.slice(1);
@@ -435,7 +427,7 @@ Object.defineProperty(Array.prototype, "eachRevert", {
 	}
 });
 
-Object.defineProperty(Array.prototype, "diff", {
+Object.defineProperty(Array.prototype, "lxDiff", {
 	value: function(arr) {
 		var result = [];
 		this.each(function(a) { if (arr.indexOf(a) == -1) result.push(a); });

@@ -6,6 +6,11 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 	 *
 	 * */
 	static inject(supportedEssence, config=null) {
+		if (!supportedEssence.isFunction) {
+			console.error('lx.SetterListenerBehavior can be added only to class');
+			return;
+		}
+
 		super.inject(supportedEssence);
 
 		var setterEvents = supportedEssence.behaviorMap.set(behKey, 'setterEvents', {

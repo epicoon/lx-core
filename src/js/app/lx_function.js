@@ -1,23 +1,5 @@
 #lx:private
 
-let handlersList = {};
-
-/**
- * Можно задать некоторую общую функцию уровня приложения
- * */
-lx.setHandler = function(name, func) {
-	handlersList[name] = func;
-};
-
-/**
- * Получение функции уровня приложения, или метода lx
- * */
-lx.getHandler = function(name) {
-	if (name in handlersList) return handlersList[name];
-	if (name in this && this[name].isFunction) return this[name];
-	return null;
-};
-
 /**
  *
  * */

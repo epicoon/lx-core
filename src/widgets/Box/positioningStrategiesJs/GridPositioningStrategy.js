@@ -102,6 +102,13 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		}
 		this.setIndents(config);
 	}
+
+	setCols(cols) {
+		if (this.type == self::TYPE_ADAPTIVE || this.cols === cols) return;
+		this.cols = cols;
+		if (this.map) this.map.setX(cols);
+		this.owner.style('grid-template-columns', 'repeat(' + this.cols + ',1fr)');
+	}
 	
 	#lx:server packProcess() {
 		var str = ';t:' + this.type;

@@ -92,7 +92,7 @@ class MapPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 			return;
 		}
 
-		let container = elem.parent.getContainer();
+		let container = elem.parent.getContainerBox();
 		if (container.getDomElem() && elem.getDomElem()) {
 			__setParam(this, container, elem, param, val, finalFormat);
 			return;
@@ -100,7 +100,7 @@ class MapPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 
 		let self = this;
 		elem.displayOnce(function() {
-			__setParam(self, elem.parent.getContainer(), this, param, val, finalFormat);
+			__setParam(self, elem.parent.getContainerBox(), this, param, val, finalFormat);
 		});
 	}
 }

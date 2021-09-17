@@ -20,6 +20,6 @@ function __print(msg) {
 		closeButton: {click: function(){this.parent.parent.del();}}
 	});
 	el.style('zIndex', 1000);
-	el->body.overflow('auto');
+	el.overflow('auto');
 	el->body.html('<pre>' + msg + '</pre>');
 }

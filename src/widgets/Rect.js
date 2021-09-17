@@ -9,15 +9,16 @@ class Rect #lx:namespace lx {
     constructor(config = {}) {
         this.__construct();
 
-        //!!!! взято с клиента, серверу может быть не надо
-        if (config === false) return;
+        #lx:client {
+            if (config === false) return;
+        }
 
         config = this.modifyConfigBeforeApply(config);
 
         this.defineDomElement(config);
         this.applyConfig(config);
-        this.build(config);
 
+        this.build(config);
         #lx:client { this.clientBuild(config); };
 
         if (this.getZShift() && this.style('z-index') === null)
@@ -204,14 +205,6 @@ class Rect #lx:namespace lx {
     get index() {
         if (this._index === undefined) return 0;
         return this._index;
-    }
-
-    /**
-     * Ключ с учетом индексации (если она есть) - уникальное значение в пределах родителя
-     * */
-    indexedKey() {
-        if (this._index === undefined) return this.key;
-        return this.key + '[' + this._index + ']';
     }
 
     /**
@@ -889,7 +882,7 @@ class Rect #lx:namespace lx {
         return result;
     }
 
-    parentScreenParams() {
+    _parentScreenParams() {
         if (!this.domElem.parent) {
             var left = window.pageXOffset || document.documentElement.scrollLeft,
                 width = window.screen.availWidth,
@@ -917,7 +910,7 @@ class Rect #lx:namespace lx {
     isOutOfParentScreen() {
         var p = this.domElem.parent,
             rect = this.rect('px'),
-            geom = this.parentScreenParams(),
+            geom = this._parentScreenParams(),
             result = {};
 
         if (rect.left < geom.left) result.left = geom.left - rect.left;
@@ -1485,11 +1478,6 @@ class Rect #lx:namespace lx {
                 return func;
             }
 
-            // 'lx.funcName'
-            if (handler.match(/^lx\./)) {
-                return lx.getHandler(handler.split('.')[1]);
-            }
-
             // Если нет явного префикса - плохо, но попробуем от частного к общему найти хэндлер
             var f = null;
             f = this.findFunction('.' + handler);
@@ -1764,7 +1752,7 @@ function __getGeomPriorityV(self) {
 function __setGeomPriorityH(self, val, val2) {
     if (val2 !== undefined) {
         if (!self.geom) self.geom = {};
-        var dropGeom = __getGeomPriorityH(self).diff([val, val2])[0];
+        var dropGeom = __getGeomPriorityH(self).lxDiff([val, val2])[0];
         self.geom.bpg = [val, val2];
         if (dropGeom === undefined) return self;
         self.domElem.style(lx.Geom.geomName(dropGeom), '');
@@ -1792,7 +1780,7 @@ function __setGeomPriorityH(self, val, val2) {
 function __setGeomPriorityV(self, val, val2) {
     if (val2 !== undefined) {
         if (!self.geom) self.geom = {};
-        var dropGeom = __getGeomPriorityV(self).diff([val, val2])[0];
+        var dropGeom = __getGeomPriorityV(self).lxDiff([val, val2])[0];
         self.geom.bpv = [val, val2];
         if (dropGeom === undefined) return self;
         self.domElem.style(lx.Geom.geomName(dropGeom), '');

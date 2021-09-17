@@ -10,6 +10,7 @@ const __data = {
  * Карта, описывающая зависимости от модулей - плагины, подписанные на модули
  */
 lx.dependencies = {
+	//TODO
 	cache: false,
 	
 	getCurrentModules: function () {
