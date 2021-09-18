@@ -23,8 +23,8 @@ class Rect #lx:namespace lx {
 
         if (this.getZShift() && this.style('z-index') === null)
             this.style('z-index', this.getZShift());
-        this.type = this.lxClassName;
-        var namespace = this.lxNamespace;
+        this.type = this.lxClassName();
+        var namespace = this.lxNamespace();
         if (namespace != 'lx') this._namespace = namespace;
     }
 
@@ -292,7 +292,7 @@ class Rect #lx:namespace lx {
         if (!basicCss) {
             var plugin = this.getPlugin();
             if (plugin) {
-                basicCss = plugin.getWidgetBasicCss(this.lxFullClassName);
+                basicCss = plugin.getWidgetBasicCss(this.lxFullClassName());
             }
         }
         if (!basicCss) basicCss = this.getBasicCss();
@@ -871,7 +871,7 @@ class Rect #lx:namespace lx {
             if (t < pT) result.top    = pT - t;
             if (b > pB) result.bottom = pB - b;
 
-            if (!result.lxEmpty) {
+            if (!result.lxEmpty()) {
                 result.element = p;
                 return result;
             }
@@ -918,13 +918,13 @@ class Rect #lx:namespace lx {
         if (rect.top < geom.top)  result.top = geom.top - rect.top;
         if (rect.bottom > geom.bottom) result.bottom = geom.bottom - rect.bottom;
 
-        if (result.lxEmpty) return false;
+        if (result.lxEmpty()) return false;
         return result;
     }
 
     returnToParentScreen() {
         var out = this.isOutOfParentScreen();
-        if (out.lxEmpty) return this;
+        if (out.lxEmpty()) return this;
 
         if (out.left && out.right) {
         } else {
@@ -1451,7 +1451,7 @@ class Rect #lx:namespace lx {
          * Метод, обратный клиентскому [[unpackFunction(str)]]
          * */
         packFunction(func) {
-            return lx.functionToString(func);
+            return lx._f.functionToString(func);
         }
     }
 
@@ -1473,7 +1473,7 @@ class Rect #lx:namespace lx {
 
             // '::funcName'
             if (handler.match(/^::/)) {
-                var func = lx[this.lxClassName][handler.split('::')[1]];
+                var func = lx[this.lxClassName()][handler.split('::')[1]];
                 if (!func || !func.isFunction) return null;
                 return func;
             }
@@ -1502,7 +1502,7 @@ class Rect #lx:namespace lx {
                     /^(\(.*?\)\s*=>\s*{?}?)/,
                     '$1const Plugin=this.getPlugin();const Snippet=this.getSnippet(); '
                 );
-                f = lx.stringToFunction(str);
+                f = lx._f.stringToFunction(str);
             } else f = this.findFunction(str);
             if (!f) return null;
             return f;
@@ -1579,7 +1579,7 @@ class Rect #lx:namespace lx {
          * @param params - параметры, с которыми нужно вызвать метод
          * */
         static ajax(key, params = []) {
-            return new lx.WidgetRequest(this.lxFullName, key, params);
+            return new lx.WidgetRequest(this.lxFullName(), key, params);
         }
     }
     /* 8. Load */

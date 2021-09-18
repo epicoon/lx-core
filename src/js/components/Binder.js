@@ -132,14 +132,14 @@ function __unbind(obj, widget=null) {
 		if (!widget || (a === widget || a.hasAncestor(widget))) {
 			delete a.lxBindId;
 			__valueToWidgetWithoutBind(a, '');
-			__binds[obj.lxBindId][name].remove(a);
-			if (__binds[obj.lxBindId][name].lxEmpty) delete __binds[obj.lxBindId][name];
+			__binds[obj.lxBindId][name].lxRemove(a);
+			if (__binds[obj.lxBindId][name].lxEmpty()) delete __binds[obj.lxBindId][name];
 			// a.off('blur');
 			a.off('change');
 		}
 	});
 
-	if (__binds[obj.lxBindId].lxEmpty) {
+	if (__binds[obj.lxBindId].lxEmpty()) {
 		delete __binds[obj.lxBindId];
 		delete obj.lxBindId;
 	}
@@ -216,8 +216,8 @@ function __unbindMatrix(widget) {
 	}
 
 	delete widget._lxMatrixBindId;
-	bind.widgets.remove(widget);
-	if (bind.widgets.lxEmpty) {
+	bind.widgets.lxRemove(widget);
+	if (bind.widgets.lxEmpty()) {
 		delete __matrixBinds[c._lxMatrixBindId];
 		delete c._lxMatrixBindId;
 	}
@@ -393,10 +393,10 @@ function __valueToWidget(widget, value) {
 // Id связи из модели удалится при изменении ее поля, когда при попытке актуализации не будет найдена связь.
 function __unbindWidget(widget) {
 	if (!widget.lxBindId) return;
-	__binds[widget.lxBindId][widget._field].remove(widget);
-	if (__binds[widget.lxBindId][widget._field].lxEmpty)
+	__binds[widget.lxBindId][widget._field].lxRemove(widget);
+	if (__binds[widget.lxBindId][widget._field].lxEmpty())
 		delete __binds[widget.lxBindId][widget._field];
-	if (__binds[widget.lxBindId].lxEmpty)
+	if (__binds[widget.lxBindId].lxEmpty())
 		delete __binds[widget.lxBindId];
 	delete widget.lxBindId;
 	// widget.off('blur');

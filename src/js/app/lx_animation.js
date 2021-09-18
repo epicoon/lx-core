@@ -38,10 +38,10 @@ lx.useTimers = function(bool) {
 	timers = {
 		data: [],
 		add: function(one) {
-			this.data.pushUnique(one);
+			this.data.lxPushUnique(one);
 		},
 		remove: function(one) {
-			this.data.remove(one);
+			this.data.lxRemove(one);
 		},
 		go: function() {
 			for (var i=0; i<this.data.length; i++) {

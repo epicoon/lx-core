@@ -23,7 +23,7 @@ lx.dependencies = {
 	promiseModules: function (list, callback = null) {
 		var need = this.defineNecessaryModules(list);
 
-		if (need.lxEmpty) {
+		if (need.lxEmpty()) {
 			this.depend({modules: need});
 			if (callback) callback();
 		} else {
@@ -37,7 +37,7 @@ lx.dependencies = {
 					return;
 				}
 				
-				lx.createAndCallFunction('', res.data);
+				lx._f.createAndCallFunction('', res.data);
 				this.depend({modules: need});
 				if (callback) callback();
 			});

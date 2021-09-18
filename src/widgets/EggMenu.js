@@ -65,7 +65,7 @@ class EggMenu extends lx.Box #lx:namespace lx {
 		menu.setGeomPriority(lx.HEIGHT, lx.TOP);
 
 		//TODO некрасиво, но это частый класс для меню
-		if (menu.lxFullClassName == 'lx.ActiveBox')
+		if (menu.lxFullClassName() == 'lx.ActiveBox')
 	        menu->resizer.move({
 	            parentResize: true,
 	            xLimit: false,

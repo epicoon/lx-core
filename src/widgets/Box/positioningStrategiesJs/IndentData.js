@@ -6,7 +6,7 @@ class IndentData #lx:namespace lx
 
 	static createOrNull(config) {
 		var result = new this(config);
-		if (result.lxEmpty) return null;
+		if (result.lxEmpty()) return null;
 		return result;
 	}
 	

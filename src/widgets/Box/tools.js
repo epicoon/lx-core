@@ -16,7 +16,7 @@ class BoxChildren {
     }
 
     remove(el) {
-        this.data.remove(el);
+        this.data.lxRemove(el);
     }
 
     contains(el) {

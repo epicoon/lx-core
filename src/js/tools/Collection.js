@@ -283,13 +283,13 @@ class Collection extends lx.Object #lx:namespace lx {
 
 			if (arg.isArray) {
 				this.map.push(arg);
-			} else if ( arg.lxClassName == 'Collection' ) {
+			} else if ( arg.lxClassName() == 'Collection' ) {
 				if (arg.isCopy) this.add(arg.elements);
 				else for (var j=0, ll=arg.map.length; j<ll; j++)
 					this.add( arg.map[j] );
 			} else {
-				if ( this.map.len && this.map.last().singles ) {
-					this.map.last().push(arg);
+				if ( this.map.len && this.map.lxLast().singles ) {
+					this.map.lxLast().push(arg);
 				} else {
 					var arr = [arg];
 					Object.defineProperty(arr, "singles", { get: function() { return true; } });
@@ -312,7 +312,7 @@ class Collection extends lx.Object #lx:namespace lx {
 			if (arg.isArray) {
 				for (var j=0, ll=arg.length; j<ll; j++)
 					this.elements.push( arg[j] );
-			} else if ( arg.lxClassName == 'Collection' ) {
+			} else if ( arg.lxClassName() == 'Collection' ) {
 				arg.first();
 				while (arg.current()) {
 					this.elements.push( arg.current() );

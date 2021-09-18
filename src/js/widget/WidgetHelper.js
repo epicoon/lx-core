@@ -24,7 +24,7 @@ class WidgetHelper {
 			#lx:server{ return Snippet.widget; }
 			#lx:client{ return lx.body; }
 		}
-		return autoParentStack.last();
+		return autoParentStack.lxLast();
 	}
 
 	removeAutoParent(val) {

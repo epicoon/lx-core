@@ -235,7 +235,7 @@ class Tree #lx:namespace lx {
 			this.nodes[key].collectJSON(key, -1, arr);
 		}
 
-		if (arr.lxEmpty) return '';
+		if (arr.lxEmpty()) return '';
 		return JSON.stringify(arr);
 	}
 

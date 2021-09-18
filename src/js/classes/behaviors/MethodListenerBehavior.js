@@ -52,7 +52,7 @@ class MethodListenerBehavior extends lx.Behavior #lx:namespace lx {
  * PRIVATE
  *****************************************************************************************************************************/
 
-const behKey = lx.MethodListenerBehavior.lxFullName;
+const behKey = lx.MethodListenerBehavior.lxFullName();
 
 /**
  *

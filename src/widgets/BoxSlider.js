@@ -20,7 +20,7 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 			if (config.showDuration) timer.showDuration = config.showDuration;
 			if (config.slideDuration) timer.slideDuration = config.slideDuration;
 			if (config.auto !== null) timer.auto = config.auto;
-			if (!timer.lxEmpty) this.timer = timer;
+			if (!timer.lxEmpty()) this.timer = timer;
 		}
 
 		this.setSlides(config.count || 1);

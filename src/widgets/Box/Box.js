@@ -842,7 +842,7 @@ class Box extends lx.Rect #lx:namespace lx {
     preparePositioningStrategy(strategy) {
         var container = __getContainer(this);
         if (container.positioningStrategy) {
-            if (container.positioningStrategy.lxFullClassName == strategy.lxFullName)
+            if (container.positioningStrategy.lxFullClassName() == strategy.lxFullName())
                 return container.positioningStrategy;
             container.positioningStrategy.clear();
         }
@@ -879,7 +879,7 @@ class Box extends lx.Rect #lx:namespace lx {
     }
 
     getStreamDirection() {
-        if (!this.positioningStrategy || this.positioningStrategy.lxClassName != 'StreamPositioningStrategy')
+        if (!this.positioningStrategy || this.positioningStrategy.lxClassName() != 'StreamPositioningStrategy')
             return false;
         return this.positioningStrategy.direction;
     }
@@ -938,7 +938,7 @@ class Box extends lx.Rect #lx:namespace lx {
      * */
     setPlugin(info, attributes = {}, func = null) {
         this.dropPlugin();
-        if (!attributes.lxEmpty) {
+        if (!attributes.lxEmpty()) {
             if (!info.attributes) info.attributes = {};
             info.attributes.lxMerge(attributes, true);
         }

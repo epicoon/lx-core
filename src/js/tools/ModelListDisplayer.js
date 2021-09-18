@@ -124,7 +124,7 @@ class ModelListDisplayer #lx:namespace lx {
 	 * Наполенние основных контейнеров содержимым согласно переданной коллекции моделей
 	 * */
 	__buildComponentContent(data, pre, fields, post, colsCount, head, body) {
-		if (fields.lxEmpty) return;
+		if (fields.lxEmpty()) return;
 
 		var fieldsModifier = this.fieldsModifier,
 			formModifier = this.formModifier;

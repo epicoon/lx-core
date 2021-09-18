@@ -5,7 +5,7 @@ class ModelSchema #lx:namespace lx {
 	}
 
 	get isEmpty() {
-		return this.fields.lxEmpty;
+		return this.fields.lxEmpty();
 	}
 
 	/**

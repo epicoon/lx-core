@@ -1,8 +1,10 @@
 #lx:private
 
 /*
-lx.keydown(key, func)
-lx.keyup(key, func)
+lx.onKeydown(key, func)
+lx.offKeydown(key, func)
+lx.onKeyup(key, func)
+lx.offKeyup(key, func)
 
 lx.keyPressed(key)
 lx.shiftPressed()
@@ -30,9 +32,9 @@ lx.resetKeys = function() {
 	pressedChar = null;
 };
 
-lx.keydown = function(key, func) {
+lx.onKeydown = function(key, func) {
 	if (key.isObject) {
-		for (var k in key) this.keydown(k, key[k]);
+		for (var k in key) this.onKeydown(k, key[k]);
 		return;
 	}
 
@@ -43,7 +45,7 @@ lx.keydown = function(key, func) {
 	keydownHandlers[key].push(func);
 };
 
-lx.keydownOff = function(key, func) {
+lx.offKeydown = function(key, func) {
 	key = key.isNumber ? 'k_' + key : 'c_' + key;
 	if (!keydownHandlers[key]) return;
 
@@ -61,9 +63,9 @@ lx.keydownOff = function(key, func) {
 	keydownHandlers[key].splice(index, 1);
 };
 
-lx.keyup = function(key, func) {
+lx.onKeyup = function(key, func) {
 	if (key.isObject) {
-		for (var k in key) this.keyup(k, key[k]);
+		for (var k in key) this.onKeyup(k, key[k]);
 		return;
 	}
 	key = key.isNumber ? 'k_' + key : 'c_' + key;
@@ -71,6 +73,24 @@ lx.keyup = function(key, func) {
 	if (!keyupHandlers[key])
 		keyupHandlers[key] = [];
 	keyupHandlers[key].push(func);
+};
+
+lx.offKeyup = function(key, func) {
+	key = key.isNumber ? 'k_' + key : 'c_' + key;
+	if (!keyupHandlers[key]) return;
+
+	var index = -1;
+	for (var i=0, l=keyupHandlers[key].len; i<l; i++) {
+		var handler = keyupHandlers[key][i];
+
+		if ((handler.isFunction && handler === func) || (handler.isArray && handler[1].isFunction && handler[1] === func)) {
+			index = i;
+			break;
+		}
+	}
+
+	if (index == -1) return;
+	keyupHandlers[key].splice(index, 1);
 };
 
 lx.keyPressed = function(key) {

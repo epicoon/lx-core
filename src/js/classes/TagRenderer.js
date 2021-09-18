@@ -1,4 +1,4 @@
-class Tag #lx:namespace lx {
+class TagRenderer #lx:namespace lx {
     constructor(config) {
         this.tag = config.tag || 'div';
         this.attributes = config.attributes || {};
@@ -26,7 +26,7 @@ class Tag #lx:namespace lx {
 
         if (this.classList.len) result += ' class="' + this.classList.join(' ') + '"';
 
-        if ( ! this.style.lxEmpty) {
+        if ( ! this.style.lxEmpty()) {
             result += ' style="';
             for (var name in this.style) {
                 var val = this.style[name];
@@ -47,7 +47,7 @@ class Tag #lx:namespace lx {
             if (this.content) return 'true';
             return 'false';
         }
-        if (this.content.is(lx.Tag)) return this.content.toString();
+        if (this.content.is(lx.TagRenderer)) return this.content.toString();
 
         var result = '';
         if (this.content.isArray) {
@@ -56,7 +56,7 @@ class Tag #lx:namespace lx {
                 for (var i=0, l=arr.len; i<l; i++) {
                     var item = arr[i];
                     if (item.isString) result += item;
-                    else if (item.is(lx.Tag)) result += item.toString();
+                    else if (item.is(lx.TagRenderer)) result += item.toString();
                     else if (item.isArray) result += renderArray(item);
                 }
                 return result;

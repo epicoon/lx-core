@@ -60,8 +60,8 @@ class Plugin #lx:namespace lx {
     }
 
     onLoad(code) {
-        this._onLoadList.push(lx.functionToString(code));
-        this._changes.onLoadList.push(lx.functionToString(code));
+        this._onLoadList.push(lx._f.functionToString(code));
+        this._changes.onLoadList.push(lx._f.functionToString(code));
     }
 
     getDependencies() {
@@ -80,7 +80,7 @@ class Plugin #lx:namespace lx {
             }
         }
 
-        if (!changedAttributes.lxEmpty) result.attributes = changedAttributes;
+        if (!changedAttributes.lxEmpty()) result.attributes = changedAttributes;
         if (this._changes.onLoadList.len) result.onLoad = this._changes.onLoadList;
         if (this._changes.title) result.title = this._changes.title;
         if (this._changes.icon) result.icon = this._changes.icon;

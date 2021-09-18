@@ -11,8 +11,22 @@
 #lx:private;
 
 #lx:client {
-	let instance = null;
-	let onEnterCallback = null;
+	let instance = null,
+
+		onEnterCallback = null,
+
+		_confirmCallback = null,
+		_rejectCallback = null,		
+		callbackHolder = {
+			confirm: function(callback) {
+				_confirmCallback = callback;
+				return this;
+			},
+			reject: function(callback) {
+				_rejectCallback = callback;
+				return this;
+			}
+		};
 }
 
 class InputPopup extends lx.Box #lx:namespace lx {
@@ -23,12 +37,8 @@ class InputPopup extends lx.Box #lx:namespace lx {
     }
 
     #lx:client {
-	    open(captions, defaults, callback) {
+	    open(captions, defaults = {}) {
 			if (!captions.isArray) captions = [captions];
-			if (defaults.isFunction) {
-				callback = defaults;
-				defaults = {};
-			}
 
 			var popup = __getInstance();
 			var buttons = popup->stream->buttons;
@@ -62,14 +72,15 @@ class InputPopup extends lx.Box #lx:namespace lx {
 			popup->stream.top(top + 'px');
 
 			popup.show();
-			onEnterCallback = callback;
 
-			lx.keydown(13, __onEnter);
-			lx.keydown(27, __close);
+			lx.onKeydown(13, __onConfirm);
+			lx.onKeydown(27, __onReject);
 
 			var rows = popup->stream->r;
 			if (rows.isArray) rows[0]->input.focus();
 			else rows->input.focus();
+
+			return callbackHolder;
 	    }
 
 	    close() {
@@ -113,16 +124,16 @@ class InputPopup extends lx.Box #lx:namespace lx {
 		inputPopupStream.begin();
 			var buttons = new lx.Box({key:'buttons', height:'35px'});
 			buttons.grid({step:'10px',cols:2});
-			new lx.Button({parent:buttons, key:'ok', width:1, text:#lx:i18n(OK)});
-			new lx.Button({parent:buttons, key:'close', width:1, text:#lx:i18n(Close)});
+			new lx.Button({parent:buttons, key:'confirm', width:1, text:#lx:i18n(OK)});
+			new lx.Button({parent:buttons, key:'reject', width:1, text:#lx:i18n(Close)});
 		inputPopupStream.end();
 
-		inputPopupStream->>ok.click(__onEnter);
-		inputPopupStream->>close.click(__close);
+		inputPopupStream->>confirm.click(__onConfirm);
+		inputPopupStream->>reject.click(__onReject);
 	}
 
-	function __onEnter() {
-		if (onEnterCallback) {
+	function __onConfirm() {
+		if (_confirmCallback) {
 			var popup = __getInstance();
 			var values = [];
 			if (popup->stream.contains('r')) {
@@ -133,17 +144,27 @@ class InputPopup extends lx.Box #lx:namespace lx {
 				}
 			}
 			if (values.len == 1) values = values[0];
-			if (onEnterCallback.isFunction) onEnterCallback(values);
-			else if (onEnterCallback.isArray)
-				onEnterCallback[1].call(onEnterCallback[0], values);
+			if (_confirmCallback.isFunction) _confirmCallback(values);
+			else if (_confirmCallback.isArray)
+				_confirmCallback[1].call(_confirmCallback[0], values);
+		} 
+		__close();
+	}
+
+	function __onReject() {
+		if (_rejectCallback) {
+			if (_rejectCallback.isFunction) _rejectCallback();
+			else if (_rejectCallback.isArray)
+				_rejectCallback[1].call(_rejectCallback[0]);
 		} 
 		__close();
 	}
 
 	function __close() {
 		__getInstance().hide();
-		onEnterCallback = null;
-		lx.keydownOff(13, __onEnter);
-		lx.keydownOff(27, __close);
+		_confirmCallback = null;
+		_rejectCallback = null;
+		lx.offKeydown(13, __onConfirm);
+		lx.offKeydown(27, __onReject);
 	}
 }

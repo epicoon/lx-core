@@ -19,7 +19,7 @@ lx.TableManager = {
 
 	register: function(table, config = {}) {
 		if (!(table instanceof lx.Table) || this.tables.contains(table)) return;
-		if (this.tables.lxEmpty) this.start();
+		if (this.tables.lxEmpty()) this.start();
 		this.tables.push(table);
 
 		table.__interactiveInfo = {
@@ -44,7 +44,7 @@ lx.TableManager = {
 	},
 
 	unregister: function(tab) {
-		if (this.tables.lxEmpty) return;
+		if (this.tables.lxEmpty()) return;
 		var index = this.tables.indexOf(tab);
 		if (index != -1) {
 			var table = this.tables[index];
@@ -54,7 +54,7 @@ lx.TableManager = {
 			this.activeTable.off('click', this.click);
 			this.tables.splice(index, 1);
 		}
-		if (this.tables.lxEmpty) this.stop();
+		if (this.tables.lxEmpty()) this.stop();
 	},
 
 	start: function() {
@@ -288,9 +288,9 @@ lx.TableManager = {
 		var target = event.target.__lx;
 		if (!target) return;
 
-		var newCell = target.lxClassName == 'TableCell'
+		var newCell = target.lxClassName() == 'TableCell'
 			? target
-			: target.ancestor({hasProperties: {lxClassName: 'TableCell'}});
+			: target.ancestor((ancestor)=>ancestor.lxClassName() == 'TableCell');
 		if (!newCell) return;
 
 		if (this.activeCell == newCell) {

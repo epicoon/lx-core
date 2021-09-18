@@ -67,7 +67,7 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 		}
 
 		for (var i=0, l=fields.length; i<l; i++)
-			setterEvents.fields.pushUnique(fields[i]);
+			setterEvents.fields.lxPushUnique(fields[i]);
 
 		if (prototype.constructor.onBeforeSet)
 			prototype.constructor.beforeSet(prototype.constructor.onBeforeSet);
@@ -195,7 +195,7 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
  * PRIVATE
  *****************************************************************************************************************************/
 
-const behKey = lx.SetterListenerBehavior.lxFullName;
+const behKey = lx.SetterListenerBehavior.lxFullName();
 
 /**
  *
@@ -272,11 +272,11 @@ function __beforeSet(name, func) {
 	if (name.isString) {
 		if (!setterEvents.beforeMap[name])
 			setterEvents.beforeMap[name] = [];
-		setterEvents.beforeMap[name].pushUnique(func);
+		setterEvents.beforeMap[name].lxPushUnique(func);
 		return;
 	}
 	if (name.isFunction) {
-		setterEvents.before.pushUnique(name);
+		setterEvents.before.lxPushUnique(name);
 	}
 }
 
@@ -292,10 +292,10 @@ function __afterSet(name, func) {
 	if (name.isString) {
 		if (!setterEvents.afterMap[name])
 			setterEvents.afterMap[name] = [];
-		setterEvents.afterMap[name].pushUnique(func);
+		setterEvents.afterMap[name].lxPushUnique(func);
 		return;
 	}
 	if (name.isFunction) {
-		setterEvents.after.pushUnique(name);
+		setterEvents.after.lxPushUnique(name);
 	}
 }

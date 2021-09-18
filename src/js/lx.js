@@ -234,7 +234,7 @@ lx.getNamespace = function(namespace) {
 		? namespace.split(/[.\\]/)
 		: (namespace.isArray ? namespace : null);
 	if (!arr) return null;
-	if (arr.lxEmpty) return lx.globalContext;
+	if (arr.lxEmpty()) return lx.globalContext;
 
 	var temp = lx.globalContext;
 	for (var i=0, l=arr.length; i<l; i++) {

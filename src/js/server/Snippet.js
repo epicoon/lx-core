@@ -24,7 +24,7 @@ class Snippet #lx:namespace lx {
 
     addPlugin(data) {
         var re = function(obj) {
-            if (obj.isFunction) return lx.functionToString(obj);
+            if (obj.isFunction) return lx._f.functionToString(obj);
             if ( ! obj.isObject) return obj;
             for (var name in obj) obj[name] = re(obj[name]);
             return obj;
@@ -86,7 +86,7 @@ class Snippet #lx:namespace lx {
     }
 
     onLoad(code) {
-        var js = lx.functionToString(code);
+        var js = lx._f.functionToString(code);
         //TODO - есть соображение тут передавать какие-то параметры из серверного кода сниппета. Типа замыкание
         //но пока ()=> просто вырезается
         js = js.replace(/^\([^)]*?\)=>/, '');
@@ -135,13 +135,13 @@ function __extractAttributes(params) {
 
 function __prepareSelfData(self) {
     var attrs = self.widget.domElem.attributes;
-    if (!attrs.lxEmpty) self.selfData.attrs = attrs;
+    if (!attrs.lxEmpty()) self.selfData.attrs = attrs;
     
     var classes = self.widget.domElem.classList;
-    if (!classes.lxEmpty) self.selfData.classes = classes;
+    if (!classes.lxEmpty()) self.selfData.classes = classes;
     
     var style = self.widget.domElem.styleList;
-    if (!style.lxEmpty) self.selfData.style = style;
+    if (!style.lxEmpty()) self.selfData.style = style;
 
     self.widget.beforePack();
     var props = {};
@@ -150,7 +150,7 @@ function __prepareSelfData(self) {
         props[name] = self.widget[name];
     }
 
-    if (!props.lxEmpty) self.selfData.props = props;
+    if (!props.lxEmpty()) self.selfData.props = props;
 }
 
 function __renderContent(self) {
@@ -210,7 +210,7 @@ class PackData {
 
             var value = this.widget[name];
             if (name == 'geom') {
-                if (!value.lxEmpty) {
+                if (!value.lxEmpty()) {
                     var temp = [];
                     temp.push(value.bpg ? value.bpg[0]+','+value.bpg[1] : '');
                     temp.push(value.bpv ? value.bpv[0]+','+value.bpv[1] : '');
@@ -223,14 +223,14 @@ class PackData {
     }
 
     packHandlers() {
-        if (this.widget.domElem.events.lxEmpty) return;
+        if (this.widget.domElem.events.lxEmpty()) return;
 
         this.data.handlers = {};
         for (var name in this.widget.domElem.events) {
             var handlers = this.widget.domElem.events[name];
             this.data.handlers[name] = [];
             for (var i=0; i<handlers.len; i++) {
-                var funcText = lx.functionToString(handlers[i]);
+                var funcText = lx._f.functionToString(handlers[i]);
                 if (funcText) this.data.handlers[name].push(funcText);
             }
         }
@@ -243,9 +243,9 @@ class PackData {
         for (var i=0, l=this.widget.forOnload.len; i<l; i++) {
             var item = this.widget.forOnload[i], strItem;
             if (item.isArray) {
-                strItem = lx.functionToString(item[0]);
+                strItem = lx._f.functionToString(item[0]);
                 if (strItem) strItem = [strItem, item[1]];
-            } else strItem = lx.functionToString(item);
+            } else strItem = lx._f.functionToString(item);
         }
 
         if (strItem) this.data.forOnload.push(strItem);

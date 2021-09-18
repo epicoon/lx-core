@@ -23,7 +23,7 @@ class BehaviorMap #lx:namespace lx {
 	register(behavior) {
 		if (this.isEmpty) this.__resetMap();
 		else this.__copyMap(this.map);
-		this.map.list.pushUnique(behavior);
+		this.map.list.lxPushUnique(behavior);
 	}
 
 	/**

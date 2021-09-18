@@ -64,7 +64,7 @@ class Plugin #lx:namespace lx {
 
 		// Коллбэки на удаление
 		for (var i=0, l=this.destructCallbacks.len; i<l; i++)
-			lx.callFunction(this.destructCallbacks[i]);
+			lx._f.callFunction(this.destructCallbacks[i]);
 
 		// Клиентский метод очистки
 		if (this.destruct) this.destruct();

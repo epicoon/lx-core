@@ -33,10 +33,10 @@ lx.Json = {
 				var item = from[i];
 				if (item === null || item === undefined) {
 					to[i] = null;
-				} else if (item.isArray && !item.isAssoc) {
+				} else if (item.isArray) {
 					to[i] = [];
 					rec(item, to[i]);
-				} else if (item.isObject || (item.isArray && item.isAssoc)) {
+				} else if (item.isObject) {
 					to[i] = {};
 					rec(item, to[i]);
 				} else to[i] = from[i];

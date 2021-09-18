@@ -83,7 +83,7 @@ class Snippet #lx:namespace lx {
     setLoaded() {
         var code = this.onLoadCallback.toString();
         delete this.onLoadCallback;
-        lx.createAndCallFunctionWithArguments({
+        lx._f.createAndCallFunctionWithArguments({
             Plugin: this.widget.getPlugin(),
             Snippet: this
         }, code);

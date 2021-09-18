@@ -23,7 +23,7 @@ class KeypressManager extends lx.Singleton #lx:namespace lx {
 		}
 		for (let key in handlers)
 			for (let i=0, l=handlers[key].length; i<l; i++)
-				lx.keydown(key, handlers[key][i]);
+				lx.onKeydown(key, handlers[key][i]);
 	}
 
 	keys() {

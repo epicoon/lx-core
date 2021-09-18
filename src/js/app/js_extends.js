@@ -51,86 +51,32 @@ Object.defineProperty(Object.prototype, "lxCompare", {
 	}
 });
 
-//TODO
+// Для примитивов:
+// - если отличий нет - вернет false
+// - если отличаются, вернет true
+// Для объектов:
+// - вернет объект с полями, которых нет у объекта, переданного в качеcтве аргумента, либо отличается по значению
 Object.defineProperty(Object.prototype, "lxDiff", {
 	value: function(obj) {
-
-
-		/*
-		Ищет различия в двух объектах
-		Если отличий нет - вернет false
-		Если сравниваются примитивы и они отличаются, вернет true
-
-		Если сравниваются объекты, варианты отличий могут быть разными:
-		- объект left имеет поля, которых нет у объекта right
-		- объект right имеет поля, которых нет у объекта left
-		- значение полей-примитивов отличается
-		[
-			traceString: {
-				leftExtraFields: []
-				rightExtraFields: []
-				differences: [
-					key: {
-						left: val
-						right: val
-					},
-					...
-				]	
-			},
-			...
-		]
-		*/
-
-
-		if (!this.isArray && !this.isObject) return this;
-
-		var result = (this.isArray) ? [] : {};
-
-
-		var trace = [undefined];
-		var deep = 0;
-		function rec(from, to) {
-			deep++;
-
-
-
-			// var fieldNames = schema.fields.lxGetKeys(),
-			// 	oldFieldNames = oldSchema.fields.lxGetKeys(),
-			// 	addedFields = fieldNames.lxDiff(oldFieldNames),
-			// 	deletedFields = oldFieldNames.lxDiff(fieldNames);
-
-
-			// console.log(deep);
-			// console.log(from);
-			// console.log(to);
-
-			for (var i in from) {
-				trace[deep - 1] = i;
-
-				// console.log(trace);
-
-				var val = from[i];
-				if (val.isArray) {
-					// to[i] = [];
-					rec(val, to[i]);
-				} else if (val.isObject) {
-					// to[i] = {};
-					rec(val, to[i]);
-				} else ;// to[i] = from[i];
+		var result = {};
+		for (var key in this) {
+			if (!(key in obj)) {
+				result[key] = this[key];
+				continue;
 			}
-			deep--;
-			trace.length = deep;
+
+			if ((this[key] === undefined && obj[key] === undefined)
+				|| (this[key] === null && obj[key] === null)
+			) {
+				continue;
+			}
+
+			if (!this[key].lxCompare(obj[key]))
+				result[key] = this[key];
 		}
-		rec(this, obj);
-
-
-		return 1;
-		// return result;
+		return result;
 	}
 });
-
-
-
 
 Object.defineProperty(Object.prototype, "lxGetFirstDefined", {
 	value: function(names, defaultValue = undefined) {
@@ -157,14 +103,14 @@ Object.defineProperty(Object.prototype, "lxGetAllProperties", {
 });
 
 Object.defineProperty(Object.prototype, "lxEmpty", {
-	get: function() { for (var i in this) return false; return true; }
+	value: function() { for (var i in this) return false; return true; }
 });
 
 Object.defineProperty(Object.prototype, "lxMerge", {
 	value: function(obj, overwrite=false) {
 		if (!obj) return this;
 
-		if (this.isArray && !this.isAssoc && obj.isArray && !obj.isAssoc) {
+		if (this.isArray && obj.isArray) {
 			for (var i=0, l=obj.length; i<l; i++)
 				this.push(obj[i]);
 		} else {
@@ -192,14 +138,12 @@ Object.defineProperty(Object.prototype, "lxHasMethod", {
 	}
 });
 
-
-
 /*
 Для определения имен классов и пространств имен
 */
 // Для объекта и класса - название пространства имен
 Object.defineProperty(Object.prototype, "lxNamespace", {
-	get: function() {
+	value: function() {
 		if (this.isFunction && this.__namespace)
 			return this.__namespace;
 		if (this.constructor.__namespace)
@@ -209,7 +153,7 @@ Object.defineProperty(Object.prototype, "lxNamespace", {
 });
 // Для объекта - имя класса без учета пространства имен
 Object.defineProperty(Object.prototype, "lxClassName", {
-	get: function() {
+	value: function() {
 		if (this === undefined) return undefined;
 		return this.constructor
 			? this.constructor.name
@@ -218,19 +162,19 @@ Object.defineProperty(Object.prototype, "lxClassName", {
 });
 // Для объекта - имя класса с учетом пространства имен
 Object.defineProperty(Object.prototype, "lxFullClassName", {
-	get: function() {
+	value: function() {
 		if (this === undefined) return undefined;
-		var namespace = this.lxNamespace,
-			name = this.lxClassName;
+		var namespace = this.lxNamespace(),
+			name = this.lxClassName();
 		if (namespace != '') return namespace + '.' + name;
 		return name;
 	}
 });
 // Для класса - имя класса с учетом пространства имен
 Object.defineProperty(Function.prototype, "lxFullName", {
-	get: function() {
+	value: function() {
 		if (this === undefined) return undefined;
-		var namespace = this.lxNamespace,
+		var namespace = this.lxNamespace(),
 			name = this.name;
 		if (namespace != '') return namespace + '.' + name;
 		return name;
@@ -241,8 +185,8 @@ Object.defineProperty(Function.prototype, "lxFullName", {
 
 /*
 Блок для определения типа данных
-1. Для lx. - объектов наиболее эффективно проверять через lxClassName:
-	var bool = element.lxClassName == 'Widget';
+1. Для lx. - объектов наиболее эффективно проверять через lxClassName():
+	var bool = element.lxClassName() == 'Widget';
 2. Для массивов/строк/чисел - наиболее эффективны соответствующие isArray/isString/isNumber
 */
 Object.defineProperty(Object.prototype, "isNumber", {
@@ -266,7 +210,7 @@ Object.defineProperty(Object.prototype, "isArray", {
 });
 
 Object.defineProperty(Object.prototype, "isObject", {
-	get: function() { return (this.constructor === Object || this.lxClassName == 'Object'); }
+	get: function() { return (this.constructor === Object || this.lxClassName() == 'Object'); }
 });
 
 Object.defineProperty(Object.prototype, "isFunction", {
@@ -328,66 +272,26 @@ if (!Array.prototype.indexOf) {
 	};
 };
 
+// TODO ???
 Object.defineProperty(Array.prototype, "len", {
 	get: function() {
-		if (!this.isAssoc) return this.length;
-		var count = 0;
-		for (var i in this) count++;
-		return count;
+		return this.length;
 	}
 });
 
-Object.defineProperty(Array.prototype, "last", {
+Object.defineProperty(Array.prototype, "lxLast", {
 	value: function() {
-		if (!this.isAssoc) return this[this.len-1];
-		var result;
-		for (var i in this) result = this[i];
-		return result;
+		return this[this.len-1];
 	}
 });
 
-Object.defineProperty(Array.prototype, "nth", {
-	value: function(index) {
-		if (!this.isAssoc) return this[index];
-		var i = 0;
-		for (var key in this) {
-			if (i == index) return this[key];
-			i++;
-		}
-	}
-});
-
-Object.defineProperty(Array.prototype, "nthKey", {
-	value: function(index) {
-		if (!this.isAssoc) return index;
-		var i = 0;
-		for (var key in this) {
-			if (i == index) return key;
-			i++;
-		}
-	}
-});
-
-Object.defineProperty(Array.prototype, "equalTo", {
-	value: function(a) {
-		var b = this;
-		if (a === b) return true;
-		if (a == null || b == null) return false;
-		if (a.length != b.length) return false;
-		for (var i = 0; i < a.length; ++i) {
-			if (a[i] !== b[i]) return false;
-		}
-		return true;
-	}
-});
-
-Object.defineProperty(Array.prototype, "pushUnique", {
+Object.defineProperty(Array.prototype, "lxPushUnique", {
 	value: function(elem) {
 		if (this.indexOf(elem) == -1) this.push(elem);
 	}
 });
 
-Object.defineProperty(Array.prototype, "remove", {
+Object.defineProperty(Array.prototype, "lxRemove", {
 	value: function(elem) {
 		var index = this.indexOf(elem);
 		if (index == -1) return false;
@@ -395,6 +299,12 @@ Object.defineProperty(Array.prototype, "remove", {
 		return true;
 	}
 });
+
+
+
+
+
+// TODO - по методам массивов пройтись - что-то убрать, т.к. есть штатное, что-то сделать с префиксом lx
 
 Object.defineProperty(Array.prototype, "toggle", {
 	value: function(elem) {
@@ -405,17 +315,9 @@ Object.defineProperty(Array.prototype, "toggle", {
 	}
 });
 
-Object.defineProperty(Array.prototype, "isAssoc", {
-	get: function() {
-		return !this.lxEmpty && (!(0 in this) || !this.length);
-	}
-});
-
 Object.defineProperty(Array.prototype, "each", {
 	value: function(func) {
-		if (this.isAssoc) for (var key in this)
-			func.call(this, this[key], key);
-		else for (var i=0, l=this.len; i<l; i++)
+		for (var i=0, l=this.len; i<l; i++)
 			func.call(this, this[i], i);
 	}
 });
@@ -453,7 +355,9 @@ Object.defineProperty(Array.prototype, "maxOnRange", {
 Object.defineProperty(Array.prototype, "column", {
 	value: function(name) {
 		var res = [];
-		for (var i=0; i<this.length; i++) res.push(this[i][name]);
+		for (var i=0; i<this.length; i++)
+			if (this[i] && name in this[i])
+				res.push(this[i][name]);
 		return res;
 	}
 });

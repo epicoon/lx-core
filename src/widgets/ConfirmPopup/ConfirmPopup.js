@@ -11,23 +11,23 @@
 
 #lx:client {
 	let instance = null,
-		_yesCallback = null,
-		_noCallback = null,
+		_confirmCallback = null,
+		_rejectCallback = null,
 		_extraButtons = null,
 		_extraCallbacks = {},
 		callbackHolder = {
-		yes: function(callback) {
-			_yesCallback = callback;
-			return this;
-		},
-		no: function(callback) {
-			_noCallback = callback;
-			return this;
-		}
-	};
+			confirm: function(callback) {
+				_confirmCallback = callback;
+				return this;
+			},
+			reject: function(callback) {
+				_rejectCallback = callback;
+				return this;
+			}
+		};
 
 	function __applyExtraButtons(extraButtons, colsWithExtra) {
-		if (extraButtons.lxEmpty) return;
+		if (extraButtons.lxEmpty()) return;
 
 		_extraButtons = extraButtons;
 		let buttonsWrapper = __getInstance()->>buttons;
@@ -83,8 +83,8 @@ class ConfirmPopup extends lx.Box #lx:namespace lx {
 
 			popup.show();
 
-			lx.keydown(13, __onYes);
-			lx.keydown(27, __onNo);
+			lx.onKeydown(13, __onConfirm);
+			lx.onKeydown(27, __onReject);
 			__applyExtraButtons(extraButtons, this.extraCols + 2);
 			return callbackHolder;
 	    }
@@ -133,28 +133,28 @@ class ConfirmPopup extends lx.Box #lx:namespace lx {
 			var buttons = new lx.Box({key:'buttons', height:'35px'});
 			buttons.grid({step:'10px', cols:2});
 
-			new lx.Button({parent:buttons, key:'yes', width:1, text:#lx:i18n(Yes)});
-			new lx.Button({parent:buttons, key:'no', width:1, text:#lx:i18n(No)});
+			new lx.Button({parent:buttons, key:'confirm', width:1, text:#lx:i18n(Yes)});
+			new lx.Button({parent:buttons, key:'reject', width:1, text:#lx:i18n(No)});
 		inputPopupStream.end();
 
-		inputPopupStream->>yes.click(__onYes);
-		inputPopupStream->>no.click(__onNo);
+		inputPopupStream->>confirm.click(__onConfirm);
+		inputPopupStream->>reject.click(__onReject);
 	}
 
-	function __onYes() {
-		if (_yesCallback) {
-			if (_yesCallback.isFunction) _yesCallback();
-			else if (_yesCallback.isArray)
-				_yesCallback[1].call(_yesCallback[0]);
+	function __onConfirm() {
+		if (_confirmCallback) {
+			if (_confirmCallback.isFunction) _confirmCallback();
+			else if (_confirmCallback.isArray)
+				_confirmCallback[1].call(_confirmCallback[0]);
 		} 
 		__close();
 	}
 
-	function __onNo() {
-		if (_noCallback) {
-			if (_noCallback.isFunction) _noCallback();
-			else if (_noCallback.isArray)
-				_noCallback[1].call(_noCallback[0]);
+	function __onReject() {
+		if (_rejectCallback) {
+			if (_rejectCallback.isFunction) _rejectCallback();
+			else if (_rejectCallback.isArray)
+				_rejectCallback[1].call(_rejectCallback[0]);
 		} 
 		__close();
 	}
@@ -171,10 +171,10 @@ class ConfirmPopup extends lx.Box #lx:namespace lx {
 
 	function __close() {
 		__getInstance().hide();
-		_yesCallback = null;
-		_noCallback = null;
+		_confirmCallback = null;
+		_rejectCallback = null;
 		__clearExtraButtons();
-		lx.keydownOff(13, __onYes);
-		lx.keydownOff(27, __onNo);
+		lx.offKeydown(13, __onConfirm);
+		lx.offKeydown(27, __onReject);
 	}
 }

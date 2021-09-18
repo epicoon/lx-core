@@ -215,7 +215,7 @@ function __getPropertyWithParent(self, classData, property) {
 	else if (classData[property].isString)
 		result.__str__.push(classData[property]);
 	if (!result.__str__.len) delete result.__str__;
-	if (result.lxEmpty) return null;
+	if (result.lxEmpty()) return null;
 	return result;
 }
 

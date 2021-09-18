@@ -17,7 +17,7 @@ class LocalEventSupervisor #lx:namespace lx {
 		if (eventName in this.listeners) {
 			if (args === null || args === undefined || !args.isArray) args = [args];
 			for (var i=0, l=this.listeners[eventName].len; i<l; i++)
-				lx.callFunction(this.listeners[eventName][i], args);
+				lx._f.callFunction(this.listeners[eventName][i], args);
 		}
 	}
 }

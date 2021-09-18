@@ -90,13 +90,13 @@ class LoadContext {
 
 		// Запрос на догрузку модулей регистрируется в синхронайзере
 		var modulesRequest = null;
-		if (this.necessaryModules && !this.necessaryModules.lxEmpty) {
+		if (this.necessaryModules && !this.necessaryModules.lxEmpty()) {
 			modulesRequest = new lx.ServiceRequest('get-modules', {
 				need: this.necessaryModules,
 				have: lx.dependencies.getCurrentModules()
 			});
 			modulesRequest.success = function(result) {
-				if (result) lx.createAndCallFunction('', result.data);
+				if (result) lx._f.createAndCallFunction('', result.data);
 			};
 			synchronizer.register(modulesRequest);
 		}
@@ -189,7 +189,7 @@ class LoadContext {
 
 		// js-код загрузки плагина
 		if (bootstrapJs != '')
-			lx.createAndCallFunction('', 'const Plugin=lx.plugins["'+plugin.key+'"];' + bootstrapJs);
+			lx._f.createAndCallFunction('', 'const Plugin=lx.plugins["'+plugin.key+'"];' + bootstrapJs);
 
 		// Сборка сниппетов
 		this.snippetsInfo[plugin.key] = snippets;
@@ -210,7 +210,7 @@ class LoadContext {
 		// Если есть код, выполняющийся при загрузке плагина - он выполняется здесь
 		if (info.onLoad) {
 			for (var i=0, l=info.onLoad.len; i<l; i++) {
-				var str = lx.parseFunctionString(info.onLoad[i])[1];
+				var str = lx._f.parseFunctionString(info.onLoad[i])[1];
 				if (str[str.length-1] != ';') str += ';';
 				code += str;
 			}
@@ -227,7 +227,7 @@ class LoadContext {
 		code += snippetsJs[1];
 
 		code += 'lx.WidgetHelper.removeAutoParent(Plugin.root);';
-		lx.createAndCallFunction(snippetsJs[0], code, null, snippetsJs[2]);
+		lx._f.createAndCallFunction(snippetsJs[0], code, null, snippetsJs[2]);
 	}
 
 	createPluginByAnchor(anchor, el, parentPlugin) {
@@ -265,8 +265,8 @@ class LoadContext {
 		var script = document.createElement('script');
 		script.setAttribute('name', 'plugin_asset');
 		script.src = src.path;
-		if (src.onLoad) script.onLoad = lx.createFunction(src.onLoad).bind(script);
-		if (src.onError) script.error = lx.createFunction(src.onError).bind(script);
+		if (src.onLoad) script.onLoad = lx._f.createFunction(src.onLoad).bind(script);
+		if (src.onError) script.error = lx._f.createFunction(src.onError).bind(script);
 		return [script, location];
 	}
 };

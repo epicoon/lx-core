@@ -58,15 +58,14 @@ class Dropbox extends lx.Box #lx:namespace lx {
 	#lx:client {
 		clientBuild(config) {
 			super.clientBuild(config);
-			if (!this.data.isArray && !this.data.is(lx.Dict))
-				this.data = new lx.Dict(this.data);
+			this.data = lx.Dict.create(this.data);
 			this.click(_handler_open);
 			this->button.click(_handler_toggle);
 		}
 
 		postUnpack(config) {
 			super.postUnpack(config);
-			if (this.data.isObject) this.data = new lx.Dict(this.data);
+			this.data = lx.Dict.create(this.data);
 		}
 
 		close() {
@@ -74,6 +73,10 @@ class Dropbox extends lx.Box #lx:namespace lx {
 			__options.hide();
 			lx.off('click', _handler_checkOutclick);
 			__opened = null;
+		}
+
+		option(index) {
+			return this.data.nth(index)
 		}
 
 		static getOpened() {
@@ -100,12 +103,8 @@ class Dropbox extends lx.Box #lx:namespace lx {
 
 	options(data) {
 		if (data === undefined) return this.data;
-		this.data = data.isAssoc ? new lx.Dict(data) : data;
+		#lx:client { this.data = lx.Dict.create(this.data); }
 		return this;
-	}
-
-	option(index) {
-		return this.data.nth(index)
 	}
 
 	selectedText() {

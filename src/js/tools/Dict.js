@@ -3,8 +3,13 @@ class Dict #lx:namespace lx {
 		for (var key in data) this[key] = data[key];
 	}
 
-	get isArray() { return true; }
-	get isAssoc() { return true; }
+	static create(data) {
+		if (data === undefined || data === null)
+			return new this();
+		
+		if (data.constructor === this) return data;
+		return new this(data);
+	}
 
 	get len() {
 		var count = 0;

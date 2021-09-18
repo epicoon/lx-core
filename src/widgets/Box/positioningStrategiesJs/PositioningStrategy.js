@@ -12,7 +12,7 @@ class PositioningStrategy #lx:namespace lx {
 
 	#lx:server {
 		pack() {
-			var str = this.lxFullClassName;
+			var str = this.lxFullClassName();
 			if (this.needJsActualize) str += ';na:1';
 			var indents = this.packIndents();
 			if (indents) str += ';i:' + indents;
@@ -61,7 +61,7 @@ class PositioningStrategy #lx:namespace lx {
 	allocate(elem, config) {
 		var geom = this.geomFromConfig(config);
 
-		if (geom.lxEmpty) {
+		if (geom.lxEmpty()) {
 			elem.trigger('resize');
 			return;
 		}
@@ -89,7 +89,7 @@ class PositioningStrategy #lx:namespace lx {
 			geom.b = geom.b || 0;
 		}
 
-		if (geom.lxEmpty) return;
+		if (geom.lxEmpty()) return;
 		if ( geom.l !== undefined ) this.setParam(elem, lx.LEFT, geom.l);
 		if ( geom.r !== undefined ) this.setParam(elem, lx.RIGHT, geom.r);
 		if ( geom.w !== undefined ) this.setParam(elem, lx.WIDTH, geom.w);

@@ -51,7 +51,7 @@ class MapPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 	allocate(elem, config) {
 		var geom = this.geomFromConfig(config);
 
-		if (geom.lxEmpty) geom = {l:0, t:0, r:0, b:0};
+		if (geom.lxEmpty()) geom = {l:0, t:0, r:0, b:0};
 		elem.addClass('lx-abspos');
 
 		for (var i in geom) {

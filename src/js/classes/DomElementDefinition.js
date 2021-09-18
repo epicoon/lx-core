@@ -119,7 +119,7 @@ class DomElementDefinition #lx:namespace lx {
 
 	removeClass(className) {
 		if (this.elem) this.elem.classList.remove(className);
-		else this.classList.remove(className);
+		else this.classList.lxRemove(className);
 	}
 
 	clearClasses() {
@@ -224,7 +224,7 @@ class DomElementDefinition #lx:namespace lx {
 	}
 
 	getHtmlStringBegin() {
-		var tag = new lx.Tag({
+		var tag = new lx.TagRenderer({
 			tag: this.tag,
 			attributes: this.attributes,
 			classList: this.classList,

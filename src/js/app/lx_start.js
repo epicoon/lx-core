@@ -23,16 +23,16 @@ lx.start = function(settings, modules, jsBootstrap, plugin, jsMain) {
 	__resetInit();
 
 	// Js-модули
-	if (modules && modules != '') lx.createAndCallFunction('', modules);
+	if (modules && modules != '') lx._f.createAndCallFunction('', modules);
 
 	// Глобальный js-код, выполняемый ДО загрузки корневого плагина
-	if (jsBootstrap && jsBootstrap != '') lx.createAndCallFunction('', jsBootstrap, this);
+	if (jsBootstrap && jsBootstrap != '') lx._f.createAndCallFunction('', jsBootstrap, this);
 
 	// Запуск загрузчика
 	if (plugin) lx.Loader.run(plugin, lx.body);
 
 	// Глобальный js-код, выполняемый ПОСЛЕ загрузки корневого плагина
-	if (jsMain && jsMain != '') lx.createAndCallFunction('', jsMain, this);
+	if (jsMain && jsMain != '') lx._f.createAndCallFunction('', jsMain, this);
 
 	//TODO - ограничить код режимом НЕ-ПРОДА
 	// Ищем отладочные дампы
