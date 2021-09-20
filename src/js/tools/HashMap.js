@@ -9,8 +9,8 @@ class HashMap #lx:namespace lx {
 			return;
 		}
 
-		if (this.map[key].isArray) {
-			if (value.isArray) {
+		if (lx.isArray(this.map[key])) {
+			if (lx.isArray(value)) {
 				this.map[key].lxMerge(value);
 			} else {
 				this.map[key].push(value);

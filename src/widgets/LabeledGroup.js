@@ -88,7 +88,7 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 	#lx:client clientBuild(config) {
 		super.clientBuild(config);
 		if (!this->label) return;
-		this->label.each((l)=>{
+		this->label.forEach(l=>{
 			l.on('click', function() {
 				this.parent.widget(this.index).trigger('click');
 			});
@@ -99,7 +99,7 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 	}
 
 	align(w, h) {
-		this.labels().each(a=>a.align(w, h));
+		this.labels().forEach(a=>a.align(w, h));
 	}
 
 	widgets() {

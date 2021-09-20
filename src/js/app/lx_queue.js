@@ -25,7 +25,7 @@ class Task #lx:namespace lx {
 	}
 
 	setQueue(queue) {
-		if (queue.isString) lx.Queues.add(queue, this);
+		if (lx.isString(queue)) lx.Queues.add(queue, this);
 		else this.queue = queue;
 		return this;
 	}

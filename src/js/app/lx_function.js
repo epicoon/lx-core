@@ -1,7 +1,7 @@
 lx._f = {
 	callFunction: function(data, args = []) {
-		if (data.isFunction) data.apply(null, args);
-		else if (data.isArray) data[1].apply(data[0], args);
+		if (lx.isFunction(data)) data.apply(null, args);
+		else if (lx.isArray(data)) data[1].apply(data[0], args);
 	},
 	// По переданным строкам аргументов и кода создает функцию и сразу ее запускает
 	createAndCallFunction: function(args, code, context=null, params=[]) {
@@ -22,14 +22,14 @@ lx._f = {
 	// Превращает функцию в строку в формате '(arg1, arg2) => ...function code'
 	functionToString: function(func) {
 		var funcText = null;
-		if (func.isFunction) {
+		if (lx.isFunction(func)) {
 			funcText = func.toString();
 			if (funcText.match(/^\s*\(/))
 				funcText = funcText.replace(/^\s*\(([^\)]*?)\)\s*=>\s*{\s*/, '($1)=>');
 			else
 				funcText = funcText.replace(/^\s*function\s*\(([^\)]*?)\)\s*{\s*/, '($1)=>');
 			funcText = funcText.replace(/\s*}\s*$/, '');
-		} else if (func.isString) funcText = func;
+		} else if (lx.isString(func)) funcText = func;
 		return funcText;
 	},
 	// Создает функцию из вариантов синтаксиса:

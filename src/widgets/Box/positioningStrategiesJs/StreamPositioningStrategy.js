@@ -96,7 +96,7 @@ class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx 
 			? 'grid-template-rows'
 			: 'grid-template-columns',
 			arr = [];
-		this.owner.getChildren().each((c)=>arr.push(c.streamSize));
+		this.owner.getChildren().forEach(c=>arr.push(c.streamSize));
 		this.owner.style(styleParam, arr.join(' '));
 	}
 
@@ -179,7 +179,7 @@ class SequenseProportional extends Sequense {
 	}
 
 	setParam(elem, param, val) {
-		if (val.isNumber) val = val + 'fr';
+		if (lx.isNumber(val)) val = val + 'fr';
 		var needBuild = ((elem.streamSize !== undefined) || elem.nextSibling());
 		elem.streamSize = val;
 		var styleParam = this.owner.direction == lx.VERTICAL
@@ -187,7 +187,7 @@ class SequenseProportional extends Sequense {
 			: 'grid-template-columns';
 		if (needBuild) {
 			var arr = [];
-			this.owner.owner.getChildren().each((c)=>arr.push(c.streamSize));
+			this.owner.owner.getChildren().forEach(c=>arr.push(c.streamSize));
 			this.owner.owner.style(styleParam, arr.join(' '));
 		} else {
 			var tpl = this.owner.owner.style(styleParam);

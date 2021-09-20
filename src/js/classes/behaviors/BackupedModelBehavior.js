@@ -66,9 +66,9 @@ class BackupedModelBehavior extends lx.Behavior #lx:namespace lx {
 	 *
 	 * */
 	commit() {
-		this.backup.getSchema().getFieldNames().each((key)=>{
+		this.backup.getSchema().getFieldNames().forEach(key=>{
 			var val = this[key];
-			if (val && (val.isArray || val.isObject)) val = val.lxClone();
+			if (val && (lx.isArray(val) || lx.isObject(val))) val = val.lxClone();
 			this.backup[key] = val;
 		});
 		this.onCommit();
@@ -78,9 +78,9 @@ class BackupedModelBehavior extends lx.Behavior #lx:namespace lx {
 	 *
 	 * */
 	reset() {
-		this.backup.getSchema().getFieldNames().each((key)=>{
+		this.backup.getSchema().getFieldNames().forEach(key=>{
 			var val = this.backup.getField(key);
-			if (val && (val.isArray || val.isObject)) val = val.lxClone();
+			if (val && (lx.isArray(val) || lx.isObject(val))) val = val.lxClone();
 			this[key] = val;
 		});
 		this.onReset();

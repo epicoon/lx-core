@@ -11,7 +11,7 @@ class CssContext #lx:namespace lx {
 	}
 
 	addStyle(name, content = {}) {
-		if (name.isArray) name = name.join(',');
+		if (lx.isArray(name)) name = name.join(',');
 
 		this.sequens.push({
 			name,
@@ -64,7 +64,7 @@ class CssContext #lx:namespace lx {
 	addClasses(list) {
 		for (let name in list) {
 			let content = list[name];
-			if (content.isArray) this.addClass(name, content[0], content[1]);
+			if (lx.isArray(content)) this.addClass(name, content[0], content[1]);
 			else this.addClass(name, content);
 		}
 	}
@@ -97,7 +97,7 @@ class CssContext #lx:namespace lx {
 	inheritClasses(list, parent) {
 		for (let name in list) {
 			let content = list[name];
-			if (content.isArray) this.inheritClass(name, parent, content[0], content[1]);
+			if (lx.isArray(content)) this.inheritClass(name, parent, content[0], content[1]);
 			else this.inheritClass(name, parent, content);
 		}
 	}
@@ -132,7 +132,7 @@ function __processContent(self, content, pseudoclasses) {
 		if (!(name in self.mixins)) continue;
 
 		var args = content['@'+name];
-		if (!args.isArray) args = [args];
+		if (!lx.isArray(args)) args = [args];
 		var result = self.mixins[name].apply(null, args);
 
 		processedContent.lxMerge(result.content);
@@ -206,13 +206,13 @@ function __getPropertyWithParent(self, classData, property) {
 		? __getPropertyWithParent(self, parentClass, property)
 		: parentClass[property];
 	if (!pProperty) pProperty = {};
-	if (pProperty.isString) pProperty = {__str__:[pProperty]};
+	if (lx.isString(pProperty)) pProperty = {__str__:[pProperty]};
 	var result = pProperty.lxClone();
 	if (!result.__str__) result.__str__ = [];
 
-	if (classData[property].isObject)
+	if (lx.isObject(classData[property]))
 		result = result.lxMerge(classData[property], true)
-	else if (classData[property].isString)
+	else if (lx.isString(classData[property]))
 		result.__str__.push(classData[property]);
 	if (!result.__str__.len) delete result.__str__;
 	if (result.lxEmpty()) return null;
@@ -234,9 +234,9 @@ function __getContentString(content) {
 function __prepareContentString(content) {
 	if (!content) return '';
 	
-	if (content.isString) return content;
+	if (lx.isString(content)) return content;
 	
-	if (content.isObject) {
+	if (lx.isObject(content)) {
 		var arr = [];
 		for (var prop in content) {
 			if (prop == '__str__') {
@@ -245,7 +245,7 @@ function __prepareContentString(content) {
 			}
 
 			var propName = prop.replace(/([A-Z])/g, function(x){return "-" + x.toLowerCase()});
-			var propVal = content[prop].isString
+			var propVal = lx.isString(content[prop])
 				? content[prop]
 				: (content[prop].toString ? content[prop].toString() : '');
 			arr.push(propName + ':' + propVal);

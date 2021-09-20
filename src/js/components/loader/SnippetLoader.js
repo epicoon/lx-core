@@ -189,14 +189,14 @@ class SnippetLoader {
 			var item = js[i],
 				 func,
 				 args=null;
-			if (item.isArray) {
+			if (lx.isArray(item)) {
 				func = item[0];
 				args = item[1];
 			} else func = item;
 			func = el.unpackFunction(func);
 			if (args === null) func.call(el);
 			else {
-				if (!args.isArray) args = [args];
+				if (!lx.isArray(args)) args = [args];
 				func.apply(el, args);
 			}
 		}
@@ -220,7 +220,7 @@ class SnippetLoader {
 		for (var i=0, l=src.len; i<l; i++) {
 			let item = src[i];
 			let elem = this.elems[item[indexName]];
-			if (fields.isArray) {
+			if (lx.isArray(fields)) {
 				for (var j=0, ll=fields.len; j<ll; j++) {
 					var name = fields[j];
 					if (item[name]) elem[name] = item[name];

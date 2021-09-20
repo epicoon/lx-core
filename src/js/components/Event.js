@@ -72,7 +72,7 @@ lx.Event = (function() {
 
 			if (handler == null) { console.log(el, type); }
 
-			if (handler.isArray) {
+			if (lx.isArray(handler)) {
 				handler[1].context = handler[0];
 				handler = handler[1];
 			}

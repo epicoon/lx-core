@@ -17,11 +17,11 @@ class Tree #lx:namespace lx {
 		function re(node, obj) {
 			if (obj === null || obj === undefined) return;
 
-			if (obj.isArray || obj.isObject) {
+			if (lx.isArray(obj) || lx.isObject(obj)) {
 				for (let key in obj) {
 					var newNode = node.add('k' + (counter++));
 					let value = obj[key];
-					if (value.isArray || value.isObject) {
+					if (lx.isArray(value) || lx.isObject(value)) {
 						newNode.data = {key};
 						re(newNode, value);
 					} else newNode.data = {key, value};
@@ -39,7 +39,7 @@ class Tree #lx:namespace lx {
 		function re(node, obj) {
 			if (obj === null || obj === undefined) return;
 
-			if (obj.isArray || obj.isObject) {
+			if (lx.isArray(obj) || lx.isObject(obj)) {
 				if (callback) callback(obj, node);
 
 				if (childrenKey in obj) {
@@ -77,7 +77,7 @@ class Tree #lx:namespace lx {
 				return;
 			}
 			if (!obj[itemsFiled]) return;
-			obj[itemsFiled].each((a)=> re(newNode, a));
+			obj[itemsFiled].forEach(a=>re(newNode, a));
 		}
 
 		var result = new this();
@@ -265,7 +265,7 @@ class Tree #lx:namespace lx {
 		if (!args.length)
 			return this.add(this.genKey());
 
-		if (args[0].isArray) args = args[0];
+		if (lx.isArray(args[0])) args = args[0];
 
 		for (var i=0; i<args.length; i++) {
 			var key = ''+args[i],
@@ -311,7 +311,7 @@ class Tree #lx:namespace lx {
 
 		// if ( lx.isNumber(key) ) return this.nodes[ this.keys[key] ];
 
-		var arr = (key.isArray) ? key : (''+key).split(self::SEPARATOR);
+		var arr = (lx.isArray(key)) ? key : (''+key).split(self::SEPARATOR);
 		if (!arr.length) return this;
 		if ( !(arr[0] in this.nodes) ) return false;
 		var b = this.nodes[ arr[0] ];
@@ -327,7 +327,7 @@ class Tree #lx:namespace lx {
 
 		// if ( lx.isNumber(key) ) return this.nodes[ this.keys[key] ];
 
-		var arr = (key.isArray) ? key : (''+key).split(self::SEPARATOR);
+		var arr = (lx.isArray(key)) ? key : (''+key).split(self::SEPARATOR);
 		if (!arr.length) return this;
 		if ( !(arr[0] in this.nodes) ) return null;
 		var b = this.nodes[ arr[0] ];

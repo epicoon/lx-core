@@ -8,7 +8,7 @@ class BitMap #lx:namespace lx {
 
 	toString() {
 		var arr = [];
-		this.map.each((a)=>arr.push(a.toString()));
+		this.map.forEach(a=>arr.push(a.toString()));
 		return arr.join(lx.EOL);
 	}
 
@@ -25,7 +25,8 @@ class BitMap #lx:namespace lx {
 
 	reset() {
 		this.map = new Array(this.y);
-		this.map.each((a, i)=>this.map[i] = new lx.BitLine(this.x));
+		for (let i=0; i<this.y; i++)
+			this.map[i] = new lx.BitLine(this.x);
 	}
 
 	fullReset() {
@@ -35,7 +36,7 @@ class BitMap #lx:namespace lx {
 
 	setX(amt) {
 		if (this.x == amt) return;
-		this.map.each((a)=>a.setLen(amt));
+		this.map.forEach(a=>a.setLen(amt));
 		this.x = amt;
 	}
 
@@ -114,7 +115,7 @@ class BitMap #lx:namespace lx {
 	}
 
 	setSpace(x, y, w, h) {
-		if (x.isArray) {
+		if (lx.isArray(x)) {
 			this.setSpace(x[0], x[1], x[2], x[3]);
 			return;
 		}
@@ -128,7 +129,7 @@ class BitMap #lx:namespace lx {
 	}
 
 	unsetSpace(x, y, w, h) {
-		if (x.isArray) {
+		if (lx.isArray(x)) {
 			this.unsetSpace(x[0], x[1], x[2], x[3]);
 			return;
 		}

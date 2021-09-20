@@ -23,9 +23,9 @@ cssContext.registerMixin('icon', (iconCode, config=null)=>{
         fontFamily: 'MainFont',
     };
     if (config) {
-        if (config.isNumber) iconStyle.fontSize = config;
-        else if (config.isObject) iconStyle = iconStyle.lxMerge(config, true);
-        if (iconStyle.fontSize.isNumber)
+        if (lx.isNumber(config)) iconStyle.fontSize = config;
+        else if (lx.isObject(config)) iconStyle = iconStyle.lxMerge(config, true);
+        if (lx.isNumber(iconStyle.fontSize))
             iconStyle.fontSize = 'calc('+iconStyle.fontSize+'px + 1.0vh)';
     }
     iconStyle.lxMerge({content: "'" + iconCode + "'"});

@@ -7,7 +7,7 @@ class MapPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		FORMAT_FREE = 3;
 
 	init(config={}) {
-		if (!config.isObject)
+		if (!lx.isObject(config))
 			config = {format: config};
 		if (config.format == '%') config.format = self::FORMAT_PERCENT;
 		else if (config.format == 'px') config.format = self::FORMAT_PX;
@@ -55,7 +55,7 @@ class MapPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		elem.addClass('lx-abspos');
 
 		for (var i in geom) {
-			if (geom[i] && geom[i].isString && geom[i].includes('/')) {
+			if (geom[i] && lx.isString(geom[i]) && geom[i].includes('/')) {
 				var parts = geom[i].split('/');
 				geom[i] = Math.round(100 * parts[0] / parts[1]) + '%';
 			}
@@ -129,7 +129,7 @@ function __getFormatText(self, format) {
  * Разбивает параметры вида '50%' на [50, PositioningStrategy.FORMAT_PERCENT]
  */
 function __splitParam(self, val) {
-	if (val.isNumber) return [val, self.defaultFormat];
+	if (lx.isNumber(val)) return [val, self.defaultFormat];
 	var num = parseFloat(val),
 		f = val.split(num)[1];
 	return [num, f=='%' ? lx.MapPositioningStrategy.FORMAT_PERCENT : lx.MapPositioningStrategy.FORMAT_PX];

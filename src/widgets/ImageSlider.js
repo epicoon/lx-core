@@ -14,7 +14,7 @@ class ImageSlider extends lx.BoxSlider #lx:namespace lx {
 		if (this.slides().len != images.len)
 			this.setSlides(images.len);
 
-		this.slides().each((a, i)=> a.add(lx.Image, {size:['100%', '100%'], filename:images[i]}));
+		this.slides().forEach((a, i)=> a.add(lx.Image, {size:['100%', '100%'], filename:images[i]}));
 		return this;
 	}
 }

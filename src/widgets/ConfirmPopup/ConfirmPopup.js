@@ -143,8 +143,8 @@ class ConfirmPopup extends lx.Box #lx:namespace lx {
 
 	function __onConfirm() {
 		if (_confirmCallback) {
-			if (_confirmCallback.isFunction) _confirmCallback();
-			else if (_confirmCallback.isArray)
+			if (lx.isFunction(_confirmCallback)) _confirmCallback();
+			else if (lx.isArray(_confirmCallback))
 				_confirmCallback[1].call(_confirmCallback[0]);
 		} 
 		__close();
@@ -152,8 +152,8 @@ class ConfirmPopup extends lx.Box #lx:namespace lx {
 
 	function __onReject() {
 		if (_rejectCallback) {
-			if (_rejectCallback.isFunction) _rejectCallback();
-			else if (_rejectCallback.isArray)
+			if (lx.isFunction(_rejectCallback)) _rejectCallback();
+			else if (lx.isArray(_rejectCallback))
 				_rejectCallback[1].call(_rejectCallback[0]);
 		} 
 		__close();
@@ -162,8 +162,8 @@ class ConfirmPopup extends lx.Box #lx:namespace lx {
 	function __onExtra(name) {
 		let callback = _extraCallbacks[name];
 		if (callback) {
-			if (callback.isFunction) callback();
-			else if (callback.isArray)
+			if (lx.isFunction(callback)) callback();
+			else if (lx.isArray(callback))
 				callback[1].call(callback[0]);
 		} 
 		__close();

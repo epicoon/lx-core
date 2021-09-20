@@ -10,7 +10,7 @@ lx.EventSupervisor = {
 
 	trigger: function(eventName, args = []) {
 		if (eventName in listeners) {
-			if (!args.isArray) args = [args];
+			if (!lx.isArray(args)) args = [args];
 			for (var i=0, l=listeners[eventName].len; i<l; i++)
 				lx._f.callFunction(listeners[eventName][i], args);
 		}

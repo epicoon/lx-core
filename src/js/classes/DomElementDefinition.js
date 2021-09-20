@@ -208,14 +208,14 @@ class DomElementDefinition #lx:namespace lx {
 		if (this.elem) lx.Event.remove(this.elem, eventName, func);
 		else {
 			if (func === undefined) delete this.events[eventName];
-			else if (eventName in this.events) this.events[eventName].remove(func);
+			else if (eventName in this.events) this.events[eventName].lxRemove(func);
 		}
 	}
 
 	hasEvent(eventName, func) {
 		if (this.elem) return lx.Event.has(this.elem, eventName, func);
 		if (func === undefined) return (eventName in this.events);
-		return ((eventName in this.events) && this.events[eventName].contains(func));
+		return ((eventName in this.events) && this.events[eventName].includes(func));
 	}
 
 	getEvents() {
@@ -280,7 +280,7 @@ class DomElementDefinition #lx:namespace lx {
 				var item = this.actions[i],
 					funcName = item[0],
 					args = item[1];
-				if (args !== undefined && args.isArray) this.owner[funcName].apply(this.owner, args);
+				if (args !== undefined && lx.isArray(args)) this.owner[funcName].apply(this.owner, args);
 				else this.owner[funcName].call(this.owner);
 			}
 

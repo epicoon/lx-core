@@ -33,16 +33,16 @@ lx.Json = {
 				var item = from[i];
 				if (item === null || item === undefined) {
 					to[i] = null;
-				} else if (item.isArray) {
+				} else if (lx.isArray(item)) {
 					to[i] = [];
 					rec(item, to[i]);
-				} else if (item.isObject) {
+				} else if (lx.isObject(item)) {
 					to[i] = {};
 					rec(item, to[i]);
 				} else to[i] = from[i];
 			}
 		}
-		if (data.isArray || data.isObject) rec(data, result);
+		if (lx.isArray(data) || lx.isObject(data)) rec(data, result);
 		else result = data;
 		return JSON.stringify(result);
 	},

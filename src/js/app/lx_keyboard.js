@@ -33,12 +33,12 @@ lx.resetKeys = function() {
 };
 
 lx.onKeydown = function(key, func) {
-	if (key.isObject) {
+	if (lx.isObject(key)) {
 		for (var k in key) this.onKeydown(k, key[k]);
 		return;
 	}
 
-	key = key.isNumber ? 'k_' + key : 'c_' + key;
+	key = lx.isNumber(key) ? 'k_' + key : 'c_' + key;
 
 	if (!keydownHandlers[key])
 		keydownHandlers[key] = [];
@@ -46,14 +46,14 @@ lx.onKeydown = function(key, func) {
 };
 
 lx.offKeydown = function(key, func) {
-	key = key.isNumber ? 'k_' + key : 'c_' + key;
+	key = lx.isNumber(key) ? 'k_' + key : 'c_' + key;
 	if (!keydownHandlers[key]) return;
 
 	var index = -1;
 	for (var i=0, l=keydownHandlers[key].len; i<l; i++) {
 		var handler = keydownHandlers[key][i];
 
-		if ((handler.isFunction && handler === func) || (handler.isArray && handler[1].isFunction && handler[1] === func)) {
+		if ((lx.isFunction(handler) && handler === func) || (lx.isArray(handler) && lx.isFunction(handler[1]) && handler[1] === func)) {
 			index = i;
 			break;
 		}
@@ -64,11 +64,11 @@ lx.offKeydown = function(key, func) {
 };
 
 lx.onKeyup = function(key, func) {
-	if (key.isObject) {
+	if (lx.isObject(key)) {
 		for (var k in key) this.onKeyup(k, key[k]);
 		return;
 	}
-	key = key.isNumber ? 'k_' + key : 'c_' + key;
+	key = lx.isNumber(key) ? 'k_' + key : 'c_' + key;
 
 	if (!keyupHandlers[key])
 		keyupHandlers[key] = [];
@@ -76,14 +76,14 @@ lx.onKeyup = function(key, func) {
 };
 
 lx.offKeyup = function(key, func) {
-	key = key.isNumber ? 'k_' + key : 'c_' + key;
+	key = lx.isNumber(key) ? 'k_' + key : 'c_' + key;
 	if (!keyupHandlers[key]) return;
 
 	var index = -1;
 	for (var i=0, l=keyupHandlers[key].len; i<l; i++) {
 		var handler = keyupHandlers[key][i];
 
-		if ((handler.isFunction && handler === func) || (handler.isArray && handler[1].isFunction && handler[1] === func)) {
+		if ((lx.isFunction(handler) && handler === func) || (lx.isArray(handler) && lx.isFunction(handler[1]) && handler[1] === func)) {
 			index = i;
 			break;
 		}
@@ -94,7 +94,7 @@ lx.offKeyup = function(key, func) {
 };
 
 lx.keyPressed = function(key) {
-	if (key.isString) key = key.charCodeAt(0);
+	if (lx.isString(key)) key = key.charCodeAt(0);
 	if (pressedKeys) return pressedKeys[key]; return false;
 };
 
@@ -147,15 +147,15 @@ lx.setWatchForKeypress = function(bool) {
 		if (keydownHandlers['k_' + code])
 			for (var i in keydownHandlers['k_' + code]) {
 				var f = keydownHandlers['k_' + code][i];
-				if (f.isFunction) f(e);
-				else if (f.isArray) f[1].call(f[0], e);
+				if (lx.isFunction(f)) f(e);
+				else if (lx.isArray(f)) f[1].call(f[0], e);
 			}
 
 		if (keydownHandlers['c_' + pressedChar])
 			for (var i in keydownHandlers['c_' + pressedChar]) {
 				var f = keydownHandlers['c_' + pressedChar][i];
-				if (f.isFunction) f(e);
-				else if (f.isArray) f[1].call(f[0], e);
+				if (lx.isFunction(f)) f(e);
+				else if (lx.isArray(f)) f[1].call(f[0], e);
 			}
 	}
 

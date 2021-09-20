@@ -6,7 +6,7 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 	 *
 	 * */
 	static inject(supportedEssence, config=null) {
-		if (!supportedEssence.isFunction) {
+		if (!lx.isFunction(supportedEssence)) {
 			console.error('lx.SetterListenerBehavior can be added only to class');
 			return;
 		}
@@ -26,7 +26,7 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 			fields = fieldsMap.fields,
 			extraFields = fieldsMap.extraFields,
 			funcBlank = __getFuncBlank(),
-			prototype = supportedEssence.isFunction ? supportedEssence.prototype : supportedEssence;
+			prototype = lx.isFunction(supportedEssence) ? supportedEssence.prototype : supportedEssence;
 
 		for (var i=0, l=fields.len; i<l; i++) {
 			let name = fields[i];
@@ -51,7 +51,7 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 		for (let name in extraFields) {
 			fields.push(name);
 			var definition = extraFields[name],
-				str = definition.isString ? definition : definition.ref,
+				str = lx.isString(definition) ? definition : definition.ref,
 				assignStr;
 			if ( str[str.length-1] == ")" ) {
 				assignStr = str.replace(/\(\)$/, "(val);");
@@ -171,14 +171,14 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 		var ignoreSetterListener = this.behaviorMap.get(behKey, 'ignoreSetterListener');
 		if (ignoreSetterListener === null) ignoreSetterListener = {};
 
-		if (fieldName.isBoolean && bool === undefined) {
+		if (lx.isBoolean(fieldName) && bool === undefined) {
 			if (fieldName) ignoreSetterListener.__ALL__ = true;
 			else delete ignoreSetterListener.__ALL__;
 			this.behaviorMap.set(behKey, 'ignoreSetterListener', ignoreSetterListener);
 			return;
 		}
 
-		if (!fieldName.isArray) fieldName = [fieldName];
+		if (!lx.isArray(fieldName)) fieldName = [fieldName];
 		if (bool)
 			for (var i=0, l=fieldName.length; i<l; i++)
 				ignoreSetterListener[fieldName[i]] = true;
@@ -207,7 +207,7 @@ function __defineFields(supportedClass) {
 			extraFields: supportedClass.setterListenerExtraFields()
 		};
 
-	if (fields.isArray) {
+	if (lx.isArray(fields)) {
 		for (var i=0, l=fields.length; i<l; i++) {
 			var temp = fields[i].split(/\s*<<\s*/);
 			if (temp.length == 1) result.fields.push(temp[0]);
@@ -229,7 +229,7 @@ function __getFuncBlank() {
 				var res = withName ? arr[i].call(this, name, val) : arr[i].call(this, val);
 				if (res === false) {
 					if (info && info.fail)
-						info.fail.each((func)=> func.call(this, name, val));
+						info.fail.forEach(func=>func.call(this, name, val));
 					return false;
 				} else if (res !== undefined) {
 					val = res;
@@ -263,19 +263,19 @@ function __getFuncBlank() {
  *
  * */
 function __beforeSet(name, func) {
-	if (name.isObject) {
+	if (lx.isObject(name)) {
 		for (let i in name) this.beforeSet(i, name[i]);
 		return;
 	}
 
 	var setterEvents = this.behaviorMap.get(behKey, 'setterEvents');
-	if (name.isString) {
+	if (lx.isString(name)) {
 		if (!setterEvents.beforeMap[name])
 			setterEvents.beforeMap[name] = [];
 		setterEvents.beforeMap[name].lxPushUnique(func);
 		return;
 	}
-	if (name.isFunction) {
+	if (lx.isFunction(name)) {
 		setterEvents.before.lxPushUnique(name);
 	}
 }
@@ -284,18 +284,18 @@ function __beforeSet(name, func) {
  *
  * */
 function __afterSet(name, func) {
-	if (name.isObject) {
+	if (lx.isObject(name)) {
 		for (let i in name) this.afterSet(i, name[i]);
 		return;
 	}
 	var setterEvents = this.behaviorMap.get(behKey, 'setterEvents');
-	if (name.isString) {
+	if (lx.isString(name)) {
 		if (!setterEvents.afterMap[name])
 			setterEvents.afterMap[name] = [];
 		setterEvents.afterMap[name].lxPushUnique(func);
 		return;
 	}
-	if (name.isFunction) {
+	if (lx.isFunction(name)) {
 		setterEvents.after.lxPushUnique(name);
 	}
 }

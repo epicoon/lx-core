@@ -11,7 +11,7 @@ class RadioGroup extends lx.LabeledGroup #lx:namespace lx {
 		config.labelSide = lx.RIGHT;
 
 		super.build(config);
-		this.widgets().each(w=>{
+		this.widgets().forEach(w=>{
 			let radio = w.add(lx.Radio, {key: 'radio'});
 			w.align(lx.CENTER, lx.MIDDLE);
 		});
@@ -20,8 +20,8 @@ class RadioGroup extends lx.LabeledGroup #lx:namespace lx {
 
 	#lx:client clientBuild(config) {
 		super.clientBuild(config);
-		this.radios().each(a=>a.on('change', _handler_onChange));
-		this.labels().each(l=>{
+		this.radios().forEach(a=>a.on('change', _handler_onChange));
+		this.labels().forEach(l=>{
 			l.style('cursor', 'pointer');
 			l.on('mousedown', lx.Event.preventDefault);
 			l.on('click', (e)=>{
@@ -43,7 +43,7 @@ class RadioGroup extends lx.LabeledGroup #lx:namespace lx {
 	value(num) {
 		if (num === undefined) {
 			var result = null;
-			this.radios().each(function(a) {
+			this.radios().forEach(function(a) {
 				if (a.value()) {
 					result = a.index;
 					this.stop();
@@ -54,7 +54,7 @@ class RadioGroup extends lx.LabeledGroup #lx:namespace lx {
 
 		if (!num) num = 0;
 
-		this.radios().each((a)=> a.value(false));
+		this.radios().forEach(a=>a.value(false));
 		this.radio(num).value(true);
 	}
 }
@@ -76,7 +76,7 @@ class RadioGroup extends lx.LabeledGroup #lx:namespace lx {
 		var group = this.parent.parent,
 			index = this.parent.index,
 			old = null;
-		group.radios().each((item)=> {
+		group.radios().forEach(item=>{
 			if (item == this) return;
 			if (item.value()) old = item.parent.index;
 			item.value(false);

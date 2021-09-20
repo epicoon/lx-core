@@ -156,19 +156,19 @@ class Box extends lx.Rect #lx:namespace lx {
         if (config.positioning)
             this.setPositioning(config.positioning, config);
         else if (config.stream)
-            this.stream(config.stream.isObject ? config.stream : {});
+            this.stream(lx.isObject(config.stream) ? config.stream : {});
         else if (config.streamProportional)
-            this.streamProportional(config.streamProportional.isObject ? config.streamProportional : {});
+            this.streamProportional(lx.isObject(config.streamProportional) ? config.streamProportional : {});
         else if (config.grid)
-            this.grid(config.grid.isObject ? config.grid : {});
+            this.grid(lx.isObject(config.grid) ? config.grid : {});
         else if (config.gridProportional)
-            this.gridProportional(config.gridProportional.isObject ? config.gridProportional : {});
+            this.gridProportional(lx.isObject(config.gridProportional) ? config.gridProportional : {});
         else if (config.gridStream)
-            this.gridStream(config.gridStream.isObject ? config.gridStream : {});
+            this.gridStream(lx.isObject(config.gridStream) ? config.gridStream : {});
         else if (config.gridAdaptive)
-            this.gridAdaptive(config.gridAdaptive.isObject ? config.gridAdaptive : {});
+            this.gridAdaptive(lx.isObject(config.gridAdaptive) ? config.gridAdaptive : {});
         else if (config.slot)
-            this.slot(config.slot.isObject ? config.slot : {});
+            this.slot(lx.isObject(config.slot) ? config.slot : {});
     }
 
     getCommonEventNames() {
@@ -209,7 +209,7 @@ class Box extends lx.Rect #lx:namespace lx {
 
     #lx:server {
 		setSnippet(config, attributes = null) {
-			if (config.isString) {
+			if (lx.isString(config)) {
 				config = {path: config};
 				if (attributes !== null) config.attributes = attributes;
 			}
@@ -230,12 +230,12 @@ class Box extends lx.Rect #lx:namespace lx {
 		}
 
 		setPlugin(name, attributes, onLoad) {
-            if (attributes === undefined && name.isObject) {
+            if (attributes === undefined && lx.isObject(name)) {
                 attributes = name.attributes;
                 name = name.name;
             }
 
-            if (!name.isString) return;
+            if (!lx.isString(name)) return;
 
             var container = __getContainer(this);
             container.pluginAnchor = App.genId();
@@ -258,7 +258,7 @@ class Box extends lx.Rect #lx:namespace lx {
         }
         
         setSnippet(config, attributes = null) {
-            if (config.isString) {
+            if (lx.isString(config)) {
                 config = {path: config};
                 if (attributes !== null) config.attributes = attributes;
             }
@@ -409,7 +409,7 @@ class Box extends lx.Rect #lx:namespace lx {
         if (!child.key) return;
 
         if (child.key in this.childrenByKeys) {
-            if (!this.childrenByKeys[child.key].isArray) {
+            if (!lx.isArray(this.childrenByKeys[child.key])) {
                 this.childrenByKeys[child.key]._index = 0;
                 this.childrenByKeys[child.key] = [this.childrenByKeys[child.key]];
             }
@@ -443,14 +443,14 @@ class Box extends lx.Rect #lx:namespace lx {
      *    ]);
      * */
     add(type, count=1, config={}, configurator={}) {
-        if (type.isArray) {
+        if (lx.isArray(type)) {
             var result = [];
             for (var i=0, l=type.len; i<l; i++)
                 result.push( this.add.apply(this, type[i]) );
             return result;
         }
 
-        if (count.isObject) {
+        if (lx.isObject(count)) {
             config = count;
             count = 1;
         }
@@ -500,7 +500,7 @@ class Box extends lx.Rect #lx:namespace lx {
         if (el === undefined) return super.del();
 
         var c = this.remove(el, index, count);
-        c.each((a)=>a.destructProcess());
+        c.forEach(a=>a.destructProcess());
     }
 
     /*
@@ -514,7 +514,7 @@ class Box extends lx.Rect #lx:namespace lx {
      * */
     remove(el, index, count) {
         // el - объект
-        if (!el.isString) {
+        if (!lx.isString(el)) {
             // Проверка на дурака - не удаляем чужой элемент
             if (el.parent !== this) return false;
 
@@ -542,7 +542,7 @@ class Box extends lx.Rect #lx:namespace lx {
         if (!(key in container.childrenByKeys)) return result;
 
         // childrenByKeys[key] - не массив, элемент просто удаляется
-        if (!container.childrenByKeys[key].isArray) {
+        if (!lx.isArray(container.childrenByKeys[key])) {
             var elem = container.childrenByKeys[key],
                 pre = elem.prevSibling();
             container.domElem.removeChild(elem.domElem);
@@ -700,7 +700,7 @@ class Box extends lx.Rect #lx:namespace lx {
         if (key instanceof lx.Rect) {
             if (key.key) {
                 if (!(key.key in container.childrenByKeys)) return false;
-                if (container.childrenByKeys[key.key].isArray) {
+                if (lx.isArray(container.childrenByKeys[key.key])) {
                     if (key._index === undefined) return false;
                     return container.childrenByKeys[key.key][key._index] === key;
                 }
@@ -719,7 +719,7 @@ class Box extends lx.Rect #lx:namespace lx {
         if (key === undefined) return container.children.count();
 
         if (!container.childrenByKeys[key]) return 0;
-        if (!container.childrenByKeys[key].isArray) return 1;
+        if (!lx.isArray(container.childrenByKeys[key])) return 1;
         return container.childrenByKeys[key].len;
     }
 
@@ -753,10 +753,10 @@ class Box extends lx.Rect #lx:namespace lx {
 
                 if (matched && info.hasProperties) {
                     var prop = info.hasProperties;
-                    if (prop.isObject) {
+                    if (lx.isObject(prop)) {
                         for (var j in prop)
                             if (!(j in child) || child[j] != prop[j]) { matched = false; break; }
-                    } else if (prop.isArray) {
+                    } else if (lx.isArray(prop)) {
                         for (var j=0, l=prop.len; j<l; j++)
                             if (!(prop[j] in child)) { matched = false; break; }
                     }
@@ -788,7 +788,7 @@ class Box extends lx.Rect #lx:namespace lx {
      * */
     getChildren(info={}, all=false) {
         if (info === true) info = {all:true};
-        if (info.isFunction) info = {callback: info, all};
+        if (lx.isFunction(info)) info = {callback: info, all};
         info.match = true;
         return this.divideChildren(info).match;
     }
@@ -856,7 +856,7 @@ class Box extends lx.Rect #lx:namespace lx {
         var pos = this.preparePositioningStrategy(lx.AlignPositioningStrategy);
         if (!pos) return this;
 
-        if (vertical === undefined && horizontal.isObject) pos.init(horizontal);
+        if (vertical === undefined && lx.isObject(horizontal)) pos.init(horizontal);
         else pos.init({horizontal, vertical});
         return this;
     }
@@ -985,7 +985,7 @@ class Box extends lx.Rect #lx:namespace lx {
      * */
     matrix(...args) {
         let config;
-        if (args.len == 1 && args[0].isObject) config = args[0];
+        if (args.len == 1 && lx.isObject(args[0])) config = args[0];
         else { config = {
             items: args[0],
             itemRender: args[1],

@@ -4,7 +4,7 @@ class Object #lx:namespace lx {
 	 *
 	 * */
 	afterConstruct() {
-		self::behaviorMap.each((beh)=>beh.prototype.onAfterConstruct(this));
+		self::behaviorMap.forEach(beh=>beh.prototype.onAfterConstruct(this));
 	}
 
 	/**

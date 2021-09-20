@@ -107,13 +107,13 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		postUnpack(config) {
 			super.postUnpack(config);
 
-			if (this.data && this.data.isString) {
+			if (this.data && lx.isString(this.data)) {
 				var tree = new lx.Tree();
 				tree.fromJSON(this.data);
 				this.data = tree;
 			}
 
-			if (this.leafConstructor && this.leafConstructor.isString)
+			if (this.leafConstructor && lx.isString(this.leafConstructor))
 				this.leafConstructor = this.unpackFunction(this.leafConstructor);
 		}
 
@@ -129,7 +129,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 
 		leafByNode(node) {
 			var match = null;
-			this.leafs().each(function(a) {
+			this.leafs().forEach(function(a) {
 				if (a.node === node) {
 					match = a;
 					this.stop();
@@ -177,7 +177,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 
 			var scrollTop = this.domElem.param('scrollTop');
 			var opened = [];
-			this.leafs().each((a)=> {
+			this.leafs().forEach(a=>{
 				if (a->open.opened)
 					opened.push(a.node);
 			});
@@ -200,7 +200,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		 * */
 		getOpenedInfo() {
 			var opened = [];
-			this.leafs().each((a, i)=> {
+			this.leafs().forEach((a, i)=> {
 				if (a->open.opened)
 					opened.push(i);
 			});
@@ -274,7 +274,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 
 			this.useRenderCache();
 			var leafs = this.createLeafs(node, leaf.nextSibling());
-			leafs.each((a)=> {
+			leafs.forEach(a=>{
 				var shift = this.step + (this.step + this.leafHeight) * (node.deep());
 				a->open.left(shift + 'px');
 				a->label.left(shift + this.step + this.leafHeight + 'px');

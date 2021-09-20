@@ -101,7 +101,7 @@ class Rect #lx:namespace lx {
         if (config.style) {
             for (var i in config.style) {
                 if (i == 'fill') {  //TODO list of available methods (roundCorners, rotate, picture)
-                    if (config.style[i].isArray)
+                    if (lx.isArray(config.style[i]))
                         this[i].apply(this, config.style[i]);
                     else
                         this[i].call(this, config.style[i]);
@@ -188,7 +188,7 @@ class Rect #lx:namespace lx {
             var data = elem.getAttribute('lx-data');
             if (data) {
                 var arr = data.split(/\s*,\s*/);
-                arr.each((pare)=> {
+                arr.forEach(pare=>{
                     pare = pare.split(/\s*:\s*/);
                     if (!(pare[0] in el)) el[pare[0]] = pare[1];
                 });
@@ -268,7 +268,7 @@ class Rect #lx:namespace lx {
     style(name, val) {
         if (name === undefined) return this.domElem.style();
 
-        if (name.isObject) {
+        if (lx.isObject(name)) {
             for (var i in name) this.style(i, name[i]);
             return this;
         }
@@ -297,7 +297,7 @@ class Rect #lx:namespace lx {
         }
         if (!basicCss) basicCss = this.getBasicCss();
         if (basicCss) {
-            if (basicCss.isString) {
+            if (lx.isString(basicCss)) {
                 this.setBasicCss(basicCss);
                 return;
             }
@@ -322,8 +322,8 @@ class Rect #lx:namespace lx {
      * методом [[getBasicCss()]]
      */
     setBasicCss(classes) {
-        if (classes.isString) this.addClass(classes);
-        else if (classes.isObject) {
+        if (lx.isString(classes)) this.addClass(classes);
+        else if (lx.isObject(classes)) {
             if (classes.main) this.addClass(classes.main);
             this.basicCss = classes;
         }
@@ -336,9 +336,9 @@ class Rect #lx:namespace lx {
      * 2. elem.addClass([class1, class2]);
      * */
     addClass(...args) {
-        if (args[0].isArray) args = args[0];
+        if (lx.isArray(args[0])) args = args[0];
 
-        args.each((name)=> {
+        args.forEach(name=>{
             if (name == '') return;
             this.domElem.addClass(name);
         });
@@ -351,9 +351,9 @@ class Rect #lx:namespace lx {
      * 2. elem.removeClass([class1, class2]);
      * */
     removeClass(...args) {
-        if (args[0].isArray) args = args[0];
+        if (lx.isArray(args[0])) args = args[0];
 
-        args.each((name)=> {
+        args.forEach(name=>{
             if (name == '') return;
             this.domElem.removeClass(name);
         });
@@ -474,7 +474,7 @@ class Rect #lx:namespace lx {
      * */
     roundCorners(val) {
         var arr = [];
-        if (val.isObject) {
+        if (lx.isObject(val)) {
             var t = false, b = false, l = false, r = false;
             if ( val.side.indexOf('tl') != -1 ) { t = true; l = true; arr.push('TopLeft'); }
             if ( val.side.indexOf('tr') != -1 ) { t = true; r = true; arr.push('TopRight'); }
@@ -486,7 +486,7 @@ class Rect #lx:namespace lx {
             if ( !r && val.side.indexOf('r') != -1 ) { arr.push('TopRight'); arr.push('BottomRight'); }
             val = val.value;
         }
-        if (val.isNumber) val += 'px';
+        if (lx.isNumber(val)) val += 'px';
 
         if (!arr.length) this.domElem.style('borderRadius', val);
 
@@ -506,7 +506,7 @@ class Rect #lx:namespace lx {
     }
 
     scrollTo(adr) {
-        if (adr.isObject) {
+        if (lx.isObject(adr)) {
             if (adr.x !== undefined) this.domElem.param('scrollLeft', +adr.x);
             if (adr.y !== undefined) this.domElem.param('scrollTop', +adr.y);
         } else this.domElem.param('scrollTop', adr);
@@ -741,8 +741,8 @@ class Rect #lx:namespace lx {
      * elem.geomPart('50%', 'px', lx.VERTICAL)  - вернет половину высоты элемента в пикселях
      */
     geomPart(val, unit, direction) {
-        if (val.isNumber) return +val;
-        if (!val.isString) return NaN;
+        if (lx.isNumber(val)) return +val;
+        if (!lx.isString(val)) return NaN;
 
         var num = parseFloat(val),
             baseUnit = val.split(num)[1];
@@ -964,10 +964,10 @@ class Rect #lx:namespace lx {
      * 4. small.locateBy(big, {bottom: '20%', right: 20});
      * */
     locateBy(elem, align, step) {
-        if (align.isArray) {
+        if (lx.isArray(align)) {
             for (var i=0,l=align.len; i<l; i++) this.locateBy(elem, align[i]);
             return this;
-        } else if (align.isObject) {
+        } else if (lx.isObject(align)) {
             for (var i in align) this.locateBy(elem, lx.Geom.alignConst(i), align[i]);
             return this;
         }
@@ -1152,11 +1152,11 @@ class Rect #lx:namespace lx {
         if (info.hasProperty) info.hasProperties = [info.hasProperty];
         var p = this.parent;
         while (p) {
-            if (info.isFunction) {
+            if (lx.isFunction(info)) {
                 if (info(p)) return p;
             } else {
                 if (info.is) {
-                    var instances = info.is.isArray ? info.is : [info.is];
+                    var instances = lx.isArray(info.is) ? info.is : [info.is];
                     for (var i=0, l=instances.len; i<l; i++) {
                         if (p.constructor === instances[i] || p === instances[i])
                             return p;
@@ -1165,7 +1165,7 @@ class Rect #lx:namespace lx {
 
                 if (info.hasProperties) {
                     var prop = info.hasProperties;
-                    if (prop.isObject) {
+                    if (lx.isObject(prop)) {
                         var match = true;
                         for (var name in prop)
                             if (!(name in p) || prop[name] != p[name]) {
@@ -1173,7 +1173,7 @@ class Rect #lx:namespace lx {
                                 break;
                             }
                         if (match) return p;
-                    } else if (prop.isArray) {
+                    } else if (lx.isArray(prop)) {
                         var match = true;
                         for (var j=0, l=prop.len; j<l; j++)
                             if (!(prop[j] in p)) {
@@ -1187,7 +1187,7 @@ class Rect #lx:namespace lx {
                 if (info.checkMethods) {
                     var match = true;
                     for (var name in info.checkMethods) {
-                        if (!(name in p) || !p[name].isFunction || p[name]() != info.checkMethods[name]) {
+                        if (!(name in p) || !lx.isFunction(p[name]) || p[name]() != info.checkMethods[name]) {
                             match = false;
                             break;
                         }
@@ -1268,7 +1268,7 @@ class Rect #lx:namespace lx {
         else if (eventName == 'mousemove') this.on('touchmove', func, useCapture);
         else if (eventName == 'mouseup' /*|| eventName == 'click'*/) this.on('touchend', func, useCapture);
 
-        if (func.isString)
+        if (lx.isString(func))
             func = this.unpackFunction(func);
 
         if (func) this.domElem.addEvent(eventName, func);
@@ -1335,7 +1335,7 @@ class Rect #lx:namespace lx {
         };
 
         #lx:client {
-            if (func.isString) func = this.unpackFunction(func);
+            if (lx.isString(func)) func = this.unpackFunction(func);
             if (!func) return this;
             var f;
             f = function() {
@@ -1388,11 +1388,11 @@ class Rect #lx:namespace lx {
                     var func = handlersList[i];
                     res.push(func.apply(context, args));
                 }
-                if (res.isArray && res.length == 1) res = res[0];
+                if (lx.isArray(res) && res.length == 1) res = res[0];
                 return res;
             }
 
-            if (this.getCommonEventNames().contains(eventName)) {
+            if (this.getCommonEventNames().includes(eventName)) {
                 var events = this.elem ? this.elem.events : this.domElem.events;
                 if (!events || !(eventName in events)) return;
                 return runEventHandlers(this, events[eventName], args);
@@ -1467,14 +1467,14 @@ class Rect #lx:namespace lx {
             // '.funcName'
             if (handler.match(/^\./)) {
                 var func = this[handler.split('.')[1]];
-                if (!func || !func.isFunction) return null;
+                if (!func || !lx.isFunction(func)) return null;
                 return func;
             }
 
             // '::funcName'
             if (handler.match(/^::/)) {
                 var func = lx[this.lxClassName()][handler.split('::')[1]];
-                if (!func || !func.isFunction) return null;
+                if (!func || !lx.isFunction(func)) return null;
                 return func;
             }
 
@@ -1531,7 +1531,7 @@ class Rect #lx:namespace lx {
         unpackProperties() {
             if (!this.inLoad) return;
 
-            if (this.geom && this.geom.isString) this.unpackGeom();
+            if (this.geom && lx.isString(this.geom)) this.unpackGeom();
 
             // Стратегии позиционирования
             if (this.__ps) {

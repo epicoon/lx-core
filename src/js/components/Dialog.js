@@ -61,9 +61,9 @@ lx.Dialog = {
 			onWaiting,
 			onError;
 		if (handlers) {
-			if (handlers.isFunction || handlers.isArray) {
+			if (lx.isFunction(handlers) || lx.isArray(handlers)) {
 				onSuccess = handlers;
-			} else if (handlers.isObject) {
+			} else if (lx.isObject(handlers)) {
 				onWaiting = handlers.waiting;
 				onSuccess = handlers.success;
 				onError = handlers.error;
@@ -71,8 +71,8 @@ lx.Dialog = {
 		}
 		function initHandler(handlerData) {
 			if (!handlerData) return null;
-			if (handlerData.isFunction) return handlerData;
-			if (handlerData.isArray) return (res)=>handlerData[1].call(handlerData[0], res);
+			if (lx.isFunction(handlerData)) return handlerData;
+			if (lx.isArray(handlerData)) return (res)=>handlerData[1].call(handlerData[0], res);
 			return null;
 		}
 		var config = {},
@@ -116,8 +116,8 @@ function createRequest() {
  * */
 function requestParamsToString(args) {
 	if (!args) return '';
-	if (args.isString) return args;
-	if (!args.isObject) return '';
+	if (lx.isString(args)) return args;
+	if (!lx.isObject(args)) return '';
 	var arr = [];
 	var result = '';
 	for (var i in args) arr.push(i + '=' + args[i]);
@@ -168,8 +168,8 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 
 	function callHandler(handler, args) {
 		if (!handler) return;
-		if (args !== undefined && !args.isArray) args = [args];
-		if (handler.isArray) 
+		if (args !== undefined && !lx.isArray(args)) args = [args];
+		if (lx.isArray(handler)) 
 			if (args) handler[1].apply(handler[0], args);
 			else handler[1].call(handler[0]);
 		else
@@ -255,7 +255,7 @@ function __isAjax(url) {
 
 #lx:mode-case: dev
 	function __findDump(res) {
-		if (res.isString) {
+		if (lx.isString(res)) {
 			var dump = res.match(/<lx-var-dump>[\w\W]*<\/lx-var-dump>/);
 			if (dump) {
 				dump = dump[0];
@@ -264,7 +264,7 @@ function __isAjax(url) {
 				dump = dump.replace(/<\/lx-var-dump>/, '');
 			}
 			return [res, dump];
-		} else if (res.isObject) {
+		} else if (lx.isObject(res)) {
 			var dump = null;
 			if (res.lxdump) {
 				dump = res.lxdump;

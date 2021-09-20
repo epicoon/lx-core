@@ -29,13 +29,13 @@ class Synchronizer #lx:namespace lx {
 
 		obj[successMethodName] = (...args)=> {
 			this.ready(obj);
-			if (successMethod && successMethod.isFunction)
+			if (lx.isFunction(successMethod))
 				successMethod.apply(obj, args);
 		};
 		obj[errorMethodName] = (...args)=> {
 			//todo здесь можно собирать информацию об ошибках
 			this.ready(obj);
-			if (errorMethod && errorMethod.isFunction)
+			if (lx.isFunction(errorMethod))
 				errorMethod.apply(obj, args);
 		};
 	}
@@ -56,7 +56,7 @@ class Synchronizer #lx:namespace lx {
 	go() {
 		if (this.allAreReady()) {
 			this.stop();
-			if (this.callback.isFunction) this.callback();
+			if (lx.isFunction(this.callback)) this.callback();
 		}
 	}
 

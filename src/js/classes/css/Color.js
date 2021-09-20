@@ -12,7 +12,7 @@ class Color #lx:namespace lx {
 			return;
 		}
 
-		if (color.isNumber) {
+		if (lx.isNumber(color)) {
 			var res = __16strToRGB(color.toString(16));
 			this.R = res[0];
 			this.G = res[1];
@@ -20,7 +20,7 @@ class Color #lx:namespace lx {
 			return;
 		}
 
-		if (color.isString) {
+		if (lx.isString(color)) {
 			if (color[0] == '#') {
 				var res = __16strToRGB(color.replace(/^#/, ''));
 				this.R = res[0];
@@ -53,7 +53,7 @@ class Color #lx:namespace lx {
 			return;
 		}
 
-		if (color.isArray) {
+		if (lx.isArray(color)) {
 			if (color.len == 3) {
 				this.R = color[0];
 				this.G = color[1];
@@ -67,12 +67,12 @@ class Color #lx:namespace lx {
 			return;
 		}
 
-		if (color.is(lx.Color)) {
+		if (lx.isInstance(color, lx.Color)) {
 			this.copy(color);
 			return;
 		}
 
-		if (color.isObject) {
+		if (lx.isObject(color)) {
 			this.R = color.R || color.r || color.Red || color.red || 0;
 			this.G = color.G || color.g || color.Green || color.green || 0;
 			this.B = color.B || color.b || color.Blue || color.blue || 0;

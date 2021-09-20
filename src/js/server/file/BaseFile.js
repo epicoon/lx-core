@@ -57,7 +57,7 @@ class BaseFile #lx:namespace lx {
 
     belongs(parent) {
         var path;
-        if (parent.isString) {
+        if (lx.isString(parent)) {
             path = parent;
         } else {
             if (parent instanceof lx.Directory) {
@@ -78,7 +78,7 @@ class BaseFile #lx:namespace lx {
         }
 
         var path = false;
-        if (parent.isString) {
+        if (lx.isString(parent)) {
             path = parent;
         } else {
             if (parent instanceof lx.Directory) {
@@ -137,7 +137,7 @@ class BaseFile #lx:namespace lx {
         }
 
         var dirPath = null;
-        if (dir.isString) {
+        if (lx.isString(dir)) {
             dirPath = dir;
         } else if (dir instanceof lx.Directory) {
             dirPath = dir.path;

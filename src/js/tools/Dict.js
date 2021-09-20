@@ -17,9 +17,9 @@ class Dict #lx:namespace lx {
 		return count;
 	}
 
-	each(func) {
+	forEach(func) {
 		var context = null;
-		if (func.isArray) {
+		if (lx.isArray(func)) {
 			context = func[0];
 			func = func[1];
 		}

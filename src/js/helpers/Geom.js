@@ -50,7 +50,7 @@ lx.Geom = {
 	},
 
 	splitGeomValue: function(val) {
-		if (val.isNumber) return [+val, ''];
+		if (lx.isNumber(val)) return [+val, ''];
 		var num = parseFloat(val),
 			f = val.split(num)[1];
 		return [+num, f];

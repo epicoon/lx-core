@@ -42,22 +42,22 @@ class TagRenderer #lx:namespace lx {
 
     getContentString() {
         if (this.content === undefined || this.content === null) return '';
-        if (this.content.isString || this.content.isNumber) return this.content;
-        if (this.content.isBoolean) {
+        if (lx.isString(this.content) || lx.isNumber(this.content)) return this.content;
+        if (lx.isBoolean(this.content)) {
             if (this.content) return 'true';
             return 'false';
         }
-        if (this.content.is(lx.TagRenderer)) return this.content.toString();
+        if (lx.isInstance(this.content, lx.TagRenderer)) return this.content.toString();
 
         var result = '';
-        if (this.content.isArray) {
+        if (lx.isArray(this.content)) {
             function renderArray(arr) {
                 var result = '';
                 for (var i=0, l=arr.len; i<l; i++) {
                     var item = arr[i];
-                    if (item.isString) result += item;
-                    else if (item.is(lx.TagRenderer)) result += item.toString();
-                    else if (item.isArray) result += renderArray(item);
+                    if (lx.isString(item)) result += item;
+                    else if (lx.isInstance(item, lx.TagRenderer)) result += item.toString();
+                    else if (lx.isArray(item)) result += renderArray(item);
                 }
                 return result;
             }

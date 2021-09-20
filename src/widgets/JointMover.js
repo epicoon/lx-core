@@ -137,7 +137,7 @@ class JointMover extends lx.Rect #lx:namespace lx {
             prev = this.prevSibling();
         while (prev && !match) {
             if (prev)
-                if (prev.is(lx.JointMover)) match = true;
+                if (lx.isInstance(prev, lx.JointMover)) match = true;
                 else prev = prev.prevSibling();
         }
 
@@ -154,7 +154,7 @@ class JointMover extends lx.Rect #lx:namespace lx {
             next = this.nextSibling();
         while (next && !match) {
             if (next)
-                if (next.is(lx.JointMover)) match = true;
+                if (lx.isInstance(next, lx.JointMover)) match = true;
                 else next = next.nextSibling();
         }
 

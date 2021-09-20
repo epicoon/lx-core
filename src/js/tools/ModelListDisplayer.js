@@ -83,7 +83,7 @@ class ModelListDisplayer #lx:namespace lx {
 	 * Добавить колонку, не являющуюся частью схемы представляемой модели
 	 * */
 	addColumn(config) {
-		if (!config.render || !config.render.isFunction) return;
+		if (!config.render || !lx.isFunction(config.render)) return;
 
 		config.lock = lx.getFirstDefined(config.lock, true);
 		config.widget = lx.getFirstDefined(config.widget, lx.Box);
@@ -129,9 +129,9 @@ class ModelListDisplayer #lx:namespace lx {
 		var fieldsModifier = this.fieldsModifier,
 			formModifier = this.formModifier;
 
-		pre.each((a)=>head.add(lx.Box, {text:a.label}).align(lx.CENTER, lx.MIDDLE));
+		pre.forEach((a)=>head.add(lx.Box, {text:a.label}).align(lx.CENTER, lx.MIDDLE));
 		for (var name in fields) head.add(lx.Box, {text: name}).align(lx.CENTER, lx.MIDDLE);
-		post.each((a)=>head.add(lx.Box, {text:a.label}).align(lx.CENTER, lx.MIDDLE));
+		post.forEach((a)=>head.add(lx.Box, {text:a.label}).align(lx.CENTER, lx.MIDDLE));
 
 
 		lx.timetest.start();
@@ -142,23 +142,23 @@ class ModelListDisplayer #lx:namespace lx {
 			itemRender: (form)=> {
 				if (formModifier) formModifier(form);
 
-				pre.each((a)=>{
+				pre.forEach((a)=>{
 					var w = a.widget, c = {};
-					if (w.isArray) { c = w[1]; w = w[0]; }
+					if (lx.isArray(w)) { c = w[1]; w = w[0]; }
 					if (!c.width) c.width = 1;
 					var widget = new w(c);
 					a.render(widget);
 				});
 				form.fields(fields);
-				post.each((a)=>{
+				post.forEach((a)=>{
 					var w = a.widget, c = {};
-					if (w.isArray) { c = w[1]; w = w[0]; }
+					if (lx.isArray(w)) { c = w[1]; w = w[0]; }
 					if (!c.width) c.width = 1;
 					var widget = new w(c);
 					a.render(widget);
 				});
 
-				form.getChildren().each((a)=> {
+				form.getChildren().forEach(a=>{
 					if (fieldsModifier[a.key]) fieldsModifier[a.key](a);
 					else if (fieldsModifier['default']) fieldsModifier['default'](a);
 				});
@@ -242,9 +242,9 @@ class ModelListDisplayer #lx:namespace lx {
 				bodyFields: {}
 			};
 		for (var name in schema) {
-			if (this.hide.contains(name)) continue;
+			if (this.hide.includes(name)) continue;
 
-			var side = +lock.contains(name);
+			var side = +lock.includes(name);
 			switch (schema[name]) {
 				case 'pk'     : width[side] += wInt[0];  widget = lx.Box;      break;
 				case 'boolean': width[side] += wBool[0]; widget = lx.Checkbox; break;
@@ -260,12 +260,12 @@ class ModelListDisplayer #lx:namespace lx {
 			}
 		}
 
-		this.sideColumns.each((column)=>{
+		this.sideColumns.forEach(column=>{
 			let cw = lx.Geom.splitGeomValue( column.width )[0];
 			width[1] += cw;
 			result.sideCols++;
 		});
-		this.bodyColumns.each((column)=>{
+		this.bodyColumns.forEach(column=>{
 			let cw = lx.Geom.splitGeomValue( column.width )[0];
 			width[0] += cw;
 			result.bodyCols++;
@@ -287,11 +287,11 @@ class ModelListDisplayer #lx:namespace lx {
 			postBodyFields:[]
 		};
 
-		this.sideColumns.each((column)=>{
+		this.sideColumns.forEach(column=>{
 			if (column.position == lx.RIGHT) result.postSideFields.push(column);
 			else result.preSideFields.push(column);
 		});
-		this.bodyColumns.each((column)=>{
+		this.bodyColumns.forEach(column=>{
 			if (column.position == lx.RIGHT) result.postBodyFields.push(column);
 			else result.preBodyFields.push(column);
 		});

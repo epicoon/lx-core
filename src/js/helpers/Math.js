@@ -111,12 +111,12 @@ lx.Math = {
 		}
 
 		if ( !str.length ) return 0;
-		if ( str.isNumber ) return +str;
+		if ( lx.isNumber(str) ) return +str;
 		if ( str[0] != '=' ) return NaN;
 		if ( str.length == 1 ) return 0;
 		str = str.replace('=', '');
 		str = str.replace(/ /g, '');
-		if ( str.isNumber ) return +str;
+		if ( lx.isNumber(str) ) return +str;
 
 		var simp = str.split('(');
 		for (var i=simp.length-1; i>0; i--) {

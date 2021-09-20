@@ -62,23 +62,23 @@ function __setMethodEvent(funcName, func, category, duplicate) {
 	if (!duplicate
 		&& methodEvents[funcName]
 		&& methodEvents[funcName][category]
-		&& methodEvents[funcName][category].contains(func)
+		&& methodEvents[funcName][category].includes(func)
 	) return;
 
-	var obj = this.isFunction ? this.prototype : this,
+	var obj = lx.isFunction(this) ? this.prototype : this,
 		temp = obj.__proto__,
 		finded = false;
 	while (temp && !finded) {
 		var names = Object.getOwnPropertyNames(temp);
-		if (names.contains(funcName) && obj[funcName].isFunction) finded = true;
+		if (names.includes(funcName) && lx.isFunction(obj[funcName])) finded = true;
 		temp = temp.__proto__;
 	}
 	var names = Object.getOwnPropertyNames(obj);
-	var selfFail = (!names.contains(funcName) || !obj[funcName].isFunction);
+	var selfFail = (!names.includes(funcName) || !lx.isFunction(obj[funcName]));
 	var prototypeFail = true;
 	if (obj.prototype) {
 		var names = Object.getOwnPropertyNames(obj.prototype);
-		prototypeFail = (!names.contains(funcName) || !obj[funcName].isFunction);
+		prototypeFail = (!names.includes(funcName) || !lx.isFunction(obj[funcName]));
 	}
 	if (!finded && selfFail && prototypeFail) return;
 

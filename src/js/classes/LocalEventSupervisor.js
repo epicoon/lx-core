@@ -4,7 +4,7 @@ class LocalEventSupervisor #lx:namespace lx {
 	}
 
 	subscribe(eventName, callback) {
-		if (eventName.isObject) {
+		if (lx.isObject(eventName)) {
 			for (var i in eventName) this.subscribe(i, eventName[i]);
 			return;
 		}
@@ -15,7 +15,7 @@ class LocalEventSupervisor #lx:namespace lx {
 
 	trigger(eventName, args = []) {
 		if (eventName in this.listeners) {
-			if (args === null || args === undefined || !args.isArray) args = [args];
+			if (args === null || args === undefined || !lx.isArray(args)) args = [args];
 			for (var i=0, l=this.listeners[eventName].len; i<l; i++)
 				lx._f.callFunction(this.listeners[eventName][i], args);
 		}

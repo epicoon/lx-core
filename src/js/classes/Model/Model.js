@@ -22,7 +22,7 @@ class Model extends lx.Object #lx:namespace lx {
 	 * Инициализация полей согласно схеме
 	 * */
 	setFields(data) {
-		if (!data || !data.isObject) return;
+		if (!data || !lx.isObject(data)) return;
 
 		var schema = self::__schema;
 		if (!schema) return;
@@ -41,7 +41,7 @@ class Model extends lx.Object #lx:namespace lx {
 
 		var result = {};
 
-		map.each((key)=> {
+		map.forEach(key=>{
 			if (schema.hasField(key)) result[key] = this[key];
 		});
 
@@ -82,7 +82,7 @@ class Model extends lx.Object #lx:namespace lx {
 	resetFields(map=null) {
 		if (!self::__schema) return;
 		if (map === null) map = self::__schema.getFieldNames();
-		map.each((name)=>this.resetField(name));
+		map.forEach(name=>this.resetField(name));
 	}
 
 	/**
@@ -92,8 +92,8 @@ class Model extends lx.Object #lx:namespace lx {
 		var definition = self::__schema.getField(name);
 		if (!definition) return;
 
-		var type = definition.isObject ? definition.type : definition,
-			dflt = definition.isObject ? definition.default : undefined;
+		var type = lx.isObject(definition) ? definition.type : definition,
+			dflt = lx.isObject(definition) ? definition.default : undefined;
 
 		var val;
 		switch (type) {

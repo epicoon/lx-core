@@ -24,7 +24,7 @@ class LoadContext {
 		// Статика приходит строкой, ajax массивом
 
 		// Это статика - ресурсы собраны на стороне сервера
-		if (info.isString) {
+		if (lx.isString(info)) {
 			this.isAjax = false;
 			pluginsInfo = info;
 		// Это ajax - если ресурсы пришли, их надо собирать здесь
@@ -153,7 +153,7 @@ class LoadContext {
 
 		if (this.postScripts.len) {
 			var body = document.getElementsByTagName('body')[0];
-			this.postScripts.eachRevert(script=>body.appendChild(script));
+			this.postScripts.lxForEachRevert(script=>body.appendChild(script));
 		}
 
 		if (clientCallback) clientCallback();
@@ -247,12 +247,12 @@ class LoadContext {
 	applyScriptTags(scriptTags) {
 		if (scriptTags.forHead.len) {
 			var head = document.getElementsByTagName('head')[0];
-			scriptTags.forHead.each(script=>head.appendChild(script));
+			scriptTags.forHead.forEach(script=>head.appendChild(script));
 		}
 
 		if (scriptTags.forBegin.len) {
 			var body = document.getElementsByTagName('body')[0];
-			scriptTags.forBegin.eachRevert(script=>{
+			scriptTags.forBegin.lxForEachRevert(script=>{
 				if (body.children.length)
 					body.insertBefore(script, body.children[0]);
 				else body.appendChild(script);

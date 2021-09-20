@@ -50,15 +50,15 @@ class BehaviorMap #lx:namespace lx {
 	 * */
 	has(behavior) {
 		if (this.isEmpty) return false;
-		return this.map.list.contains(behavior);
+		return this.map.list.includes(behavior);
 	}
 
 	/**	
 	 *
 	 * */
-	each(func) {
+	forEach(func) {
 		if (this.isEmpty) return;
-		this.map.list.each(func);
+		this.map.list.forEach(func);
 	}
 
 	/**

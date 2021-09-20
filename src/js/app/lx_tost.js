@@ -22,19 +22,19 @@ lx.Tost = function(config, typeArg) {
 		lifetime,
 		type;
 
-	if (config.isString || config.isArray) {
+	if (lx.isString(config) || lx.isArray(config)) {
 		message = config;
 		lifetime = lx.Tost.lifetime;
 		type = typeArg || lx.Tost._type;
-	} else if (config.isObject) {
+	} else if (lx.isObject(config)) {
 		message = config.message;
 		lifetime = config.lifetime !== undefined ? config.lifetime : lx.Tost.lifetime;
 		type = config.type || typeArg || lx.Tost._type;
 	} else return;
 
-	if (message && message.isArray) message = message.join(' ');
+	if (message && lx.isArray(message)) message = message.join(' ');
 
-	if (!message || !message.isString
+	if (!message || !lx.isString(message)
 		|| (type != lx.Tost.TYPE_MESSAGE && type != lx.Tost.TYPE_WARNING && type != lx.Tost.TYPE_ERROR)
 	) return;
 
@@ -82,7 +82,7 @@ lx.Tost.setType = function(type) {
 };
 
 lx.Tost.align = function(h, v) {
-	var config = h.isObject
+	var config = lx.isObject(h)
 		? h
 		: {horizontal: h, vertical: v};
 	config.subject = 'lx_tost';

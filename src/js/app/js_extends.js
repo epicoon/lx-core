@@ -11,17 +11,17 @@ Object.defineProperty(Object.prototype, "lxGetKeys", {
 
 Object.defineProperty(Object.prototype, "lxClone", {
 	value: function() {
-		if (!this.isArray && !this.isObject) return this;
-		var result = (this.isArray) ? [] : {};
+		if (!lx.isArray(this) && !lx.isObject(this)) return this;
+		var result = (lx.isArray(this)) ? [] : {};
 		function rec(from, to) {
 			for (var i in from) {
 				var val = from[i];
 				if (val === null || val === undefined) {
 					to[i] = val;
-				} else if (val.isArray) {
+				} else if (lx.isArray(val)) {
 					to[i] = [];
 					rec(val, to[i]);
-				} else if (val.isObject) {
+				} else if (lx.isObject(val)) {
 					to[i] = {};
 					rec(val, to[i]);
 				} else to[i] = val;
@@ -35,9 +35,9 @@ Object.defineProperty(Object.prototype, "lxClone", {
 Object.defineProperty(Object.prototype, "lxCompare", {
 	value: function(obj) {
 		function rec(left, right) {
-			if (!left.isArray && !left.isObject && !right.isArray && !right.isObject) return left == right;
-			if (left.isArray && !right.isArray) return false;
-			if (left.isObject && !right.isObject) return false;
+			if (!lx.isArray(left) && !lx.isObject(left) && !lx.isArray(right) && !lx.isObject(right)) return left == right;
+			if (lx.isArray(left) && !lx.isArray(right)) return false;
+			if (lx.isObject(left) && !lx.isObject(right)) return false;
 
 			var leftKeys = left.lxGetKeys()
 				rightKeys = right.lxGetKeys();
@@ -80,7 +80,7 @@ Object.defineProperty(Object.prototype, "lxDiff", {
 
 Object.defineProperty(Object.prototype, "lxGetFirstDefined", {
 	value: function(names, defaultValue = undefined) {
-		if (!names.isArray) names = [names];
+		if (!lx.isArray(names)) names = [names];
 
 		for (var i=0, l=names.len; i<l; i++) {
 			let name = names[i];
@@ -110,7 +110,7 @@ Object.defineProperty(Object.prototype, "lxMerge", {
 	value: function(obj, overwrite=false) {
 		if (!obj) return this;
 
-		if (this.isArray && obj.isArray) {
+		if (lx.isArray(this) && lx.isArray(obj)) {
 			for (var i=0, l=obj.length; i<l; i++)
 				this.push(obj[i]);
 		} else {
@@ -134,7 +134,7 @@ Object.defineProperty(Object.prototype, "lxExtract", {
 
 Object.defineProperty(Object.prototype, "lxHasMethod", {
 	value: function(name) {
-		return (this[name] && this[name].isFunction);
+		return (this[name] && lx.isFunction(this[name]));
 	}
 });
 
@@ -144,7 +144,7 @@ Object.defineProperty(Object.prototype, "lxHasMethod", {
 // Для объекта и класса - название пространства имен
 Object.defineProperty(Object.prototype, "lxNamespace", {
 	value: function() {
-		if (this.isFunction && this.__namespace)
+		if (lx.isFunction(this) && this.__namespace)
 			return this.__namespace;
 		if (this.constructor.__namespace)
 			return this.constructor.__namespace;
@@ -180,55 +180,6 @@ Object.defineProperty(Function.prototype, "lxFullName", {
 		return name;
 	}
 });
-
-
-
-/*
-Блок для определения типа данных
-1. Для lx. - объектов наиболее эффективно проверять через lxClassName():
-	var bool = element.lxClassName() == 'Widget';
-2. Для массивов/строк/чисел - наиболее эффективны соответствующие isArray/isString/isNumber
-*/
-Object.defineProperty(Object.prototype, "isNumber", {
-	get: function() {
-		if (this == undefined) return false;
-		if ( this.push != undefined ) return false;
-		return ( !isNaN(parseFloat(this)) && isFinite(this) );
-	}
-});
-
-Object.defineProperty(Object.prototype, "isBoolean", {
-	get: function() { return this.constructor === Boolean; }
-});
-
-Object.defineProperty(Object.prototype, "isString", {
-	get: function() { return this.constructor === String; }
-});
-
-Object.defineProperty(Object.prototype, "isArray", {
-	get: function() { return this.constructor === Array; }
-});
-
-Object.defineProperty(Object.prototype, "isObject", {
-	get: function() { return (this.constructor === Object || this.lxClassName() == 'Object'); }
-});
-
-Object.defineProperty(Object.prototype, "isFunction", {
-	get: function() { return this.constructor === Function; }
-});
-
-Object.defineProperty(Object.prototype, "is", {
-	value: function(instance) {
-		if (instance === undefined) return false;
-		if (instance === Number) return this.isNumber;
-		if (instance.isString)
-			return this.is(window[instance]) || this.is(lx[instance]);
-		if (this.constructor)
-			return this.constructor === instance;
-		return this instanceof instance;
-	}
-});
-
 
 Object.defineProperty(String.prototype, "lxRepeat", {
 	value: function(multiplier) {
@@ -279,6 +230,24 @@ Object.defineProperty(Array.prototype, "len", {
 	}
 });
 
+Object.defineProperty(Array.prototype, "lxDiff", {
+	value: function(arr) {
+		var result = [];
+		this.forEach(a=>{ if (arr.indexOf(a) == -1) result.push(a); });
+		return result;
+	}
+});
+
+Object.defineProperty(Array.prototype, "lxColumn", {
+	value: function(name) {
+		var res = [];
+		for (var i=0; i<this.length; i++)
+			if (this[i] && name in this[i])
+				res.push(this[i][name]);
+		return res;
+	}
+});
+
 Object.defineProperty(Array.prototype, "lxLast", {
 	value: function() {
 		return this[this.len-1];
@@ -300,64 +269,9 @@ Object.defineProperty(Array.prototype, "lxRemove", {
 	}
 });
 
-
-
-
-
-// TODO - по методам массивов пройтись - что-то убрать, т.к. есть штатное, что-то сделать с префиксом lx
-
-Object.defineProperty(Array.prototype, "toggle", {
-	value: function(elem) {
-		var index = this.indexOf(elem);
-		if (index == -1) this.push(elem);
-		else this.splice(index, 1);
-		return this;
-	}
-});
-
-Object.defineProperty(Array.prototype, "each", {
-	value: function(func) {
-		for (var i=0, l=this.len; i<l; i++)
-			func.call(this, this[i], i);
-	}
-});
-
-Object.defineProperty(Array.prototype, "eachRevert", {
+Object.defineProperty(Array.prototype, "lxForEachRevert", {
 	value: function(func) {
 		for (var i=this.len-1; i>=0; i--)
 			func.call(this, this[i], i);
-	}
-});
-
-Object.defineProperty(Array.prototype, "lxDiff", {
-	value: function(arr) {
-		var result = [];
-		this.each(function(a) { if (arr.indexOf(a) == -1) result.push(a); });
-		return result;
-	}
-});
-
-Object.defineProperty(Array.prototype, "contains", {
-	value: function(elem) {
-		return this.indexOf(elem) !== -1;
-	}
-});
-
-Object.defineProperty(Array.prototype, "maxOnRange", {
-	value: function(i0, i1) {
-		var max = -Infinity;
-		for (var i=i0; i<=i1; i++)
-			if (this[i] > max) max = this[i];
-		return max;
-	}
-});
-
-Object.defineProperty(Array.prototype, "column", {
-	value: function(name) {
-		var res = [];
-		for (var i=0; i<this.length; i++)
-			if (this[i] && name in this[i])
-				res.push(this[i][name]);
-		return res;
 	}
 });

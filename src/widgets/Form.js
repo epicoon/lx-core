@@ -14,7 +14,7 @@ class Form extends lx.Box #lx:namespace lx {
 			var item = list[key],
 				config = {},
 				widget;
-			if (item.isArray) {
+			if (lx.isArray(item)) {
 				widget = item[0];
 				config = item[1];
 			} else widget = item;
@@ -43,8 +43,8 @@ class Form extends lx.Box #lx:namespace lx {
 	content(map=null) {
 		let obj = {};
 		var list = this.getChildren({ hasProperty: '_field', all: true });
-		list.each((a)=>{
-			if (map !== null && map.isArray && !map.contains(a._field)) return;
+		list.forEach(a=>{
+			if (map !== null && lx.isArray(map) && !map.includes(a._field)) return;
 			obj[a._field] = a.lxHasMethod('value')
 				? a.value()
 				: a.text();
@@ -56,11 +56,11 @@ class Form extends lx.Box #lx:namespace lx {
 	 * Добавление кнопки полезная и частая операция в форме - этот метод для более короткого кода создания кнопки
 	 * */
 	addButton(text='', config={}, onClick=null) {
-		if (config.isFunction) {
+		if (lx.isFunction(config)) {
 			config = {
 				click: config
 			};
-		} else if (onClick && onClick.isFunction) {
+		} else if (lx.isFunction(onClick)) {
 			config.click = onClick;
 		}
 		config.text = text;
@@ -91,9 +91,9 @@ class Form extends lx.Box #lx:namespace lx {
 	//  * */
 	// labeledField(name, info) {
 	// 	var fieldConfig;
-	// 	if (info.isArray) {
+	// 	if (lx.isArray(info)) {
 	// 		fieldConfig = info[2] || {};
-	// 		if (info[0].isString) {
+	// 		if (lx.isString(info[0])) {
 	// 			fieldConfig.label = info[0];
 	// 			fieldConfig.widget = info[1];
 	// 		} else {

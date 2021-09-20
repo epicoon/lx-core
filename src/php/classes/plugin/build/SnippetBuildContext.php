@@ -199,7 +199,7 @@ class SnippetBuildContext implements ContextTreeInterface
 			'@core/js/tools/Tree',
             '@core/js/tools/HashMap',
 			'@core/js/classes/DomElementDefinition',
-			'@core/js/classes/Tag',
+			'@core/js/classes/TagRenderer',
 			'@core/js/classes/bit/BitLine',
 			'@core/js/classes/bit/BitMap',
 			'@core/js/components/Date',

@@ -3,8 +3,8 @@ class BindableModel extends lx.Model #lx:namespace lx {
 	 * Связать модель с виджетами
 	 * */
 	bind(widgets, type=lx.Binder.BIND_TYPE_FULL) {
-		if (!widgets.isArray) widgets = [widgets];
-		widgets.each((widget)=>lx.Binder.bind(this, widget, type));
+		if (!lx.isArray(widgets)) widgets = [widgets];
+		widgets.forEach((widget)=>lx.Binder.bind(this, widget, type));
 	}
 
 	/**
@@ -51,7 +51,7 @@ class BindableModel extends lx.Model #lx:namespace lx {
 		if (!this.__schema || this.__schema.isEmpty) return;
 
 		var fieldNames = this.getFieldNames(true);
-		fieldNames.each((name)=>{
+		fieldNames.forEach((name)=>{
 			delete (this.prototype[name]);
 		});
 		this.__schema.fields = {};

@@ -2,17 +2,17 @@
 
 class HashSha1 #lx:namespace lx {
 	static hex(s) {
-		if (!s.isString) s = JSON.stringify(s);
+		if (!lx.isString(s)) s = JSON.stringify(s);
 		return rstr2hex(rstr_sha1(str2rstr_utf8(s)));
 	}
 
 	static b64(s) {
-		if (!s.isString) s = JSON.stringify(s);
+		if (!lx.isString(s)) s = JSON.stringify(s);
 		return rstr2b64(rstr_sha1(str2rstr_utf8(s)));
 	}
 
 	static any(s, e) {
-		if (!s.isString) s = JSON.stringify(s);
+		if (!lx.isString(s)) s = JSON.stringify(s);
 		return rstr2any(rstr_sha1(str2rstr_utf8(s)), e);
 	}
 

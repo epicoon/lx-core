@@ -61,7 +61,7 @@ class Paginator extends lx.Box #lx:namespace lx {
 
             var middle = this->middle;
             if (middle.childrenCount() > 1) {
-                middle.getChildren().each((a, i)=>{
+                middle.getChildren().forEach((a, i)=>{
                     if (a->text.value() !== '...') a.click(self::onSlotClick);
                 });
             }
@@ -198,7 +198,7 @@ function __fillMiddleMin(self) {
 function __fillMiddleMax(self) {
     __rebuildMiddle(self);
     var seq = __calcSequence(self.activePage, self.pagesCount - 2, self.slotsCount - 2);
-    seq.each((a, i)=>{
+    seq.forEach((a, i)=>{
         if (a !== null) seq[i] = a + 1;
     });
     seq = [1].lxMerge(seq);
@@ -211,7 +211,7 @@ function __rebuildMiddle(self) {
     if (middle.childrenCount() != self.slotsCount) middle.clear();
     if (middle.childrenCount() == 0) {
         var c = middle.add(lx.Box, self.slotsCount, {width:'auto'});
-        c.each((a)=>{
+        c.forEach(a=>{
             a.align(lx.CENTER, lx.MIDDLE);
             a.addClass(self.basicCss.page);
         });
@@ -220,7 +220,7 @@ function __rebuildMiddle(self) {
 
 function __applyMiddleSequence(self, seq) {
     var middle = self->middle;
-    middle.getChildren().each((a, i)=>{
+    middle.getChildren().forEach((a, i)=>{
         a.text(seq[i] === null ? '...' : seq[i]);
         a.toggleClassOnCondition(seq[i] - 1 == self.activePage, self.basicCss.active);
         #lx:client {

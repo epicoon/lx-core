@@ -11,7 +11,7 @@ class CheckboxGroup extends lx.LabeledGroup #lx:namespace lx {
 		config.labelSide = lx.RIGHT;
 
 		super.build(config);
-		this.widgets().each(w=>{
+		this.widgets().forEach(w=>{
 			let checkbox = w.add(lx.Checkbox, {key: 'checkbox'});
 			w.align(lx.CENTER, lx.MIDDLE);
 		});
@@ -20,8 +20,8 @@ class CheckboxGroup extends lx.LabeledGroup #lx:namespace lx {
 
 	#lx:client clientBuild(config) {
 		super.clientBuild(config);
-		this.checkboxes().each((a)=>a.on('change', _handler_onChange));
-		this.labels().each(l=>{
+		this.checkboxes().forEach(a=>a.on('change', _handler_onChange));
+		this.labels().forEach(l=>{
 			l.style('cursor', 'pointer');
 			l.on('mousedown', lx.Event.preventDefault);
 			l.on('click', (e)=>{
@@ -43,7 +43,7 @@ class CheckboxGroup extends lx.LabeledGroup #lx:namespace lx {
 	value(nums) {
 		if (nums === undefined) {
 			var result = [];
-			this.checkboxes().each(function(a) {
+			this.checkboxes().forEach(function(a) {
 				if (a.value()) result.push(a.index);
 			});
 
@@ -52,9 +52,9 @@ class CheckboxGroup extends lx.LabeledGroup #lx:namespace lx {
 
 		if (!nums) nums = [];
 
-		this.checkboxes().each((a)=> a.value(false));
-		if (!nums.isArray) nums = [nums];
-		nums.each((num)=> this.checkbox(num).value(true));
+		this.checkboxes().forEach(a=>a.value(false));
+		if (!lx.isArray(nums)) nums = [nums];
+		nums.forEach(num=>this.checkbox(num).value(true));
 	}
 }
 

@@ -73,7 +73,7 @@ class PositioningStrategy #lx:namespace lx {
 		}
 
 		for (var i in geom) {
-			if (geom[i] && geom[i].isString && geom[i].includes('/')) {
+			if (geom[i] && lx.isString(geom[i]) && geom[i].includes('/')) {
 				var parts = geom[i].split('/');
 				geom[i] = Math.round(100 * parts[0] / parts[1]);
 			}
@@ -105,7 +105,7 @@ class PositioningStrategy #lx:namespace lx {
 	 */
 	actualizeProcess() {
 		//TODO а если размер не менялся?
-		this.owner.getChildren().each((a)=>a.trigger('resize'));
+		this.owner.getChildren().forEach(a=>a.trigger('resize'));
 	}
 
 	/**
@@ -141,7 +141,7 @@ class PositioningStrategy #lx:namespace lx {
 			return;
 		}
 
-		if (val.isNumber) val += '%';
+		if (lx.isNumber(val)) val += '%';
 		elem.setGeomPriority(param);
 		elem.domElem.style(lx.Geom.geomName(param), val);
 	}
@@ -171,7 +171,7 @@ class PositioningStrategy #lx:namespace lx {
 	 * Извлекает из конфигурации позиционные параметры
 	 */
 	geomFromConfig(config) {
-		if (config.isArray) return this.geomFromConfig({
+		if (lx.isArray(config)) return this.geomFromConfig({
 			left: config[0],
 			right: config[1],
 			width: config[2],

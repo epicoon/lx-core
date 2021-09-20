@@ -67,7 +67,7 @@ class Request #lx:namespace lx {
 	}
 
 	setHandlers(handlers) {
-		if (handlers.isFunction) {
+		if (lx.isFunction(handlers)) {
 			this.success = handlers;
 			return;
 		}

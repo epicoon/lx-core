@@ -38,14 +38,14 @@ class InputPopup extends lx.Box #lx:namespace lx {
 
     #lx:client {
 	    open(captions, defaults = {}) {
-			if (!captions.isArray) captions = [captions];
+			if (!lx.isArray(captions)) captions = [captions];
 
 			var popup = __getInstance();
 			var buttons = popup->stream->buttons;
 
 			popup->stream.del('r');
 			popup.useRenderCache();
-			captions.each((caption)=>{
+			captions.forEach(caption=>{
 				var row = new lx.Box({
 					key: 'r',
 					before: buttons
@@ -77,7 +77,7 @@ class InputPopup extends lx.Box #lx:namespace lx {
 			lx.onKeydown(27, __onReject);
 
 			var rows = popup->stream->r;
-			if (rows.isArray) rows[0]->input.focus();
+			if (lx.isArray(rows)) rows[0]->input.focus();
 			else rows->input.focus();
 
 			return callbackHolder;
@@ -139,13 +139,13 @@ class InputPopup extends lx.Box #lx:namespace lx {
 			if (popup->stream.contains('r')) {
 				var rows = popup->stream->r;
 				if (rows) {
-					if (!rows.isArray) rows = [rows];
-					rows.each((a)=> values.push(a->input.value()));
+					if (!lx.isArray(rows)) rows = [rows];
+					rows.forEach(a=>values.push(a->input.value()));
 				}
 			}
 			if (values.len == 1) values = values[0];
-			if (_confirmCallback.isFunction) _confirmCallback(values);
-			else if (_confirmCallback.isArray)
+			if (lx.isFunction(_confirmCallback)) _confirmCallback(values);
+			else if (lx.isArray(_confirmCallback))
 				_confirmCallback[1].call(_confirmCallback[0], values);
 		} 
 		__close();
@@ -153,8 +153,8 @@ class InputPopup extends lx.Box #lx:namespace lx {
 
 	function __onReject() {
 		if (_rejectCallback) {
-			if (_rejectCallback.isFunction) _rejectCallback();
-			else if (_rejectCallback.isArray)
+			if (lx.isFunction(_rejectCallback)) _rejectCallback();
+			else if (lx.isArray(_rejectCallback))
 				_rejectCallback[1].call(_rejectCallback[0]);
 		} 
 		__close();

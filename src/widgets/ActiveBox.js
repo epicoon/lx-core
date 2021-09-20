@@ -174,7 +174,7 @@ function __setHeader(self, config) {
 	if (lx.getFirstDefined(config.move, lx.ActiveBox.DEFAULT_MOVE)) header.__move = true;
 
 	if (config.closeButton) {
-		let butConfig = config.closeButton.isObject ? config.closeButton : {};
+		let butConfig = lx.isObject(config.closeButton) ? config.closeButton : {};
 		let butSize = lx.ActiveBox.HEADER_HEIGHT - lx.ActiveBox.INDENT * 4 + 'px';
 		let butIndent = lx.ActiveBox.INDENT * 2 + 'px';
 		butConfig.key = 'closeButton';
@@ -188,7 +188,7 @@ function __setHeader(self, config) {
 
 function __setBody(self, constructor) {
 	var config = {};
-	if (constructor.isArray) {
+	if (lx.isArray(constructor)) {
 		config = constructor[1];
 		constructor = constructor[0];
 	}
@@ -229,7 +229,7 @@ function __setBody(self, constructor) {
 
 		static check(ctx, action) {
 			var env = ctx.parent.getChildren();
-			env.each((a) => {
+			env.forEach(a=>{
 				if (a === ctx) return;
 				let lims = ctx.rect('px'),
 					aLims = a.rect('px'),
@@ -357,7 +357,7 @@ function __setBody(self, constructor) {
 			}
 			el.setBuildMode(false);
 
-			seams.each((a) => {
+			seams.forEach(a=>{
 				// a.on('moveBegin', function() { el.off('resize', ActiveBoxAdhesor.checkOnResize); });
 				// a.on('moveEnd', function() { el.on('resize', ActiveBoxAdhesor.checkOnResize); });
 				a.on('move', function () {

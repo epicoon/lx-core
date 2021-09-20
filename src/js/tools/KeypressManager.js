@@ -41,12 +41,12 @@ class KeypressManager extends lx.Singleton #lx:namespace lx {
 			hotkeys = keys[key];
 
 		if (!hotkeys) return;
-		if (!hotkeys.isArray) hotkeys = [hotkeys];
-		hotkeys.each((a)=> {
+		if (!lx.isArray(hotkeys)) hotkeys = [hotkeys];
+		hotkeys.forEach((a)=> {
 			if (a.match(/\+/)) {
 				let arr = a.split('+');
-				arr.each((item, i)=> {
-					if (item != '' && !item.isNumber) arr[i] = item.toUpperCase().charCodeAt(0);
+				arr.forEach((item, i)=> {
+					if (item != '' && !lx.isNumber(item)) arr[i] = item.toUpperCase().charCodeAt(0);
 				});
 				let main = arr.pop(),
 					f = function(e) {

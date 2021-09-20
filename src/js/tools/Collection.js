@@ -25,9 +25,9 @@
 	sum(method, ...args)
 	call()
 	callRepeat()
-	each(func)
+ 	forEach(func)
 	eachToEach(func)
-	eachRevert(func)
+	forEachRevert(func)
 	getEach(funcName, args)
 	mix(c, func, repeat)
 	select(func)
@@ -56,7 +56,7 @@ class Collection extends lx.Object #lx:namespace lx {
 
 	static cast(obj) {
 		if (obj === undefined || obj === null) return new this();
-		if (obj.is(this)) return obj;
+		if (lx.isInstance(obj, this)) return obj;
 		return new this(obj);
 	}
 
@@ -100,7 +100,7 @@ class Collection extends lx.Object #lx:namespace lx {
 			return this;
 		}
 
-		if (k.isNumber) {
+		if (lx.isNumber(k)) {
 			if (k >= this.len) return false;
 
 			if (this.isCopy) {
@@ -281,7 +281,7 @@ class Collection extends lx.Object #lx:namespace lx {
 
 			if (arg === null) continue;
 
-			if (arg.isArray) {
+			if (lx.isArray(arg)) {
 				this.map.push(arg);
 			} else if ( arg.lxClassName() == 'Collection' ) {
 				if (arg.isCopy) this.add(arg.elements);
@@ -309,7 +309,7 @@ class Collection extends lx.Object #lx:namespace lx {
 			var arg = arguments[i];
 			if (arg === null) continue;
 
-			if (arg.isArray) {
+			if (lx.isArray(arg)) {
 				for (var j=0, ll=arg.length; j<ll; j++)
 					this.elements.push( arg[j] );
 			} else if ( arg.lxClassName() == 'Collection' ) {
@@ -339,7 +339,7 @@ class Collection extends lx.Object #lx:namespace lx {
 
 		function rec(tempArr, counter) {
 			for (var i=0,l=tempArr.length; i<l; i++) {
-				if ((deep && (counter+1 > deep)) || !tempArr[i].isArray) {
+				if ((deep && (counter+1 > deep)) || !lx.isArray(tempArr[i])) {
 					arr.push( tempArr[i] );
 				}
 				else rec(tempArr[i], counter + 1);
@@ -413,20 +413,20 @@ class Collection extends lx.Object #lx:namespace lx {
 
 	sum(method, ...args) {
 		var result = 0;
-		this.each((a)=> {
+		this.forEach((a)=> {
 			var val = 0;
 			if (a[method]) {
-				if (a[method].isNumber) val = a[method];
-				else if (a[method].isFunction) val = a[method].apply(a, args);
+				if (lx.isNumber(a[method])) val = a[method];
+				else if (lx.isFunction(a[method])) val = a[method].apply(a, args);
 			} else if (a.toNumber) val = a.toNumber();
-			if (!val.isNumber) val = 0;
+			if (!lx.isNumber(val)) val = 0;
 			result += val;
 		});
 		return result;
 	}
  	
 	call(funcName, ...args) {
-		this.each((a)=> {
+		this.forEach((a)=> {
 			if ( a === null || !a.lxHasMethod(funcName) ) return;
 			a[funcName].apply(a, args);
 		});
@@ -436,10 +436,10 @@ class Collection extends lx.Object #lx:namespace lx {
 
 	callRepeat(funcName, args) {
 		var current = 0;
-		this.each((a)=> {
+		this.forEach((a)=> {
 			if (a === null || !a.lxHasMethod(funcName) ) return;
 
-			if (args[current].isArray) a[funcName].apply(a, args[current]);
+			if (lx.isArray(args[current])) a[funcName].apply(a, args[current]);
 			else a[funcName].call(a, args[current]);
 			current++;
 			if (current == args.len) current = 0;
@@ -463,7 +463,7 @@ class Collection extends lx.Object #lx:namespace lx {
 		return true;
 	}
 
-	each(func) {
+	forEach(func) {
 		this.stopFlag = false;
 		this.cachePosition();
 		let i = 0,
@@ -504,7 +504,7 @@ class Collection extends lx.Object #lx:namespace lx {
 		return this;
 	}
 
-	eachRevert(func) {
+	forEachRevert(func) {
 		this.stopFlag = false;
 		this.cachePosition();
 		var i = this.len - 1,
@@ -519,14 +519,14 @@ class Collection extends lx.Object #lx:namespace lx {
 
 	getEach(attr, args) {
 		var c = new lx.Collection();
-		this.each(function(a) {
+		this.forEach(function(a) {
 			if (!(attr in a)) return;
 			if (a[attr] instanceof Function) {
 				if (args === undefined) {
 					c.add(a[attr]());
 					return;
 				}
-				c.add(args.isArray ? a[attr].apply(a, args) : a[attr].call(a, args));
+				c.add(lx.isArray(args) ? a[attr].apply(a, args) : a[attr].call(a, args));
 			}
 			else c.add(a[attr]);
 		});
@@ -534,7 +534,7 @@ class Collection extends lx.Object #lx:namespace lx {
 	}
 
 	mix(c, func, repeat) {
-		if (c.isArray) c = self::cast(c);
+		if (lx.isArray(c)) c = self::cast(c);
 		this.to(null); c.to(null);
 		for (var i=0, len=repeat ? Math.max(this.len, c.len) : Math.min(this.len, c.len); i<len; i++) {
 			this.next();
@@ -566,13 +566,13 @@ class Collection extends lx.Object #lx:namespace lx {
 
 			// функция
 			if (arg instanceof Function) {
-				this.each(function(a) { if (arg(a)) c.add(a); });
+				this.forEach(function(a) { if (arg(a)) c.add(a); });
 				return c;
 			}
 
 			// набор правил
-			if (arg.isArray) {
-				this.each(function(a) {
+			if (lx.isArray(arg)) {
+				this.forEach(function(a) {
 					var match = true;
 					// анализ правил
 					for (var i=0,l=arg.len; i<l; i++) {
@@ -594,10 +594,10 @@ class Collection extends lx.Object #lx:namespace lx {
 								case '>=': if (a[prop] < val) match = false; break;
 								case '<=': if (a[prop] > val) match = false; break;
 								case 'contains':
-									if (!a[prop].isArray || a[prop].indexOf(val) == -1) match = false;
+									if (!lx.isArray(a[prop]) || a[prop].indexOf(val) == -1) match = false;
 								break;
 								case 'like':
-									if (!a[prop].isString || !a[prop].match(new RegExp(val))) match = false;
+									if (!lx.isString(a[prop]) || !a[prop].match(new RegExp(val))) match = false;
 								break;
 							}
 						}
@@ -609,7 +609,7 @@ class Collection extends lx.Object #lx:namespace lx {
 			}
 
 			// просто проверка на наличие свойства
-			this.each(function(a) {
+			this.forEach(function(a) {
 				if (arg in a) c.add(a);
 			});
 			return c;

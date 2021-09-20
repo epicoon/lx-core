@@ -53,7 +53,7 @@ class ModelSchema #lx:namespace lx {
 	getFieldTypes() {
 		var result = {};
 		for (var name in this.fields) {
-			var type = this.fields[name].isObject 
+			var type = lx.isObject(this.fields[name]) 
 				? this.fields[name].type
 				: this.fields[name];
 			result[name] = type;

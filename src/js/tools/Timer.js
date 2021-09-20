@@ -2,7 +2,7 @@
 
 class Timer #lx:namespace lx {
 	constructor(config=0) {
-		if (config.isNumber || config.isArray) config = {period: config};
+		if (lx.isNumber(config) || lx.isArray(config)) config = {period: config};
 
 		// может быть массивом - длительности будут чередоваться
 		this.periodDuration = config.period;  // milliseconds
@@ -111,18 +111,18 @@ class Timer #lx:namespace lx {
 	go() {
 		this._action();
 		var action = __action(this);
-		if (action && action.isFunction) action.call(this);
+		if (lx.isFunction(action)) action.call(this);
 
 		if (this.periodEnds()) {
 			this.periodCounter++;
 			this._iteration();
 
-			if (this.periodDuration && this.periodDuration.isArray) {
+			if (this.periodDuration && lx.isArray(this.periodDuration)) {
 				this.periodIndex++;
 				if (this.periodIndex == this.periodDuration.length) this.periodIndex = 0;
 			}
 
-			if (this.actions && this.actions.isArray) {
+			if (this.actions && lx.isArray(this.actions)) {
 				this.actionIndex++;
 				if (this.actionIndex == this.actions.length) this.actionIndex = 0;
 			}
@@ -131,13 +131,13 @@ class Timer #lx:namespace lx {
 }
 
 function __periodDuration(self) {
-	if (self.periodDuration && self.periodDuration.isArray)
+	if (self.periodDuration && lx.isArray(self.periodDuration))
 		return self.periodDuration[self.periodIndex];
 	return self.periodDuration;
 }
 
 function __action(self) {
-	if (self.actions && self.actions.isArray)
+	if (self.actions && lx.isArray(self.actions))
 		return self.actions[self.actionIndex];
 	return self.actions;
 }

@@ -94,7 +94,7 @@ function __bind(obj, widget, type=lx.Binder.BIND_TYPE_FULL) {
 
 		var readWidgets = new lx.Collection(),
 			writeWidgets = new lx.Collection();
-		c.each((widget)=>{
+		c.forEach(widget=>{
 			if (widget._bindType === undefined) widget._bindType = type;
 			if (widget._bindType == lx.Binder.BIND_TYPE_READ || widget._bindType == lx.Binder.BIND_TYPE_FULL) readWidgets.add(widget);
 			if (widget._bindType == lx.Binder.BIND_TYPE_WRITE || widget._bindType == lx.Binder.BIND_TYPE_FULL) writeWidgets.add(widget);
@@ -110,7 +110,7 @@ function __bind(obj, widget, type=lx.Binder.BIND_TYPE_FULL) {
 			__bindProcess(obj, _field, readWidgets);
 			__action(obj, _field, obj[_field]);
 		}
-		writeWidgets.each((a)=>{
+		writeWidgets.forEach(a=>{
 			/*
 			todo
 			по коду закоменчены - потому что надо иметь стандарт - если виджет используется для связывания, то он должен иметь
@@ -128,7 +128,7 @@ function __unbind(obj, widget=null) {
 	if (!obj.lxBindId) return;
 	var bb = __getBind(obj.lxBindId);
 
-	for (let name in bb) bb[name].eachRevert((a)=> {
+	for (let name in bb) bb[name].lxForEachRevert((a)=> {
 		if (!widget || (a === widget || a.hasAncestor(widget))) {
 			delete a.lxBindId;
 			__valueToWidgetWithoutBind(a, '');
@@ -166,7 +166,7 @@ function __refresh(obj, fieldName = null) {
 function __makeWidgetMatrix(obj, info) {
 	let widget, config;
 	if (info.itemBox) {
-		if (info.itemBox.isArray) {
+		if (lx.isArray(info.itemBox)) {
 			widget = info.itemBox[0];
 			config = info.itemBox[1];
 		} else widget = info.itemBox;
@@ -188,7 +188,7 @@ function __bindMatrix(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 	widget._lxMatrixBindId = c._lxMatrixBindId;
 
 	widget.useRenderCache();
-	c.each((a)=>__matrixNewBox(widget, a, type));
+	c.forEach(a=>__matrixNewBox(widget, a, type));
 	widget.applyRenderCache();
 
 	c.addBehavior(lx.MethodListenerBehavior);
@@ -226,7 +226,7 @@ function __unbindMatrix(widget) {
 function __bindAgregation(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 	var first = c.first();
 
-	c.each((a)=> a.lxBindC = c);
+	c.forEach(a=> a.lxBindC = c);
 
 	// блокировка в виджете отличающихся полей
 	function disableDifferent() {
@@ -260,7 +260,7 @@ function __bindAgregation(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 
 			var readWidgets = new lx.Collection(),
 				writeWidgets = new lx.Collection();
-			cw.each((widget)=>{
+			cw.forEach(widget=>{
 				if (widget._bindType === undefined) widget._bindType = type;
 				if (widget._bindType == lx.Binder.BIND_TYPE_READ || widget._bindType == lx.Binder.BIND_TYPE_FULL) readWidgets.add(widget);
 				if (widget._bindType == lx.Binder.BIND_TYPE_WRITE || widget._bindType == lx.Binder.BIND_TYPE_FULL) writeWidgets.add(widget);
@@ -269,13 +269,13 @@ function __bindAgregation(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 				let val = a.lxHasMethod('value')
 					? a.value()
 					: a.text();
-				c.each((el)=> el[_field] = val);
+				c.forEach(el=>el[_field] = val);
 			}
 			if (!readWidgets.isEmpty) {
 				__bindProcess(obj, _field, readWidgets);
 				__action(obj, _field, obj[_field]);
 			}
-			writeWidgets.each((a)=>{
+			writeWidgets.forEach(a=>{
 				// a.on('blur', function() { actualize(this); });
 				a.on('change', function() { actualize(this); });
 			});
@@ -367,8 +367,8 @@ function __action(obj, name, newVal) {
 		return;
 	}
 	let arr = __getBind(obj.lxBindId)[name];
-	if (!arr || !arr.isArray) return;
-	arr.each((a)=> __valueToWidget(a, newVal));
+	if (!arr || !lx.isArray(arr)) return;
+	arr.forEach(a=>__valueToWidget(a, newVal));
 }
 
 // Без обновления модели
@@ -422,7 +422,7 @@ function __bindProcess(obj, name, widgets) {
 		__binds[obj.lxBindId] = [];
 	if (!(name in __binds[obj.lxBindId]))
 		__binds[obj.lxBindId][name] = [];
-	widgets.each((a)=>__bindWidget(a, obj.lxBindId));
+	widgets.forEach(a=>__bindWidget(a, obj.lxBindId));
 }
 
 function __getMatrixCollection(widget) {
@@ -467,19 +467,19 @@ function __matrixInsertNewBox(w, obj, index, type) {
 function __matrixHandlerOnAdd(obj = null) {
 	if (this._lxMatrixBindId === undefined) return;
 	var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
-	widgets.each(w=>__matrixNewBox(w, this.last(), __matrixBinds[this._lxMatrixBindId].type));
+	widgets.forEach(w=>__matrixNewBox(w, this.last(), __matrixBinds[this._lxMatrixBindId].type));
 }
 
 function __matrixHandlerOnInsert(i, obj = null) {
 	if (this._lxMatrixBindId === undefined) return;
 	var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
-	widgets.each(w=>__matrixInsertNewBox(w, this.at(i), i, __matrixBinds[this._lxMatrixBindId].type));
+	widgets.forEach(w=>__matrixInsertNewBox(w, this.at(i), i, __matrixBinds[this._lxMatrixBindId].type));
 }
 
 function __matrixHandlerOnRemove(i) {
 	if (this._lxMatrixBindId === undefined) return;
 	var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
-	widgets.eachRevert((w)=>{
+	widgets.lxForEachRevert((w)=>{
 		__unbind(this.at(i), w.getAll('r').at(i));
 		w.del('r', i);
 	});
@@ -489,7 +489,7 @@ function __matrixHandlerOnClear() {
 	if (this._lxMatrixBindId === undefined) return;
 
 	var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
-	widgets.each((w)=>{
+	widgets.forEach(w=>{
 		this.first();
 		let i = 0;
 		while (this.current()) {
@@ -505,7 +505,7 @@ function __matrixHandlerOnSet(i, obj) {
 	if (this._lxMatrixBindId === undefined) return;
 	var widgets = __matrixBinds[this._lxMatrixBindId].widgets,
 		type = __matrixBinds[this._lxMatrixBindId].type;
-	widgets.eachRevert((w)=>{
+	widgets.lxForEachRevert((w)=>{
 		__bind(this.at(i), w.getAll('r').at(i), type);
 	});
 }

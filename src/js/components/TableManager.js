@@ -18,7 +18,7 @@ lx.TableManager = {
 	cellEnterEnable: true,  // разрешается ввод текста в ячейки
 
 	register: function(table, config = {}) {
-		if (!(table instanceof lx.Table) || this.tables.contains(table)) return;
+		if (!(table instanceof lx.Table) || this.tables.includes(table)) return;
 		if (this.tables.lxEmpty()) this.start();
 		this.tables.push(table);
 

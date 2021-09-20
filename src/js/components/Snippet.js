@@ -27,7 +27,7 @@ class Snippet #lx:namespace lx {
         var config = (config.config) ? config.config : config;
         if (!config.key) {
             // слэши заменяются, т.к. в имени задается путь и может их содержать, а ключ должен быль одним словом
-            config.key = snippetPath.isString
+            config.key = lx.isString(snippetPath)
                 ? snippetPath.replace('/', '_')
                 : snippetPath.snippet.replace('/', '_');
         }
@@ -47,23 +47,23 @@ class Snippet #lx:namespace lx {
             var snippetConfig = list[key],
                 path = '';
 
-            if (key.isNumber) {
-                if (snippetConfig.isObject) {
+            if (lx.isNumber(key)) {
+                if (lx.isObject(snippetConfig)) {
                     if (!snippetConfig.path) continue;
                     path = snippetConfig.path;
-                } else if (snippetConfig.isString) {
+                } else if (lx.isString(snippetConfig)) {
                     path = snippetConfig;
                     snippetConfig = {};
                 } else continue;
-            } else if (key.isString) {
+            } else if (lx.isString(key)) {
                 path = key;
-                if (!snippetConfig.isObject) snippetConfig = {};
+                if (!lx.isObject(snippetConfig)) snippetConfig = {};
             }
 
             if (snippetConfig.config) snippetConfig.config.key = path;
             else snippetConfig.key = path;
 
-            var snippetPath = path.isString
+            var snippetPath = lx.isString(path)
                 ? commonPath + path
                 : path;
             result.push(this.addSnippet(snippetPath, snippetConfig));

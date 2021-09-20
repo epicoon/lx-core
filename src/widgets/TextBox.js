@@ -4,7 +4,7 @@
 
 class TextBox extends lx.Rect #lx:namespace lx {
 	modifyConfigBeforeApply(config='') {
-		if (config.isString) config = {text: config};
+		if (lx.isString(config)) config = {text: config};
 
 		if (!config.key) config.key = 'text';
 		if (config.text) {
@@ -108,12 +108,12 @@ class TextBox extends lx.Rect #lx:namespace lx {
 			c = lx.Collection.cast(c);
 			c.call("adapt");
 			var min = Infinity;
-			c.each(function(a) {
+			c.forEach(a=>{
 				var s = parseFloat(a.domElem.style('fontSize'));
 				if (min > s) min = s;
 			});
 			min = min + 'px';
-			c.each((a)=> a.setFontSize(min));
+			c.forEach(a=>a.setFontSize(min));
 		}
 	}
 }

@@ -74,10 +74,10 @@ class Test #lx:namespace lx {
 
 	_run() {
 		var forRun = this.forRun();
-		if (forRun.isString) {
+		if (lx.isString(forRun)) {
 			if (!forRun.match(/^test/) || !this.lxHasMethod(forRun)) return;
 			this._runTest(forRun);
-		} else if (forRun.isArray) {
+		} else if (lx.isArray(forRun)) {
 			for (var i=0, l=forRun.len; i<l; i++) {
 				var funcName = forRun[i];
 				if (!funcName.match(/^test/) || !this.lxHasMethod(funcName)) continue;

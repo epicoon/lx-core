@@ -7,7 +7,7 @@ class ModelCollection extends lx.Collection #lx:namespace lx {
 		var obj;
 		if (!data) {
 			obj = new this.modelClass;
-		} else if (data.is(this.modelClass)) {
+		} else if (lx.isInstance(data, this.modelClass)) {
 			obj = data;
 		} else {
 			obj = new this.modelClass(data);
@@ -19,7 +19,7 @@ class ModelCollection extends lx.Collection #lx:namespace lx {
 	set(i, data) {
 		if (!data) {
 			super.set(i, new this.modelClass);
-		} else if (data.is(this.modelClass)) {
+		} else if (lx.isInstance(data, this.modelClass)) {
 			super.set(i, data);
 		} else {
 			super.set(i, new this.modelClass(data));
@@ -29,7 +29,7 @@ class ModelCollection extends lx.Collection #lx:namespace lx {
 	insert(i, data) {
 		if (!data) {
 			super.insert(i, new this.modelClass);
-		} else if (data.is(this.modelClass)) {
+		} else if (lx.isInstance(data, this.modelClass)) {
 			super.insert(i, data);
 		} else {
 			super.insert(i, new this.modelClass(data));
@@ -37,7 +37,7 @@ class ModelCollection extends lx.Collection #lx:namespace lx {
 	}
 
 	load(list) {
-		list.each(fields=>this.add(fields));
+		list.forEach(fields=>this.add(fields));
 	}
 
 	reset(list) {
@@ -47,14 +47,14 @@ class ModelCollection extends lx.Collection #lx:namespace lx {
 
 	removeByData(data) {
 		var indexes = this.searchIndexesByData(data);
-		indexes.eachRevert(index=>{
+		indexes.lxForEachRevert(index=>{
 			this.removeAt(index)
 		});
 	}
 
 	searchIndexesByData(data) {
 		var indexes = [];
-		this.each((elem, index)=>{
+		this.forEach((elem, index)=>{
 			for (var i in data) {
 				if (!(i in elem) || data[i] != elem[i]) return;
 			}
@@ -65,7 +65,7 @@ class ModelCollection extends lx.Collection #lx:namespace lx {
 
 	select(fields) {
 		var result = [];
-		this.each(elem=>{
+		this.forEach(elem=>{
 			for (let name in fields) {
 				if (!(name in elem) || fields[name] != elem[name]) return;
 			}
@@ -75,7 +75,7 @@ class ModelCollection extends lx.Collection #lx:namespace lx {
 	}
 
 	unbind() {
-		this.each(elem=>elem.unbind());
+		this.forEach(elem=>elem.unbind());
 	}
 
 	static create(config) {

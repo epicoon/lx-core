@@ -4,7 +4,7 @@
 
 class Image extends lx.Rect #lx:namespace lx {
 	modifyConfigBeforeApply(config) {
-		if (config.isString) config = {filename: config};
+		if (lx.isString(config)) config = {filename: config};
 		if (!config.key) config.key = 'image';
 		return config;
 	}

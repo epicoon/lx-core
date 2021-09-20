@@ -20,7 +20,7 @@ class BoxChildren {
     }
 
     contains(el) {
-        return this.data.contains(el);
+        return this.data.includes(el);
     }
 
     indexOf(el) {
@@ -34,7 +34,7 @@ class BoxChildren {
 
     insertBefore(el, next) {
         var index = this.data.indexOf(next);
-        if (el.isArray) this.data.apply(this.data, [index, 0].concat(el));
+        if (lx.isArray(el)) this.data.apply(this.data, [index, 0].concat(el));
         else this.data.splice(index, 0, el);
     }
 
@@ -55,8 +55,8 @@ class BoxChildren {
         return this.data[this.data.length - 1];
     }
 
-    each(f) {
-        this.data.each(f);
+    forEach(f) {
+        this.data.forEach(f);
     }
 
     reset() {

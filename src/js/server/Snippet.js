@@ -24,8 +24,8 @@ class Snippet #lx:namespace lx {
 
     addPlugin(data) {
         var re = function(obj) {
-            if (obj.isFunction) return lx._f.functionToString(obj);
-            if ( ! obj.isObject) return obj;
+            if (lx.isFunction(obj)) return lx._f.functionToString(obj);
+            if (!lx.isObject(obj)) return obj;
             for (var name in obj) obj[name] = re(obj[name]);
             return obj;
         };
@@ -40,7 +40,7 @@ class Snippet #lx:namespace lx {
         var config = (config.config) ? config.config : config;
         if (!config.key) {
             // слэши заменяются, т.к. в имени задается путь и может их содержать, а ключ должен быль одним словом
-            config.key = snippetPath.isString
+            config.key = lx.isString(snippetPath)
                 ? snippetPath.replace('/', '_')
                 : snippetPath.snippet.replace('/', '_');
         }
@@ -60,23 +60,23 @@ class Snippet #lx:namespace lx {
             var snippetConfig = list[key],
                 path = '';
 
-            if (key.isNumber) {
-                if (snippetConfig.isObject) {
+            if (lx.isNumber(key)) {
+                if (lx.isObject(snippetConfig)) {
                     if (!snippetConfig.path) continue;
                     path = snippetConfig.path;
-                } else if (snippetConfig.isString) {
+                } else if (lx.isString(snippetConfig)) {
                     path = snippetConfig;
                     snippetConfig = {};
                 } else continue;
-            } else if (key.isString) {
+            } else if (lx.isString(key)) {
                 path = key;
-                if (!snippetConfig.isObject) snippetConfig = {};
+                if (!lx.isObject(snippetConfig)) snippetConfig = {};
             }
 
             if (snippetConfig.config) snippetConfig.config.key = path;
             else snippetConfig.key = path;
 
-            var snippetPath = path.isString
+            var snippetPath = lx.isString(path)
                 ? commonPath + path
                 : path;
             result.push(this.addSnippet(snippetPath, snippetConfig));
@@ -128,7 +128,7 @@ class Snippet #lx:namespace lx {
 function __extractAttributes(params) {
     if (!params) return {};
     var result = {};
-    if (params.isArray || params.isObject)
+    if (lx.isArray(params) || lx.isObject(params))
         for (var i in params) result[i] = params[i];
     return result;
 }
@@ -155,17 +155,17 @@ function __prepareSelfData(self) {
 
 function __renderContent(self) {
     self.renderIndexCounter = 0;
-    self.widget.children.each(a=>__setRenderIndex(self, a));
+    self.widget.children.forEach(a=>__setRenderIndex(self, a));
 
     var html = '';
-    self.widget.children.each((a)=>html+=__renderWidget(self, a));
+    self.widget.children.forEach((a)=>html+=__renderWidget(self, a));
     self.htmlContent = html;
 }
 
 function __setRenderIndex(self, widget) {
     widget.renderIndex = self.renderIndexCounter++;
     if (widget.children === undefined) return;
-    widget.children.each(a=>__setRenderIndex(self, a));
+    widget.children.forEach(a=>__setRenderIndex(self, a));
 }
 
 function __renderWidget(self, widget) {
@@ -174,7 +174,7 @@ function __renderWidget(self, widget) {
     if (widget.children === undefined) return widget.domElem.getHtmlString();
 
     var result = widget.domElem.getHtmlStringBegin() + widget.domElem.content;
-    widget.children.each((a)=>result += __renderWidget(self, a));
+    widget.children.forEach(a=>result += __renderWidget(self, a));
     result += widget.domElem.getHtmlStringEnd();
     return result;
 }
@@ -242,7 +242,7 @@ class PackData {
         this.data.forOnload = [];
         for (var i=0, l=this.widget.forOnload.len; i<l; i++) {
             var item = this.widget.forOnload[i], strItem;
-            if (item.isArray) {
+            if (lx.isArray(item)) {
                 strItem = lx._f.functionToString(item[0]);
                 if (strItem) strItem = [strItem, item[1]];
             } else strItem = lx._f.functionToString(item);

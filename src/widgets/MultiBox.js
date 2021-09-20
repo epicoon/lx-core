@@ -51,7 +51,7 @@ class MultiBox extends lx.Box #lx:namespace lx {
 			indent: step + 'px'
 		});
 		this.marks = lx.Box.construct(marks.len, {parent:marksBox, key:'mark'}, {postBuild:(a, i)=>a.text(marks[i])});
-		this.marks.each((mark)=>{
+		this.marks.forEach(mark=>{
 			mark.addClass(this.basicCss.mark);
 			mark.checked = false;
 		});
@@ -78,13 +78,13 @@ class MultiBox extends lx.Box #lx:namespace lx {
 		super.clientBuild(config);
 
 		if (this.animation) {
-			var duration = this.animation.isNumber ? this.animation : 300;
+			var duration = lx.isNumber(this.animation) ? this.animation : 300;
 			this.setAnimationOnOpen(duration, _handler_defaultAnimationOnOpen);
 			this.setAnimationOnClose(duration, _handler_defaultAnimationOnClose);
 			delete this.animation;
 		}
 
-		if (this.marks) this.marks.each((mark)=>{
+		if (this.marks) this.marks.forEach(mark=>{
 			mark.align(lx.CENTER, lx.MIDDLE);
 			mark.on('mousedown', lx.Event.preventDefault);
 			mark.click(_handler_clickMark);
@@ -93,14 +93,14 @@ class MultiBox extends lx.Box #lx:namespace lx {
 
 	#lx:server beforePack() {
 		var marks = [];
-		if (this.marks) this.marks.each(mark=>{
+		if (this.marks) this.marks.forEach(mark=>{
 			let data = {i: mark.renderIndex};			
 			if (mark.condition) data.condition = mark.packFunction(mark.condition);
 			marks.push(data);
 		});
 
 		var sheets = [];
-		if (this.sheets) this.sheets.each(sheet=>sheets.push(sheet.renderIndex));
+		if (this.sheets) this.sheets.forEach(sheet=>sheets.push(sheet.renderIndex));
 
 		this.marks = marks;
 		this.sheets = sheets;
@@ -233,7 +233,7 @@ function __defineMarksConfig(self, config, template) {
 			if (this.checked) return;
 
 			var oldActive = null;
-			p.marks.each(function(mark, i) {
+			p.marks.forEach(function(mark, i) {
 				if (mark.checked) {
 					oldActive = i;
 					this.stop();

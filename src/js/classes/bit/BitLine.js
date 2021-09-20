@@ -14,7 +14,8 @@ class BitLine #lx:namespace lx {
 		this.len = len || self::BASIS;
 		this.innerLen = Math.floor((this.len - 1) / self::BASIS) + 1;
 		this.map = new Array(this.innerLen);
-		this.map.each((a, i)=>this.map[i]=0);
+		for (let i=0; i<this.innerLen; i++)
+			this.map[i]=0
 	}
 
 	setLen(len) {
@@ -72,25 +73,25 @@ class BitLine #lx:namespace lx {
 
 	clone() {
 		var result = new lx.BitLine(this.len);
-		this.map.each((a, i)=>result.map[i] = a);
+		this.map.forEach((a, i)=>result.map[i] = a);
 		return result;
 	}
 
 	copy(line) {
 		this.setLen(line.len);
-		this.map.each((a, i)=>this.map[i]=line.map[i]);
+		this.map.forEach((a, i)=>this.map[i]=line.map[i]);
 	}
 
 	project(line) {
 		var result = this.clone();
-		if (line.isArray) {
-			line.each((item)=>{
+		if (lx.isArray(line)) {
+			line.forEach(item=>{
 				result.setLen(Math.max(this.len, item.len));
-				result.map.each((a, i)=>result.map[i]=a|item.map[i]);
+				result.map.forEach((a, i)=>result.map[i]=a|item.map[i]);
 			});
 		} else {
 			result.setLen(Math.max(this.len, line.len));
-			result.map.each((a, i)=>result.map[i]=a|line.map[i]);
+			result.map.forEach((a, i)=>result.map[i]=a|line.map[i]);
 		}
 		return result;
 	}

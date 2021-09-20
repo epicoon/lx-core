@@ -34,7 +34,7 @@ class AlignPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		this.owner.style('align-items', this.direction == lx.HORIZONTAL ? vAlign : hAlign);
 		this.owner.style('justify-content', this.direction == lx.HORIZONTAL ? hAlign : vAlign);
 
-		this.owner.getChildren().each((el)=>{
+		this.owner.getChildren().forEach((el)=>{
 			el.removeClass('lx-abspos');
 		});
 		this.actualizeIndents(indents);
@@ -79,14 +79,14 @@ class AlignPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 
 		if (this.direction == lx.HORIZONTAL && indents.stepX) {
 			var lastIndex = this.owner.childrenCount() - 1;
-			this.owner.getChildren().each((el, i)=>{
+			this.owner.getChildren().forEach((el, i)=>{
 				el.style('margin-bottom', null);
 				if (i == lastIndex) el.style('margin-right', null);
 				else el.style('margin-right', indents.stepX);
 			});
 		} else if (this.direction == lx.VERTICAL && indents.stepY) {
 			var lastIndex = this.owner.childrenCount() - 1;
-			this.owner.getChildren().each((el, i)=>{
+			this.owner.getChildren().forEach((el, i)=>{
 				el.style('margin-right', null);
 				if (i == lastIndex) el.style('margin-bottom', null);
 				else el.style('margin-bottom', indents.stepX);

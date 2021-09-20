@@ -124,7 +124,7 @@ class Plugin #lx:namespace lx {
 		var newForPlugin = [];
 		if (this.dependencies.modules) {
 			for (var i=0, l=moduleNames.len; i<l; i++)
-				if (!this.dependencies.modules.contains(moduleNames[i]))
+				if (!this.dependencies.modules.includes(moduleNames[i]))
 					newForPlugin.push(moduleNames[i]);
 		} else newForPlugin = moduleNames;
 
@@ -134,7 +134,7 @@ class Plugin #lx:namespace lx {
 		lx.dependencies.promiseModules(
 			newForPlugin,
 			()=>{
-				newForPlugin.each(a=>this.dependencies.modules.push(a));
+				newForPlugin.forEach(a=>this.dependencies.modules.push(a));
 				if (callback) callback();
 			}
 		);

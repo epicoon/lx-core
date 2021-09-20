@@ -1,6 +1,6 @@
 class Css #lx:namespace lx {
 	constructor(factor) {
-		if (factor.isString) {
+		if (lx.isString(factor)) {
 			var tag = document.getElementById(factor);
 			if (!tag) {
 				tag = document.createElement('style');
@@ -11,7 +11,7 @@ class Css #lx:namespace lx {
 			factor = {tag};
 		}
 
-		if (factor.isObject) {
+		if (lx.isObject(factor)) {
 			this.tag = factor.tag;
 		}
 

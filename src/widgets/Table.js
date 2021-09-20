@@ -69,7 +69,7 @@ class Table extends lx.Box #lx:namespace lx {
 
 	rowsCount() {
 		if (!this->r) return 0;
-		if (this->r.isArray)
+		if (lx.isArray(this->r))
 			return this->r.len;
 		return 1;
 	}
@@ -116,7 +116,7 @@ class Table extends lx.Box #lx:namespace lx {
 	}
 
 	eachRow(func) {
-		this.rows().each(func);
+		this.rows().forEach(func);
 	}
 
 	/*
@@ -155,7 +155,7 @@ class Table extends lx.Box #lx:namespace lx {
 	setContent(content, transpon=false, r0=0, c0=0) {
 		var r1, c1;
 
-		if (!content[0].isArray) content = [content];
+		if (!lx.isArray(content[0])) content = [content];
 
 		if (transpon) {
 			r1 = r0 + content[0].len;
@@ -230,7 +230,7 @@ class Table extends lx.Box #lx:namespace lx {
 	setRowsHeight(height) {
 		if (this.positioningStrategy.type == lx.StreamPositioningStrategy.TYPE_PROPORTIONAL) return this;
 		this.positioningStrategy.rowDefaultHeight = height;
-		this.rows().each((a)=> a.height(height));
+		this.rows().forEach(a=>a.height(height));
 		return this;
 	}
 
@@ -291,7 +291,7 @@ class TableRow extends lx.Box #lx:namespace lx {
 
 	cellsCount() {
 		if (!this->c) return 0;
-		if (this->c.isArray)
+		if (lx.isArray(this->c))
 			return this->c.len;
 		return 1;
 	}
