@@ -5,7 +5,7 @@ class LoadContext {
 		this.isAjax = null;
 		this.plugins = {};
 		this.snippetsInfo = {};
-		this.rootKey = '';
+		this.rootKey = '_root_';
 		this.snippetTrees = {};
 		this.snippetNodesList = {};
 		this.snippetsCounter = 0;
@@ -44,10 +44,9 @@ class LoadContext {
 			if (info.attributes) rootAttr = info.attributes;
 		}
 
-		// Парсим инфу по модулям
+		// Парсим инфу по плагинам
 		var reg = /<plugin (.+?)>/g,
 			match;
-
 		while (match = reg.exec(pluginsInfo)) {
 			var key = match[1],
 				pluginString = pluginsInfo.match(new RegExp('<plugin '+key+'>([\\w\\W]*?)</plugin '+key+'>'))[1];
@@ -58,7 +57,7 @@ class LoadContext {
 				snippets: lx.Json.parse(pluginString.match(new RegExp('<bl '+key+'>([\\w\\W]*?)</bl '+key+'>'))[1]),
 				mainJs: pluginString.match(new RegExp('<mj '+key+'>([\\w\\W]*?)</mj '+key+'>'))[1]
 			};
-			if (pluginInfo.info.anchor == '_root_') {
+			if (pluginInfo.info.anchor == this.rootKey) {
 				if (!this.isAjax) pluginInfo.isMain = 1;
 				if (rootAttr) {
 					if (!pluginInfo.info.attributes) pluginInfo.info.attributes = {};
@@ -67,22 +66,21 @@ class LoadContext {
 			}
 			this.plugins[pluginInfo.info.anchor] = pluginInfo;
 		}
-		this.rootKey = '_root_';
 	}
 
 	run(el, parent, clientCallback) {
 		// Если нет необходимости в загрузке ресурсов
 		if (!this.hasAssets()) {
-			this.runCallback(el, parent, clientCallback);
+			this.process(el, parent, clientCallback);
 			this.task.setCompleted();
 			return;
 		}
 
-		// Синхронизируем загрузку ресурсов и старт выполнения модуля
+		// Синхронизируем загрузку ресурсов и старт выполнения плагина
 		var synchronizer = new lx.Synchronizer();
 		synchronizer.setCallback(()=>{
+			this.process(el, parent, clientCallback)
 			this.task.setCompleted();
-			this.runCallback(el, parent, clientCallback)
 		});
 
 		var scriptTags = {forHead:[], forBegin:[]},
@@ -148,7 +146,7 @@ class LoadContext {
 		}
 	}
 
-	runCallback(el, parent, clientCallback) {
+	process(el, parent, clientCallback) {
 		this.createPlugin(this.plugins[this.rootKey], el, parent);
 
 		if (this.postScripts.len) {
@@ -181,12 +179,12 @@ class LoadContext {
 		if (parent) info.parent = parent;
 		info.key = pluginInfo.key;
 		var plugin = new lx.Plugin(info, el);
-		if (pluginInfo.isMain) plugin.isMain = 1;
 
 		var bootstrapJs = pluginInfo.bootstrapJs,
 			snippets = pluginInfo.snippets,
 			mainJs = pluginInfo.mainJs;
 
+		//TODO - сделать хуки жизненного цикла плагина (beforeRender)
 		// js-код загрузки плагина
 		if (bootstrapJs != '')
 			lx._f.createAndCallFunction('', 'const Plugin=lx.plugins["'+plugin.key+'"];' + bootstrapJs);
@@ -207,6 +205,7 @@ class LoadContext {
 		var code = 'const Plugin=lx.plugins["' + plugin.key
 			+ '"];const Snippet=Plugin.root.snippet;lx.WidgetHelper.autoParent=Plugin.root;'
 
+		//TODO - сделать хуки жизненного цикла плагина (beforeRun)
 		// Если есть код, выполняющийся при загрузке плагина - он выполняется здесь
 		if (info.onLoad) {
 			for (var i=0, l=info.onLoad.len; i<l; i++) {
@@ -219,11 +218,9 @@ class LoadContext {
 		// Основной js-код плагина
 		if (mainJs) code += mainJs;
 
-		// Код сниппетов
+		// Код сниппетов. У сниппетов уже будет выполен main-код плагина!
 		var node = this.snippetTrees[plugin.key];
 		var snippetsJs = node.compileCode();
-
-		// Вызываем всё вместе, чтобы у сниппетов был доступ к переменным плагина
 		code += snippetsJs[1];
 
 		code += 'lx.WidgetHelper.removeAutoParent(Plugin.root);';

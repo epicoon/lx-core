@@ -1,4 +1,4 @@
-class LocalEventSupervisor #lx:namespace lx {
+class EventSupervisor #lx:namespace lx {
 	constructor() {
 		this.listeners = {};
 	}

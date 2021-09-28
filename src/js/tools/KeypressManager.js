@@ -9,8 +9,11 @@
  *	- 'key_test' - имя метода, ключ 'test'
  *	- keys() { return {test: [13, 'a']}; } - метод будет срабатывать при нажатии 'enter' или клавиши 'a'
  * */
-class KeypressManager extends lx.Singleton #lx:namespace lx {
-	init() {
+class KeypressManager #lx:namespace lx {
+	#lx:const
+		ENTER = 13;
+
+	run() {
 		var funcs = this.lxGetAllProperties(),
 			keys = this.keys(),
 			handlers = {},

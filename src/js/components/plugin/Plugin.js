@@ -4,17 +4,19 @@
 #lx:require PluginEvent;
 
 class Plugin #lx:namespace lx {
-	constructor(info, snippet) {
-		this.name =  info.name;
+	constructor(info, snippetBox) {
+		this.name = info.name;
 		this.attributes =  {};
-		this.instances = {};
-		this.namespaces = [];
+		this.root = snippetBox;
 		this.widgetBasicCssList = {};
-		this.dependencies = {};
-		this.root = snippet;
+
 		this.destructCallbacks = [];
+		this.namespaces = [];
+		this.dependencies = {};
 
 		this._eventDispatcher = null;
+		this._onFocus = null;
+		this._onUnfocus = null;
 
 		__init(this, info);
 	}
@@ -29,7 +31,7 @@ class Plugin #lx:namespace lx {
 
 	get eventDispatcher() {
 		if (!this._eventDispatcher)
-			this._eventDispatcher = new lx.LocalEventSupervisor();
+			this._eventDispatcher = new lx.EventSupervisor();
 		return this._eventDispatcher;
 	}
 
@@ -37,9 +39,50 @@ class Plugin #lx:namespace lx {
 		this.eventDispatcher.subscribe(eventName, callback);
 	}	
 
-	trigger(eventName, data) {
+	trigger(eventName, data = {}) {
+		if (eventName == 'focus') {
+			if (this._onFocus) this._onFocus();
+			return;
+		}
+		if (eventName == 'unfocus') {
+			if (this._onUnfocus) this._onUnfocus();
+			return;
+		}
+
 		var event = new lx.PluginEvent(this, data);
 		this.eventDispatcher.trigger(eventName, event);
+	}
+
+	focus() {
+		lx.focusPlugin(this);
+	}
+
+	unfocus() {
+		lx.unfocusPlugin(this);
+	}
+
+	onFocus(callback) {
+		this._onFocus = callback.bind(this);
+	}
+
+	onUnfocus(callback) {
+		this._onUnfocus = callback.bind(this);
+	}
+
+	onKeydown(key, func) {
+		lx.onKeydown(key, func, {plugin:this});
+	}
+
+	offKeydown(key, func) {
+		lx.offKeydown(key, func, {plugin:this});
+	}
+
+	onKeyup(key, func) {
+		lx.onKeyup(key, func, {plugin:this});
+	}
+
+	offKeyup(key, func) {
+		lx.offKeyup(key, func, {plugin:this});
 	}
 
 	/**
@@ -57,10 +100,16 @@ class Plugin #lx:namespace lx {
 	 * Удалить плагин - очистить корневой сниппет, удалить из реестра, удалить все связанные данные
 	 */
 	del() {
+		lx.unfocusPlugin(this);
+
 		// Удаление вложенных плагинов
 		var childPlugins = this.childPlugins(true);
 		for (var i=0, l=childPlugins.len; i<l; i++)
 			childPlugins[i].del();
+
+		// Удаление хэндлеров клавиатуры
+		lx.offKeydown(null, null, {plugin:this});
+		lx.offKeyup(null, null, {plugin:this});
 
 		// Коллбэки на удаление
 		for (var i=0, l=this.destructCallbacks.len; i<l; i++)
@@ -232,7 +281,7 @@ function __init(plugin, info) {
 	lx.plugins[plugin.key] = plugin;
 
 	if (info.parent) plugin.parent = info.parent;
-	if (info.main) plugin.isMain = true;
+	if (info.main || info.isMain) plugin.isMain = true;
 	if (info.attributes) plugin.attributes = info.attributes;
 
 	if (info.images) plugin.images = info.images;

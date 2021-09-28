@@ -21,16 +21,16 @@
 	remove(el)
 	removeAt(k)
 	pop()
-	sub()
-	sum(method, ...args)
-	call()
-	callRepeat()
+	sub(k, amt)
+	sum(method, ...args) TODO - убрать
+	call() TODO - избыточно?
+	callRepeat() TODO - избыточно?
  	forEach(func)
-	eachToEach(func)
+	eachToEach(func) TODO - избыточно?
 	forEachRevert(func)
-	getEach(funcName, args)
-	mix(c, func, repeat)
-	select(func)
+	getEach(funcName, args) TODO - что-то для селекторной логики, название непонятное, разобрать
+	mix(c, func, repeat) TODO - таким должен отдельный класс заниматься
+	select(func) TODO - таким должен отдельный класс заниматься
 	stop()
 
 ***************************************************************/
@@ -533,7 +533,7 @@ class Collection extends lx.Object #lx:namespace lx {
 		return c;
 	}
 
-	mix(c, func, repeat) {
+	mix(c, func, repeat = false) {
 		if (lx.isArray(c)) c = self::cast(c);
 		this.to(null); c.to(null);
 		for (var i=0, len=repeat ? Math.max(this.len, c.len) : Math.min(this.len, c.len); i<len; i++) {

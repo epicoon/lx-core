@@ -15,8 +15,8 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 
 		var setterEvents = supportedEssence.behaviorMap.set(behKey, 'setterEvents', {
 			fields: [],
-			beforeMap: [],  // функции, выполняющиеся ДО присваивания, для ВЫБРАННОГО сеттера
-			afterMap: [],   // функции, выполняющиеся ПОСЛЕ присваивания, для ВЫБРАННОГО сеттера
+			beforeMap: {},  // функции, выполняющиеся ДО присваивания, для ВЫБРАННОГО сеттера
+			afterMap: {},   // функции, выполняющиеся ПОСЛЕ присваивания, для ВЫБРАННОГО сеттера
 			before: [],     // функции, выполняющиеся ДО присваивания, для ВСЕХ сеттеров
 			after: [],      // функции, выполняющиеся ПОСЛЕ присваивания, для ВСЕХ сеттеров
 			fail: []        // функции, выполняющиеся в случае неудачного присвоения (какой-то сеттер вернул false)
@@ -79,19 +79,15 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 	 *
 	 * */
 	getSetterEvents() {
-		var thisEvents = this.behaviorMap.get(behKey, 'setterEvents'),
+		let thisEvents = this.behaviorMap.get(behKey, 'setterEvents'),
 			selfEvents = self::behaviorMap.get(behKey, 'setterEvents');
 		if (!thisEvents && !selfEvents) return null;
 		if (!thisEvents) return selfEvents;
 		if (!selfEvents) return thisEvents;
 
-		var result = {};
-		for (var name in selfEvents) {
-			var item = [].lxMerge(selfEvents[name]);
-			if (thisEvents[name]) item = item.lxMerge(thisEvents[name]);
-			result[name] = item;
-		}
-
+		let result = {};
+		result.lxMerge(thisEvents.lxClone());
+		result.lxMerge(selfEvents.lxClone());
 		return result;
 	}
 
@@ -140,8 +136,8 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 	beforeSet(name, func) {
 		if (!this.behaviorMap.get(behKey, 'setterEvents'))
 			this.behaviorMap.set(behKey, 'setterEvents', {
-				beforeMap: [],  // функции, выполняющиеся ДО присваивания, для ВЫБРАННОГО сеттера
-				afterMap: [],   // функции, выполняющиеся ПОСЛЕ присваивания, для ВЫБРАННОГО сеттера
+				beforeMap: {},  // функции, выполняющиеся ДО присваивания, для ВЫБРАННОГО сеттера
+				afterMap: {},   // функции, выполняющиеся ПОСЛЕ присваивания, для ВЫБРАННОГО сеттера
 				before: [],     // функции, выполняющиеся ДО присваивания, для ВСЕХ сеттеров
 				after: [],      // функции, выполняющиеся ПОСЛЕ присваивания, для ВСЕХ сеттеров
 				fail: []        // функции, выполняющиеся в случае неудачного присвоения (какой-то сеттер вернул false)
@@ -155,8 +151,8 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 	afterSet(name, func) {
 		if (!this.behaviorMap.get(behKey, 'setterEvents'))
 			this.behaviorMap.set(behKey, 'setterEvents', {
-				beforeMap: [],  // функции, выполняющиеся ДО присваивания, для ВЫБРАННОГО сеттера
-				afterMap: [],   // функции, выполняющиеся ПОСЛЕ присваивания, для ВЫБРАННОГО сеттера
+				beforeMap: {},  // функции, выполняющиеся ДО присваивания, для ВЫБРАННОГО сеттера
+				afterMap: {},   // функции, выполняющиеся ПОСЛЕ присваивания, для ВЫБРАННОГО сеттера
 				before: [],     // функции, выполняющиеся ДО присваивания, для ВСЕХ сеттеров
 				after: [],      // функции, выполняющиеся ПОСЛЕ присваивания, для ВСЕХ сеттеров
 				fail: []        // функции, выполняющиеся в случае неудачного присвоения (какой-то сеттер вернул false)
@@ -223,7 +219,7 @@ function __defineFields(supportedClass) {
  * */
 function __getFuncBlank() {
 	var f = (function(){
-		var info = this.getSetterEvents();
+		let info = this.getSetterEvents();
 		function run(arr, withName=false) {
 			for (var i=0, l=arr.len; i<l; i++) {
 				var res = withName ? arr[i].call(this, name, val) : arr[i].call(this, val);
@@ -267,8 +263,7 @@ function __beforeSet(name, func) {
 		for (let i in name) this.beforeSet(i, name[i]);
 		return;
 	}
-
-	var setterEvents = this.behaviorMap.get(behKey, 'setterEvents');
+	let setterEvents = this.behaviorMap.get(behKey, 'setterEvents');
 	if (lx.isString(name)) {
 		if (!setterEvents.beforeMap[name])
 			setterEvents.beforeMap[name] = [];

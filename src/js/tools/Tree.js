@@ -85,6 +85,7 @@ class Tree #lx:namespace lx {
 		return result;
 	}
 
+	//TODO переименовать isEmpty
 	empty() {
 		return this.keys.length == 0;
 	}
@@ -104,22 +105,6 @@ class Tree #lx:namespace lx {
 			root = root.root;
 		}
 		return root;
-	}
-
-	nthRoot(num) {
-		if (num === 0) return this.rootNode();
-		if (!this.root) return null;
-
-		var arr = [],
-			root = this;
-		while (root.root) {
-			arr.push(root);
-			root = root.root;
-		}
-
-		if (num > arr.length) return null;
-
-		return arr[ arr.length - num ];
 	}
 
 	eachNode(func) {
@@ -210,6 +195,8 @@ class Tree #lx:namespace lx {
 		};
 	}
 
+	//TODO private, метод не рабочий - использует устаревшее поле path
+	//TODO - методы преобразования Json тянет на отдельный инструмент TreeSerializer
 	collectJSON(key, root, arr) {
 		var index = arr.length;
 		var temp = {
@@ -258,9 +245,8 @@ class Tree #lx:namespace lx {
 		return this;
 	}
 
-	add() {
-		var args = arguments,
-			result = [];
+	add(...args) {
+		var result = [];
 
 		if (!args.length)
 			return this.add(this.genKey());
@@ -339,6 +325,7 @@ class Tree #lx:namespace lx {
 	}
 
 	getNth(num) {
+		if (num >= this.keys.len || num < 0) return null;
 		return this.nodes[ this.keys[num] ];
 	}
 

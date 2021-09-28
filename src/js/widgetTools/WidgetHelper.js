@@ -54,12 +54,14 @@ class WidgetHelper {
 
 		/**
 		 * Возвращает html для элемента, который мог бы быть создан при помощи переданного конфига
-		 * */
+		 * TODO малофенкцинальное и странное решение. Или просто устаревшее. Есть lx.TagRenderer
+		 */
 		getHtmlFor(config) {
 			config.parent = null;
 			return (new lx.Box(config)).domElem.getHtmlString();
 		}
 
+		//TODO - private
 		getElementByLxId(id, parent = null) {
 			var elem = parent ? parent.getDomElem() : null;
 			if (elem) return elem.querySelector("[lxid^='" + id + "']");

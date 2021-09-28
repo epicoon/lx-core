@@ -10,6 +10,8 @@
 #lx:require app/lx_dependencies;
 #lx:require app/lx_alerts;
 #lx:require app/lx_tost;
+#lx:require app/lx_plugin;
+#lx:require app/lx_timeCheck;
 
 
 lx.entryElement = null;
@@ -34,14 +36,6 @@ lx.on = function(eventName, func) {
 lx.off = function(eventName, func) {
 	this.Event.remove( document, eventName, func );
 };
-
-lx.getPlugin = function(name) {
-	for (let key in this.plugins) {
-		if (this.plugins[key].name == name) return this.plugins[key];
-	}
-	return null;
-};
-
 
 #lx:require helpers/;
 #lx:require components/;

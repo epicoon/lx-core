@@ -233,7 +233,6 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 
 			// Устанавливаем заголовок
 			request.setRequestHeader("Content-Type","application/json; charset=UTF8");
-
 			request.send(lx.Json.encode(args));
 			break;
 		case 'get':

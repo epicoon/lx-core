@@ -31,7 +31,7 @@ class SnippetLoader {
 			// Бухнули верстку в div блока
 			this.elem.domElem.html(this.info.html);
 			// Формирование дерева lx-сущностей
-			this.riseTree(this.elem, this.info.lx);
+			this.riseTree(this.elem);
 		}
 
 		// Блок принес всякие настройки для элемента, в который он выгружается
@@ -84,13 +84,13 @@ class SnippetLoader {
 	/**
 	 * Генерация lx-сущностей и воссоздание между ними родительских связей
 	 */
-	riseTree(elem, infoLx) {
+	riseTree(elem) {
 		for (var i=0,l=elem.getDomElem().children.length; i<l; i++) {
 			var node = elem.getDomElem().children[i];
 
 			if (node.getAttribute('lx') === null) continue;
 
-			var info = infoLx[this.currentElement++],
+			var info = this.info.lx[this.currentElement++],
 				namespace = info._namespace ? info._namespace : 'lx';
 
 			var namespaceObj = lx.getNamespace(namespace);
@@ -128,7 +128,7 @@ class SnippetLoader {
 			el.domElem.parent = elem;
 			elem.registerChild(el);
 
-			this.riseTree(el, infoLx);
+			this.riseTree(el);
 		}
 	}
 
@@ -141,7 +141,7 @@ class SnippetLoader {
 			el.unpackProperties();
 			el.restoreLinks(this);
 
-			// Сборка вложенных блоков
+			// Сборка вложенных сниппетов
 			if (el.ib) {
 				(new SnippetLoader(this.loadContext, this.plugin, el, el.ib, this)).unpack();
 				delete el.ib;
@@ -160,6 +160,7 @@ class SnippetLoader {
 		for (var i=0, l=this.elems.length; i<l; i++) {
 			var el = this.elems[i];
 
+			//TODO - флаги убрать. Оставить поведение POSTUNPACK_TYPE_FIRST_DISPLAY как единственное
 			// постсерверная доработка виджета
 			if (lx.unpackType == lx.POSTUNPACK_TYPE_IMMEDIATLY) el.postLoad();
 			else if (lx.unpackType == lx.POSTUNPACK_TYPE_FIRST_DISPLAY) el.displayOnce(el.postLoad);

@@ -133,9 +133,6 @@ class ModelListDisplayer #lx:namespace lx {
 		for (var name in fields) head.add(lx.Box, {text: name}).align(lx.CENTER, lx.MIDDLE);
 		post.forEach((a)=>head.add(lx.Box, {text:a.label}).align(lx.CENTER, lx.MIDDLE));
 
-
-		lx.timetest.start();
-
 		body.matrix({
 			items: data,
 			itemBox: [lx.Form, {grid: {cols: colsCount, indent: '10px'}}],
