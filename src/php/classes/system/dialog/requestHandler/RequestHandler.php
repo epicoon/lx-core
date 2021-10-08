@@ -7,7 +7,6 @@ use lx;
 abstract class RequestHandler
 {
     use ObjectTrait;
-    use ApplicationToolTrait;
 
     protected ?ResourceContext $resourceContext = null;
     protected ?ResponseInterface $response = null;
@@ -47,12 +46,12 @@ abstract class RequestHandler
 
         if ($response->getCode() == ResponseCodeEnum::OK) {
             $this->beforeSuccessfulSending();
-            $this->app->dialog->send($response);
+            lx::$app->dialog->send($response);
             $this->afterSuccessfulSending();
         } else {
             $response = $this->processProblemResponse($response);
             $this->beforeFailedSending();
-            $this->app->dialog->send($response);
+            lx::$app->dialog->send($response);
             $this->afterFailedSending();
         }
     }
@@ -75,7 +74,7 @@ abstract class RequestHandler
                 $this->resourceContext = $resourceContext;
             }
         } else {
-            $router = $this->app->router;
+            $router = lx::$app->router;
             if ($router !== null) {
                 $resourceContext = $router->route();
                 if ($resourceContext !== null) {
@@ -87,7 +86,7 @@ abstract class RequestHandler
 
     private function setNotFoundResponse(): void
     {
-        $this->response = $this->app->diProcessor->createByInterface(ResponseInterface::class, [
+        $this->response = lx::$app->diProcessor->createByInterface(ResponseInterface::class, [
             'Resource not found',
             ResponseCodeEnum::NOT_FOUND,
         ]);

@@ -35,7 +35,9 @@ interface UserManagerInterface
      * @return array<UserInterface>
      */
 	public function getUsers(?int $offset = 0, ?int $limit = null): array;
-	
+
+    public function getUser(ModelInterface $userData): UserInterface;
+
 	/**
 	 * @param mixed $userAuthValue
 	 */

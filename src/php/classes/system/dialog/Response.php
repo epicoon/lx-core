@@ -28,10 +28,10 @@ class Response implements ResponseInterface
         $this->isWarning = true;
     }
 
-    public function applyResponseParams(): void
+    public function beforeSend(): void
     {
         http_response_code($this->getCode());
-        header("Content-Type: text/{$this->getType()}; charset=utf-8");
+        header("Content-Type: text/{$this->getDataType()}; charset=utf-8");
     }
 
     public function getCode(): int
@@ -57,16 +57,16 @@ class Response implements ResponseInterface
         return $this->data;
     }
 
-    public function getDataString(): string
+    public function getDataAsString(): string
     {
         $data = $this->getFullData();
-        $type = $this->getType();
+        $type = $this->getDataType();
         if ($type == 'html' || $type == 'plane') {
             return $data;
         }
 
         //TODO сериалайзер
-        if ($this->getType() == 'json') {
+        if ($this->getDataType() == 'json') {
             $result = $this->isSuccessfull()
                 ? [
                     'success' => !$this->isWarning,
@@ -84,7 +84,7 @@ class Response implements ResponseInterface
         return '';
     }
 
-    public function getType(): string
+    public function getDataType(): string
     {
         if (!isset($this->type)) {
             switch (true) {

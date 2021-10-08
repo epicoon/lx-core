@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class CommonRequestHandler extends RequestHandler
 {
     protected function defineResponse(): void
@@ -16,15 +18,15 @@ class CommonRequestHandler extends RequestHandler
 
     protected function processProblemResponse(ResponseInterface $response): ResponseInterface
     {
-        if ($this->app->dialog->isAssetLoad()) {
-            $url = $this->app->dialog->getUrl();
+        if (lx::$app->dialog->isAssetLoad()) {
+            $url = lx::$app->dialog->getUrl();
             $assetName = 'unknown';
             switch (true) {
                 case preg_match('/\.js$/', $url):
                     $assetName = 'javascript file';
             }
             $msg = "Asset ($assetName) \"$url\" not found";
-            return $this->app->diProcessor->createByInterface(ResponseInterface::class, [
+            return lx::$app->diProcessor->createByInterface(ResponseInterface::class, [
                 'console.error(\'' . $msg . '\');',
                 ResponseCodeEnum::NOT_FOUND,
             ]);

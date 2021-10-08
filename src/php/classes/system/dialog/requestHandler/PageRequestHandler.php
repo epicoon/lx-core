@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class PageRequestHandler extends RequestHandler
 {
     private ?string $title = null;
@@ -18,8 +20,8 @@ class PageRequestHandler extends RequestHandler
 
         $response = $this->resourceContext->invoke();
 
-        if ($response->isForbidden() && $this->app->user->isGuest()) {
-            $resourceContext = $this->app->authenticationGate->responseToAuthenticate() ?? null;
+        if ($response->isForbidden() && lx::$app->user->isGuest()) {
+            $resourceContext = lx::$app->authenticationGate->responseToAuthenticate() ?? null;
             if ($resourceContext && $resourceContext->isPlugin()) {
                 $this->resourceContext = $resourceContext;
                 $response = $this->resourceContext->invoke();
@@ -40,12 +42,14 @@ class PageRequestHandler extends RequestHandler
     
     protected function processProblemResponse(ResponseInterface $response): ResponseInterface
     {
-        /** @var RendererInterface $renderer */
-        $renderer = $this->app->diProcessor->createByInterface(RendererInterface::class);
-        $result = $renderer->render($response->getCode() . '.php');
+        /** @var HtmlRendererInterface $renderer */
+        $renderer = lx::$app->diProcessor->createByInterface(HtmlRendererInterface::class);
+        $result = $renderer
+            ->setTemplateType($response->getCode())
+            ->render();
 
         /** @var ResponseInterface $response */
-        $newResponse = $this->app->diProcessor->createByInterface(ResponseInterface::class, [$result]);
+        $newResponse = lx::$app->diProcessor->createByInterface(ResponseInterface::class, [$result]);
         return $newResponse;
     }
 
@@ -61,12 +65,12 @@ class PageRequestHandler extends RequestHandler
             $modules = addcslashes($modules, '\\');
         }
 
-        list($jsBootstrap, $jsMain) = $this->app->getCommonJs();
-        $settings = ArrayHelper::arrayToJsCode($this->app->getSettings());
+        list($jsBootstrap, $jsMain) = lx::$app->getCommonJs();
+        $settings = ArrayHelper::arrayToJsCode(lx::$app->getSettings());
         $js = "lx.start($settings, `$modules`, `$jsBootstrap`, `$pluginInfo`, `$jsMain`);";
 
-        /** @var RendererInterface $renderer */
-        $renderer = $this->app->diProcessor->createByInterface(RendererInterface::class);
+        /** @var HtmlRendererInterface $renderer */
+        $renderer = lx::$app->diProcessor->createByInterface(HtmlRendererInterface::class);
 
         //TODO костыльно (2/2)
         $pageData = $pluginData['page'] ?? [];
@@ -77,13 +81,15 @@ class PageRequestHandler extends RequestHandler
             $pageData['icon'] = $this->icon;
         }
 
-        $result = $renderer->render('200.php', [
-            'head' => new HtmlHead($pageData),
-            'body' => new HtmlBody($pageData, $js),
-        ]);
+        $result = $renderer
+            ->setTemplateType(ResponseCodeEnum::OK)
+            ->setParams([
+                'head' => new HtmlHead($pageData),
+                'body' => new HtmlBody($pageData, $js),
+            ])->render();
 
         /** @var ResponseInterface $response */
-        $response = $this->app->diProcessor->createByInterface(ResponseInterface::class, [$result]);
+        $response = lx::$app->diProcessor->createByInterface(ResponseInterface::class, [$result]);
         return $response;
     }
 }

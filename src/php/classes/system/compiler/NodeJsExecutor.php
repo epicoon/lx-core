@@ -11,8 +11,9 @@ class NodeJsExecutor
     private string $postCode = '';
     private ?string $filePath = null;
     private ?FileInterface $file = null;
-    private array $requires = [];
+    private array $core = [];
     private array $modules = [];
+    private array $requires = [];
 
     public function __construct(?JsCompiler $compiler = null)
     {
@@ -85,10 +86,10 @@ class NodeJsExecutor
         $this->filePath = $file->getPath();
         return $this;
     }
-
-    public function setRequires(array $requires): NodeJsExecutor
+    
+    public function setCore(array $coreRequires): NodeJsExecutor
     {
-        $this->requires = $requires;
+        $this->core = $coreRequires;
         return $this;
     }
 
@@ -97,7 +98,13 @@ class NodeJsExecutor
         $this->modules = $modules;
         return $this;
     }
-    
+
+    public function setRequires(array $requires): NodeJsExecutor
+    {
+        $this->requires = $requires;
+        return $this;
+    }
+
     public function getCode(): ?string
     {
         if ($this->code) {
@@ -159,6 +166,13 @@ class NodeJsExecutor
         $this->compiler->setContext(JsCompiler::CONTEXT_SERVER);
 
         $core = $this->compiler->compileCode('#lx:require @core/js/lx.js;', $this->filePath);
+        $commonCore = '';
+        foreach ($this->core as $coreItem) {
+            $commonCore .= '#lx:require ' . $coreItem . ';';
+        }
+        if ($commonCore !== '') {
+            $core .= $this->compiler->compileCode($commonCore);
+        }
 
         $commonCode = '';
         foreach ($this->modules as $module) {

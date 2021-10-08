@@ -2,10 +2,10 @@
 
 namespace lx;
 
+use lx;
+
 class SnippetBuildContext implements ContextTreeInterface
 {
-    use ObjectTrait;
-	use ApplicationToolTrait;
 	use ContextTreeTrait;
 
 	private PluginBuildContext $pluginBuildContext;
@@ -175,7 +175,7 @@ class SnippetBuildContext implements ContextTreeInterface
 
 	private function runSnippetCode(): void
 	{
-		$app = $this->app;
+		$app = lx::$app;
 		$plugin = $this->getPlugin();
 		$snippet = $this->snippet;
 
@@ -183,6 +183,9 @@ class SnippetBuildContext implements ContextTreeInterface
 		$pluginData = ArrayHelper::arrayToJsCode($plugin->getBuildData());
 		$snippetData = ArrayHelper::arrayToJsCode($snippet->getBuildData());
 
+        $core = [
+            '@core/js/server/Module',
+        ];
 		$requires = [
 			'@core/js/server/Application',
 			'@core/js/server/Plugin',
@@ -191,11 +194,10 @@ class SnippetBuildContext implements ContextTreeInterface
 			'@core/js/server/file/',
 			'@core/js/server/hash/HashMd5',
 
-			'@core/js/helpers/Math',
 			'@core/js/helpers/Geom',
-
 			'@core/js/classes/Object',
 			'@core/js/tools/Collection',
+            '@core/js/tools/Math',
 			'@core/js/tools/Tree',
 			'@core/js/classes/DomElementDefinition',
 			'@core/js/classes/TagRenderer',
@@ -232,8 +234,9 @@ class SnippetBuildContext implements ContextTreeInterface
             ->setFile($snippet->getFile())
             ->setPrevCode($pre)
             ->setPostCode($post)
-            ->setRequires($requires)
+            ->setCore($core)
             ->setModules($modules)
+            ->setRequires($requires)
             ->run();
 
 		$app->applyBuildData($res['app']);

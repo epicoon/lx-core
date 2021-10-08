@@ -4,7 +4,6 @@ namespace lx;
 
 class User implements UserInterface, FusionComponentInterface
 {
-	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
     private ?ModelInterface $userModel = null;

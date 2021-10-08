@@ -1,3 +1,5 @@
+// Compilation for backend and frontend js
+
 #lx:require app/js_extends;
 
 #lx:client { window.lx = {}; };

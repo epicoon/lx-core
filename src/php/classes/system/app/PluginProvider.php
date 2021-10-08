@@ -2,20 +2,16 @@
 
 namespace lx;
 
+use lx;
+
 class PluginProvider
 {
-    private AbstractApplication $app;
     private ?Service $service = null;
     private ?string $serviceName = null;
     private ?string $pluginName = null;
     private ?array $attributes = null;
     private ?string $onLoad = null;
-    
-    public function __construct(AbstractApplication $app)
-    {
-        $this->app = $app;
-    }
-    
+
     public function setService(Service $service): PluginProvider
     {
         $this->service = $service;
@@ -99,7 +95,7 @@ class PluginProvider
         }
         
         if ($this->serviceName) {
-            $this->service = $this->app->getService($this->serviceName);
+            $this->service = lx::$app->getService($this->serviceName);
             return $this->service;
         }
         
@@ -110,13 +106,13 @@ class PluginProvider
             }
             $this->serviceName = $arr[0];
             $this->pluginName = $arr[1];
-            $this->service = $this->app->getService($this->serviceName);
+            $this->service = lx::$app->getService($this->serviceName);
             return $this->service;
         }
 
         return null;
     }
-    
+
     private function getPluginName(): ?string
     {
         if ($this->pluginName && strpos($this->pluginName, ':')) {
@@ -126,7 +122,7 @@ class PluginProvider
             }
             $this->serviceName = $arr[0];
             $this->pluginName = $arr[1];
-            $this->service = $this->app->getService($this->serviceName);
+            $this->service = lx::$app->getService($this->serviceName);
         }
         
         return $this->pluginName;

@@ -15,6 +15,9 @@ class DbQueryBuilder
     public function query(string $query): void
     {
         $this->query = $query;
+        
+        
+        
     }
 
     

@@ -6,7 +6,6 @@ use lx;
 
 class DevApplicationLifeCycleManager implements FusionComponentInterface, EventListenerInterface
 {
-    use ApplicationToolTrait;
     use FusionComponentTrait;
     use EventListenerTrait;
 

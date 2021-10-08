@@ -2,9 +2,10 @@
 
 namespace lx;
 
+use lx;
+
 class Router implements FusionComponentInterface
 {
-	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
 	protected array $routes = [];
@@ -17,7 +18,7 @@ class Router implements FusionComponentInterface
 				continue;
 			}
 
-			$serviceRoute = $this->determineServiceRoute($routeKey, $this->app->dialog->getRoute());
+			$serviceRoute = $this->determineServiceRoute($routeKey, lx::$app->dialog->getRoute());
 			if (!$serviceRoute) {
 				continue;
 			}
@@ -27,7 +28,7 @@ class Router implements FusionComponentInterface
 				return null;
 			}
 
-			$service = $this->app->getService($serviceRouteData['service']);
+			$service = lx::$app->getService($serviceRouteData['service']);
 			if (!$service) {
 				return null;
 			}
@@ -148,7 +149,7 @@ class Router implements FusionComponentInterface
 
 	private function validateRouteData(array $routeData): bool
 	{
-		if (isset($routeData['on-mode']) && !$this->app->isMode($routeData['on-mode'])) {
+		if (isset($routeData['on-mode']) && !lx::$app->isMode($routeData['on-mode'])) {
 			return false;
 		}
 

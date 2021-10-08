@@ -2,10 +2,11 @@
 
 namespace lx;
 
+use lx;
+
 class SnippetCacheData
 {
     use ObjectTrait;
-	use ApplicationToolTrait;
 
 	private SnippetBuildContext $snippetBuildContext;
 	private string $buildType;
@@ -79,7 +80,7 @@ class SnippetCacheData
 
 			$path = $snippet->getFile()->getRelativePath($plugin->directory);
 			if (!$path) {
-				$path = '@site/' . $snippet->getFile()->getRelativePath($this->app->sitePath);
+				$path = '@site/' . $snippet->getFile()->getRelativePath(lx::$app->sitePath);
 			}
 
 			$dependencies = $snippet->getDependencies();
@@ -157,7 +158,7 @@ class SnippetCacheData
 
 			$path = $snippet->getFile()->getRelativePath($plugin->directory);
 			if (!$path) {
-				$path = '@site/' . $snippet->getFile()->getRelativePath($this->app->sitePath);
+				$path = '@site/' . $snippet->getFile()->getRelativePath(lx::$app->sitePath);
 			}
 
 			$dependencies = $snippet->getDependencies();

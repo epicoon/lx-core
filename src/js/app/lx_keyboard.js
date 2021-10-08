@@ -43,7 +43,6 @@ lx.onKeydown = function(key, func, context = {}) {
 	if (!keydownHandlers[key])
 		keydownHandlers[key] = [];
 	keydownHandlers[key].push({handler:func, context});
-	console.log(keydownHandlers);
 };
 
 lx.offKeydown = function(key, func, context = {}) {

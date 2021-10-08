@@ -161,13 +161,19 @@ class AssetCompiler
 	{
 		$path = \lx::$conductor->jsCore;
 		$code = file_get_contents($path);
+
 		$jsCompiler = new JsCompiler();
 		$code = $jsCompiler->compileCode($code, $path);
 
-		$servicesList = PackageBrowser::getServicesList();
-		foreach ($servicesList as $service) {
-			$code .= $service->getJsCoreExtension();
-		}
+        $servicesList = PackageBrowser::getServicesList();
+        $modules = [];
+        foreach ($servicesList as $service) {
+            $modules = array_merge($modules, $service->getJsModules());
+        }
+        if (!empty($modules)) {
+            $modulesProvider = new JsModuleProvider();
+            $code .= $modulesProvider->getModulesCode($modules);
+        }
 
 		if (\lx::$app->language) {
 			$code .= 'lx.lang=' . ArrayHelper::arrayToJsCode(\lx::$app->language->getCurrentData()) . ';';

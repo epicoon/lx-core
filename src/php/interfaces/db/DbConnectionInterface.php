@@ -23,6 +23,7 @@ interface DbConnectionInterface extends FlightRecorderHolderInterface
     public function tableExists(string $name): bool;
     public function renameTable(string $oldName, string $newName): bool;
     public function dropTable(string $name): bool;
+    //TODO DbTable нужен интерфейс?
     public function getTable(string $name): DbTable;
 
     /**
@@ -31,6 +32,7 @@ interface DbConnectionInterface extends FlightRecorderHolderInterface
     public function query(string $query);
     public function massUpdate(string $tableName, array $rows): bool;
 
+    //TODO DbTableSchema нужен интерфейс?
     public function getCreateTableQuery(DbTableSchema $schema): string;
     /**
      * @param string|array $fields
@@ -52,6 +54,9 @@ interface DbConnectionInterface extends FlightRecorderHolderInterface
     public function getDelColumnQuery(string $tableName, string $fieldName): string;
     public function getChangeColumnQuery(string $tableName, DbTableField $field): string;
     public function getRenameColumnQuery(string $tableName, string $oldFieldName, string $newFieldName): string;
+
+    //TODO - метод с претензией на private, в данный момент публичный, т.к. используется в DbTable для сборки запросов
+    // если сборку запросов перенести в базу, то и метод можно будет сделать приватным
     /**
      * @param mixed $value
      */

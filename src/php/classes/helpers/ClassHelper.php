@@ -6,7 +6,11 @@ class ClassHelper
 {
 	public static function checkInstance(string $currentClass, string $baseClass): bool
 	{
-		return ($currentClass == $baseClass || is_subclass_of($currentClass, $baseClass));
+		return (
+            $currentClass == $baseClass
+            || is_subclass_of($currentClass, $baseClass)
+            || self::implements($currentClass, $baseClass)
+        );
 	}
 
 	public static function exists(string $className): bool
@@ -34,14 +38,13 @@ class ClassHelper
 
 		try {
 			$reflected = new \ReflectionClass($class);
+            foreach (array($interfaces) as $interface) {
+                if (!$reflected->implementsInterface($interface)) {
+                    return false;
+                }
+            }
 		} catch (\Exception $e) {
 			return false;
-		}
-
-		foreach (array($interfaces) as $interface) {
-			if (!$reflected->implementsInterface($interface)) {
-				return false;
-			}
 		}
 
 		return true;

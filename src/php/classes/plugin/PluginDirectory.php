@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class PluginDirectory extends Directory implements FusionComponentInterface
 {
 	use FusionComponentTrait;
@@ -18,7 +20,7 @@ class PluginDirectory extends Directory implements FusionComponentInterface
 		$this->__objectConstruct($config);
 
 		$path = $this->getPlugin()
-			? $this->getPlugin()->app->sitePath . '/' . $this->getPlugin()->relativePath
+			? lx::$app->sitePath . '/' . $this->getPlugin()->relativePath
 			: ($config['path'] ?? null);
 
 		if ($path) {

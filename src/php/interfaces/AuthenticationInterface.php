@@ -10,4 +10,5 @@ interface AuthenticationInterface extends EventListenerInterface
 	 */
 	public function responseToAuthenticate(): ?ResourceContext;
 	public function getProblemCode(): int;
+    public function getJsModules(): array;
 }

@@ -18,7 +18,8 @@ class DependencyProcessor
             DataFileInterface::class => DataFile::class,
             EventManagerInterface::class => EventManager::class,
             ResponseInterface::class => Response::class,
-            RendererInterface::class => Renderer::class,
+            HtmlRendererInterface::class => HtmlRenderer::class,
+            HtmlTemplateProviderInterface::class => HtmlTemplateProvider::class,
             UserInterface::class => User::class,
         ]);
 	}
@@ -237,17 +238,23 @@ class DependencyProcessor
 	{
 		$config = $params;
 		$name = $reflection->getName();
-		$protocol = $reflection->getMethod('getConfigProtocol')->invoke(null);
-		$diMap = $reflection->getMethod('diMap')->invoke(null);
+		$protocol = $reflection->getMethod('getDependenciesConfig')->invoke(null);
+		$diMap = $reflection->getMethod('getDependenciesDefaultMap')->invoke(null);
 
-		foreach ($protocol as $paramName => $paramDiscr) {
+		foreach ($protocol as $paramName => $paramDescription) {
 			if (array_key_exists($paramName, $config)) {
 				continue;
 			}
+            
+            if (is_string($paramDescription)) {
+                $paramDescription = ['instance' => $paramDescription];
+            }
+            
+            if ($paramDescription['lasy'] ?? false) {
+                continue;
+            }
 
-			$instanceName = is_string($paramDiscr)
-				? $paramDiscr
-				: ($paramDiscr['instance'] ?? null);
+			$instanceName = $paramDescription['instance'] ?? null;
 			if (!$instanceName) {
 				continue;
 			}

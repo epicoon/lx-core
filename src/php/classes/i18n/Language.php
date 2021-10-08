@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 /**
  * @property-read array $list
  * @property-read string $currentCode
@@ -10,7 +12,6 @@ namespace lx;
  */
 class Language implements FusionComponentInterface
 {
-	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
 	protected array $_list = [];
@@ -20,8 +21,8 @@ class Language implements FusionComponentInterface
 	{
 	    $this->__objectConstruct($config);
 
-		$filePath = \lx::$conductor->lxData . '/languages';
-		$file = $this->app->diProcessor->createByInterface(DataFileInterface::class, [$filePath]);
+		$filePath = lx::$conductor->lxData . '/languages';
+		$file = lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$filePath]);
 
 		$this->_list = $file->exists()
 			? $file->get()

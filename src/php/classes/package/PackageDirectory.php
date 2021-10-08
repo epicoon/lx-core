@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class PackageDirectory extends Directory implements FusionComponentInterface
 {
 	use FusionComponentTrait;
@@ -18,7 +20,7 @@ class PackageDirectory extends Directory implements FusionComponentInterface
 		$this->__objectConstruct($config);
 
 		$path = $this->getService()
-			? $this->getService()->app->sitePath . '/' . $this->getService()->relativePath
+			? lx::$app->sitePath . '/' . $this->getService()->relativePath
 			: ($config['path'] ?? null);
 
 		if ($path) {

@@ -2,10 +2,11 @@
 
 namespace lx;
 
+use lx;
+
 class Resource implements ResourceInterface
 {
     use ObjectTrait;
-	use ApplicationToolTrait;
 
 	private ?ResourceVoterInterface $voter = null;
 
@@ -19,7 +20,7 @@ class Resource implements ResourceInterface
 		}
 	}
 
-	public static function getConfigProtocol(): array
+	public static function getDependenciesConfig(): array
 	{
 		return [
 			'voter' => ResourceVoterInterface::class,
@@ -49,7 +50,7 @@ class Resource implements ResourceInterface
         return $this->newResponse($error, $code);
     }
 
-	public function run(array $params, UserInterface $user = null): ResponseInterface
+	public function run(array $params, ?UserInterface $user = null): ResponseInterface
 	{
 	    return $this->newResponse('Resource not found', ResponseCodeEnum::NOT_FOUND);
 	}
@@ -80,7 +81,7 @@ class Resource implements ResourceInterface
 		}
 
 		if ($user === null) {
-			$user = $this->app->user;
+			$user = lx::$app->user;
 		}
 
 		if ($user && $this->voter) {
@@ -155,6 +156,6 @@ class Resource implements ResourceInterface
      */
     protected function newResponse($data, int $code = ResponseCodeEnum::OK): ResponseInterface
     {
-        return $this->app->diProcessor->createByInterface(ResponseInterface::class, [$data, $code]);
+        return lx::$app->diProcessor->createByInterface(ResponseInterface::class, [$data, $code]);
     }
 }

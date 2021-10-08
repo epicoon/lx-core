@@ -5,8 +5,9 @@
 /**
  * @group {i18n:widgets}
  * */
-class Rect #lx:namespace lx {
+class Rect extends lx.Module #lx:namespace lx {
     constructor(config = {}) {
+        super();
         this.__construct();
 
         #lx:client {
@@ -1118,7 +1119,7 @@ class Rect #lx:namespace lx {
                  * 5. Этот метод будет вызван повторно, чтобы не попасть в рекурсию - при попытке присвоить значние, идентичное текущему,
                  *    ничего не делаем - логично, если значение x "поменялось" на значение x, изменений не произошло - событие 'change' не должно триггериться
                  */
-                if (lx.CompareHelper.deepCompare(val, oldVal)) return;
+                if (lx.Comparator.deepCompare(val, oldVal)) return;
                 this.innerValue(val);
                 func.call(this, val, oldVal);
                 this.trigger('change', val, oldVal);
@@ -1572,14 +1573,6 @@ class Rect #lx:namespace lx {
 
         restoreLinks(loader) {
             // pass
-        }
-
-        /**
-         * @param key - ключ вызываемого метода
-         * @param params - параметры, с которыми нужно вызвать метод
-         * */
-        static ajax(key, params = []) {
-            return new lx.WidgetRequest(this.lxFullName(), key, params);
         }
     }
     /* 8. Load */

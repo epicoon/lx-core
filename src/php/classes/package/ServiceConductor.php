@@ -28,7 +28,7 @@ class ServiceConductor implements ConductorInterface, FusionComponentInterface
 			$relativePath = $this->getPath();
 		}
 
-		return $this->getService()->app->conductor->getFullPath($fileName, $relativePath);
+		return lx::$app->conductor->getFullPath($fileName, $relativePath);
 	}
 
 	public function getRelativePath(string $path, ?string $defaultLocation = null): string

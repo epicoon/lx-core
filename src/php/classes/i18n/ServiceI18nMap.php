@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class ServiceI18nMap extends I18nMap
 {
 	protected ?array $fullMap = null;
@@ -15,7 +17,7 @@ class ServiceI18nMap extends I18nMap
 	{
 		if (!$this->fullMap) {
 			$selfMap = $this->getMap();
-			$appMap = $this->app->i18nMap->getMap();
+			$appMap = lx::$app->i18nMap->getMap();
 			$this->fullMap = $this->mapMerge($selfMap, $appMap);
 		}
 

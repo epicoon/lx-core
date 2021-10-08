@@ -2,9 +2,10 @@
 
 namespace lx;
 
+use lx;
+
 abstract class I18nMap implements FusionComponentInterface
 {
-	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
 	const DEFAULT_FILE_NAME = 'i18n';
@@ -57,7 +58,7 @@ abstract class I18nMap implements FusionComponentInterface
 
 	protected function mapMerge(array $map1, array $map2, bool $rewrite = false): array
 	{
-		$codes = $this->app->language->codes;
+		$codes = lx::$app->language->codes;
 
 		foreach ($map2 as $key => $value) {
 			if (!in_array($key, $codes)) {
@@ -141,14 +142,14 @@ abstract class I18nMap implements FusionComponentInterface
 			foreach ($ff as $f) {
 				$fPath = "$path$f";
 				/** @var DataFileInterface $file */
-				$file = $this->app->diProcessor->createByInterface(DataFileInterface::class, [$fPath]);
+				$file = lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$fPath]);
 				if ($file->exists()) {
 					$result = $this->mapMerge($result, $file->get(), true);
 				}
 			}
 		} else {
 			/** @var DataFileInterface $file */
-			$file = $this->app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
+			$file = lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
 			return $file->exists() ? $file->get() : [];
 		}
 	}

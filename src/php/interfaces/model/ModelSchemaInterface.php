@@ -4,5 +4,5 @@ namespace lx;
 
 interface ModelSchemaInterface
 {
-    public function toArray(): array;
+    public function toArray(): iterable;
 }

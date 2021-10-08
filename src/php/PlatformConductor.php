@@ -3,13 +3,9 @@
 namespace lx;
 
 /**
- * Conductor classes can find different pathes in applications
+ * Conductor classes can find different pathes in the application
  * This is the most common conductor for the platform
- * 
- * Class PlatformConductor
- * @package lx
  *
- * @property-read string $site
  * @property-read string $sitePath
  * @property-read string $web
  * @property-read string $webCss
@@ -81,7 +77,7 @@ class PlatformConductor
 
 	public function __get(string $name): ?string
 	{
-		if ($name == 'site' || $name == 'sitePath') {
+		if ($name == 'sitePath') {
 			return $this->_sitePath;
 		}
 

@@ -58,9 +58,9 @@ class Plugin extends Resource implements FusionInterface
 		}
 
 		$config = $data['config'];
-		$commonConfig = $this->app->getDefaultPluginConfig();
+		$commonConfig = lx::$app->getDefaultPluginConfig();
 		ConfigHelper::preparePluginConfig($commonConfig, $config);
-		$injections = $this->app->getConfig('configInjection') ?? [];
+		$injections = lx::$app->getConfig('configInjection') ?? [];
 		ConfigHelper::pluginInject($this->name, $this->prototype, $injections, $config);
 		$this->config = $config;
 
@@ -154,7 +154,7 @@ class Plugin extends Resource implements FusionInterface
 	public function getPrototypePlugin(): ?Plugin
 	{
 		if ($this->prototype) {
-			return $this->app->getPlugin($this->prototype);
+			return lx::$app->getPlugin($this->prototype);
 		}
 
 		return null;
@@ -164,7 +164,7 @@ class Plugin extends Resource implements FusionInterface
 	{
 		if ($this->prototype) {
 			$serviceName = explode(':', $this->prototype)[0];
-			return $this->app->getService($serviceName);
+			return lx::$app->getService($serviceName);
 		}
 
 		return null;
@@ -176,7 +176,7 @@ class Plugin extends Resource implements FusionInterface
 			return $this;
 		}
 
-		return $this->app->getPlugin($this->prototype)->getRootPlugin();
+		return lx::$app->getPlugin($this->prototype)->getRootPlugin();
 	}
 
 	public function getRootService(): Service
@@ -185,7 +185,7 @@ class Plugin extends Resource implements FusionInterface
 			return $this->getService();
 		}
 
-		return $this->app->getPlugin($this->prototype)->getRootPlugin()->getService();
+		return lx::$app->getPlugin($this->prototype)->getRootPlugin()->getService();
 	}
 
 	public function getPath(): string
@@ -246,7 +246,7 @@ class Plugin extends Resource implements FusionInterface
             return null;
         }
 
-        return $this->app->conductor->getRelativePath($icon, lx::$app->sitePath);
+        return lx::$app->conductor->getRelativePath($icon, lx::$app->sitePath);
     }
 
 	public function getRespondent(string $name): ?Respondent
@@ -257,7 +257,7 @@ class Plugin extends Resource implements FusionInterface
 	/**
 	 * This method is used by ResourceContext for return Plugin as resource
 	 */
-	public function run(array $params = [], UserInterface $user = null): ResponseInterface
+	public function run(array $params = [], ?UserInterface $user = null): ResponseInterface
 	{
 		$builder = new PluginBuildContext(['plugin' => $this]);
 		$result = $builder->build();
@@ -591,7 +591,7 @@ class Plugin extends Resource implements FusionInterface
 		}
 
 		$linksMap = AssetCompiler::getLinksMap($arr);
-		$this->app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
+		lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
 		    $linksMap['origins'],
             $linksMap['links']
         ]);
@@ -607,7 +607,7 @@ class Plugin extends Resource implements FusionInterface
 	{
 		$list = $this->getOriginCss();
 		$linksMap = AssetCompiler::getLinksMap($list);
-        $this->app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
+        lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
             $linksMap['origins'],
             $linksMap['links']
         ]);
@@ -619,7 +619,7 @@ class Plugin extends Resource implements FusionInterface
 	{
 		$list = $this->getOriginImagePathes();
 		$linksMap = AssetCompiler::getLinksMap($list);
-        $this->app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
+        lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
             $linksMap['origins'],
             $linksMap['links']
         ]);

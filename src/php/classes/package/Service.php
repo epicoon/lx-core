@@ -11,12 +11,12 @@ use lx;
  * @property-read ServiceConductor $conductor
  * @property-read ServiceRouter $router
  * @property-read ServiceI18nMap $i18nMap
+ * @property-read DbConnectorInterface|null $dbConnector
  * @property-read ModelManagerInterface|null $modelManager
  */
 class Service implements FusionInterface
 {
     use ObjectTrait;
-	use ApplicationToolTrait;
 	use FusionTrait;
 
 	protected string $_name;
@@ -37,6 +37,14 @@ class Service implements FusionInterface
         $this->_config = $serviceConfig;
         $this->initFusionComponents($this->getConfig('components') ?? []);
 	}
+    
+    public function getFusionComponentTypes(): array
+    {
+        return [
+            'dbConnector' => DbConnectorInterface::class,
+            'modelManager' => ModelManagerInterface::class,
+        ];
+    }
 
     public function getDefaultFusionComponents(): array
     {
@@ -45,7 +53,6 @@ class Service implements FusionInterface
             'conductor' => ServiceConductor::class,
             'router' => ServiceRouter::class,
             'i18nMap' => ServiceI18nMap::class,
-            'modelManager' => ModelManagerInterface::class,
         ];
     }
 
@@ -183,10 +190,10 @@ class Service implements FusionInterface
         }
 	}
 
-	public function getJsCoreExtension(): string
-	{
-		return '';
-	}
+    public function getJsModules(): array
+    {
+        return [];
+    }
 
 	public function getMode(): string
 	{
@@ -237,7 +244,7 @@ class Service implements FusionInterface
         $processConfig = $processData['config'] ?? [];
 
         if (is_subclass_of($processClassName, AbstractApplication::class)) {
-            $appConfig = $this->app->getConfig();
+            $appConfig = lx::$app->getConfig();
             $processConfig = ArrayHelper::mergeRecursiveDistinct($appConfig, $processConfig, true);
         }
 
@@ -296,7 +303,7 @@ class Service implements FusionInterface
 		if ($dynamicPlugins && array_key_exists($pluginName, $dynamicPlugins)) {
 			$info = $dynamicPlugins[$pluginName];
 			if (is_string($info)) {
-				$path = $this->app->getPluginPath($info);
+				$path = lx::$app->getPluginPath($info);
 				return ($path !== null);
 			}
 
@@ -305,7 +312,7 @@ class Service implements FusionInterface
 					return method_exists($this, $info['method']);
 				}
 
-				$path = $this->app->getPluginPath($info['prototype'] ?? null);
+				$path = lx::$app->getPluginPath($info['prototype'] ?? null);
 				return ($path !== null);
 			}
 
@@ -355,7 +362,7 @@ class Service implements FusionInterface
 			if (!isset($info['prototype'])) {
 				return null;
 			}
-			$path = $this->app->getPluginPath($info['prototype']);
+			$path = lx::$app->getPluginPath($info['prototype']);
 			if (!$path) {
 				return null;
 			}
@@ -380,7 +387,7 @@ class Service implements FusionInterface
 
 	public function includePlugin(string $outerPluginName, string $selfPluginName): ?Plugin
 	{
-		$path = $this->app->getPluginPath($outerPluginName);
+		$path = lx::$app->getPluginPath($outerPluginName);
 		return Plugin::create($this, $selfPluginName, $path);
 	}
 

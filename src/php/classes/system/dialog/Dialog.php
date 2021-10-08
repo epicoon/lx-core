@@ -2,9 +2,10 @@
 
 namespace lx;
 
+use lx;
+
 class Dialog implements FusionComponentInterface
 {
-	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
 	const REQUEST_TYPE_COMMON = 'common';
@@ -30,8 +31,8 @@ class Dialog implements FusionComponentInterface
 	{
 	    $this->__objectConstruct($config);
 
-		$this->_serverName = $this->app->getConfig('serverName') ?? $_SERVER['SERVER_NAME'];
-		$this->_serverAddr = $this->app->getConfig('serverAddr') ?? $_SERVER['SERVER_ADDR'];
+		$this->_serverName = lx::$app->getConfig('serverName') ?? $_SERVER['SERVER_NAME'];
+		$this->_serverAddr = lx::$app->getConfig('serverAddr') ?? $_SERVER['SERVER_ADDR'];
 		$this->defineType();
 		$this->defineClientIp();
 	}
@@ -218,17 +219,17 @@ class Dialog implements FusionComponentInterface
 
 	public function send(ResponseInterface $response): void
 	{
-	    $response->applyResponseParams();
+	    $response->beforeSend();
 
         if ($this->isCors()) {
             $this->addCorsHeaders();
         }
 
-        if (!$this->app->user || $this->app->user->isGuest()) {
+        if (!lx::$app->user || lx::$app->user->isGuest()) {
             header('lx-user-status: guest');
         }
 
-        $this->echo($response->getDataString());
+        $this->echo($response->getDataAsString());
 	}
 
 	public function retrieveAll(): void
@@ -263,7 +264,7 @@ class Dialog implements FusionComponentInterface
 
 	private function addCorsHeaders(): void
 	{
-		$corsProcessor = $this->app->corsProcessor;
+		$corsProcessor = lx::$app->corsProcessor;
 		if (!$corsProcessor) {
 			return;
 		}

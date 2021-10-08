@@ -2,16 +2,19 @@
 
 namespace lx;
 
+use lx;
+
 trait ObjectTrait
 {
     private array $delegateList = [];
+    private array $objectDependencies = [];
 
-    public static function getConfigProtocol(): array
+    public static function getDependenciesConfig(): array
     {
         return [];
     }
 
-    public static function diMap(): array
+    public static function getDependenciesDefaultMap(): array
     {
         return [];
     }
@@ -86,6 +89,11 @@ trait ObjectTrait
             return $this->$name;
         }
 
+        $definition = $this->getDependencyDefinition($name);
+        if ($definition && ($definition['readable'] ?? false)) {
+            return $this->getReadableDependency($name);
+        }
+
         return null;
     }
 
@@ -137,12 +145,14 @@ trait ObjectTrait
 
     private function applyConfig(array $config): bool
     {
-        $protocol = static::getConfigProtocol();
+        $protocol = static::getDependenciesConfig();
         if (empty($protocol)) {
             return true;
         }
 
         foreach ($protocol as $paramName => $paramDescr) {
+            $paramDescr = $this->getDependencyDefinition($paramName);
+
             $required = $paramDescr['required'] ?? false;
             if (!array_key_exists($paramName, $config)) {
                 if ($required) {
@@ -157,9 +167,7 @@ trait ObjectTrait
                 continue;
             }
 
-            $class = is_string($paramDescr)
-                ? $paramDescr
-                : ($paramDescr['instance'] ?? null);
+            $class = $paramDescr['instance'] ?? null;
             if ($class) {
                 $param = $config[$paramName];
                 if (!($param instanceof $class)) {
@@ -197,11 +205,65 @@ trait ObjectTrait
         }
 
         if (ClassHelper::privatePropertyExists($this, $name)) {
+            //TODO devlog?
             return;
         }
 
         if (property_exists($this, $name)) {
             $this->$name = $value;
         }
+
+        $definition = $this->getDependencyDefinition($name);
+        if ($definition && ($definition['readable'] ?? false)) {
+            $this->objectDependencies[$name] = $value;
+        }
+    }
+
+    private function getDependencyDefinition(string $name): ?array
+    {
+        $protocol = static::getDependenciesConfig();
+        if (!array_key_exists($name, $protocol)) {
+            return null;
+        }
+
+        $definition = $protocol[$name];
+        $definition = is_string($definition)
+            ? ['instance' => $definition]
+            : $definition;
+
+        //TODO неочевидно, что ленивая загрузка обязательно делает зависимость читаемым полем
+        if ($definition['lasy'] ?? false) {
+            $definition['readable'] = true;
+        }
+
+        return $definition;
+    }
+
+    /**
+     * @return mixed
+     */
+    private function getReadableDependency(string $name)
+    {
+        if (array_key_exists($name, $this->objectDependencies)) {
+            return $this->objectDependencies[$name];
+        }
+
+        $definition = $this->getDependencyDefinition($name);
+        if ($definition && ($definition['lasy'] ?? false)) {
+            $class = $definition['instance'] ?? null;
+            if (!$class) {
+                $className = static::class;
+                \lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
+                    '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+                    'msg' => "Object dependency '$name' has unknown class or interface",
+                ]);
+                return false;
+            }
+
+            $this->objectDependencies[$name] = lx::$app->diProcessor->create($class);
+            return $this->objectDependencies[$name];
+        }
+
+        return null;
     }
 }

@@ -116,10 +116,6 @@ function watchForMove(event) {
 			if (newPos.x < 0) newPos.x = 0;
 		}
 
-		// if (info.xMinMove) {
-		// 	console.log(123);
-		// }
-
 		movedEl.left( newPos.x + 'px' );
 	}
 

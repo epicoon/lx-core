@@ -2,11 +2,11 @@
 
 namespace lx;
 
+use lx;
 use Exception;
 
 class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 {
-	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
 	const DEFAULT_CATEGORY = 'common';
@@ -93,7 +93,7 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 	protected function getLogPath(): string
 	{
 		$path = $this->path ?? self::DEFAULT_LOG_PATH;
-		return $this->app->conductor->getFullPath($path);
+		return lx::$app->conductor->getFullPath($path);
 	}
 
 	/**

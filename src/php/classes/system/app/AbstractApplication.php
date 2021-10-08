@@ -13,6 +13,16 @@ use lx;
  * @property-read PluginProvider $pluginProvider
  * @property-read DependencyProcessor $diProcessor
  * @property-read EventManagerInterface $events
+ * 
+ * Components:
+ * @property-read DbConnectorInterface|null $dbConnector
+ * @property-read UserManagerInterface|null $userManager
+ * @property-read UserInterface|null $user
+ * @property-read AuthenticationInterface|null $authenticationGate
+ * @property-read AuthorizationInterface|null $authorizationGate
+ * @property-read CorsProcessor|null $corsProcessor
+ * @property-read Language|null $language
+ * @property-read ApplicationI18nMap|null $i18nMap
  * @property-read LoggerInterface $logger
  */
 abstract class AbstractApplication implements FusionInterface
@@ -99,11 +109,26 @@ abstract class AbstractApplication implements FusionInterface
         if (!$aliases) $aliases = [];
         $this->_conductor->setAliases($aliases);
 
-        $this->initFusionComponents($this->getConfig('components') ?? [], static::getDefaultComponents());
+        $this->initFusionComponents($this->getConfig('components') ?? []);
         $this->init();
     }
 
-    protected static function getDefaultComponents(): array
+    public function getFusionComponentTypes(): array
+    {
+        return [
+            'dbConnector' => DbConnectorInterface::class,
+            'userManager' => UserManagerInterface::class,
+            'user' => UserInterface::class,
+            'authenticationGate' => AuthenticationInterface::class,
+            'authorizationGate' => AuthorizationInterface::class,
+            'corsProcessor' => CorsProcessor::class,
+            'language' => Language::class,
+            'i18nMap' => ApplicationI18nMap::class,
+            'logger' => LoggerInterface::class,
+        ];
+    }
+
+    public function getDefaultFusionComponents(): array
     {
         return [
             'logger' => ApplicationLogger::class,
@@ -130,9 +155,9 @@ abstract class AbstractApplication implements FusionInterface
 			case 'services':
 				return $this->_services;
             case 'serviceProvider':
-                return new ServiceProvider($this);
+                return new ServiceProvider();
             case 'pluginProvider':
-                return new PluginProvider($this);
+                return new PluginProvider();
             case 'diProcessor':
                 return $this->_diProcessor;
             case 'events':

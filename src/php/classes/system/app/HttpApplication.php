@@ -3,11 +3,9 @@
 namespace lx;
 
 /**
+ * @property-read HttpAssetsManager $assets
  * @property-read Router $router
  * @property-read Dialog $dialog
- * @property-read UserInterface|null $user
- * @property-read AuthenticationInterface|null $authenticationGate
- * @property-read AuthorizationInterface|null $authorizationGate
  */
 class HttpApplication extends BaseApplication
 {
@@ -19,15 +17,13 @@ class HttpApplication extends BaseApplication
 		];
 	}
 
-	protected static function getDefaultComponents(): array
+    public function getDefaultFusionComponents(): array
     {
-        return array_merge(parent::getDefaultComponents(), [
+        return array_merge(parent::getDefaultFusionComponents(), [
             'assets' => HttpAssetsManager::class,
             'router' => Router::class,
             'dialog' => Dialog::class,
             'user' => UserInterface::class,
-            'authenticationGate' => AuthenticationInterface::class,
-            'authorizationGate' => AuthorizationInterface::class,
         ]);
     }
 

@@ -6,15 +6,10 @@ trait FusionTrait
 {
 	protected ?FusionComponentList $fusionComponentList = null;
 
-	public function initFusionComponents(array $list, array $defaults = []): void
+	public function initFusionComponents(array $list/*, array $defaults = []*/): void
 	{
-		$allDefaults = ArrayHelper::mergeRecursiveDistinct(
-			$defaults,
-			$this->getDefaultFusionComponents()
-		);
-
 		$this->fusionComponentList = new FusionComponentList($this);
-		$this->fusionComponentList->load($list, $allDefaults);
+        $this->fusionComponentList->load($list, $this->getDefaultFusionComponents());
 	}
 
 	public function hasFusionComponent(string $name): bool
@@ -37,6 +32,11 @@ trait FusionTrait
 
 		return null;
 	}
+
+    public function getFusionComponentTypes(): array
+    {
+        return [];
+    }
 
 	public function getDefaultFusionComponents(): array
 	{

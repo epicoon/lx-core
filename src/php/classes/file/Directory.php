@@ -28,14 +28,14 @@ class Directory extends BaseFile implements DirectoryInterface
 		mkdir($this->getPath(), $mode, true);
 	}
 
-	public function makeDirectory(string $name, int $mode = 0777, bool $recursive = false): Directory
+	public function makeDirectory(string $name, int $mode = 0777, bool $recursive = false): DirectoryInterface
 	{
 		$path = $this->getPath() . '/' . $name;
 		mkdir($path, $mode, $recursive);
 		return new self($path);
 	}
 
-	public function copy(Directory $dir, bool $rewrite = false): bool
+	public function copy(DirectoryInterface $dir, bool $rewrite = false): bool
 	{
 		if ($this->exists()) {
 			if (!$rewrite) {
@@ -60,7 +60,7 @@ class Directory extends BaseFile implements DirectoryInterface
 		return true;
 	}
 
-	public function clone(string $path, bool $rewrite = false): ?Directory
+	public function clone(string $path, bool $rewrite = false): ?DirectoryInterface
 	{
 		$dir = new Directory($path);
 		if (!$dir->copy($this, $rewrite)) {
@@ -70,7 +70,7 @@ class Directory extends BaseFile implements DirectoryInterface
 		return $dir;
 	}
 
-	public function getOrMakeDirectory(string $name, int $mode = 0777, bool $recursive = false): Directory
+	public function getOrMakeDirectory(string $name, int $mode = 0777, bool $recursive = false): DirectoryInterface
 	{
 		if ($this->contains($name)) {
 			return $this->get($name);

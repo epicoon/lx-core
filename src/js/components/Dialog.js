@@ -220,7 +220,7 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 	// Инициализируем соединение
 	request.open(method, url, true);
 	if (__isAjax(url)) {
-		if (lx.__auth) lx.__auth(request);
+		lx.trigger(lx.EVENT_BEFORE_AJAX_REQUEST, [request]);
 	}
 	for (var name in headers) {
 		request.setRequestHeader(name, headers[name]);

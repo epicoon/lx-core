@@ -2,6 +2,7 @@
 
 namespace lx\hello\plugins\world\backend;
 
+use lx;
 use Exception;
 
 class Respondent extends \lx\Respondent {
@@ -21,7 +22,7 @@ class Respondent extends \lx\Respondent {
 
 	private function preparePlugin($name) {
 		try {
-			$plugin = $this->app->getPlugin($name);
+			$plugin = lx::$app->getPlugin($name);
 			if (!$plugin) {
 				return false;
 			}

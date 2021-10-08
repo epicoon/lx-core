@@ -20,9 +20,10 @@ class FusionComponentList
 		}
 
 		if (array_key_exists($name, $this->config)) {
-			$this->createInstance($name, $this->config[$name]);
-            unset($this->config[$name]);
-			return $this->list[$name];
+            if ($this->createInstance($name, $this->config[$name])) {
+                unset($this->config[$name]);
+                return $this->list[$name];
+            }
 		}
 
 		return null;
@@ -61,7 +62,8 @@ class FusionComponentList
 				continue;
 			}
 
-			if (is_subclass_of($data['class'], EventListenerInterface::class)) {
+            $lasy = $data['lasy'] ?? true;
+			if (!$lasy || is_subclass_of($data['class'], EventListenerInterface::class)) {
 			    $this->createInstance($name, $data);
             } else {
                 $this->config[$name] = $data;
@@ -69,10 +71,22 @@ class FusionComponentList
 		}
 	}
 
-	private function createInstance(string $name, array $data): void
+	private function createInstance(string $name, array $data): bool
     {
         $params = $data['params'];
         $params['__fusion__'] = $this->fusion;
-        $this->list[$name] = \lx::$app->diProcessor->create($data['class'], $params, [], get_class($this->fusion));
+        $className = $data['class'];
+        if (array_key_exists($name, $this->fusion->getFusionComponentTypes())) {
+            $type = $this->fusion->getFusionComponentTypes()[$name];
+            if (!ClassHelper::checkInstance($className, $type)) {
+                \lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
+                    '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+                    'msg' => "Component $name has to implement $type",
+                ]);
+                return false;
+            }
+        }
+        $this->list[$name] = \lx::$app->diProcessor->create($className, $params, [], get_class($this->fusion));
+        return true;
     }
 }

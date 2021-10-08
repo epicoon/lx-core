@@ -1,7 +1,10 @@
+// Compilation for frontend js
+
 #lx:require lx.js;
 
 #lx:require app/lx;
 #lx:require app/lx_start;
+#lx:require app/lx_lifeCycle;
 #lx:require app/lx_queue;
 #lx:require app/lx_storage;
 #lx:require app/lx_keyboard;

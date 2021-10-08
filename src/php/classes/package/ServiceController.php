@@ -28,9 +28,9 @@ class ServiceController extends Resource
 		return parent::__get($name);
 	}
 	
-	public static function getConfigProtocol(): array
+	public static function getDependenciesConfig(): array
 	{
-	    return array_merge(parent::getConfigProtocol(), [
+	    return array_merge(parent::getDependenciesConfig(), [
 	        'service' => [
                 'require' => true,
                 'instance' => Service::class,

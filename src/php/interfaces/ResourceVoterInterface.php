@@ -4,7 +4,7 @@ namespace lx;
 
 interface ResourceVoterInterface
 {
-	public function setResource(Resource $resource): void;
+	public function setResource(ResourceInterface $resource): void;
 
 	public function processActionParams(
 	    UserInterface $user,

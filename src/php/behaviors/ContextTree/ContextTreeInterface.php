@@ -7,9 +7,6 @@ namespace lx;
  */
 interface ContextTreeInterface
 {
-	/**
-	 * @magic __construct
-	 */
 	public function constructContextTree(iterable $config = []);
 	public function getHead(): ContextTreeInterface;
 	public function getKey(): string;

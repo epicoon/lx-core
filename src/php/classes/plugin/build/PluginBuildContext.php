@@ -2,10 +2,10 @@
 
 namespace lx;
 
+use lx;
+
 class PluginBuildContext implements ContextTreeInterface
 {
-    use ObjectTrait;
-	use ApplicationToolTrait;
 	use ContextTreeTrait;
 
 	const DEFAULT_PLUGIN_TITLE = 'lx';
@@ -96,7 +96,7 @@ class PluginBuildContext implements ContextTreeInterface
 	{
 		if (isset($dependencies['plugins'])) {
 			foreach ($dependencies['plugins'] as $pluginInfo) {
-                $plugin = $this->app->pluginProvider->getPluginByConfig($pluginInfo);
+                $plugin = lx::$app->pluginProvider->getPluginByConfig($pluginInfo);
 				$plugin->setAnchor($pluginInfo['anchor']);
 				$context = $this->add(['plugin' => $plugin]);
 				$context->compile();
@@ -115,7 +115,7 @@ class PluginBuildContext implements ContextTreeInterface
 
 		if (isset($dependencies['i18n'])) {
 			foreach ($dependencies['i18n'] as $config) {
-				$this->app->useI18n($config);
+				lx::$app->useI18n($config);
 			}
 		}
 	}

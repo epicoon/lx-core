@@ -5,7 +5,6 @@ namespace lx;
 abstract class AbstractResourceVoter implements ResourceVoterInterface
 {
     use ObjectTrait;
-	use ApplicationToolTrait;
 
 	protected Resource $owner;
 
@@ -14,7 +13,7 @@ abstract class AbstractResourceVoter implements ResourceVoterInterface
 		return $this->owner;
 	}
 
-	public function setResource(Resource $resource): void
+	public function setResource(ResourceInterface $resource): void
 	{
 		$this->owner = $resource;
 	}

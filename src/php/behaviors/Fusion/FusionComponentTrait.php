@@ -5,7 +5,7 @@ namespace lx;
 /**
  * @see FusionComponentInterface
  *
- * @property mixed $owner
+ * @property FusionInterface|null $owner
  */
 trait FusionComponentTrait
 {

@@ -5,28 +5,30 @@ namespace lx;
 interface CommonFileInterface
 {
     public function setPath(string $path): void;
-    public static function construct(string $path): ?BaseFile;
+    public static function construct(string $path): ?CommonFileInterface;
     public function getPath(): string;
     public function getName(): string;
     public function getParentDirPath(): string;
-    public function getParentDir(): Directory;
+    public function getParentDir(): DirectoryInterface;
     public function exists(): bool;
+    //TODO FileLinkInterface
     public function createLink(string $path): ?FileLink;
     public function remove(): bool;
     /**
-     * @param string|Directory $parent
+     * @param string|DirectoryInterface $parent
      */
     public function belongs($parent): bool;
     /**
-     * @param string|Directory $parent
+     * @param string|DirectoryInterface $parent
      */
     public function getRelativePath($parent): ?string;
     public function createdAt(): int;
-    public function isNewer(BaseFile $file): bool;
-    public function isOlder(BaseFile $file): bool;
+    public function isNewer(CommonFileInterface $file): bool;
+    public function isOlder(CommonFileInterface $file): bool;
     public function isDirectory(): bool;
     public function isFile(): bool;
+    //TODO isLink
     public function getType(): int;
     public function rename(string $newName): bool;
-    public function moveTo(Directory $dir, ?string $newName = null);
+    public function moveTo(DirectoryInterface $dir, ?string $newName = null);
 }

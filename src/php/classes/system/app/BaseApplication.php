@@ -2,17 +2,13 @@
 
 namespace lx;
 
-/**
- * @property-read Language $language
- * @property-read ApplicationI18nMap $i18nMap
- */
 abstract class BaseApplication extends AbstractApplication
 {
     protected array $settings = [];
 
-    protected static function getDefaultComponents(): array
+    public function getDefaultFusionComponents(): array
     {
-        return array_merge(parent::getDefaultComponents(), [
+        return array_merge(parent::getDefaultFusionComponents(), [
             'language' => Language::class,
             'i18nMap' => ApplicationI18nMap::class,
         ]);

@@ -2,10 +2,11 @@
 
 namespace lx;
 
+use lx;
+
 class ApplicationConductor implements ConductorInterface
 {
     use ObjectTrait;
-	use ApplicationToolTrait;
 
 	private array $aliases = [];
 
@@ -19,7 +20,7 @@ class ApplicationConductor implements ConductorInterface
 			return $result;
 		}
 
-		$result = \lx::$conductor->$name;
+		$result = lx::$conductor->$name;
 		if ($result !== false) {
 			return $result;
 		}
@@ -38,7 +39,7 @@ class ApplicationConductor implements ConductorInterface
 
 	public function getPath(): string
 	{
-		return \lx::$conductor->sitePath;
+		return lx::$conductor->sitePath;
 	}
 
 	/**
@@ -94,7 +95,7 @@ class ApplicationConductor implements ConductorInterface
 
 	public function getSystemPath(?string $name = null): string
 	{
-		return \lx::$conductor->getSystemPath($name);
+		return lx::$conductor->getSystemPath($name);
 	}
 
 	public function setAliases(array $arr): void
@@ -134,14 +135,16 @@ class ApplicationConductor implements ConductorInterface
 		$mask = $arr[0][0];
 		$alias = $arr[1][0];
 
-		if (array_key_exists($alias, $this->aliases)) {
+        if ($alias == 'site') {
+            $alias = lx::$conductor->sitePath;
+        } elseif (array_key_exists($alias, $this->aliases)) {
 			$alias = $this->aliases[$alias];
 		} else {
 			$alias = $this->$alias;
 		}
 
 		if (!$alias) {
-			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+			lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Can't decode alias '$path'",
 			]);
@@ -161,7 +164,7 @@ class ApplicationConductor implements ConductorInterface
 	{
 		preg_match_all('/^{([^:]+?):([^}]+?)}\/?(.+?)$/', $path, $matches);
 		if (empty($matches[1])) {
-			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+			lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 				'msg' => "Wrong stuff path '$path'",
 			]);
@@ -172,9 +175,9 @@ class ApplicationConductor implements ConductorInterface
 		$name = $matches[2][0];
 		$relativePath = $matches[3][0];
 		if ($key == 'package') {
-			$packagePath = $this->app->getPackagePath($name);
+			$packagePath = lx::$app->getPackagePath($name);
 			if (!$packagePath) {
-				\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+				lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 					'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 					'msg' => "Package '$name' is not found for '$path'",
 				]);
@@ -185,9 +188,9 @@ class ApplicationConductor implements ConductorInterface
 		}
 
 		if ($key == 'service') {
-			$service = $this->app->getService($name);
+			$service = lx::$app->getService($name);
 			if (!$service) {
-				\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+				lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 					'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 					'msg' => "Service '$name' is not found for '$path'",
 				]);
@@ -198,9 +201,9 @@ class ApplicationConductor implements ConductorInterface
 		}
 
 		if ($key == 'plugin') {
-			$plugin = $this->app->getPlugin($name);
+			$plugin = lx::$app->getPlugin($name);
 			if (!$plugin) {
-				\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+				lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 					'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 					'msg' => "Plugin '$name' is not found for '$path'",
 				]);

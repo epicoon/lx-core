@@ -35,7 +35,7 @@ abstract class BaseFile implements CommonFileInterface
 		$this->parentDir = implode('/', $arr);
 	}
 
-	public static function construct(string $path): ?BaseFile
+	public static function construct(string $path): ?CommonFileInterface
 	{
 		if (is_link($path)) {
 			return new FileLink($path);
@@ -145,12 +145,12 @@ abstract class BaseFile implements CommonFileInterface
 		return filemtime($this->getPath());
 	}
 
-	public function isNewer(BaseFile $file): bool
+	public function isNewer(CommonFileInterface $file): bool
 	{
 		return $this->createdAt() > $file->createdAt();
 	}
 
-	public function isOlder(BaseFile $file): bool
+	public function isOlder(CommonFileInterface $file): bool
 	{
 		return $this->createdAt() < $file->createdAt();
 	}
@@ -177,7 +177,7 @@ abstract class BaseFile implements CommonFileInterface
 		return $this->moveTo($this->parentDir, $newName);
 	}
 
-	public function moveTo(Directory $dir, ?string $newName = null)
+	public function moveTo(DirectoryInterface $dir, ?string $newName = null)
 	{
 		if ($newName === null) {
 			$newName = $this->getName();
@@ -186,7 +186,7 @@ abstract class BaseFile implements CommonFileInterface
 		$dirPath = null;
 		if (is_string($dir)) {
 			$dirPath = $dir;
-		} elseif ($dir instanceof Directory) {
+		} elseif ($dir instanceof DirectoryInterface) {
 			$dirPath = $dir->getPath();
 		}
 

@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class ApplicationI18nMap extends I18nMap
 {
 	private array $used = [];
@@ -18,7 +20,7 @@ class ApplicationI18nMap extends I18nMap
 
 	protected function getFilePath(string $fileName): string
 	{
-		return $this->app->conductor->getFullPath($fileName);
+		return lx::$app->conductor->getFullPath($fileName);
 	}
 
 	/**
@@ -26,6 +28,6 @@ class ApplicationI18nMap extends I18nMap
 	 */
 	protected function getFilesFromConfig()
 	{
-		return $this->app->getConfig('i18nFile');
+		return lx::$app->getConfig('i18nFile');
 	}
 }

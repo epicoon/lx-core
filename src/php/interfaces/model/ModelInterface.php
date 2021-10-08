@@ -4,6 +4,7 @@ namespace lx;
 
 interface ModelInterface
 {
+    //TODO return ModelIdInterface
     public function getId(): ?int;
     
     public function hasField(string $name): bool;
@@ -15,6 +16,7 @@ interface ModelInterface
 
     public function setFields(array $fields): void;
 
+    //TODO попытаться избавиться от &
     /**
      * @return mixed
      */
@@ -26,6 +28,7 @@ interface ModelInterface
 
     public function setRelated(string $name, ?ModelInterface $model): void;
 
+    //TODO попытаться избавиться от &
     /**
      * @return mixed
      */

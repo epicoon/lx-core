@@ -20,7 +20,7 @@ class SpecialAjaxRouter
 		switch (\lx::$app->dialog->getHeader('lx-type')) {
 			case 'service': return $this->serviceAjaxResponse();
 			case 'plugin': return $this->pluginAjaxResponse();
-			case 'widget': return $this->widgetAjaxResponse();
+			case 'module': return $this->moduleAjaxResponse();
 		}
 		return null;
 	}
@@ -39,7 +39,7 @@ class SpecialAjaxRouter
 			$data = \lx::$app->dialog->getParams();
 			return new ResourceContext([
 				'class' => JsModuleProvider::class,
-				'method' => 'getModulesRequest',
+				'method' => 'getModulesResponse',
 				'params' => [$data],
 			]);
 		}
@@ -71,21 +71,20 @@ class SpecialAjaxRouter
 		return $plugin->getResourceContext($respondentName, \lx::$app->dialog->getParams());
 	}
 
-	private function widgetAjaxResponse(): ?ResourceContext
+	private function moduleAjaxResponse(): ?ResourceContext
 	{
-		$meta = \lx::$app->dialog->getHeader('lx-widget');
+		$meta = \lx::$app->dialog->getHeader('lx-module');
 
 		$arr = explode(':', $meta);
-		$moduleName = $arr[0];
-		$data = (new JsModuleMap())->getModuleData($moduleName);
-		$widgetName = $data['backend'] ?? '';
+		$data = (new JsModuleMap())->getModuleData($arr[0]);
+		$moduleName = $data['backend'] ?? '';
 
-		if (!ClassHelper::exists($widgetName)) {
+		if (!ClassHelper::exists($moduleName)) {
 			return null;
 		}
 
-		$ref = new \ReflectionClass($widgetName);
-		if (!$ref->isSubclassOf(Rect::class)) {
+		$ref = new \ReflectionClass($moduleName);
+		if (!$ref->isSubclassOf(Module::class)) {
 			return null;
 		}
 
@@ -93,7 +92,7 @@ class SpecialAjaxRouter
 		$params = \lx::$app->dialog->getParams();
 
 		return new ResourceContext([
-			'class' => $widgetName,
+			'class' => $moduleName,
 			'method' => $methodName,
 			'params' => $params,
 		]);

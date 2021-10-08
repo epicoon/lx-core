@@ -7,6 +7,8 @@ namespace lx;
  */
 trait ContextTreeTrait
 {
+    use ObjectTrait;
+
 	private static ?string $keyPrefix = null;
 	private static int $keyCounter = 1;
 

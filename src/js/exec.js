@@ -1,3 +1,5 @@
+// Backend starting script
+
 const nodeModules = {
 	fs: require('fs'),
 	path: require('path')

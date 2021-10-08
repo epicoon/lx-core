@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class ServiceRouter implements FusionComponentInterface
 {
 	use FusionComponentTrait;
@@ -102,7 +104,7 @@ class ServiceRouter implements FusionComponentInterface
 		}
 
 		if (isset($data['on-mode'])) {
-			if (!$this->getService()->app->isMode($data['on-mode'])) {
+			if (!lx::$app->isMode($data['on-mode'])) {
 				return false;
 			}
 		}

@@ -1101,7 +1101,7 @@ class CliProcessor
                 continue;
             }
 
-            $result = array_merge($result, $serviceCli->getExtensionData());
+            $result = array_merge($result, $serviceCli->getCliCommandsConfig());
         }
 
         return $result;

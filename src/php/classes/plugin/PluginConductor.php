@@ -6,7 +6,6 @@ use lx;
 
 class PluginConductor implements ConductorInterface, FusionComponentInterface
 {
-	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
 	private array $imageMap;
@@ -32,7 +31,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 			$relativePath = $this->getPath();
 		}
 
-		return $this->app->conductor->getFullPath($fileName, $relativePath);
+		return lx::$app->conductor->getFullPath($fileName, $relativePath);
 	}
 
 	public function getRelativePath(string $path, ?string $defaultLocation = null): string
@@ -163,7 +162,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 			}
 		}
 
-		$respondent = $this->app->diProcessor->create($respondentClassName, [
+		$respondent = lx::$app->diProcessor->create($respondentClassName, [
 			'plugin' => $plugin
 		]);
 		return $respondent;
@@ -205,7 +204,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
 			return $name;
 		}
 
-		return '/' . $this->app->conductor->getRelativePath($this->getFullPath($name));
+		return '/' . lx::$app->conductor->getRelativePath($this->getFullPath($name));
 	}
 
     /**
@@ -213,7 +212,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
      */
 	public function getCssAssets(): array
 	{
-        $this->app->events->trigger(Plugin::EVENT_BEFORE_GET_CSS_ASSETS, $this->getPlugin());
+        lx::$app->events->trigger(Plugin::EVENT_BEFORE_GET_CSS_ASSETS, $this->getPlugin());
 		$plugin = $this->getPlugin();
 		$css = $plugin->getConfig('css');
 		if (!$css) {
@@ -260,7 +259,7 @@ class PluginConductor implements ConductorInterface, FusionComponentInterface
             if (preg_match('/^(http:|https:)/', $path)) {
                 $images[$key] = $path;
             } else {
-                $relPath = '/' . $this->app->conductor->getRelativePath($this->getFullPath($path));
+                $relPath = '/' . lx::$app->conductor->getRelativePath($this->getFullPath($path));
                 $images[$key] = $relPath;
             }
         }

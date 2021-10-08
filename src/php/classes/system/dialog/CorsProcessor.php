@@ -4,7 +4,6 @@ namespace lx;
 
 class CorsProcessor implements FusionComponentInterface
 {
-	use ApplicationToolTrait;
 	use FusionComponentTrait;
 
 	protected array $originMap = [];

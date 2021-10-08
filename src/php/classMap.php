@@ -31,8 +31,7 @@ return [
 	'SpecialAjaxRouter' => 'classes/system/dialog',
 	'Resource' => 'classes/system/dialog',
     'Response' => 'classes/system/dialog',
-    'Renderer' => 'classes/system/dialog',
-	'Rect' => 'classes/system/dialog',
+    'Module' => 'classes/system/dialog',
 	'ResourceContext' => 'classes/system/dialog',
 	'AbstractResourceVoter' => 'classes/system/dialog',
     'CorsProcessor' => 'classes/system/dialog',
@@ -65,6 +64,8 @@ return [
     'Minimizer' => 'classes/system/compiler',
     'SintaxExtender' => 'classes/system/compiler',
 
+    'HtmlRenderer' => 'classes/system/html',
+    'HtmlTemplateProvider' => 'classes/system/html',
     'HtmlHead' => 'classes/system/html',
 	'HtmlBody' => 'classes/system/html',
 	'HtmlHelper' => 'classes/system/html',
@@ -175,7 +176,8 @@ return [
 	 ******************************************************************************************************************/
 	'ConductorInterface' => 'interfaces',
     'ResponseInterface' => 'interfaces',
-    'RendererInterface' => 'interfaces',
+    'HtmlRendererInterface' => 'interfaces',
+    'HtmlTemplateProviderInterface' => 'interfaces',
     'UserManagerInterface' => 'interfaces',
 	'UserInterface' => 'interfaces',
 	'AuthenticationInterface' => 'interfaces',
@@ -200,6 +202,4 @@ return [
 	'ModelInterface' => 'interfaces/model',
     'ModelManagerInterface' => 'interfaces/model',
     'ModelSchemaInterface' => 'interfaces/model',
-
-	'ApplicationToolTrait' => 'traits',
 ];

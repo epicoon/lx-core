@@ -7,10 +7,10 @@ interface DirectoryInterface extends CommonFileInterface
     public function scan(): Vector;
     public function contains(string $name): bool;
     public function make(int $mode = 0777): void;
-    public function makeDirectory(string $name, int $mode = 0777, bool $recursive = false): Directory;
-    public function copy(Directory $dir, bool $rewrite = false): bool;
-    public function clone(string $path, bool $rewrite = false): ?Directory;
-    public function getOrMakeDirectory(string $name, int $mode = 0777, bool $recursive = false): Directory;
+    public function makeDirectory(string $name, int $mode = 0777, bool $recursive = false): DirectoryInterface;
+    public function copy(DirectoryInterface $dir, bool $rewrite = false): bool;
+    public function clone(string $path, bool $rewrite = false): ?DirectoryInterface;
+    public function getOrMakeDirectory(string $name, int $mode = 0777, bool $recursive = false): DirectoryInterface;
     public function makeFile(string $name, ?string $classOrInterface = null): FileInterface;
     /**
      * @return Vector<CommonFileInterface>|Vector<string>
@@ -41,6 +41,7 @@ interface DirectoryInterface extends CommonFileInterface
      * @return Vector<string>
      */
     public function getDirectoryNames(): Vector;
+    //TODO find должен возвращать Vector, текущий метод должен называться findFirst
     public function find(string $filename): ?CommonFileInterface;
     /**
      * @return Vector<FileInterface>

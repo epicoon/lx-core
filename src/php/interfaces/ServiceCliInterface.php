@@ -4,5 +4,5 @@ namespace lx;
 
 interface ServiceCliInterface
 {
-	public function getExtensionData(): array;
+	public function getCliCommandsConfig(): array;
 }

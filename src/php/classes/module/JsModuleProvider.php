@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class JsModuleProvider extends Resource
 {
 	public function getModulesCode(array $list, array $except = []): string
@@ -14,14 +16,14 @@ class JsModuleProvider extends Resource
 		$compiler->setBuildModules(true);
 		$compiler->ignoreModules($except);
 		$modulesCode = $compiler->compileCode($modulesCode);
-		$modulesCode = I18nHelper::localize($modulesCode, $this->app->i18nMap);
+		$modulesCode = I18nHelper::localize($modulesCode, lx::$app->i18nMap);
 
 		return $modulesCode;
 	}
 
-	public function getModulesRequest(array $list): ResponseInterface
+	public function getModulesResponse(array $list): ResponseInterface
     {
         $code = $this->getModulesCode($list['need'], $list['have']);
-        return \lx::$app->diProcessor->createByInterface(ResponseInterface::class, [$code]);
+        return lx::$app->diProcessor->createByInterface(ResponseInterface::class, [$code]);
     }
 }
