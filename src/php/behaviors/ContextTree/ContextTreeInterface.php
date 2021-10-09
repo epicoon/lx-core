@@ -5,7 +5,7 @@ namespace lx;
 /**
  * @see ContextTreeTrait
  */
-interface ContextTreeInterface
+interface ContextTreeInterface extends ObjectInterface
 {
 	public function constructContextTree(iterable $config = []);
 	public function getHead(): ContextTreeInterface;

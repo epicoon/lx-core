@@ -6,8 +6,6 @@ use lx;
 
 abstract class RequestHandler
 {
-    use ObjectTrait;
-
     protected ?ResourceContext $resourceContext = null;
     protected ?ResponseInterface $response = null;
 

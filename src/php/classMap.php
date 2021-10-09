@@ -5,6 +5,7 @@ return [
 	'AutoloadMap' => 'classes/system/autoload',
 
     'ObjectTrait' => 'classes/system/object',
+    'ObjectInterface' => 'classes/system/object',
     'ObjectReestr' => 'classes/system/object',
 
 	'AbstractApplication' => 'classes/system/app',
@@ -20,7 +21,9 @@ return [
 	'DevLogger' => 'classes/system/app',
 	'User' => 'classes/system/app',
 	'UserEventsEnum' => 'classes/system/app',
-	'DependencyProcessor' => 'classes/system/app',
+
+	'DependencyProcessor' => 'classes/system/di',
+    'DependencyBuilder' => 'classes/system/di',
 
     'DevApplicationLifeCycleManager' => 'classes/system/lifeCycle',
     
@@ -146,6 +149,7 @@ return [
 	'Yaml' => 'classes/helpers',
 	'WidgetHelper' => 'classes/helpers',
 	'I18nHelper' => 'classes/helpers',
+    'ErrorHelper' => 'classes/helpers',
 
 
 	/*******************************************************************************************************************

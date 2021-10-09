@@ -6,8 +6,6 @@ use lx;
 
 class SnippetCacheData
 {
-    use ObjectTrait;
-
 	private SnippetBuildContext $snippetBuildContext;
 	private string $buildType;
 	private ?Directory $dir = null;

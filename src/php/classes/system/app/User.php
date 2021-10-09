@@ -9,7 +9,7 @@ class User implements UserInterface, FusionComponentInterface
     private ?ModelInterface $userModel = null;
     private ?string $authFieldName = null;
 
-	public function __construct(array $config = [])
+	public function __construct(iterable $config = [])
 	{
 	    $this->__objectConstruct($config);
 		$this->delegateMethodsCall('userModel');

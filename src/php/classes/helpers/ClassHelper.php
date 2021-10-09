@@ -4,11 +4,17 @@ namespace lx;
 
 class ClassHelper
 {
-	public static function checkInstance(string $currentClass, string $baseClass): bool
+    /**
+     * @param string|object $currentClass
+     */
+	public static function checkInstance($currentClass, string $baseClass): bool
 	{
+        if (is_string($currentClass) && $currentClass == $baseClass) {
+            return true;
+        }
+
 		return (
-            $currentClass == $baseClass
-            || is_subclass_of($currentClass, $baseClass)
+            is_subclass_of($currentClass, $baseClass)
             || self::implements($currentClass, $baseClass)
         );
 	}
@@ -27,12 +33,12 @@ class ClassHelper
 	}
 
 	/**
-     * @param string|Object $class
+     * @param string|object $class
 	 * @param array|string $interfaces
 	 */
 	public static function implements($class, $interfaces): bool
 	{
-		if (!self::exists($class)) {
+		if (is_string($class) && !self::exists($class)) {
 			return false;
 		}
 

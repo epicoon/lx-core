@@ -31,10 +31,7 @@ class ServiceController extends Resource
 	public static function getDependenciesConfig(): array
 	{
 	    return array_merge(parent::getDependenciesConfig(), [
-	        'service' => [
-                'require' => true,
-                'instance' => Service::class,
-            ],
+	        'service' => Service::class,
         ]);
 	}
 }

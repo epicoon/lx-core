@@ -185,18 +185,21 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 
 		// Передаем управление обработчику пользователя
 		var contentType = request.getResponseHeader('Content-Type') || '',
-			result = contentType.match(/text\/json/)
-			? JSON.parse(response)
-			: response;
+			result;
 
 		#lx:mode-case: dev
-			var resultAndDump = __findDump(result);
-			result = resultAndDump[0];
-			callHandler(handler, [result, request]);
+			var responseAndDump = __findDump(response), dump;
+			response = responseAndDump[0];
+			dump = responseAndDump[1];
+		#lx:mode-end;
 
-			if (resultAndDump[1]) lx.Alert(resultAndDump[1]);
-		#lx:mode-default:
-			callHandler(handler, [result, request]);
+		result = contentType.match(/text\/json/)
+			? JSON.parse(response)
+			: response;
+		callHandler(handler, [result, request]);
+
+		#lx:mode-case: dev
+			if (dump) lx.Alert(dump);
 		#lx:mode-end;
 	}
 
@@ -254,25 +257,13 @@ function __isAjax(url) {
 
 #lx:mode-case: dev
 	function __findDump(res) {
-		if (lx.isString(res)) {
-			var dump = res.match(/<lx-var-dump>[\w\W]*<\/lx-var-dump>/);
-			if (dump) {
-				dump = dump[0];
-				res = res.replace(dump, '');
-				dump = dump.replace(/<lx-var-dump>/, '');
-				dump = dump.replace(/<\/lx-var-dump>/, '');
-			}
-			return [res, dump];
-		} else if (lx.isObject(res)) {
-			var dump = null;
-			if (res.lxdump) {
-				dump = res.lxdump;
-				delete res.lxdump;
-			} else if (res.data && res.data.lxdump) {
-				dump = res.data.lxdump;
-				delete res.data.lxdump;
-			}
-			return [res, dump];
-		} else return [res, null];
+		var dump = res.match(/<pre class="lx-var-dump">[\w\W]*<\/pre>$/);
+		if (dump) {
+			dump = dump[0];
+			res = res.replace(dump, '');
+			dump = dump.replace(/^<pre class="lx-var-dump">/, '');
+			dump = dump.replace(/<\/pre>$/, '');
+		}
+		return [res, dump];
 	}
 #lx:mode-end;

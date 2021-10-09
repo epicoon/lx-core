@@ -81,12 +81,11 @@ class Directory extends BaseFile implements DirectoryInterface
 	public function makeFile(string $name, ?string $classOrInterface = null): FileInterface
 	{
 	    if (lx::$app && lx::$app->diProcessor) {
-            return lx::$app->diProcessor->createByInterface(
-                $classOrInterface,
-                [$this->getPath() . '/' . $name],
-                [],
-                File::class
-            );
+            return lx::$app->diProcessor->build()
+                ->setClass($classOrInterface)
+                ->setParams([$this->getPath() . '/' . $name])
+                ->setDefaultClass(File::class)
+                ->getInstance();
         }
 
 	    return new File($this->getPath() . '/' . $name);
@@ -400,7 +399,7 @@ class Directory extends BaseFile implements DirectoryInterface
 	{
 		if ($type == self::FIND_OBJECT) {
 		    if ($fileClass) {
-                return lx::$app->diProcessor->createByInterface($fileClass, [$fullPath]);
+                return lx::$app->diProcessor->create($fileClass, [$fullPath]);
             } else {
                 return BaseFile::construct($fullPath);
             }

@@ -4,6 +4,8 @@ namespace lx;
 
 trait FusionTrait
 {
+    use ObjectTrait;
+    
 	protected ?FusionComponentList $fusionComponentList = null;
 
 	public function initFusionComponents(array $list/*, array $defaults = []*/): void

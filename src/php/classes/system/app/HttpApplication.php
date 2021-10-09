@@ -29,14 +29,45 @@ class HttpApplication extends BaseApplication
 
 	public function run(): void
 	{
-	    $this->events->trigger(self::EVENT_BEFORE_RUN);
-	    
-		$this->authenticateUser();
-		$requestHandler = RequestHandler::create();
-		$requestHandler->run();
-		$requestHandler->send();
+        try {
+            $this->events->trigger(self::EVENT_BEFORE_RUN);
 
-		$this->events->trigger(self::EVENT_AFTER_RUN);
+            $this->authenticateUser();
+            $requestHandler = RequestHandler::create();
+            $requestHandler->run();
+            $requestHandler->send();
+
+            $this->events->trigger(self::EVENT_AFTER_RUN);
+        } catch (\Throwable $exception) {
+            //TODO обработчик ошибок должен быть отдельно - какой-то класс/компонент?
+            if ($this->isProd()) {
+                $this->logger->error($exception, [
+                    'URL' => $this->dialog->getUrl(),
+                ]);
+            } else {
+                $errorString = ErrorHelper::renderErrorString($exception, [
+                    'URL' => $this->dialog->getUrl(),
+                ]);
+                if ($this->dialog->isPageLoad()) {
+                    /** @var HtmlRendererInterface $renderer */
+                    $renderer = $this->diProcessor->createByInterface(HtmlRendererInterface::class);
+                    $result = $renderer
+                        ->setTemplateType(500)
+                        ->setParams([
+                            'error' => $errorString
+                        ])->render();
+                    /** @var ResponseInterface $response */
+                    $response = $this->diProcessor->createByInterface(ResponseInterface::class, [$result]);
+                } else {
+                    \lx::dump($errorString);
+                    $response = $this->diProcessor->createByInterface(ResponseInterface::class, [
+                        '',
+                        ResponseCodeEnum::SERVER_ERROR
+                    ]);
+                }
+                $this->dialog->send($response);
+            }
+        }
 	}
 
 	public function getCommonJs(): array

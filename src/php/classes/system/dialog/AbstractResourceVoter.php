@@ -4,8 +4,6 @@ namespace lx;
 
 abstract class AbstractResourceVoter implements ResourceVoterInterface
 {
-    use ObjectTrait;
-
 	protected Resource $owner;
 
 	public function getResource(): Resource

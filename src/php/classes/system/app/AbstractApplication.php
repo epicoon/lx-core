@@ -27,7 +27,6 @@ use lx;
  */
 abstract class AbstractApplication implements FusionInterface
 {
-    use ObjectTrait;
     use FusionTrait;
     
     const EVENT_BEFORE_RUN = 'beforeApplicationRun';
@@ -46,28 +45,28 @@ abstract class AbstractApplication implements FusionInterface
     private DependencyProcessor $_diProcessor;
     private bool $logMode;
 
-    public function __construct(?array $config = [], bool $useGlobalConfig = true)
+    public function __construct(?array $config = [])
     {
         if ($config === null) {
             return;
         }
 
-        $this->baseInit($config, $useGlobalConfig);
-        $this->advancedInit($useGlobalConfig);
+        $this->baseInit($config);
+        $this->advancedInit();
     }
 
-    public static function firstConstruct(array $config = [], bool $useGlobalConfig = true): AbstractApplication
+    public static function firstConstruct(array $config = []): AbstractApplication
     {
         $app = new static(null);
-        $app->baseInit($config, $useGlobalConfig);
+        $app->baseInit($config);
         (new AutoloadMapBuilder())->createCommonAutoloadMap();
         lx::$autoloader->map->reset();
-        $app->advancedInit($useGlobalConfig);
+        $app->advancedInit();
         (new JsModuleMapBuilder())->renewHead();
         return $app;
     }
 
-    protected function baseInit(array $config = [], bool $useGlobalConfig = true): void
+    protected function baseInit(array $config = []): void
     {
         $this->id = Math::randHash();
         $this->pid = getmypid();
@@ -85,25 +84,20 @@ abstract class AbstractApplication implements FusionInterface
 
         $this->_params = [];
         $this->_config = $config;
-        if ($useGlobalConfig) {
-            $this->renewConfig();
-        }
+        $this->renewConfig();
 
         $this->_services = new ServicesMap();
     }
 
-    protected function advancedInit(bool $useGlobalConfig = true): void
+    protected function advancedInit(): void
     {
-        if ($useGlobalConfig) {
-            $this->loadLocalConfig();
-        }
+        $this->loadLocalConfig();
 
-        $this->_events = $this->diProcessor->createByInterface(
-            EventManagerInterface::class,
-            [], [],
-            EventManager::class,
-            static::class
-        );
+        $this->_events = $this->diProcessor->build()
+            ->setInterface(EventManagerInterface::class)
+            ->setDefaultClass(EventManager::class)
+            ->setContextClass(static::class)
+            ->getInstance();
 
         $aliases = $this->getConfig('aliases');
         if (!$aliases) $aliases = [];

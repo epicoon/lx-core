@@ -5,7 +5,7 @@ namespace lx;
 /**
  * @property-read HtmlTemplateProviderInterface $templateProvider
  */
-class HtmlRenderer implements HtmlRendererInterface
+class HtmlRenderer implements HtmlRendererInterface, ObjectInterface
 {
     use ObjectTrait;
 
@@ -32,7 +32,7 @@ class HtmlRenderer implements HtmlRendererInterface
         return [
             'templateProvider' => [
                 'instance' => HtmlTemplateProviderInterface::class,
-                'lasy' => true,
+                'lazy' => true,
             ],
         ];
     }

@@ -21,6 +21,11 @@ class DevLogger implements LoggerInterface
 		$this->writeFile($file, $msg);
 	}
 
+    public function error(\Throwable $exception, array $additionalData = []): void
+    {
+        //TODO
+    }
+
     public function init(array $config): void
     {
         // pass

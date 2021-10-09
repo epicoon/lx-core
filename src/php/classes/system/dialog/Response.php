@@ -11,8 +11,6 @@ class Response implements ResponseInterface
     private string $type;
     /** @var mixed */
     private $data;
-    /** @var array|string */
-    private $fullData;
 
     /**
      * @param mixed $data
@@ -59,29 +57,32 @@ class Response implements ResponseInterface
 
     public function getDataAsString(): string
     {
-        $data = $this->getFullData();
-        $type = $this->getDataType();
-        if ($type == 'html' || $type == 'plane') {
-            return $data;
+        $data = $this->data;
+        switch ($this->getDataType()) {
+            case 'html':
+            case 'plane':
+                $dump = $this->getDump();
+                $result = ($dump === '')
+                    ? $data
+                    : $this->insertDump($data, $dump);
+                break;
+            case 'json':
+                $result = $this->isSuccessfull()
+                    ? [
+                        'success' => !$this->isWarning,
+                        'data' => $data,
+                    ]
+                    : [
+                        'success' => false,
+                        'error_code' => $this->getCode(),
+                        'error_details' => $data,
+                    ];
+                $result = json_encode($result) . $this->getDump();
+                break;
+            default:
+                $result = '';
         }
-
-        //TODO сериалайзер
-        if ($this->getDataType() == 'json') {
-            $result = $this->isSuccessfull()
-                ? [
-                    'success' => !$this->isWarning,
-                    'data' => $data,
-                ]
-                : [
-                    'success' => false,
-                    'error_code' => $this->getCode(),
-                    'error_details' => $data,
-                ];
-
-            return json_encode($result);
-        }
-
-        return '';
+        return $result;
     }
 
     public function getDataType(): string
@@ -103,38 +104,30 @@ class Response implements ResponseInterface
 
         return $this->type;
     }
-
-    /**
-     * @return array|string
-     */
-    private function getFullData()
+    
+    private function getDump(): string
     {
-        if (!isset($this->fullData)) {
-            if (!$this->isSuccessfull()) {
-                $this->fullData = $this->data;
-            } else {
-                $data = $this->data;
-                $dump = lx::getDump();
-                if ($dump != '') {
-                    if (is_array($data)) {
-                        $data['lxdump'] = $dump;
-                    } else {
-                        if (lx::$app->dialog->isAjax()) {
-                            $data .= '<lx-var-dump>' . $dump . '</lx-var-dump>';
-                        } else {
-                            $dumpStr = '<pre class="lx-var-dump">' . $dump . '</pre>';
-                            if (preg_match('/<body>/', $data)) {
-                                $data = preg_replace('/<body>/', '<body>' . $dumpStr, $data);
-                            } else {
-                                $data = "$dumpStr$data";
-                            }
-                        }
-                    }
-                }
-                $this->fullData = $data;
-            }
+        /** @var Dialog $dialog */
+        $dialog = lx::$app->dialog;
+        if (!$dialog) {
+            return '';
         }
 
-        return $this->fullData;
+        if (!$dialog->isPageLoad() && !$dialog->isAjax()) {
+            return '';
+        }
+
+        $dump = lx::getDump();
+        if ($dump === '') {
+            return '';
+        }
+        return '<pre class="lx-var-dump">' . $dump . '</pre>';
+    }
+
+    private function insertDump(string $data, string $dump): string
+    {
+        return (preg_match('/<body>/', $data))
+            ? preg_replace('/<body>/', '<body>' . $dump, $data)
+            : "$dump$data";
     }
 }

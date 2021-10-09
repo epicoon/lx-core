@@ -4,17 +4,16 @@ namespace lx;
 
 use lx;
 
-class Resource implements ResourceInterface
+class Resource implements ResourceInterface, ObjectInterface
 {
     use ObjectTrait;
 
-	private ?ResourceVoterInterface $voter = null;
+	protected ?ResourceVoterInterface $voter = null;
 
-	public function __construct(array $config = [])
+	public function __construct(iterable $config = [])
 	{
 	    $this->__objectConstruct($config);
 
-		$this->voter = $config['voter'] ?? null;
 		if ($this->voter) {
 			$this->voter->setResource($this);
 		}

@@ -83,7 +83,13 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 		$file->put($msg, FILE_APPEND);
 	}
 
-	protected function getLogDirectory(): DirectoryInterface
+    public function error(\Throwable $exception, array $additionalData = []): void
+    {
+        $errorString = ErrorHelper::renderErrorString($exception, $additionalData);
+        $this->log($errorString, 'error');
+    }
+
+    protected function getLogDirectory(): DirectoryInterface
 	{
 		$dir = new Directory($this->getLogPath());
 		$dir->make();

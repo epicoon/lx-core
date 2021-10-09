@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 /**
  * @see FlightRecorderHolderInterface
  */
@@ -17,11 +19,10 @@ trait FlightRecorderHolderTrait
     public function getFlightRecorder(): FlightRecorderInterface
     {
         if (!$this->flightRecorder) {
-            $this->flightRecorder = \lx::$app->diProcessor->createByInterface(
-                FlightRecorderInterface::class,
-                [], [],
-                FlightRecorder::class
-            );
+            $this->flightRecorder = lx::$app->diProcessor->build()
+                ->setInterface(FlightRecorderInterface::class)
+                ->setDefaultClass(FlightRecorder::class)
+                ->getInstance();
             $this->flightRecorder->setOwner($this);
         }
 

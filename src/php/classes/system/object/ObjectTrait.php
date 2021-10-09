@@ -24,9 +24,15 @@ trait ObjectTrait
         return false;
     }
     
-    public function __construct(array $config = [])
+    public function __construct(iterable $config = [])
     {
         $this->__objectConstruct($config);
+    }
+    
+    public static function constructWithDependencies(iterable $params, iterable $dependencies): ObjectInterface
+    {
+        //TODO ??????????????????????????????????????????
+        
     }
 
     /**
@@ -45,17 +51,12 @@ trait ObjectTrait
         return $this->__objectCall($name, $arguments);
     }
 
-    public function isLxObject(): bool
-    {
-        return true;
-    }
-
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * NOT PUBLIC
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-    protected function __objectConstruct(array $config = []): array
+    protected function __objectConstruct(iterable &$config = []): void
     {
         if ($this->applyConfig($config)) {
             $traits = ObjectReestr::getTraitMap(static::class);
@@ -66,7 +67,6 @@ trait ObjectTrait
                 }
             }
         }
-        return $config;
     }
 
     /**
@@ -152,40 +152,32 @@ trait ObjectTrait
 
         foreach ($protocol as $paramName => $paramDescr) {
             $paramDescr = $this->getDependencyDefinition($paramName);
-
-            $required = $paramDescr['required'] ?? false;
-            if (!array_key_exists($paramName, $config)) {
-                if ($required) {
-                    $className = static::class;
+            if (array_key_exists($paramName, $config)) {
+                $param = $config[$paramName];
+                $class = $paramDescr['instance'] ?? null;
+                if ($class && !ClassHelper::checkInstance($param, $class)) {
+                    $contextClass = static::class;
                     \lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
                         '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-                        'msg' => "Class '$className' require '$paramName' parameter",
+                        'msg' => "Class '$contextClass' has received dependency '$paramName' with wrong type. Type '$config' expected.",
                     ]);
                     return false;
                 }
-
+                $config[$paramName] = $param;
                 continue;
             }
 
-            $class = $paramDescr['instance'] ?? null;
-            if ($class) {
-                $param = $config[$paramName];
-                if (!($param instanceof $class)) {
-                    $className = static::class;
-                    \lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
-                        '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-                        'msg' => "Class '$className' has gotten wrong parameter instance for '$paramName'",
-                    ]);
-                    return false;
-                }
-            } else {
-                $param = $config[$paramName];
+            if ($paramDescr['lazy'] ?? false) {
+                continue;
             }
 
-            $this->setParameter($paramName, $param);
-            unset($config[$paramName]);
+            $param = $this->createDependencyInstance($paramName);
+            if ($param === null) {
+                return false;
+            }
+            $config[$paramName] = $param;
         }
-
+        
         foreach ($config as $paramName => $value) {
             $this->setParameter($paramName, $value);
         }
@@ -232,7 +224,7 @@ trait ObjectTrait
             : $definition;
 
         //TODO неочевидно, что ленивая загрузка обязательно делает зависимость читаемым полем
-        if ($definition['lasy'] ?? false) {
+        if ($definition['lazy'] ?? false) {
             $definition['readable'] = true;
         }
 
@@ -249,21 +241,43 @@ trait ObjectTrait
         }
 
         $definition = $this->getDependencyDefinition($name);
-        if ($definition && ($definition['lasy'] ?? false)) {
-            $class = $definition['instance'] ?? null;
-            if (!$class) {
-                $className = static::class;
-                \lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
-                    '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-                    'msg' => "Object dependency '$name' has unknown class or interface",
-                ]);
-                return false;
+        if ($definition && ($definition['lazy'] ?? false)) {
+            $param = $this->createDependencyInstance($name);
+            if ($param !== null) {
+                $this->setParameter($name, $param);
+                return $this->objectDependencies[$name] ?? null;
             }
-
-            $this->objectDependencies[$name] = lx::$app->diProcessor->create($class);
-            return $this->objectDependencies[$name];
         }
 
         return null;
+    }
+
+    /**
+     * @return mixed
+     */
+    private function createDependencyInstance(string $name)
+    {
+        $definition = $this->getDependencyDefinition($name);
+        if (array_key_exists('default', $definition)) {
+            return is_callable($definition['default'])
+                ? $definition['default']()
+                : $definition['default'];
+        }
+
+        $contextClass = static::class;
+        $class = $definition['instance'] ?? null;
+        if (!$class) {
+            \lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
+                '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+                'msg' => "Class '$contextClass' has undefined dependency '$paramName'",
+            ]);
+            return null;
+        }
+
+        return lx::$app->diProcessor->build()
+            ->setClass($class)
+            ->setContextClass($contextClass)
+            ->setContextWeakDependencies(static::getDependenciesDefaultMap())
+            ->getInstance();
     }
 }

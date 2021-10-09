@@ -27,7 +27,7 @@ class Dialog implements FusionComponentInterface
 	private ?Cookie $_cookie = null;
 	private ?DataObject $_location = null;
 
-	public function __construct(array $config = [])
+	public function __construct(iterable $config = [])
 	{
 	    $this->__objectConstruct($config);
 

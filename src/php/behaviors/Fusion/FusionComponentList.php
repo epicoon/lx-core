@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class FusionComponentList
 {
 	private FusionInterface $fusion;
@@ -46,7 +48,7 @@ class FusionComponentList
 		$fullList = ArrayHelper::mergeRecursiveDistinct($list, $defaults);
 		foreach ($fullList as $name => $config) {
 			if ( ! $config) {
-				\lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
+				lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
 					'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 					'msg' => "Wrong component config for $name",
 				]);
@@ -55,15 +57,15 @@ class FusionComponentList
 
 			$data = ClassHelper::prepareConfig($config);
 			if ( ! $data) {
-				\lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
+				lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
 					'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 					'msg' => "Component $name not found",
 				]);
 				continue;
 			}
 
-            $lasy = $data['lasy'] ?? true;
-			if (!$lasy || is_subclass_of($data['class'], EventListenerInterface::class)) {
+            $lazy = $data['lazy'] ?? true;
+			if (!$lazy || is_subclass_of($data['class'], EventListenerInterface::class)) {
 			    $this->createInstance($name, $data);
             } else {
                 $this->config[$name] = $data;
@@ -79,14 +81,20 @@ class FusionComponentList
         if (array_key_exists($name, $this->fusion->getFusionComponentTypes())) {
             $type = $this->fusion->getFusionComponentTypes()[$name];
             if (!ClassHelper::checkInstance($className, $type)) {
-                \lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
+                lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
                     '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
                     'msg' => "Component $name has to implement $type",
                 ]);
                 return false;
             }
         }
-        $this->list[$name] = \lx::$app->diProcessor->create($className, $params, [], get_class($this->fusion));
+
+        $this->list[$name] = lx::$app->diProcessor->build()
+            ->setClass($className)
+            ->setParams($params)
+            ->setContextClass(get_class($this->fusion))
+            ->getInstance();
+
         return true;
     }
 }

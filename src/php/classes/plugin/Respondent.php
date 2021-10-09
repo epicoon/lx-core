@@ -31,10 +31,7 @@ class Respondent extends Resource
 	public static function getDependenciesConfig(): array
 	{
 	    return array_merge(parent::getDependenciesConfig(), [
-	        'plugin' => [
-                'require' => true,
-                'instance' => Plugin::class,
-            ]
+	        'plugin' => Plugin::class,
         ]);
 	}
 

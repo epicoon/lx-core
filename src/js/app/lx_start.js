@@ -34,9 +34,9 @@ lx.start = function(settings, modules, jsBootstrap, plugin, jsMain) {
 	// Глобальный js-код, выполняемый ПОСЛЕ загрузки корневого плагина
 	if (jsMain && jsMain != '') lx._f.createAndCallFunction('', jsMain, this);
 
-	//TODO - ограничить код режимом НЕ-ПРОДА
-	// Ищем отладочные дампы
-	__findDump();
+	#lx:mode-case: dev
+		__findDump();
+	#lx:mode-end;
 
 	// Врубаем поддержку контроля времени
 	lx.go([Function("lx.doActions();")]);
@@ -63,11 +63,13 @@ function __resetInit() {
 	delete lx.useTimers;
 }
 
-function __findDump() {
-	var elems = document.getElementsByClassName('lx-var-dump');
-	if (!elems.length) return;
-	var elem = elems[0];
-	var text = elem.innerHTML;
-	elem.offsetParent.removeChild(elem);
-	lx.Alert(text);
-}
+#lx:mode-case: dev
+	function __findDump() {
+		var elems = document.getElementsByClassName('lx-var-dump');
+		if (!elems.length) return;
+		var elem = elems[0];
+		var text = elem.innerHTML;
+		elem.offsetParent.removeChild(elem);
+		lx.Alert(text);
+	}
+#lx:mode-end;

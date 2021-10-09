@@ -6,8 +6,6 @@ use lx;
 
 class ApplicationConductor implements ConductorInterface
 {
-    use ObjectTrait;
-
 	private array $aliases = [];
 
 	/**
@@ -15,11 +13,6 @@ class ApplicationConductor implements ConductorInterface
 	 */
 	public function __get(string $name)
 	{
-		$result = $this->__objectGet($name);
-		if ($result !== null) {
-			return $result;
-		}
-
 		$result = lx::$conductor->$name;
 		if ($result !== false) {
 			return $result;

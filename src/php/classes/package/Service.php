@@ -16,7 +16,6 @@ use lx;
  */
 class Service implements FusionInterface
 {
-    use ObjectTrait;
 	use FusionTrait;
 
 	protected string $_name;
@@ -26,7 +25,7 @@ class Service implements FusionInterface
 	/**
 	 * Don't use for service creation. Use Service::create() instead
 	 */
-	public function __construct(array $config)
+	public function __construct(iterable $config)
 	{
 	    $serviceConfig = $config['serviceConfig'] ?? [];
 	    unset($config['serviceConfig']);
@@ -141,7 +140,7 @@ class Service implements FusionInterface
 		$config['name'] = $name;
 		$config = ['serviceConfig' => $config];
 
-		$service = lx::$app->diProcessor->create($className, $config); // new $className($config);
+		$service = lx::$app->diProcessor->create($className, $config);
 		$app->services->register($name, $service);
 		return $service;
 	}

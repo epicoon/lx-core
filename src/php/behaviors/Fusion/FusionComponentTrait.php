@@ -16,7 +16,7 @@ trait FusionComponentTrait
 	/**
 	 * @magic __construct
 	 */
-	public function constructFusionComponent(array &$config)
+	public function constructFusionComponent(iterable &$config)
 	{
 		$this->_owner = $config['__fusion__'] ?? null;
         

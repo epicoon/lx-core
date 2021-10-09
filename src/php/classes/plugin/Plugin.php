@@ -43,26 +43,26 @@ class Plugin extends Resource implements FusionInterface
 	private array $scripts = [];
 	private array $css = [];
 
-	public function __construct(array $data)
+	public function __construct(iterable $config)
 	{
-	    parent::__construct($data);
+	    parent::__construct($config);
 
-		$this->service = $data['service'];
-		$this->_name = $this->service->getID() . ':' . $data['name'];
-		$this->_path = $data['path'];
+		$this->service = $config['service'];
+		$this->_name = $this->service->getID() . ':' . $config['name'];
+		$this->_path = $config['path'];
 		$this->attributes = new DataObject();
 		$this->anchor = '_root_';
 
-		if (isset($data['prototype'])) {
-			$this->_prototype = $data['prototype'];
+		if (isset($config['prototype'])) {
+			$this->_prototype = $config['prototype'];
 		}
 
-		$config = $data['config'];
+		$pluginConfig = $config['config'];
 		$commonConfig = lx::$app->getDefaultPluginConfig();
-		ConfigHelper::preparePluginConfig($commonConfig, $config);
+		ConfigHelper::preparePluginConfig($commonConfig, $pluginConfig);
 		$injections = lx::$app->getConfig('configInjection') ?? [];
-		ConfigHelper::pluginInject($this->name, $this->prototype, $injections, $config);
-		$this->config = $config;
+		ConfigHelper::pluginInject($this->name, $this->prototype, $injections, $pluginConfig);
+		$this->config = $pluginConfig;
 
 		$this->initFusionComponents($this->getConfig('components') ?? []);
 		$this->init();
@@ -145,8 +145,13 @@ class Plugin extends Resource implements FusionInterface
 			'i18nMap' => PluginI18nMap::class,
 		];
 	}
+    
+    public static function getDependenciesConfig(): array
+    {
+        return parent::getDependenciesConfig();
+    }
 
-	public function getService(): Service
+    public function getService(): Service
 	{
 		return $this->service;
 	}

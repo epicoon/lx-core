@@ -17,7 +17,7 @@ class Language implements FusionComponentInterface
 	protected array $_list = [];
 	private string $_current;
 
-	public function __construct(array $config = [])
+	public function __construct(iterable $config = [])
 	{
 	    $this->__objectConstruct($config);
 

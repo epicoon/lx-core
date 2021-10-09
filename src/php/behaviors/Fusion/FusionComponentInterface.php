@@ -5,7 +5,7 @@ namespace lx;
 /**
  * @see FusionComponentTrait
  */
-interface FusionComponentInterface
+interface FusionComponentInterface extends ObjectInterface
 {
 	public function constructFusionComponent(array &$config);
 	/**

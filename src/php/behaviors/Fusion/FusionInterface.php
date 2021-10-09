@@ -2,7 +2,7 @@
 
 namespace lx;
 
-interface FusionInterface
+interface FusionInterface extends ObjectInterface
 {
     public function initFusionComponents(array $list): void;
     public function hasFusionComponent(string $name): bool;
