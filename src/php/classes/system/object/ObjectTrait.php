@@ -51,6 +51,14 @@ trait ObjectTrait
         return $this->__objectCall($name, $arguments);
     }
 
+    /**
+     * @param mixed$value
+     */
+    public function initDependency(string $name, $value): void
+    {
+        // pass
+    }
+
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * NOT PUBLIC
@@ -173,11 +181,12 @@ trait ObjectTrait
 
             $param = $this->createDependencyInstance($paramName);
             if ($param === null) {
-                return false;
+                //TODO devlog???
+            } else {
+                $config[$paramName] = $param;
             }
-            $config[$paramName] = $param;
         }
-        
+
         foreach ($config as $paramName => $value) {
             $this->setParameter($paramName, $value);
         }
@@ -190,20 +199,11 @@ trait ObjectTrait
      */
     private function setParameter(string $name, $value): void
     {
-        $setterName = 'init' . ucfirst($name);
-        if (method_exists($this, $setterName)) {
-            $this->$setterName($value);
-            return;
-        }
-
-        if (ClassHelper::privatePropertyExists($this, $name)) {
-            //TODO devlog?
-            return;
-        }
-
-        if (property_exists($this, $name)) {
+        if (property_exists($this, $name) && !ClassHelper::privatePropertyExists($this, $name)) {
             $this->$name = $value;
         }
+
+        $this->initDependency($name, $value);
 
         $definition = $this->getDependencyDefinition($name);
         if ($definition && ($definition['readable'] ?? false)) {

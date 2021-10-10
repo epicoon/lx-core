@@ -52,7 +52,7 @@ class TextBox extends lx.Rect #lx:namespace lx {
 	}
 
 	#lx:server adapt() {
-		this.onpostunpack('.adapt');
+		this.onPostUnpack('.adapt');
 	}
 
 	#lx:client {

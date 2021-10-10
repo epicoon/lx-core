@@ -4,38 +4,26 @@ namespace lx;
 
 use lx;
 
-class PackageDirectory extends Directory implements FusionComponentInterface
+class PackageDirectory extends Directory
 {
-	use FusionComponentTrait;
+    private ?Service $service = null;
 
-    /**
-     * @param string|array $config
-     */
-	public function __construct($config)
+	public function __construct(?string $path = null)
 	{
-	    if (is_string($config)) {
-            $config = ['path' => $config];
-        }
-
-		$this->__objectConstruct($config);
-
-		$path = $this->getService()
-			? lx::$app->sitePath . '/' . $this->getService()->relativePath
-			: ($config['path'] ?? null);
-
 		if ($path) {
 		    parent::__construct($path);
-		} else {
-			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
-				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-				'msg' => "Path for PackageDirectory is undefined",
-			]);
 		}
 	}
+    
+    public function setService(Service $service): void
+    {
+        $this->service = $service;
+        $this->setPath(lx::$app->sitePath . '/' . $service->relativePath);
+    }
 
 	public function getService(): ?Service
 	{
-		return $this->owner;
+        return $this->service;
 	}
 
 	/**

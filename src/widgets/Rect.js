@@ -1425,16 +1425,13 @@ class Rect extends lx.Module #lx:namespace lx {
             return this;
         }
 
-        onpostunpack(handler) {
-            switch (App.getSetting('unpackType')) {
-                case lx.Application.POSTUNPACK_TYPE_IMMEDIATLY:
+        onPostUnpack(handler, flag) {
+            switch (flug) {
+                case lx.POSTUNPACK_TYPE_IMMEDIATLY:
                     this.onLoad(handler);
                     break;
-                case lx.Application.POSTUNPACK_TYPE_FIRST_DISPLAY:
+                case lx.POSTUNPACK_TYPE_FIRST_DISPLAY:
                     this.displayOnce(handler);
-                    break;
-                case lx.Application.POSTUNPACK_TYPE_ALL_DISPLAY:
-                    this.displayIn(handler);
                     break;
             }
         }

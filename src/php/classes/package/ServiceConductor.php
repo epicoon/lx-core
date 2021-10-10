@@ -4,13 +4,18 @@ namespace lx;
 
 use lx;
 
-class ServiceConductor implements ConductorInterface, FusionComponentInterface
+class ServiceConductor implements ConductorInterface
 {
-	use FusionComponentTrait;
+    private Service $service;
+
+    public function setService(Service $service): void
+    {
+        $this->service = $service;
+    }
 
 	public function getService(): Service
 	{
-		return $this->owner;
+        return $this->service;
 	}
 
 	public function getPath(): string

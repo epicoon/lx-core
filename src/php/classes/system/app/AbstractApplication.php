@@ -28,7 +28,13 @@ use lx;
 abstract class AbstractApplication implements FusionInterface
 {
     use FusionTrait;
-    
+
+    const CONFIG_KEY_CONSTRUCT_FLAGS = 'constructFlags';
+    const CONSTRUCT_FLAG_BLANK = 'blank';
+    const CONSTRUCT_FLAG_IGNORE_CONFIG = 'ignoreConfig';
+
+    const CONFIG_KEY_DEPENDENCY_PROCESSOR = 'dependencyProcessor';
+
     const EVENT_BEFORE_RUN = 'beforeApplicationRun';
     const EVENT_AFTER_RUN = 'afterApplicationRun';
 
@@ -45,53 +51,36 @@ abstract class AbstractApplication implements FusionInterface
     private DependencyProcessor $_diProcessor;
     private bool $logMode;
 
-    public function __construct(?array $config = [])
+    public function __construct(iterable $config = [])
     {
-        if ($config === null) {
-            return;
-        }
+        $constructFlags = DataObject::create($config[self::CONFIG_KEY_CONSTRUCT_FLAGS] ?? []);
+        unset($config[self::CONFIG_KEY_CONSTRUCT_FLAGS]);
 
-        $this->baseInit($config);
-        $this->advancedInit();
-    }
-
-    public static function firstConstruct(array $config = []): AbstractApplication
-    {
-        $app = new static(null);
-        $app->baseInit($config);
-        (new AutoloadMapBuilder())->createCommonAutoloadMap();
-        lx::$autoloader->map->reset();
-        $app->advancedInit();
-        (new JsModuleMapBuilder())->renewHead();
-        return $app;
-    }
-
-    protected function baseInit(array $config = []): void
-    {
         $this->id = Math::randHash();
         $this->pid = getmypid();
         $this->_sitePath = lx::$conductor->sitePath;
+
+        if ($constructFlags->blank) {
+            return;
+        }
+
+        lx::$app = $this;
+        $this->_conductor = new ApplicationConductor();
+        $this->_services = new ServicesMap();
         $this->logMode = true;
 
-        $this->_conductor = new ApplicationConductor();
-        lx::$app = $this;
-
-        $diConfig = ClassHelper::prepareConfig(
-            $config['diProcessor'] ?? [],
-            DependencyProcessor::class
-        );
+        $dependencyProcessor = $config[self::CONFIG_KEY_DEPENDENCY_PROCESSOR] ?? [];
+        unset($config[self::CONFIG_KEY_DEPENDENCY_PROCESSOR]);
+        $diConfig = ClassHelper::prepareConfig($dependencyProcessor, DependencyProcessor::class);
         $this->_diProcessor = new $diConfig['class']($diConfig['params']);
 
         $this->_params = [];
         $this->_config = $config;
-        $this->renewConfig();
+        $this->_conductor->setAliases($this->getConfig('aliases') ?? []);
 
-        $this->_services = new ServicesMap();
-    }
-
-    protected function advancedInit(): void
-    {
-        $this->loadLocalConfig();
+        if (!$constructFlags->ignoreConfig) {
+            $this->loadConfig();
+        }
 
         $this->_events = $this->diProcessor->build()
             ->setInterface(EventManagerInterface::class)
@@ -99,12 +88,15 @@ abstract class AbstractApplication implements FusionInterface
             ->setContextClass(static::class)
             ->getInstance();
 
-        $aliases = $this->getConfig('aliases');
-        if (!$aliases) $aliases = [];
-        $this->_conductor->setAliases($aliases);
+        $this->_conductor->setAliases($this->getConfig('aliases') ?? []);
 
         $this->initFusionComponents($this->getConfig('components') ?? []);
         $this->init();
+    }
+
+    protected function init(): void
+    {
+        // pass
     }
 
     public function getFusionComponentTypes(): array
@@ -127,11 +119,6 @@ abstract class AbstractApplication implements FusionInterface
         return [
             'logger' => ApplicationLogger::class,
         ];
-    }
-
-    protected function init(): void
-    {
-        // pass
     }
 
 	/**
@@ -310,7 +297,7 @@ abstract class AbstractApplication implements FusionInterface
 
 	abstract public function run(): void;
 
-	private function renewConfig(): void
+	private function loadConfig(): void
 	{
 		$path = lx::$conductor->getAppConfig();
 		if (!$path) {
@@ -329,6 +316,8 @@ abstract class AbstractApplication implements FusionInterface
 
         $this->diProcessor->addMap($config['diProcessor'] ?? [], true);
         $this->_config = ArrayHelper::mergeRecursiveDistinct($this->_config, $config);
+
+        $this->loadLocalConfig();
 	}
 
 	private function loadLocalConfig(): void

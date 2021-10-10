@@ -23,10 +23,6 @@ class lx
 	const VERTICAL = 1;
 	const HORIZONTAL = 2;
 
-	const POSTUNPACK_TYPE_IMMEDIATLY = 1;
-	const POSTUNPACK_TYPE_FIRST_DISPLAY = 2;
-	const POSTUNPACK_TYPE_ALL_DISPLAY = 3;
-
 	/** @var \lx\Autoloader */
 	public static $autoloader;
 

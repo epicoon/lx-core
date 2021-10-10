@@ -4,16 +4,20 @@ namespace lx;
 
 use lx;
 
-class PluginConductor implements ConductorInterface, FusionComponentInterface
+class PluginConductor implements ConductorInterface
 {
-	use FusionComponentTrait;
-
+    private Plugin $plugin;
 	private array $imageMap;
 	private array $cssMap;
 
+    public function setPlugin(Plugin $plugin): void
+    {
+        $this->plugin = $plugin;
+    }
+
 	public function getPlugin(): Plugin
 	{
-		return $this->owner;
+        return $this->plugin;
 	}
 
 	public function getPath(): string

@@ -29,9 +29,9 @@ class Service implements FusionInterface
 	{
 	    $serviceConfig = $config['serviceConfig'] ?? [];
 	    unset($config['serviceConfig']);
-	    $this->__objectConstruct($config);
 
-		$this->setName($serviceConfig['name']);
+        $this->setName($serviceConfig['name']);
+	    $this->__objectConstruct($config);
 
         $this->_config = $serviceConfig;
         $this->initFusionComponents($this->getConfig('components') ?? []);
@@ -42,17 +42,41 @@ class Service implements FusionInterface
         return [
             'dbConnector' => DbConnectorInterface::class,
             'modelManager' => ModelManagerInterface::class,
+            'router' => ServiceRouter::class,
+            'i18nMap' => ServiceI18nMap::class,
         ];
     }
 
     public function getDefaultFusionComponents(): array
     {
         return [
-            'directory' => PackageDirectory::class,
-            'conductor' => ServiceConductor::class,
             'router' => ServiceRouter::class,
             'i18nMap' => ServiceI18nMap::class,
         ];
+    }
+
+    public static function getDependenciesConfig(): array
+    {
+        return [
+            'directory' => [
+                'instance' => PackageDirectory::class,
+                'readable' => true,
+            ],
+            'conductor' => [
+                'instance' => ServiceConductor::class,
+                'readable' => true,
+            ],
+        ];
+    }
+
+    public function initDependency(string $name, $value): void
+    {
+        switch ($name) {
+            case 'directory':
+            case 'conductor':
+                $value->setService($this);
+                break;
+        }
     }
 
     /**
@@ -241,11 +265,6 @@ class Service implements FusionInterface
         $processData = $processesConfig[$name];
         $processClassName = $processData['class'];
         $processConfig = $processData['config'] ?? [];
-
-        if (is_subclass_of($processClassName, AbstractApplication::class)) {
-            $appConfig = lx::$app->getConfig();
-            $processConfig = ArrayHelper::mergeRecursiveDistinct($appConfig, $processConfig, true);
-        }
 
         $processConfig['serviceName'] = $this->name;
         $processConfig['processName'] = $name;

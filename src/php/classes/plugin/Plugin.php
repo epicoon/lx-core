@@ -45,11 +45,11 @@ class Plugin extends Resource implements FusionInterface
 
 	public function __construct(iterable $config)
 	{
+        $this->_path = $config['path'];
 	    parent::__construct($config);
 
 		$this->service = $config['service'];
 		$this->_name = $this->service->getID() . ':' . $config['name'];
-		$this->_path = $config['path'];
 		$this->attributes = new DataObject();
 		$this->anchor = '_root_';
 
@@ -137,18 +137,42 @@ class Plugin extends Resource implements FusionInterface
 		return $this->__objectGet($name);
 	}
 
+    public function getFusionComponentTypes(): array
+    {
+        return [
+            'i18nMap' => PluginI18nMap::class,
+        ];
+    }
+
 	public function getDefaultFusionComponents(): array
 	{
 		return [
-			'directory' => PluginDirectory::class,
-			'conductor' => PluginConductor::class,
 			'i18nMap' => PluginI18nMap::class,
 		];
 	}
     
     public static function getDependenciesConfig(): array
     {
-        return parent::getDependenciesConfig();
+        return array_merge(parent::getDependenciesConfig(), [
+            'directory' => [
+                'instance' => PluginDirectory::class,
+                'readable' => true,
+            ],
+            'conductor' => [
+                'instance' => PluginConductor::class,
+                'readable' => true,
+            ],
+        ]);
+    }
+
+    public function initDependency(string $name, $value): void
+    {
+        switch ($name) {
+            case 'directory':
+            case 'conductor':
+                $value->setPlugin($this);
+                break;
+        }
     }
 
     public function getService(): Service

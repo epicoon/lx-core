@@ -150,6 +150,7 @@ return [
 	'WidgetHelper' => 'classes/helpers',
 	'I18nHelper' => 'classes/helpers',
     'ErrorHelper' => 'classes/helpers',
+    'PhpConfigHelper' => 'classes/helpers',
 
 
 	/*******************************************************************************************************************

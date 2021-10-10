@@ -4,38 +4,29 @@ namespace lx;
 
 use lx;
 
-class PluginDirectory extends Directory implements FusionComponentInterface
+class PluginDirectory extends Directory
 {
-	use FusionComponentTrait;
+    private ?Plugin $plugin = null;
 
     /**
      * @param array|string $config
      */
-	public function __construct($config = [])
+	public function __construct(?string $path = null)
 	{
-		if (is_string($config)) {
-			$config = ['path' => $config];
-		}
-
-		$this->__objectConstruct($config);
-
-		$path = $this->getPlugin()
-			? lx::$app->sitePath . '/' . $this->getPlugin()->relativePath
-			: ($config['path'] ?? null);
-
-		if ($path) {
-		    parent::__construct($path);
-		} else {
-			\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
-				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-				'msg' => "Path for PluginDirectory is undefined",
-			]);
-		}
+        if ($path) {
+            parent::__construct($path);
+        }
 	}
+    
+    public function setPlugin(Plugin $plugin): void
+    {
+        $this->plugin = $plugin;
+        $this->setPath(lx::$app->sitePath . '/' . $plugin->relativePath);
+    }
 
 	public function getPlugin(): ?Plugin
 	{
-		return $this->owner;
+        return $this->plugin;
 	}
 
 	public function getConfigFile(): ?DataFileInterface

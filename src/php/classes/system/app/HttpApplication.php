@@ -9,14 +9,6 @@ namespace lx;
  */
 class HttpApplication extends BaseApplication
 {
-	public function __construct(array $config = [])
-	{
-		parent::__construct($config);
-        $this->settings = [
-			'unpackType' => \lx::POSTUNPACK_TYPE_FIRST_DISPLAY,
-		];
-	}
-
     public function getDefaultFusionComponents(): array
     {
         return array_merge(parent::getDefaultFusionComponents(), [

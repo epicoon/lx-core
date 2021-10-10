@@ -9,9 +9,11 @@
  * */
 
 // fcgi doesn't have STDIN and STDOUT defined by default
+use lx\AutoloadMapBuilder;
 use lx\Directory;
 use lx\ConsoleApplication;
 use lx\AssetCompiler;
+use lx\JsModuleMapBuilder;
 
 defined('STDIN') or define('STDIN', fopen('php://stdin', 'r'));
 defined('STDOUT') or define('STDOUT', fopen('php://stdout', 'w'));
@@ -49,11 +51,12 @@ $gitignore->put($str);
 require(__DIR__ . '/install-src/lxConsole.php');
 /**
  * @var $lxConsoleCode
- * */
+ */
 $lxConsole = $lx->makeFile('lx');
 $lxConsole->put($lxConsoleCode);
 
 // Если конфигов еще нет - создадим
+$firstConfig = [];
 if (!$lx->contains('config')) {
 	$config = $lx->makeDirectory('config');
 
@@ -63,7 +66,7 @@ if (!$lx->contains('config')) {
 	 * @var $configRoutesCode
 	 * @var $configPluginCode
 	 * @var $configServiceCode
-	 * */
+	 */
 
 	$configMain = $config->makeFile('main.php');
 	$configMain->put($configMainCode);
@@ -76,6 +79,28 @@ if (!$lx->contains('config')) {
 
 	$configService = $config->makeFile('service.php');
 	$configService->put($configServiceCode);
+
+    $firstConfig = [
+        'packagesMap' => [
+            'vendor',
+            'services',
+        ],
+        'aliases' => [
+            'services' => '@site/services',
+        ],
+    ];
+} else {
+    $configMain = $lx->get('config/main.php');
+    if ($configMain->exists()) {
+        $firstConfig = lx\PhpConfigHelper::get($configMain, ['packagesMap', 'aliases']);
+    } else {
+        $configMain = new lx\DataFile($configMain->getPath());
+        $data = $configMain->get();
+        $firstConfig = [
+            'packagesMap' => $data['packagesMap'] ?? [],
+            'aliases' => $data['aliases'] ?? [],
+        ];
+    }
 }
 
 $data = $lx->getOrMakeDirectory('data');
@@ -85,9 +110,17 @@ if (!$data->contains('languages.php')) {
 }
 
 // Используем приложение
-$app = lx\ConsoleApplication::firstConstruct();
+$firstConfig[lx\AbstractApplication::CONFIG_KEY_CONSTRUCT_FLAGS] = [
+    lx\AbstractApplication::CONSTRUCT_FLAG_IGNORE_CONFIG => true,
+];
+$app = new lx\ConsoleApplication($firstConfig);
 
-// Создаем в корне папку web
+// Обновим карты подключения кода
+(new AutoloadMapBuilder())->createCommonAutoloadMap();
+lx::$autoloader->map->reset();
+(new JsModuleMapBuilder())->renewHead();
+
+// Создаем в корне папку web и обновляем ссылки на ресурсы плагинов
 $web = $site->getOrMakeDirectory('web');
 $cssCompiler = new AssetCompiler();
 $cssCompiler->copyLxCss();

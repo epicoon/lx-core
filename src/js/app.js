@@ -19,11 +19,6 @@
 
 lx.entryElement = null;
 
-lx.POSTUNPACK_TYPE_IMMEDIATLY = 1;
-lx.POSTUNPACK_TYPE_FIRST_DISPLAY = 2;
-lx.POSTUNPACK_TYPE_ALL_DISPLAY = 3;
-lx.unpackType = lx.POSTUNPACK_TYPE_FIRST_DISPLAY;
-
 
 /**
  * Правильная последовательность \r\n, коды соответственно 13 и 10

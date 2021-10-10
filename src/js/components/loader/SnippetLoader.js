@@ -160,15 +160,12 @@ class SnippetLoader {
 		for (var i=0, l=this.elems.length; i<l; i++) {
 			var el = this.elems[i];
 
-			//TODO - флаги убрать. Оставить поведение POSTUNPACK_TYPE_FIRST_DISPLAY как единственное
-			// постсерверная доработка виджета
-			if (lx.unpackType == lx.POSTUNPACK_TYPE_IMMEDIATLY) el.postLoad();
-			else if (lx.unpackType == lx.POSTUNPACK_TYPE_FIRST_DISPLAY) el.displayOnce(el.postLoad);
-			else if (lx.unpackType == lx.POSTUNPACK_TYPE_ALL_DISPLAY) el.on('displayin', el.postLoad);
+			// Постсерверная доработка виджета
+			/* TODO el.immediatlyPostLoad() ? el.postLoad() : */ el.displayOnce(el.postLoad);
 
-			// функции, навешанные на момент загрузки
+			// Функции, навешанные на момент загрузки
 			this.callOnload(el);
-			// если виджет виден - вызов функции на обработчике displayin, в т.ч. displayOnce
+			// Если виджет виден - вызов функции на обработчике displayin, в т.ч. displayOnce
 			if (el.isDisplay()) el.trigger('displayin');
 		}
 	}

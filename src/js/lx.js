@@ -28,6 +28,9 @@ Object.defineProperty(lx, "globalContext", {
 });
 
 #lx:server {
+    lx.POSTUNPACK_TYPE_IMMEDIATLY = 1;
+    lx.POSTUNPACK_TYPE_FIRST_DISPLAY = 2;
+    
     lx.node = __nodeModules__;
 
     lx.dump = function (data) {
