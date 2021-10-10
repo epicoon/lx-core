@@ -3,18 +3,18 @@
 namespace lx;
 
 /**
- * @property-read Service $service
- * @property-read Plugin $plugin
+ * @property-read Service|null $service
+ * @property-read Plugin|null $plugin
  */
 class Respondent extends Resource
 {
-	private Plugin $_plugin;
+	private ?Plugin $_plugin = null;
 
-	public function __construct(array $config)
+	public function __construct(iterable $config = [])
 	{
 		parent::__construct($config);
 
-		$this->_plugin = $config['plugin'];
+		$this->_plugin = $config['plugin'] ?? null;
 	}
 
 	/**
@@ -45,23 +45,26 @@ class Respondent extends Resource
 		]);
 	}
 
-	public function getPlugin(): Plugin
+	public function getPlugin(): ?Plugin
 	{
 		return $this->_plugin;
 	}
 
-	public function getService(): Service
+	public function getService(): ?Service
 	{
-		return $this->getPlugin()->getService();
+        $plugin = $this->getPlugin();
+        return $plugin ? $plugin->getService() : null;
 	}
 
-	public function getRootPlugin(): Plugin
+	public function getRootPlugin(): ?Plugin
 	{
-		return $this->getPlugin()->getRootPlugin();
+        $plugin = $this->getPlugin();
+		return $plugin ? $plugin->getRootPlugin() : null;
 	}
 
-	public function getRootService(): Service
+	public function getRootService(): ?Service
 	{
-		return $this->getPlugin()->getRootService();
+        $plugin = $this->getPlugin();
+        return $plugin ? $plugin->getRootService() : null;
 	}
 }

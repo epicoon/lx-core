@@ -178,9 +178,15 @@ class DependencyProcessor
         array $strongDependencies,
         array $weakDependencies
     ) {
-        //TODO ??????????????????????????????????????????
         if ($re->implementsInterface(ObjectInterface::class)) {
-            $params = ['config' => $params];
+            $objectParams = empty($params) ? [] : $params[array_keys($params)[0]];
+            if (!empty($strongDependencies)) {
+                $objectParams['__strongDependencies__'] = $strongDependencies;
+            }
+            if (!empty($weakDependencies)) {
+                $objectParams['__weakDependencies__'] = $weakDependencies;
+            }
+            return $re->newInstanceArgs([$objectParams]);
         }
 
         if (!$re->hasMethod('__construct')) {

@@ -12,7 +12,7 @@ class SnippetBuildContext implements ContextTreeInterface
 	private Snippet $snippet;
 	private SnippetCacheData $cacheData;
 
-	public function __construct(iterable $config)
+	public function __construct(iterable $config = [])
 	{
 	    $this->__objectConstruct($config);
 

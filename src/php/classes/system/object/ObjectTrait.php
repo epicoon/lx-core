@@ -8,6 +8,8 @@ trait ObjectTrait
 {
     private array $delegateList = [];
     private array $objectDependencies = [];
+    private array $lazyStrongDependencies = [];
+    private array $lazyWeakDependencies = [];
 
     public static function getDependenciesConfig(): array
     {
@@ -28,11 +30,10 @@ trait ObjectTrait
     {
         $this->__objectConstruct($config);
     }
-    
-    public static function constructWithDependencies(iterable $params, iterable $dependencies): ObjectInterface
+
+    public static function construct(iterable $config = [], array $dependences = []): ObjectInterface
     {
-        //TODO ??????????????????????????????????????????
-        
+        return lx::$app->diProcessor->create(static::class, [$config], $dependences);
     }
 
     /**
@@ -52,9 +53,9 @@ trait ObjectTrait
     }
 
     /**
-     * @param mixed$value
+     * @param mixed $value
      */
-    public function initDependency(string $name, $value): void
+    protected function initDependency(string $name, $value): void
     {
         // pass
     }
@@ -153,8 +154,15 @@ trait ObjectTrait
 
     private function applyConfig(array $config): bool
     {
+        $strongDependencies = $config['__strongDependencies__'] ?? [];
+        $weakDependencies = $config['__weakDependencies__'] ?? [];
+        unset($config['__strongDependencies__'], $config['__weakDependencies__']);
+
         $protocol = static::getDependenciesConfig();
         if (empty($protocol)) {
+            foreach ($config as $paramName => $value) {
+                $this->setParameter($paramName, $value);
+            }
             return true;
         }
 
@@ -162,7 +170,7 @@ trait ObjectTrait
             $paramDescr = $this->getDependencyDefinition($paramName);
             if (array_key_exists($paramName, $config)) {
                 $param = $config[$paramName];
-                $class = $paramDescr['instance'] ?? null;
+                $class = $paramDescr['class'] ?? null;
                 if ($class && !ClassHelper::checkInstance($param, $class)) {
                     $contextClass = static::class;
                     \lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
@@ -176,10 +184,22 @@ trait ObjectTrait
             }
 
             if ($paramDescr['lazy'] ?? false) {
+                $class = $paramDescr['class'] ?? null;
+                if (!$class) {
+                    continue;
+                }
+
+                if (array_key_exists($class, $strongDependencies)) {
+                    $this->lazyStrongDependencies[$class] = $strongDependencies[$class];
+                }
+                if (array_key_exists($class, $weakDependencies)) {
+                    $this->lazyWeakDependencies[$class] = $weakDependencies[$class];
+                }
+
                 continue;
             }
 
-            $param = $this->createDependencyInstance($paramName);
+            $param = $this->createDependencyInstance($paramName, $strongDependencies, $weakDependencies);
             if ($param === null) {
                 //TODO devlog???
             } else {
@@ -190,7 +210,6 @@ trait ObjectTrait
         foreach ($config as $paramName => $value) {
             $this->setParameter($paramName, $value);
         }
-
         return true;
     }
 
@@ -220,7 +239,7 @@ trait ObjectTrait
 
         $definition = $protocol[$name];
         $definition = is_string($definition)
-            ? ['instance' => $definition]
+            ? ['class' => $definition]
             : $definition;
 
         //TODO неочевидно, что ленивая загрузка обязательно делает зависимость читаемым полем
@@ -242,7 +261,7 @@ trait ObjectTrait
 
         $definition = $this->getDependencyDefinition($name);
         if ($definition && ($definition['lazy'] ?? false)) {
-            $param = $this->createDependencyInstance($name);
+            $param = $this->createDependencyInstance($name, $this->lazyStrongDependencies, $this->lazyWeakDependencies);
             if ($param !== null) {
                 $this->setParameter($name, $param);
                 return $this->objectDependencies[$name] ?? null;
@@ -255,8 +274,11 @@ trait ObjectTrait
     /**
      * @return mixed
      */
-    private function createDependencyInstance(string $name)
-    {
+    private function createDependencyInstance(
+        string $name,
+        array $strongDependencies = [],
+        array $weakDependencies = []
+    ) {
         $definition = $this->getDependencyDefinition($name);
         if (array_key_exists('default', $definition)) {
             return is_callable($definition['default'])
@@ -265,7 +287,7 @@ trait ObjectTrait
         }
 
         $contextClass = static::class;
-        $class = $definition['instance'] ?? null;
+        $class = $definition['class'] ?? null;
         if (!$class) {
             \lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
                 '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
@@ -277,7 +299,9 @@ trait ObjectTrait
         return lx::$app->diProcessor->build()
             ->setClass($class)
             ->setContextClass($contextClass)
-            ->setContextWeakDependencies(static::getDependenciesDefaultMap())
-            ->getInstance();
+            ->setContextStrongDependencies($strongDependencies)
+            ->setContextWeakDependencies(
+                ArrayHelper::mergeRecursiveDistinct($weakDependencies, static::getDependenciesDefaultMap())
+            )->getInstance();
     }
 }

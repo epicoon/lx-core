@@ -25,7 +25,7 @@ class Service implements FusionInterface
 	/**
 	 * Don't use for service creation. Use Service::create() instead
 	 */
-	public function __construct(iterable $config)
+	public function __construct(iterable $config = [])
 	{
 	    $serviceConfig = $config['serviceConfig'] ?? [];
 	    unset($config['serviceConfig']);
@@ -59,17 +59,17 @@ class Service implements FusionInterface
     {
         return [
             'directory' => [
-                'instance' => PackageDirectory::class,
+                'class' => PackageDirectory::class,
                 'readable' => true,
             ],
             'conductor' => [
-                'instance' => ServiceConductor::class,
+                'class' => ServiceConductor::class,
                 'readable' => true,
             ],
         ];
     }
 
-    public function initDependency(string $name, $value): void
+    protected function initDependency(string $name, $value): void
     {
         switch ($name) {
             case 'directory':
@@ -164,7 +164,7 @@ class Service implements FusionInterface
 		$config['name'] = $name;
 		$config = ['serviceConfig' => $config];
 
-		$service = lx::$app->diProcessor->create($className, $config);
+		$service = lx::$app->diProcessor->create($className, [$config]);
 		$app->services->register($name, $service);
 		return $service;
 	}

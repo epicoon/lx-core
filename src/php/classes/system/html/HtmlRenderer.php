@@ -31,7 +31,7 @@ class HtmlRenderer implements HtmlRendererInterface, ObjectInterface
     {
         return [
             'templateProvider' => [
-                'instance' => HtmlTemplateProviderInterface::class,
+                'class' => HtmlTemplateProviderInterface::class,
                 'lazy' => true,
             ],
         ];

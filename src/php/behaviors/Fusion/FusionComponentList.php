@@ -91,7 +91,7 @@ class FusionComponentList
 
         $this->list[$name] = lx::$app->diProcessor->build()
             ->setClass($className)
-            ->setParams($params)
+            ->setParams([$params])
             ->setContextClass(get_class($this->fusion))
             ->getInstance();
 

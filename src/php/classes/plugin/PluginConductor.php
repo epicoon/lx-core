@@ -166,9 +166,8 @@ class PluginConductor implements ConductorInterface
 			}
 		}
 
-		$respondent = lx::$app->diProcessor->create($respondentClassName, [
-			'plugin' => $plugin
-		]);
+        $respondentConfig = ['plugin' => $plugin];
+		$respondent = lx::$app->diProcessor->create($respondentClassName, [$respondentConfig]);
 		return $respondent;
 	}
 

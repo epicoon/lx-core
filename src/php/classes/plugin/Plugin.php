@@ -43,7 +43,7 @@ class Plugin extends Resource implements FusionInterface
 	private array $scripts = [];
 	private array $css = [];
 
-	public function __construct(iterable $config)
+	public function __construct(iterable $config = [])
 	{
         $this->_path = $config['path'];
 	    parent::__construct($config);
@@ -113,7 +113,7 @@ class Plugin extends Resource implements FusionInterface
 			$data['prototype'] = $prototype;
 		}
 
-		$plugin = lx::$app->diProcessor->create($pluginClass, $data);
+		$plugin = lx::$app->diProcessor->create($pluginClass, [$data]);
 
 		return $plugin;
 	}
@@ -155,17 +155,17 @@ class Plugin extends Resource implements FusionInterface
     {
         return array_merge(parent::getDependenciesConfig(), [
             'directory' => [
-                'instance' => PluginDirectory::class,
+                'class' => PluginDirectory::class,
                 'readable' => true,
             ],
             'conductor' => [
-                'instance' => PluginConductor::class,
+                'class' => PluginConductor::class,
                 'readable' => true,
             ],
         ]);
     }
 
-    public function initDependency(string $name, $value): void
+    protected function initDependency(string $name, $value): void
     {
         switch ($name) {
             case 'directory':

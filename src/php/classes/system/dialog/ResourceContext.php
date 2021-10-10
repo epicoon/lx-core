@@ -103,7 +103,7 @@ class ResourceContext
                 if (isset($this->data['service'])) {
                     $config['service'] = $this->getService();
                 }
-                $object = \lx::$app->diProcessor->create($class, $config);
+                $object = \lx::$app->diProcessor->create($class, [$config]);
             }
 
             if ($object && $object instanceof ResourceInterface) {
