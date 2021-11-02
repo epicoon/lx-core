@@ -49,7 +49,6 @@ return [
 	'EventListenerTrait' => 'classes/system/event',
 
 	'Console' => 'classes/system/console',
-	'ConsoleInputContext' => 'classes/system/console',
 	'Cli' => 'classes/system/console',
 	'CliProcessor' => 'classes/system/console',
     'CliArgument' => 'classes/system/console',
@@ -57,6 +56,9 @@ return [
     'CliCommand' => 'classes/system/console',
     'CliCommandsList' => 'classes/system/console',
 	'ServiceCliExecutor' => 'classes/system/console',
+    'AbstractConsoleInput' => 'classes/system/console/input',
+    'ConsoleInput' => 'classes/system/console/input',
+    'ConsoleSelect' => 'classes/system/console/input',
 
 	'JsCompiler' => 'classes/system/compiler',
     'JsCompilerExtension' => 'classes/system/compiler',

@@ -4,7 +4,7 @@ namespace lx;
 
 class Console
 {
-	private static ?ConsoleInputContext $inputContext = null;
+	private static ?ConsoleInput $inputContext = null;
 
 	/**
 	 * Print a decorated string
@@ -35,16 +35,27 @@ class Console
 
 	public static function in(array $config): string
 	{
-	    $hint = $config['hintText'] ?? 'Input: ';
-	    $hintDecor = $config['hintDecor'] ?? [];
-	    $textDecor = $config['textDecor'] ?? [];
-	    $callbacks = $config['callbacks'] ?? [];
-
-		self::$inputContext = new ConsoleInputContext($hint, $hintDecor, $textDecor, $callbacks);
-		$result = self::$inputContext->run();
-		self::$inputContext = null;
-		return $result;
+        self::$inputContext = (new ConsoleInput())
+            ->setHint($config['hintText'] ?? 'Input: ')
+            ->setHintDecor($config['hintDecor'] ?? [])
+            ->setTextDecor($config['textDecor'] ?? [])
+            ->setCallbacks($config['callbacks'] ?? []);
+        $result = self::$inputContext->run();
+        self::$inputContext = null;
+        return $result;
 	}
+
+    public static function select(array $config): ?int
+    {
+        $select = (new ConsoleSelect())
+            ->setHint($config['hintText'] ?? 'Select: ')
+            ->setHintDecor($config['hintDecor'] ?? [])
+            ->setTextDecor($config['textDecor'] ?? [])
+            ->setCallbacks($config['callbacks'] ?? [])
+            ->setWithQuit($config['withQuit'] ?? true)
+            ->setOptions($config['options'] ?? []);
+        return $select->run();
+    }
 
 	public static function getCurrentInput(): ?string
 	{
@@ -104,10 +115,9 @@ class Console
 
 	private static function getString(array $args): string
 	{
-		$opts = [];
-		if (is_array(end($args))) {
-			$opts = array_pop($args);
-		}
+		$opts = is_array(end($args))
+            ? array_pop($args)
+            : [];
 
 		if (empty($args)) {
 			return '';

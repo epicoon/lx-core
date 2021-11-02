@@ -45,12 +45,13 @@ class Cli
 			'hintDecor' => ['color' => 'yellow', 'decor' => 'b'],
 			'textDecor' => ['color' => 'yellow'],
 			'callbacks' => [
-				'up' => function () {
+                AbstractConsoleInput::DIRECTIVE_UP => function () {
 					if ($this->commandsHistoryIndex == 0) return;
 					$this->commandsHistoryIndex--;
 					Console::replaceInput($this->commandsHistory[$this->commandsHistoryIndex]);
 				},
-				'down' => function () {
+
+                AbstractConsoleInput::DIRECTIVE_DOWN => function () {
 					if ($this->commandsHistoryIndex == count($this->commandsHistory)) {
 						return;
 					}
@@ -61,24 +62,22 @@ class Cli
 					}
 					Console::replaceInput($this->commandsHistory[$this->commandsHistoryIndex]);
 				},
-				'intercept' => [
-					// TAB
-					9 => function () use ($locationText) {
-						$currentInput = Console::getCurrentInput();
-						
-						$command = $this->processor->autoCompleteCommand($currentInput, $this->getCommandsList());
-						if ($command) {
-							if ($command['common'] == $currentInput) {
-								Console::outln();
-								Console::outln(implode('  ', $command['matches']));
-								Console::out($locationText, ['color' => 'yellow', 'decor' => 'b']);
-								Console::out($currentInput, ['color' => 'yellow']);
-							} else {
-								Console::replaceInput($command['common']);
-							}
-						}
-					}
-				]
+
+                AbstractConsoleInput::DIRECTIVE_TAB => function () use ($locationText) {
+                    $currentInput = Console::getCurrentInput();
+
+                    $command = $this->processor->autoCompleteCommand($currentInput, $this->getCommandsList());
+                    if ($command) {
+                        if ($command['common'] == $currentInput) {
+                            Console::outln();
+                            Console::outln(implode('  ', $command['matches']));
+                            Console::out($locationText, ['color' => 'yellow', 'decor' => 'b']);
+                            Console::out($currentInput, ['color' => 'yellow']);
+                        } else {
+                            Console::replaceInput($command['common']);
+                        }
+                    }
+                }
 			]
 		]);
 
@@ -138,7 +137,15 @@ class Cli
 				$this->processParams[$result['need']] = Console::in(['hintText' => $row[1], 'hintDecor' => $row[2]]);
 				$this->inProcess = $commandName;
 				return;
-			}
+			} elseif ($row[0] == 'select') {
+                $this->processParams[$result['need']] = Console::select([
+                    'options' => $row[1],
+                    'hintText' => $row[2],
+                    'hintDecor' => $row[3],
+                ]);
+                $this->inProcess = $commandName;
+                return;
+            }
 			Console::{$row[0]}($row[1], $row[2]);
 		}
 

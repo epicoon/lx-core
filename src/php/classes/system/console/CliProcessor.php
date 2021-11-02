@@ -23,9 +23,41 @@ class CliProcessor
 	private bool $keepProcess = false;
 	private array $data = [];
 
+
+
+
+    private function test() {
+        $this->outln('This is test');
+
+        if (!$this->hasParam('t1')) {
+            $this->select('t1', [
+                'one',
+                'two',
+                'three',
+            ], 'Select param:', ['color' => 'yellow']);
+            return;
+        }
+
+        $param = $this->getParam('t1');
+        $this->outln('Your param is - ' . $param);
+
+
+    }
+
+
+
 	private function getSelfCommands(): array
     {
         return [
+            [
+                'command' => ['\t'],
+                'description' => 'Test',
+                'handler' => 'test',
+            ],
+
+
+
+
             [
                 'type' => self::COMMAND_TYPE_CONSOLE,
                 'command' => ['\q'],
@@ -386,6 +418,12 @@ class CliProcessor
 		$this->needParam = $needParam;
 		$this->consoleMap[] = ['in', $text, $decor];
 	}
+
+    public function select(string $needParam, array $options, string $text, array $decor = []): void
+    {
+        $this->needParam = $needParam;
+        $this->consoleMap[] = ['select', $options, $text, $decor];
+    }
 
 	/**
 	 * @param string|int|array $key
@@ -800,30 +838,26 @@ class CliProcessor
 		}
 
 		if (!$this->hasParam('index')) {
-			$this->outln('Available directories for new service:', ['decor' => 'b']);
-			$counter = 0;
-			foreach ($dirs as $dirPath) {
-				$this->out((++$counter) . '. ', ['decor' => 'b']);
-				$this->outln($dirPath == '' ? '/' : $dirPath);
-			}
-			$this->out('q. ', ['decor' => 'b']);
-			$this->outln('Quit');
-			$this->in('index', 'Choose number of directory: ', ['decor' => 'b']);
+            $dirsList = [];
+            foreach ($dirs as $dirPath) {
+                $dirsList[] = $dirPath == '' ? '/' : $dirPath;
+            }
+            $this->select('index', $dirsList, 'Choose directory for new service:', ['decor' => 'b']);
 			return;
 		}
 		$i = $this->getParam('index');
 
-		if ($i == 'q') {
+		if ($i === null) {
 			$this->outln('Aborted');
 			$this->done();
 			return;
 		}
-		if (!is_numeric($i) || $i <= 0 || $i > count($dirs)) {
+		if (!is_numeric($i) || $i < 0 || $i > count($dirs) - 1) {
 			$this->invalidateParam('index');
 			return;
 		}
 
-		$this->createServiceProcess($name, $dirs[$i - 1]);
+		$this->createServiceProcess($name, $dirs[$i]);
 		$this->done();
 	}
 
@@ -871,30 +905,31 @@ class CliProcessor
 		}
 
 		if (!$this->hasParam('index')) {
-			$this->outln('Available directories for new plugin (relative to the service directory)::', ['decor' => 'b']);
-			$counter = 0;
-			foreach ($pluginDirs as $dirPath) {
-				$this->out((++$counter) . '. ', ['decor' => 'b']);
-				$this->outln($dirPath == '' ? '/' : $dirPath);
-			}
-			$this->out('q. ', ['decor' => 'b']);
-			$this->outln('Quit');
-			$this->in('index', 'Choose number of directory: ', ['decor' => 'b']);
+            $dirsList = [];
+            foreach ($pluginDirs as $dirPath) {
+                $dirsList[] = $dirPath == '' ? '/' : $dirPath;
+            }
+            $this->select(
+                'index',
+                $dirsList,
+                'Choose directory for new plugin (relative to the service directory):',
+                ['decor' => 'b']
+            );
 			return;
 		}
 		$i = $this->getParam('index');
 
-		if ($i == 'q') {
+		if ($i === null) {
 			$this->outln('Aborted');
 			$this->done();
 			return;
 		}
-		if (!is_numeric($i) || $i <= 0 || $i > count($pluginDirs)) {
+		if (!is_numeric($i) || $i < 0 || $i > count($pluginDirs) - 1) {
 			$this->invalidateParam('index');
 			return;
 		}
 
-		$this->createPluginProcess($this->service, $name, $pluginDirs[$i - 1]);
+		$this->createPluginProcess($this->service, $name, $pluginDirs[$i]);
 		$this->done();
 	}
 

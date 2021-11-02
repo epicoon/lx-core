@@ -80,6 +80,10 @@ class Directory extends BaseFile implements DirectoryInterface
 
 	public function makeFile(string $name, ?string $classOrInterface = null): FileInterface
 	{
+        if ($classOrInterface === null) {
+            $classOrInterface = File::class;
+        }
+
 	    if (lx::$app && lx::$app->diProcessor) {
             return lx::$app->diProcessor->build()
                 ->setClass($classOrInterface)

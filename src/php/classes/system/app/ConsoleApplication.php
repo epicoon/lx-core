@@ -19,7 +19,7 @@ class ConsoleApplication extends BaseApplication
 		if (!isset($this->command)) {
 			return;
 		}
-		
+
 		if ($this->command == 'cli') {
 		    $this->processCli();
 		    return;
