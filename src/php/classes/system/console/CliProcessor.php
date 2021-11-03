@@ -23,6 +23,17 @@ class CliProcessor
 	private bool $keepProcess = false;
 	private array $data = [];
 
+    public function resetData(): void
+    {
+        $this->currentCommandType = null;
+        $this->consoleMap = [];
+        $this->needParam = null;
+        $this->params = [];
+        $this->invalidParams = [];
+        $this->keepProcess = false;
+        $this->data = [];
+    }
+
 
 
 
@@ -240,7 +251,12 @@ class CliProcessor
 		$this->needParam = null;
 
 		$this->currentCommandType = $commandType;
-		$this->invokeCommand($commandName);
+        try {
+            $this->invokeCommand($commandName);
+        } catch (\Throwable $exception) {
+            $this->resetData();
+            $this->outln($exception->getMessage());
+        }
 		return $this->getResult();
 	}
 
@@ -1131,8 +1147,12 @@ class CliProcessor
         $servicesList = $this->getServicesList();
         foreach ($servicesList as $serviceName => $serviceData) {
             $service = $serviceData['object'];
+            if (!$service) {
+                continue;
+            }
+
             $serviceCli = $service->cli;
-            if (!$serviceCli || !$serviceCli instanceof ServiceCliInterface) {
+            if (!$serviceCli instanceof ServiceCliInterface) {
                 continue;
             }
 

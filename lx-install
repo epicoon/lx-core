@@ -1,35 +1,31 @@
 #!/usr/bin/env php
 <?php
 /**
- * Добавляет в корень проекта папку 'lx' - сердце платформы в проекте
- * Папка будет содержать:
- * 1. Каталог 'config' - настройки платформы, необходимые в рамках этого приложения
- * 2. Файл 'lx' - для запуска встроенной в платформу CLI командой: php lx cli
- * 3. Каталог .system - необходим платформе для работы, изменять там что-либо нежелательно
- * */
+ * This script creates directory 'lx' to the project root directory. This is a heart of the platform
+ * The directory contains:
+ * 1. Directory 'config' - configuration for the platform
+ * 2. File 'lx' for launch platform CLI
+ * 3. Directory '.system' for caches, temp files etc
+ */
 
-// fcgi doesn't have STDIN and STDOUT defined by default
 use lx\AutoloadMapBuilder;
 use lx\Directory;
-use lx\ConsoleApplication;
 use lx\AssetCompiler;
 use lx\JsModuleMapBuilder;
 
+// fcgi doesn't have STDIN and STDOUT defined by default
 defined('STDIN') or define('STDIN', fopen('php://stdin', 'r'));
 defined('STDOUT') or define('STDOUT', fopen('php://stdout', 'w'));
 
 require_once(__DIR__ . '/main.php');
 $site = new Directory(lx::$conductor->sitePath);
 
-// Создаем в корне папку services
 $lx = $site->getOrMakeDirectory('services');
 
-// Создаем в корне папку lx
 $lx = $site->getOrMakeDirectory('lx');
 $system = $lx->getOrMakeDirectory('.system');
 $system->getOrMakeDirectory('temp');
 
-// Корректируем ".gitignore"
 $gitignore = $site->makeFile('.gitignore');
 if ($gitignore->exists()) {
     $str = '';
@@ -47,7 +43,6 @@ if ($gitignore->exists()) {
 }
 $gitignore->put($str);
 
-// Создаем файл для работы в консольном режиме
 require(__DIR__ . '/install-src/lxConsole.php');
 /**
  * @var $lxConsoleCode
@@ -55,7 +50,6 @@ require(__DIR__ . '/install-src/lxConsole.php');
 $lxConsole = $lx->makeFile('lx');
 $lxConsole->put($lxConsoleCode);
 
-// Если конфигов еще нет - создадим
 $firstConfig = [];
 if (!$lx->contains('config')) {
 	$config = $lx->makeDirectory('config');
@@ -109,47 +103,18 @@ if (!$data->contains('languages.php')) {
 	$languages->put(require(__DIR__ . '/install-src/data/languages.php'));
 }
 
-// Используем приложение
 $firstConfig[lx\AbstractApplication::CONFIG_KEY_CONSTRUCT_FLAGS] = [
     lx\AbstractApplication::CONSTRUCT_FLAG_IGNORE_CONFIG => true,
 ];
 $app = new lx\ConsoleApplication($firstConfig);
 
-// Обновим карты подключения кода
 (new AutoloadMapBuilder())->createCommonAutoloadMap();
 lx::$autoloader->map->reset();
 (new JsModuleMapBuilder())->renewHead();
 
-// Создаем в корне папку web и обновляем ссылки на ресурсы плагинов
 $web = $site->getOrMakeDirectory('web');
 $cssCompiler = new AssetCompiler();
 $cssCompiler->copyLxCss();
 $cssCompiler->makePluginsAssetLinks();
 
-// Если нет HelloWorld-ного сервиса - создадим
-if (!$app->services->exists('lx/hello')) {
-	$site->getOrMakeDirectory('vendor');
-
-	$service = (new lx\ServiceEditor())->createService('lx/hello', '@site/vendor');
-	$pluginEditor = new lx\PluginEditor($service);
-	$plugin = $pluginEditor->createPlugin('world', null, [
-        'cacheType' => lx\Plugin::CACHE_SMART
-    ]);
-
-	$dir = $plugin->directory;
-    $i18nDir = $dir->getOrMakeDirectory('assets/i18n', 0777, true);
-	$i18n = $i18nDir->makeFile('main.yaml');
-	$i18n->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/i18nTpl'));
-	$cssDir = $dir->getOrMakeDirectory('assets/css', 0777, true);
-	$css = $cssDir->makeFile('main.css');
-	$css->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/cssTpl'));
-	$view = $dir->get('snippets/_root.js');
-	$view->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/viewTpl'));
-	$frontend = $dir->get('frontend/_main.js');
-	$frontend->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/frontendTpl'));
-	$backend = $dir->get('backend/Respondent.php');
-	$backend->put(file_get_contents(__DIR__ . '/install-src/hiPlugin/backendTpl'));
-}
-
-// Закончили упражнение
 lx\Console::outln('Done');

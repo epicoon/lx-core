@@ -118,22 +118,28 @@ class Router implements FusionComponentInterface
 		}
 
 		$serviceRoute = $route;
-		if ($routeKey[0] == '!') {
+        if ($routeKey == '!' || $routeKey == '!/') {
+            $serviceRoute = $route;
+        } elseif ($routeKey[0] == '!') {
 			$serviceRoute = preg_replace('/^!/', '', $routeKey);
 			if ($serviceRoute != '') {
 				$serviceRoute = (explode($serviceRoute, $route))[1];
 				$serviceRoute = preg_replace('/^\//', '', $serviceRoute);
 			}
-			if ($serviceRoute == '') {
-				$serviceRoute = '/';
-			}
 		}
+        if ($serviceRoute == '') {
+            $serviceRoute = '/';
+        }
 
 		return $serviceRoute;
 	}
 
 	private function validateRouteKey(string $routeKey, string $route): bool
 	{
+        if ($routeKey == '!' || $routeKey == '!/') {
+            return true;
+        }
+
 		if ($routeKey[0] == '~') {
 			$reg = preg_replace('/^~/', '/', str_replace('/', '\/', $routeKey)) . '/';
 			return preg_match($reg, $route);

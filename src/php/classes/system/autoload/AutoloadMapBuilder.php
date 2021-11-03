@@ -69,7 +69,11 @@ class AutoloadMapBuilder
 
 	private function analizePackage(string $packagePath, array $config): void
 	{
-		$packageName = $config['name'];
+		$packageName = $config['name'] ?? null;
+        if ($packageName === null) {
+            return;
+        }
+
 		$relativePackagePath = explode(\lx::$app->sitePath . '/', $packagePath)[1];
 
 		$this->packagesMap[$packageName] = $relativePackagePath;

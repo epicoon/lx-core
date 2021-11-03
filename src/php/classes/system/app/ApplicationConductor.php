@@ -4,6 +4,9 @@ namespace lx;
 
 use lx;
 
+/**
+ * @property-read string $sitePath
+ */
 class ApplicationConductor implements ConductorInterface
 {
 	private array $aliases = [];
@@ -44,26 +47,34 @@ class ApplicationConductor implements ConductorInterface
 	 * If the path is relative it will be completed with $defaultLocation
 	 * If the $defaultLocation is not defined the path will be completed with site path
 	 */
-	public function getFullPath(string $path, ?string $defaultLocation = null): ?string
+	public function getFullPath(string $fileName, ?string $relativePath = null): ?string
 	{
-		if ($path[0] == '/') {
-			if (preg_match('/^' . str_replace('/', '\/', $this->sitePath) . '/', $path)) {
-				return $path;
+        if ($fileName == '') {
+            return $this->sitePath;
+        }
+
+		if ($fileName[0] == '/') {
+			if (preg_match('/^' . str_replace('/', '\/', $this->sitePath) . '/', $fileName)) {
+				return $fileName;
 			}
-			return $this->sitePath . $path;
+			return $this->sitePath . $fileName;
 		}
 
-		if ($path[0] == '@') {
-			return $this->decodeAlias($path);
+		if ($fileName[0] == '@') {
+			return $this->decodeAlias($fileName);
 		}
 
-		if ($path[0] == '{') {
-			return $this->getStuffPath($path);
+		if ($fileName[0] == '{') {
+			return $this->getStuffPath($fileName);
 		}
 
-		if ($defaultLocation === null) $defaultLocation = $this->sitePath;
-		if ($defaultLocation[-1] != '/') $defaultLocation .= '/';
-		return $defaultLocation . $path;
+		if ($relativePath === null) {
+            $relativePath = $this->sitePath;
+        }
+		if ($relativePath[-1] != '/') {
+            $relativePath .= '/';
+        }
+		return $relativePath . $fileName;
 	}
 
 	public function getRelativePath(string $path, ?string $defaultLocation = null): string
@@ -76,7 +87,7 @@ class ApplicationConductor implements ConductorInterface
 		return explode($this->sitePath . '/', $fullPath)[1];
 	}
 
-	public function getFile(string $name): ?BaseFile
+	public function getFile(string $name): ?CommonFileInterface
 	{
 		$path = $this->getFullPath($name);
 		if (!$path) {
@@ -205,5 +216,7 @@ class ApplicationConductor implements ConductorInterface
 
 			return $plugin->getFilePath($relativePath);
 		}
+
+        return null;
 	}
 }

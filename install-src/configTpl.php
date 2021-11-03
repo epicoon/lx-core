@@ -4,9 +4,6 @@ $configMainCode = <<<EOT
 <?php
 
 return [
-	// Application mode
-	'mode' => 'dev',
-
 	// Directories for packages
 	'packagesMap' => [
 		'vendor',
@@ -55,7 +52,7 @@ $configRoutesCode = <<<EOT
 <?php
 
 return [
-    '/' => ['service-plugin' => 'lx/hello:world', 'on-mode' => 'dev'],
+
 ];
 
 EOT;
@@ -71,12 +68,6 @@ return [
 
 	// Directory(ies) for plugins
 	'plugins' => 'plugins',
-
-	// Directory(ies) for models
-	'models' => 'models',
-
-	// Models save/load manage class
-	'modelCrudAdapter' => null,
 
 	// Service components
 	'components' => [

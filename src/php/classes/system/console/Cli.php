@@ -90,7 +90,7 @@ class Cli
 		list ($command, $args) = $this->processor->parseInput($input);
 
 		if (!$this->validateCommandName($command)) {
-            Console::outln("Unknown command '$command'. Enter 'help' to see commands list");
+            Console::outln("Unknown command '$command'. Enter 'help' to see the commands list");
             return $command;
         }
 

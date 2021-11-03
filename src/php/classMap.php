@@ -138,6 +138,8 @@ return [
 	'JsonDataFileAdapter' => 'classes/file/dataFileAdapter',
 	'YamlDataFileAdapter' => 'classes/file/dataFileAdapter',
 
+    'DbException' => 'classes/exceptions',
+
 
 	/*******************************************************************************************************************
 	 * Helpers

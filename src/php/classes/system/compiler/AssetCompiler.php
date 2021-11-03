@@ -142,17 +142,17 @@ class AssetCompiler
 	public function compileLxCss(): void
 	{
 		$path = \lx::$conductor->webCss;
-		$cssFile = new File($path . '/main.css');
-		if (!$cssFile->exists()) {
-			$this->copyLxCss();
-		}
+        $cssJsFile = new File($path . '/main.css.js');
+        if (!$cssJsFile->exists()) {
+            $this->copyLxCss();
+        }
 
-		$cssJsFile = new File($path . '/main.css.js');
-		if ($cssJsFile->exists() && (!$cssFile->exists() || $cssJsFile->isNewer($cssFile))) {
+		$cssFile = new File($path . '/main.css');
+		if (!$cssFile->exists() || $cssJsFile->isNewer($cssFile)) {
 		    $compiler = new JsCompiler();
 		    $compiler->setBuildModules(true);
 			$exec = new NodeJsExecutor($compiler);
-            $res = $exec->setFile($cssFile)->run();
+            $res = $exec->setFile($cssJsFile)->run();
 			$cssFile->put($res);
 		}
 	}
