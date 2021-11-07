@@ -34,7 +34,7 @@ class Resource implements ResourceInterface, ObjectInterface
         return $this->newResponse($data);
     }
     
-    public function prepareWarningResponse($data): ResponseInterface
+    public function prepareWarningResponse($data = []): ResponseInterface
     {
         $responce = $this->newResponse($data);
         $responce->setWarning();

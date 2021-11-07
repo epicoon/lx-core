@@ -103,7 +103,8 @@ class Dropbox extends lx.Box #lx:namespace lx {
 
 	options(data) {
 		if (data === undefined) return this.data;
-		#lx:client { this.data = lx.Dict.create(this.data); }
+		#lx:server { this.data = data; }
+		#lx:client { this.data = lx.Dict.create(data); }
 		return this;
 	}
 

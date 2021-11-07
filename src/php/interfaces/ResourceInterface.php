@@ -19,6 +19,10 @@ interface ResourceInterface
      */
     public function prepareResponse($data): ResponseInterface;
     /**
+     * @param mixed $data
+     */
+    public function prepareWarningResponse($data = []): ResponseInterface;
+    /**
      * @param array|string $error
      */
     public function prepareErrorResponse($error, int $code = ResponseCodeEnum::BAD_REQUEST_ERROR): ResponseInterface;
