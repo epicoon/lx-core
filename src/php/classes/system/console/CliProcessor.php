@@ -429,10 +429,10 @@ class CliProcessor
 		$this->consoleMap[] = ['outln', $text, $decor];
 	}
 
-	public function in(string $needParam, string $text, array $decor = []): void
+	public function in(string $needParam, string $text, array $decor = [], $password = false): void
 	{
 		$this->needParam = $needParam;
-		$this->consoleMap[] = ['in', $text, $decor];
+		$this->consoleMap[] = ['in', $text, $decor, $password];
 	}
 
     public function select(string $needParam, array $options, string $text, array $decor = []): void

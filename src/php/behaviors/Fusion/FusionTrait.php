@@ -23,6 +23,11 @@ trait FusionTrait
         return $this->fusionComponentList->has($name);
     }
 
+    public function setFusionComponent(string $name, array $config): void
+    {
+        $this->fusionComponentList->set($name, $config);
+    }
+
 	/**
 	 * @magic __get
 	 */

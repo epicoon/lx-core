@@ -36,6 +36,15 @@ class FusionComponentList
 		return array_key_exists($name, $this->list) || array_key_exists($name, $this->config);
 	}
 
+    public function set(string $name, array $config): void
+    {
+        if (array_key_exists($name, $this->list)) {
+            return;
+        }
+
+        $this->config[$name] = ClassHelper::prepareConfig($config);
+    }
+
 	public function load(array $list, array $defaults = []): void
 	{
 	    foreach ($defaults as &$item) {

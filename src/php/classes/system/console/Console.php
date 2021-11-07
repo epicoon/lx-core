@@ -39,6 +39,7 @@ class Console
             ->setHint($config['hintText'] ?? 'Input: ')
             ->setHintDecor($config['hintDecor'] ?? [])
             ->setTextDecor($config['textDecor'] ?? [])
+            ->setPasswordMode($config['password'] ?? false)
             ->setCallbacks($config['callbacks'] ?? []);
         $result = self::$inputContext->run();
         self::$inputContext = null;

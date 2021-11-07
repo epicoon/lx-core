@@ -41,7 +41,11 @@ class DependencyProcessor
         array $contextStrongDependencies = [],
         array $contextWeakDependencies = []
     ) {
-        $re = new \ReflectionClass($classOrInterface);
+        try {
+            $re = new \ReflectionClass($classOrInterface);
+        } catch (\Throwable $exception) {
+            throw new \Exception("Class $classOrInterface does not exist");
+        }
 
         if ($re->isInterface()) {
             return $this->createByInterface(

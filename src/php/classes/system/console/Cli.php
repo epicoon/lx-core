@@ -134,7 +134,11 @@ class Cli
 		}
 		foreach ($result['output'] as $row) {
 			if ($row[0] == 'in') {
-				$this->processParams[$result['need']] = Console::in(['hintText' => $row[1], 'hintDecor' => $row[2]]);
+				$this->processParams[$result['need']] = Console::in([
+                    'hintText' => $row[1],
+                    'hintDecor' => $row[2],
+                    'password' => $row[3],
+                ]);
 				$this->inProcess = $commandName;
 				return;
 			} elseif ($row[0] == 'select') {
