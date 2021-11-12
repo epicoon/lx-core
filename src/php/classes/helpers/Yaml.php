@@ -353,7 +353,9 @@ class Yaml
 			return [null, $this->translateString($row)];
 		}
 
-        if ($row[0] == '\'' || $row[0] == '"') {
+        if ($row == '') {
+            $value = '';
+        } elseif ($row[0] == '\'' || $row[0] == '"') {
             $value = $row;
         } else {
             preg_match_all('/((?:[\w_.!\/$\\\ -][\w\d_.!\/$\\\ -]*?)|(?:<<)):\s*(.*)/', $row, $matches);

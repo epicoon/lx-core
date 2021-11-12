@@ -15,14 +15,14 @@ class JsCompiler
 	private array $ignoreModules;
 	private array $allCompiledFiles;
 	private array $compiledFiles;
-	private SintaxExtender $sintaxExtender;
+	private SyntaxExtender $syntaxExtender;
 	private ConductorInterface $conductor;
 	private ?JsCompileDependencies $dependencies;
 
 	public function __construct(?ConductorInterface $conductor = null)
 	{
 		$this->conductor = $conductor ?? \lx::$app->conductor;
-		$this->sintaxExtender = new SintaxExtender($this);
+		$this->syntaxExtender = new SyntaxExtender($this);
 
 		$this->context = self::CONTEXT_CLIENT;
 		$this->buildModules = false;
@@ -173,7 +173,7 @@ class JsCompiler
         $code = $this->parseYaml($code, $path);
         $code = $this->processMacroses($code);
         $code = $this->applyContext($code);
-        $code = $this->sintaxExtender->applyExtendedSintax($code, $path);
+        $code = $this->syntaxExtender->applyExtendedSyntax($code, $path);
         $code = $this->loadConfig($code, $path);
         $code = $this->plugScripts($code);
         $code = $this->checkMode($code);

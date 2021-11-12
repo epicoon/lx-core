@@ -55,7 +55,10 @@ class ServiceRouter implements FusionComponentInterface
 			}
 
 			$data = $map[$route];
-			if (!$this->validateConditions($data)) {
+            $alowed = (is_array($data))
+                ? $this->validateConditions($data)
+                : true;
+			if (!$alowed) {
 				return null;
 			}
 
@@ -99,10 +102,6 @@ class ServiceRouter implements FusionComponentInterface
 
 	private function validateConditions(array $data): bool
 	{
-		if (!is_array($data)) {
-			return true;
-		}
-
 		if (isset($data['on-mode'])) {
 			if (!lx::$app->isMode($data['on-mode'])) {
 				return false;

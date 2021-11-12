@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class SintaxExtender
+class SyntaxExtender
 {
 	private JsCompiler $compiler;
 	private ?string $currentPath;
@@ -16,7 +16,7 @@ class SintaxExtender
 		$this->currentService = null;
 	}
 
-	public function applyExtendedSintax(string $code, ?string $path): string
+	public function applyExtendedSyntax(string $code, ?string $path): string
     {
 		// #lx:php(php-code) => mixed
 		$reg = '/#lx:php(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/';
@@ -198,7 +198,7 @@ class SintaxExtender
 				$fields = trim($fields, ' ');
 				$fields = '#lx:schema ' . $fields;
 			} else {
-				$fields = '#lx:modelName ' . $fields;				
+				$fields = '#lx:modelName ' . $fields;
 			}
 			$text = "const $name = (function(){ let c=new lx.ModelCollection; class _am_ extends lx.BindableModel {" . $fields . ';} c.setModelClass(_am_); return c; })();';
 			$code = str_replace($matches[0][$i], $text, $code);
@@ -215,12 +215,12 @@ class SintaxExtender
 		}, $code);
 
 		$code = $this->applyHtmlTemplater($code);
-		$code = $this->applyExtendedSintaxForClasses($code, $path);
+		$code = $this->applyExtendedSyntaxForClasses($code, $path);
 
 		return $code;
 	}
 
-	private function applyExtendedSintaxForClasses(string $code, ?string $path): string
+	private function applyExtendedSyntaxForClasses(string $code, ?string $path): string
     {
 		// Работа со всеми классами
 		$reg = '/class\s+\b(.+?)\b([^{]*)(?P<re>{((?>[^{}]+)|(?P>re))*})/';
@@ -229,7 +229,7 @@ class SintaxExtender
 		if (!empty($matches[0])) {
 			foreach ($matches[0] as $i => $implement) {
 			    if (preg_match('/\bclass\s+\b.+?\b\s+(?:{|#)/', $matches['re'][0])) {
-			        $processedRe = $this->applyExtendedSintaxForClasses($matches['re'][0], $path);
+			        $processedRe = $this->applyExtendedSyntaxForClasses($matches['re'][0], $path);
 			        $implementTemp = str_replace($matches['re'][0], $processedRe, $implement);
                 } else {
                     $implementTemp = $implement;
@@ -397,7 +397,7 @@ class SintaxExtender
                         }
 
                         $schema = $manager->getModelSchema($modelName);
-                        $schemaArray = $schema->toArray();
+                        $schemaArray = $schema ? ($schema->toArray())['fields'] : [];
                         $schemaString = ArrayHelper::arrayToJsCode($schemaArray);
 						$fieldCode = "static __setSchema(){this.initSchema($schemaString);}";
 						return $fieldCode;

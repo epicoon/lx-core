@@ -22,7 +22,7 @@ interface ModelInterface
      */
     public function &getField(string $name);
 
-    public function getFields(): array;
+    public function getFields(?array $names = null): array;
 
     public function hasRelation(string $name): bool;
 

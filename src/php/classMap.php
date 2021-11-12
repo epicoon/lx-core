@@ -67,7 +67,7 @@ return [
 	'AssetCompiler' => 'classes/system/compiler',
 	'NodeJsExecutor' => 'classes/system/compiler',
     'Minimizer' => 'classes/system/compiler',
-    'SintaxExtender' => 'classes/system/compiler',
+    'SyntaxExtender' => 'classes/system/compiler',
 
     'HtmlRenderer' => 'classes/system/html',
     'HtmlTemplateProvider' => 'classes/system/html',

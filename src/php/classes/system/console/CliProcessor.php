@@ -34,41 +34,9 @@ class CliProcessor
         $this->data = [];
     }
 
-
-
-
-    private function test() {
-        $this->outln('This is test');
-
-        if (!$this->hasParam('t1')) {
-            $this->select('t1', [
-                'one',
-                'two',
-                'three',
-            ], 'Select param:', ['color' => 'yellow']);
-            return;
-        }
-
-        $param = $this->getParam('t1');
-        $this->outln('Your param is - ' . $param);
-
-
-    }
-
-
-
 	private function getSelfCommands(): array
     {
         return [
-            [
-                'command' => ['\t'],
-                'description' => 'Test',
-                'handler' => 'test',
-            ],
-
-
-
-
             [
                 'type' => self::COMMAND_TYPE_CONSOLE,
                 'command' => ['\q'],
@@ -254,6 +222,10 @@ class CliProcessor
         try {
             $this->invokeCommand($commandName);
         } catch (\Throwable $exception) {
+            lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+                '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+                'msg' => $exception->getMessage(),
+            ]);
             $this->resetData();
             $this->outln($exception->getMessage());
         }

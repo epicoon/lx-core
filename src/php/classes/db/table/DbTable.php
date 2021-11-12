@@ -50,7 +50,9 @@ class DbTable
         }
         $condition = $this->renderCondition($condition);
 
-        if ($condition) $query .= $condition;
+        if ($condition) {
+            $query .= $condition;
+        }
 
         $result = $this->db->query($query);
         return $result;
