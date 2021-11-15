@@ -1,5 +1,3 @@
-#lx:private
-
 /*
 lx.move(event)
 lx.useElementMoving(bool = true)

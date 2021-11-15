@@ -1,5 +1,3 @@
-#lx:private
-
 const __data = {
 	modules: {},
 	css: {},

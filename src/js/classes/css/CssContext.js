@@ -1,5 +1,3 @@
-#lx:private;
-
 class CssContext #lx:namespace lx {
 	constructor() {
 		this.sequens = [];

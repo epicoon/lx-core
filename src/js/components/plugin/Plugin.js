@@ -1,5 +1,3 @@
-#lx:private;
-
 #lx:require AjaxGet;
 #lx:require PluginEvent;
 

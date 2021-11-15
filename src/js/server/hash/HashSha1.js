@@ -1,5 +1,3 @@
-#lx:private;
-
 class HashSha1 #lx:namespace lx {
 	static hex(s) {
 		if (!lx.isString(s)) s = JSON.stringify(s);

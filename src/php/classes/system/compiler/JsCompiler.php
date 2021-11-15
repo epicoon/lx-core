@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class JsCompiler
 {
 	const CONTEXT_CLIENT = 'client';
@@ -21,7 +23,7 @@ class JsCompiler
 
 	public function __construct(?ConductorInterface $conductor = null)
 	{
-		$this->conductor = $conductor ?? \lx::$app->conductor;
+		$this->conductor = $conductor ?? lx::$app->conductor;
 		$this->syntaxExtender = new SyntaxExtender($this);
 
 		$this->context = self::CONTEXT_CLIENT;
@@ -78,19 +80,13 @@ class JsCompiler
 
 	public function compileFile(string $path): string
 	{
-		$this->dependencies = new JsCompileDependencies();
-
         if (!$this->checkFileCompileAvailable($path)) {
+            $this->dependencies = new JsCompileDependencies();
             return '';
         }
 
         $this->noteFileCompiled($path);
-
-        $code = file_get_contents($path);
-        $code = $this->compileCodeInnerDirectives($code, $path);
-        $code = $this->compileCodeOuterDirectives($code, $path);
-        $code = $this->compileExtensions($code, $path);
-        return $code;
+        return $this->compileCode(file_get_contents($path), $path);
 	}
 
 	public function compileCode(string $code, ?string $path = null): string
@@ -183,16 +179,10 @@ class JsCompiler
 
     private function compileCodeOuterDirectives(string $code, ?string $path = null): string
     {
-        list($code, $private) = $this->checkPrivate($code);
-
+        $code = $this->markDev($code, $path);
+        $code = $this->checkPublic($code);
         $code = $this->plugAllRequires($code, $path);
-
-        if ($private) {
-            $code = '(function(){' . $code . '})();';
-        }
-
-        $code = $this->plugAllModules($code);
-
+        $code = $this->plugAllModules($code, $path);
         return $code;
     }
 
@@ -208,7 +198,7 @@ class JsCompiler
 	 */
 	private function checkMode(string $code): string
 	{
-		$mode = \lx::$app->getConfig('mode');
+		$mode = lx::$app->getConfig('mode');
 		$reg = '/#lx:mode-case[\w\W]*?#lx:mode-end;?/';
 		$code = preg_replace_callback($reg, function ($matches) use ($mode) {
 			if (!$mode) return '';
@@ -227,13 +217,30 @@ class JsCompiler
 
 		return $code;
 	}
+    
+    private function checkPublic(string $code): string
+    {
+        $publicObjects = [];
+        $code = preg_replace_callback(
+            '/#lx:public\s+((?:class|function)\s+(\b.+?\b))/',
+            function ($matches) use (&$publicObjects) {
+                $publicObjects[] = $matches[2];
+                return $matches[1];
+            },
+            $code
+        );
+        foreach ($publicObjects as $object) {
+            $code .= "lx.globalContext.$object=$object;";
+        }
 
-	private function checkPrivate(string $code): array
-	{
-		$private = preg_match('/#lx:private/', $code);
-		$code = preg_replace('/#lx:private;?/', '', $code);
-		return [$code, $private];
-	}
+        if (preg_match('/#lx:public;/', $code)) {
+            $code = preg_replace('/#lx:public;/', '', $code);
+        } else {
+            $code = '(function(){' . $code . '})();';
+        }
+
+        return $code;
+    }
 
 	/**
 	 * Concatenation code by directive #lx:require
@@ -246,7 +253,7 @@ class JsCompiler
         $parentDir = $path === null ? null : dirname($path) . '/';
 
 		$pattern = '/(?<!\/ )(?<!\/)#lx:require(\s+-[\S]+)?\s+[\'"]?([^;]+?)[\'"]?;/';
-		$code = preg_replace_callback($pattern, function ($matches) use ($parentDir) {
+		$code = preg_replace_callback($pattern, function ($matches) use ($parentDir, $path) {
 			$flags = $matches[1];
 			$requireName = $matches[2];
 
@@ -255,7 +262,7 @@ class JsCompiler
 				'force' => (strripos($flags, 'F') !== false),
 				'test' => (strripos($flags, 'T') !== false),
 			];
-			return $this->plugRequire($requireName, $parentDir, DataObject::create($flagsArr));
+			return $this->plugRequire($requireName, DataObject::create($flagsArr), $parentDir, $path);
 		}, $code);
 
 		return $code;
@@ -264,7 +271,7 @@ class JsCompiler
 	/**
 	 * Build code by directive #lx:require
 	 */
-	private function plugRequire(string $requireName, ?string $parentDir, DataObject $flags): string
+	private function plugRequire(string $requireName, DataObject $flags, ?string $parentDir, ?string $rootPath): string
 	{
 		$dirPathes = ($requireName[0] == '{')
 			? preg_split('/\s*,\s*/', trim(substr($requireName, 1, -1)))
@@ -287,11 +294,11 @@ class JsCompiler
 			$filePathes = array_merge($filePathes, $files->toArray());
 		}
 
-		$code = $this->compileFileGroup($filePathes, $flags);
+		$code = $this->compileFileGroup($filePathes, $flags, $rootPath);
 		return $code;
 	}
 
-	private function plugAllModules(string $code): string
+	private function plugAllModules(string $code, ?string $rootPath): string
 	{
 		$pattern = '/(?<!\/ )(?<!\/)#lx:use\s+[\'"]?([^;]+?)[\'"]?;/';
 		preg_match_all($pattern, $code, $matches);
@@ -329,7 +336,7 @@ class JsCompiler
             }
 		}
 
-		$modulesCode = $this->compileFileGroup($filePathes, DataObject::create());
+		$modulesCode = $this->compileFileGroup($filePathes, DataObject::create(), $rootPath);
 		$code = $modulesCode . $code;
 		return $code;
 	}
@@ -342,11 +349,11 @@ class JsCompiler
 			$fullPath = $this->conductor->getFullPath($path, $parentDir);
 			$this->dependencies->addI18n($fullPath);
 
-			\lx::$app->useI18n($fullPath);
+			lx::$app->useI18n($fullPath);
 		}
 	}
 
-	private function compileFileGroup(array $fileNames, DataObject $flags): string
+	private function compileFileGroup(array $fileNames, DataObject $flags, ?string $rootPath): string
 	{
 		// Список данных по файлам - какие классы содержатся, какие наследуются извне
 		$list = [];
@@ -375,14 +382,14 @@ class JsCompiler
 			    $className = ($namespaces[$i] == '') ? $class : $namespaces[$i] . '.' . $class;
 				if (array_key_exists($className, $classesMap)) {
 					if (array_key_exists($classesMap[$className], $list)) {
-						\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+						lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 							'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 							'msg' => "Js-class $className is already defined from '"
 								. $list[$classesMap[$className]]['path']
 								. "'. It`s impossible to redeclare it from '$fileName'",
 						]);
 					} else {
-						\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+						lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 							'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
 							'msg' => "Wrong class, name: '$className'",
 						]);
@@ -452,6 +459,7 @@ class JsCompiler
 
             $code = $item['code'];
             $code = $this->compileCodeOuterDirectives($code, $path);
+            $code = $this->markDevInterrupting($code, $rootPath);
             $result[] = $code;
 		}
 
@@ -564,7 +572,7 @@ class JsCompiler
 		$code = preg_replace_callback($pattern, function ($matches) use ($parentDir) {
 			$path = $matches[1];
 			$fullPath = $this->conductor->getFullPath($path, $parentDir);
-			$file = \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$fullPath]);
+			$file = lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$fullPath]);
 			if (!$file->exists()) {
 				return 'undefined';
 			}
@@ -576,4 +584,30 @@ class JsCompiler
 
 		return $code;
 	}
+
+    private function markDev(string $code, ?string $path): string
+    {
+        if (!lx::$app->isMode(lx::MODE_DEV) || $path === null) {
+            return $code;
+        }
+
+        return PHP_EOL
+            . "/* @lx-begin-js-file: $path */"
+            . PHP_EOL . $code . PHP_EOL
+            . "/* @lx-end-js-file: $path */"
+            . PHP_EOL;
+    }
+
+    private function markDevInterrupting(string $code, ?string $path): string
+    {
+        if (!lx::$app->isMode(lx::MODE_DEV) || $path === null) {
+            return $code;
+        }
+
+        return PHP_EOL
+            . "/* @lx-interrupted-js-file: $path */"
+            . PHP_EOL . $code . PHP_EOL
+            . "/* @lx-continue-js-file: $path */"
+            . PHP_EOL;
+    }
 }

@@ -5,7 +5,6 @@
 #lx:use lx.Input;
 #lx:use lx.Table;
 
-#lx:private;
 #lx:client {
 	var __opened = null;
 	var __options = null;

@@ -53,8 +53,6 @@ https://medium.com/@stasonmars/%D0%B2%D0%B5%CC%88%D1%80%D1%81%D1%82%D0%BA%D0%B0-
 https://css-tricks.com/snippets/css/complete-guide-grid/
 */
 
-#lx:private;
-
 class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 	#lx:const
 		TYPE_SIMPLE = 1,

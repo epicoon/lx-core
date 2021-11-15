@@ -1,5 +1,3 @@
-#lx:private;
-
 class Snippet #lx:namespace lx {
     constructor(widget, info) {
         this.widget = widget;

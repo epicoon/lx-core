@@ -1,5 +1,3 @@
-#lx:private;
-
 class Snippet #lx:namespace lx {
     constructor(data = {}) {
         this.filePath = data.filePath || '';

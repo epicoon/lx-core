@@ -23,7 +23,7 @@ class HttpApplication extends BaseApplication
 	{
         try {
             $this->events->trigger(self::EVENT_BEFORE_RUN);
-
+            
             $this->authenticateUser();
             $requestHandler = RequestHandler::create();
             $requestHandler->run();

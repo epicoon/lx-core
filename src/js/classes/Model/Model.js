@@ -1,5 +1,3 @@
-#lx:private;
-
 class Model extends lx.Object #lx:namespace lx {
 	constructor(data) {
 		super();

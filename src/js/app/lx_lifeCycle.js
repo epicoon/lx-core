@@ -1,5 +1,3 @@
-#lx:private;
-
 lx.EVENT_BEFORE_AJAX_REQUEST = 'beforeAjax';
 
 let callbacks = {

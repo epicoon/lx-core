@@ -1,3 +1,5 @@
+#lx:public;
+
 class BoxChildren {
     constructor() {
         this.data = [];

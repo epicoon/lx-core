@@ -1,5 +1,3 @@
-#lx:private;
-
 const map = {};
 
 class SnippetMap {

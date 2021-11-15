@@ -186,21 +186,6 @@ class PluginConductor implements ConductorInterface
 		return null;
 	}
 
-	public function getJsBootstrap(): ?File
-	{
-		$jsBootstrap = $this->getPlugin()->getConfig('jsBootstrap');
-		if (!$jsBootstrap) {
-			return null;
-		}
-
-		$result = $this->getFile($jsBootstrap);
-		if ($result instanceof File) {
-			return $result;
-		}
-
-		return null;
-	}
-
 	public function getAssetPath(string $name): string
 	{
 		if (preg_match('/^http/', $name) || preg_match('/^\//', $name)) {

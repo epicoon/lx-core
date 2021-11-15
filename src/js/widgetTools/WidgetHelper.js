@@ -1,5 +1,3 @@
-#lx:private;
-
 let autoParentStack = [];
 
 let frontMap = {};

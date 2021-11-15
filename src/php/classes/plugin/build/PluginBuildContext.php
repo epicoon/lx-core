@@ -15,7 +15,6 @@ class PluginBuildContext implements ContextTreeInterface
 	private SnippetBuildContext $rootSnippetBuildContext;
 	private bool $compiled;
 	private string $pluginInfo;
-	private string $bootstrapJs;
 	private string $mainJs;
 	private string $snippetData;
 	private string $commonData;
@@ -134,7 +133,6 @@ class PluginBuildContext implements ContextTreeInterface
 
         $this->compileSnippet();
 
-        $this->compileBootstrapJs();
         $this->compileMainJs();
         $this->applayDependencies($this->jsCompiler->getDependencies()->toArray());
 
@@ -142,7 +140,6 @@ class PluginBuildContext implements ContextTreeInterface
 
         $key = $this->getKey();
         $data = "<mi $key>{$this->pluginInfo}</mi $key>"
-            . "<bs $key>{$this->bootstrapJs}</bs $key>"
             . "<bl $key>{$this->snippetData}</bl $key>"
             . "<mj $key>{$this->mainJs}</mj $key>";
         $this->commonData = I18nHelper::localizePlugin($this->getPlugin(), $data);
@@ -200,13 +197,6 @@ class PluginBuildContext implements ContextTreeInterface
 		$this->rootSnippetBuildContext = new SnippetBuildContext(['pluginBuildContext' => $this]);
 		$snippets = $this->rootSnippetBuildContext->build();
 		$this->snippetData = $snippets;
-	}
-
-	private function compileBootstrapJs(): void
-	{
-		$plugin = $this->getPlugin();
-		$jsBootstrapFile = $plugin->conductor->getJsBootstrap();
-		$this->bootstrapJs = $this->compileJs($jsBootstrapFile);
 	}
 
 	private function compileMainJs(): void

@@ -1,5 +1,3 @@
-#lx:private;
-
 let tosts = null;
 function initTosts() {
 	tosts = lx.Box.rise(lx.WidgetHelper.getTostsElement());

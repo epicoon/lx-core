@@ -3,8 +3,6 @@
 #lx:use lx.Radio;
 #lx:use lx.LabeledGroup;
 
-#lx:private;
-
 class RadioGroup extends lx.LabeledGroup #lx:namespace lx {
 	build(config) {
 		config.widgetSize = '30px';

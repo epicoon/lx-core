@@ -1,5 +1,3 @@
-#lx:private
-
 /*
 lx.addAction(f, ctx)
 lx.resetActions()

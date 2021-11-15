@@ -1,5 +1,3 @@
-#lx:private
-
 /*
 lx.onKeydown(key, func)
 lx.offKeydown(key, func)

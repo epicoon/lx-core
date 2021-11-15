@@ -3,8 +3,6 @@
 #lx:use lx.Checkbox;
 #lx:use lx.LabeledGroup;
 
-#lx:private;
-
 class CheckboxGroup extends lx.LabeledGroup #lx:namespace lx {
 	build(config) {
 		config.widgetSize = '30px';

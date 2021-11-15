@@ -120,9 +120,7 @@ return [
 	// Root snippet
 	'rootSnippet' => 'snippets/_root.js',
 
-	// File name for js-code which is executed before plugin snippets load
-	'jsBootstrap' => 'frontend/_bootstrap.js',
-	// File name for js-code which is executed after plugin snippets load
+	// File name for plugin js-code
 	'jsMain' => 'frontend/_main.js',
 ];
 

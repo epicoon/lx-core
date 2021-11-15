@@ -7,8 +7,6 @@
 #lx:use lx.Box;
 #lx:use lx.Button;
 
-#lx:private;
-
 #lx:client {
 	let instance = null,
 		_confirmCallback = null,

@@ -1,5 +1,3 @@
-#lx:private;
-
 #lx:require SnippetLoader;
 #lx:require SnippetJsNode;
 #lx:require LoadContext;

@@ -1,5 +1,3 @@
-#lx:private;
-
 let __isGuest = true;
 let __publicFieldNames = [];
 let __publicFields = {};

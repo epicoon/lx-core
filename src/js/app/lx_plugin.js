@@ -1,5 +1,3 @@
-#lx:private;
-
 let _plugin = null;
 
 lx.getPlugin = function(name) {

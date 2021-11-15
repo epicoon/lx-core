@@ -1,5 +1,3 @@
-#lx:private;
-
 class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 	#lx:const
 		TYPE_SIMPLE = 1,

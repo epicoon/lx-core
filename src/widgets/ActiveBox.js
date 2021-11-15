@@ -1,7 +1,5 @@
 #lx:module lx.ActiveBox;
 
-#lx:private;
-
 #lx:use lx.Box;
 
 class ActiveBox extends lx.Box #lx:namespace lx {

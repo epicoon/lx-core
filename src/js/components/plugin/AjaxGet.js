@@ -1,3 +1,5 @@
+#lx:public;
+
 // Для активных GET-запросов - сами синхронизирутся с url-строкой
 class AjaxGet {
 	constructor(plugin) {

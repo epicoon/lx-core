@@ -6,7 +6,6 @@
 #lx:use lx.Dropbox;
 #lx:use lx.Table;
 
-#lx:private;
 #lx:client {
 	/*
 	 * Кэширует таблицу календаря - она нужна в единственном экземпляре,

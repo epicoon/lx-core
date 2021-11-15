@@ -1,6 +1,5 @@
-#lx:private;
-
 let alerts = null;
+
 function initAlerts() {
 	alerts = lx.Box.rise(lx.WidgetHelper.getAlertsElement());
 	alerts.key = 'alerts';

@@ -1,5 +1,3 @@
-#lx:private;
-
 #lx:module lx.Rect;
 
 /**
@@ -1425,8 +1423,8 @@ class Rect extends lx.Module #lx:namespace lx {
             return this;
         }
 
-        onPostUnpack(handler, flag) {
-            switch (flug) {
+        onPostUnpack(handler, flag = lx.POSTUNPACK_TYPE_FIRST_DISPLAY) {
+            switch (flag) {
                 case lx.POSTUNPACK_TYPE_IMMEDIATLY:
                     this.onLoad(handler);
                     break;

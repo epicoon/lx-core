@@ -1,3 +1,5 @@
+#lx:public;
+
 class LoadContext {
 	constructor(task) {
 		this.task = task;
@@ -53,7 +55,6 @@ class LoadContext {
 			var pluginInfo = {
 				key,
 				info: lx.Json.parse(pluginString.match(new RegExp('<mi '+key+'>([\\w\\W]*?)</mi '+key+'>'))[1]),
-				bootstrapJs: pluginString.match(new RegExp('<bs '+key+'>([\\w\\W]*?)</bs '+key+'>'))[1],
 				snippets: lx.Json.parse(pluginString.match(new RegExp('<bl '+key+'>([\\w\\W]*?)</bl '+key+'>'))[1]),
 				mainJs: pluginString.match(new RegExp('<mj '+key+'>([\\w\\W]*?)</mj '+key+'>'))[1]
 			};
@@ -168,7 +169,7 @@ class LoadContext {
 	}
 
 	createPlugin(pluginInfo, el, parent) {
-		// Создадим экземпляр плагина
+		// Create plugin instance
 		if (!el) {
 			lx.body = lx.Box.rise(lx.WidgetHelper.getBodyElement());
 			lx.body.key = 'body';
@@ -180,45 +181,44 @@ class LoadContext {
 		info.key = pluginInfo.key;
 		var plugin = new lx.Plugin(info, el);
 
-		var bootstrapJs = pluginInfo.bootstrapJs,
-			snippets = pluginInfo.snippets,
+		var snippets = pluginInfo.snippets,
 			mainJs = pluginInfo.mainJs;
 
-		//TODO - сделать хуки жизненного цикла плагина (beforeRender)
-		// js-код загрузки плагина
-		if (bootstrapJs != '')
-			lx._f.createAndCallFunction('', 'const Plugin=lx.plugins["'+plugin.key+'"];' + bootstrapJs);
+		// Run js-code before plugin render
+		if (info.beforeRender)
+			for (var i=0, l=info.beforeRender.len; i<l; i++) {
+				var fCode = lx._f.parseFunctionString(info.beforeRender[i])[1];
+				lx._f.createAndCallFunction('', 'const Plugin=lx.plugins["'+plugin.key+'"];' + fCode);
+			}
 
-		// Сборка сниппетов
+		// Render snippets
 		this.snippetsInfo[plugin.key] = snippets;
 		(new SnippetLoader(this, plugin, el, info.rsk)).unpack();
 
-		// Если учитывается режим отображения
+		// Note screen mode
 		if (plugin.screenMode !== undefined) {
-			// Текущий режим отображения
 			plugin.screenMode = plugin.idenfifyScreenMode();
 		}
 
-		// Собираем js-код, выполняемый после сборки плагина
+		// Start build plugin main js-code
 		var argsStr = [];
 		var args = [];
 		var code = 'const Plugin=lx.plugins["' + plugin.key
 			+ '"];const Snippet=Plugin.root.snippet;lx.WidgetHelper.autoParent=Plugin.root;'
 
-		//TODO - сделать хуки жизненного цикла плагина (beforeRun)
-		// Если есть код, выполняющийся при загрузке плагина - он выполняется здесь
-		if (info.onLoad) {
-			for (var i=0, l=info.onLoad.len; i<l; i++) {
-				var str = lx._f.parseFunctionString(info.onLoad[i])[1];
+		// Build js-code after plugin render but before run
+		if (info.beforeRun) {
+			for (var i=0, l=info.beforeRun.len; i<l; i++) {
+				var str = lx._f.parseFunctionString(info.beforeRun[i])[1];
 				if (str[str.length-1] != ';') str += ';';
 				code += str;
 			}
 		}
 
-		// Основной js-код плагина
+		// Finish build plugin main js-code
 		if (mainJs) code += mainJs;
 
-		// Код сниппетов. У сниппетов уже будет выполен main-код плагина!
+		// Build snippets code
 		var node = this.snippetTrees[plugin.key];
 		var snippetsJs = node.compileCode();
 		code += snippetsJs[1];

@@ -1,5 +1,3 @@
-#lx:private
-
 lx.checkDisplay = function(event) {
 	this.triggerDisplay(event);
 

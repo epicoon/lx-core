@@ -15,14 +15,6 @@ class RespondentName extends lxRespondent
 EOT;
 
 
-$bootstrapJsCode = <<<EOT
-/**
- * @const {lx.Plugin} Plugin
- */
-
-EOT;
-
-
 $mainJsCode = <<<EOT
 /**
  * @const {lx.Plugin} Plugin

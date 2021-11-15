@@ -38,7 +38,6 @@ class PluginEditor
 		require(__DIR__ . '/pluginTpl.php');
 		/**
 		 * @var string $respondentCode
-		 * @var string $bootstrapJsCode
 		 * @var string $mainJsCode
 		 * @var string $viewCode
 		 * @var string $pluginCode
@@ -66,8 +65,6 @@ class PluginEditor
 
 		$mainJs = $d->makeFile($pluginConfig['jsMain']);
 		$mainJs->put($mainJsCode);
-		$bootstrapJs = $d->makeFile($pluginConfig['jsBootstrap']);
-		$bootstrapJs->put($bootstrapJsCode);
 
 		$root = $d->makeFile($pluginConfig['rootSnippet']);
 		$root->put($viewCode);

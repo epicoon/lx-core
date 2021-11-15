@@ -3,8 +3,6 @@
 #lx:use lx.Rect;
 #lx:use lx.Box;
 
-#lx:private;
-
 class BoxSlider extends lx.Box #lx:namespace lx {
 	#lx:const
 		TYPE_SLIDER = 1,

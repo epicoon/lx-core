@@ -39,7 +39,8 @@ class Plugin extends Resource implements FusionInterface
 	private string $anchor;
 	private string $rootSnippetKey;
 	private array $dependencies = [];
-	private array $onLoadList = [];
+    private array $beforeRenderCallbacks = [];
+	private array $beforeRunCallbacks = [];
 	private array $scripts = [];
 	private array $css = [];
 
@@ -449,9 +450,14 @@ class Plugin extends Resource implements FusionInterface
 		}
 	}
 
-	public function onLoad(string $code): void
+    public function beforeRender(string $code): void
+    {
+        $this->beforeRenderCallbacks[] = $code;
+    }
+
+	public function beforeRun(string $code): void
 	{
-		$this->onLoadList[] = $code;
+		$this->beforeRunCallbacks[] = $code;
 	}
 
 	public function setDependencies(array $list): void
@@ -522,9 +528,15 @@ class Plugin extends Resource implements FusionInterface
 			}
 		}
 
-		if (isset($data['onLoad'])) {
-			foreach ($data['onLoad'] as $code) {
-				$this->onLoad($code);
+        if (isset($data['beforeRender'])) {
+            foreach ($data['beforeRender'] as $code) {
+                $this->beforeRender($code);
+            }
+        }
+
+		if (isset($data['beforeRun'])) {
+			foreach ($data['beforeRun'] as $code) {
+				$this->beforeRun($code);
 			}
 		}
 	}
@@ -542,8 +554,12 @@ class Plugin extends Resource implements FusionInterface
 			$info['attributes'] = $attributes;
 		}
 
-		if (!empty($this->onLoadList)) {
-			$info['onLoad'] = $this->onLoadList;
+        if (!empty($this->beforeRenderCallbacks)) {
+            $info['beforeRender'] = $this->beforeRenderCallbacks;
+        }
+
+		if (!empty($this->beforeRunCallbacks)) {
+			$info['beforeRun'] = $this->beforeRunCallbacks;
 		}
 
 		if (isset($config['images'])) {

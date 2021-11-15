@@ -1,5 +1,3 @@
-#lx:private;
-
 let useCache = false,
     cache = {},
     sessionCache = {};

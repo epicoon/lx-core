@@ -1,5 +1,3 @@
-#lx:private;
-
 class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 
 	/**

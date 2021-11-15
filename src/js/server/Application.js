@@ -1,5 +1,3 @@
-#lx:private;
-
 let __settings = {};
 let prefix = null;
 let idCounter = 1;

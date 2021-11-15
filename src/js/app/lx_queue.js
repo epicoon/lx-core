@@ -1,5 +1,3 @@
-#lx:private;
-
 lx.Queues = {
 	list: {},
 

@@ -2,8 +2,6 @@
 
 #lx:use lx.Box;
 
-#lx:private;
-
 class Table extends lx.Box #lx:namespace lx {
 	/**
 	 * config = {

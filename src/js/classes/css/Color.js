@@ -1,5 +1,3 @@
-#lx:private;
-
 class Color #lx:namespace lx {
 	constructor(color) {
 		this.HSL = null;

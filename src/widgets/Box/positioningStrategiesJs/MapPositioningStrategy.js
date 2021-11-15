@@ -1,5 +1,3 @@
-#lx:private;
-
 class MapPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 	#lx:const
 		FORMAT_PERCENT = 1,

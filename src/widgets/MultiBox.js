@@ -2,8 +2,6 @@
 
 #lx:use lx.Box;
 
-#lx:private;
-
 class MultiBox extends lx.Box #lx:namespace lx {
 	#lx:const
 		MODE_UNI_SHEET = 1,

@@ -7,8 +7,6 @@
 #lx:require positioningStrategiesJs/;
 #lx:require tools;
 
-#lx:private;
-
 /* * 1. Constructor
  * build(config)
  * clientBuild(config)

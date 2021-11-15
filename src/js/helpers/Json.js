@@ -1,5 +1,3 @@
-#lx:private;
-
 lx.Json = {
 	decode: function(str) {
 		// Чтобы можно было парсить многострочники и табы

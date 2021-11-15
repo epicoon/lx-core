@@ -1,5 +1,3 @@
-#lx:private;
-
 //TODO не все методы, что есть на PHP, реализованы тут. Надо доделать
 class Directory extends lx.BaseFile #lx:namespace lx {
     #lx:const

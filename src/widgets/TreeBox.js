@@ -4,8 +4,6 @@
 #lx:use lx.Box;
 #lx:use lx.Input;
 
-#lx:private;
-
 /* 
  * Special events:
  * - leafOpen(event, leaf)

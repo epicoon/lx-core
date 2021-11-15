@@ -174,7 +174,7 @@ class NodeJsExecutor
             $core .= $this->compiler->compileCode($commonCore);
         }
 
-        $commonCode = '';
+        $commonCode = '#lx:public;';
         foreach ($this->modules as $module) {
         	$commonCode .= '#lx:use ' . $module . ';';
 		}

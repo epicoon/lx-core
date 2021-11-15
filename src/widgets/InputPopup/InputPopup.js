@@ -8,8 +8,6 @@
 #lx:use lx.Button;
 #lx:use lx.Input;
 
-#lx:private;
-
 #lx:client {
 	let instance = null,
 
