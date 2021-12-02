@@ -25,7 +25,7 @@ class DbTable
         return $this->name;
     }
     
-    public function getSchema(): DbTableSchema
+    public function getSchema(): ?DbTableSchema
     {
         return $this->db->getTableSchema($this->name);
     }

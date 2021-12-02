@@ -117,6 +117,7 @@ return [
     'DbTableEditor' => 'classes/db/table',
     'DbTableSchema' => 'classes/db/table',
     'DbTableField' => 'classes/db/table',
+    'DbForeignKeyInfo' => 'classes/db/table',
     'DbSelectQuery' => 'classes/db/query',
     'DbSelectParser' => 'classes/db/query',
     'DbQueryTableData' => 'classes/db/query',

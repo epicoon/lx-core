@@ -35,14 +35,14 @@ class DbSelectQuery
             if ($name == '*') {
                 if ($table !== null) {
                     $tableData = $this->tables[$table];
-                    $schema = $this->db->getTableSchema($tableData->getRealName());
+                    $schema = $this->getTableSchema($tableData->getRealName());
                     foreach ($schema->getFields() as $fieldName => $field) {
                         $this->fields[$tableData->getName() . '.' . $fieldName]
                             = new DbQueryFieldData($tableData, $fieldName);
                     }
                 } else {
                     foreach ($this->tables as $tableData) {
-                        $schema = $this->db->getTableSchema($tableData->getRealName());
+                        $schema = $this->getTableSchema($tableData->getRealName());
                         foreach ($schema->getFields() as $fieldName => $field) {
                             $this->fields[$tableData->getName() . '.' . $fieldName]
                                 = new DbQueryFieldData($tableData, $fieldName);
@@ -55,7 +55,7 @@ class DbSelectQuery
             $aliase = $datum[2];
             if ($table === null) {
                 foreach ($this->tables as $tableData) {
-                    $schema = $this->db->getTableSchema($tableData->getRealName());
+                    $schema = $this->getTableSchema($tableData->getRealName());
                     if ($schema->hasField($name)) {
                         if ($table === null) {
                             $table = $tableData;
@@ -91,5 +91,14 @@ class DbSelectQuery
         }
         
         return null;
+    }
+
+    private function getTableSchema(string $tableName): DbTableSchema
+    {
+        $schema = $this->db->getTableSchema($tableName);
+        if ($schema === null) {
+            throw new \Exception("Table $tableName does not exist");
+        }
+        return $schema;
     }
 }

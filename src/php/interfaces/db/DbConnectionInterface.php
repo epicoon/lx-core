@@ -10,10 +10,7 @@ interface DbConnectionInterface extends FlightRecorderHolderInterface
 
     //TODO DbTableSchema нужен интерфейс?
     public function getTableSchema(string $tableName): ?DbTableSchema;
-    /**
-     * @param array|string|null $fields
-     */
-    public function getContrForeignKeysInfo(string $tableName, $fields = null): array;
+    public function getContrForeignKeysInfo(string $tableName, ?array $fields = null): array;
 
     public function transactionBegin(): void;
     public function transactionRollback(): void;

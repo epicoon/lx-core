@@ -38,11 +38,6 @@ return [
 
 	// Injection of configurations for services and plugins
 	// 'configInjection' => [],
-
-	// Global js-code executed before page rendered
-	// 'jsBootstrap' => '',
-	// Global js-code executed after page rendered
-	// 'jsMain' => '',
 ];
 
 EOT;

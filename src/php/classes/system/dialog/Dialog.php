@@ -286,6 +286,9 @@ class Dialog implements FusionComponentInterface
 		$this->_clientIp = $_SERVER['REMOTE_ADDR'];
 
 		$fromProxy = $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? null;
+        if ($fromProxy) {
+            $fromProxy = trim(end(explode(',', $fromProxy)));
+        }
 		if (filter_var($fromProxy, FILTER_VALIDATE_IP)) {
 			$this->_clientIpFromProxy = $fromProxy;
 		}

@@ -65,7 +65,7 @@ class DbTableSchema
             if (is_string($fieldName)) {
                 $fieldDefinition['name'] = $fieldName;
             }
-            $field = new DbTableField($fieldDefinition);
+            $field = new DbTableField($this, $fieldDefinition);
             $this->fields[$fieldName] = $field;
             if ($field->isPk()) {
                 $this->pkNames[] = $field->getName();
@@ -115,7 +115,7 @@ class DbTableSchema
 
     public function addField(array $definition = []): DbTableField
     {
-        $field = new DbTableField($definition);
+        $field = new DbTableField($this, $definition);
         $this->fields[$field->getName()] = $field;
         if ($field->isPk() && !in_array($field->getName(), $this->pkNames)) {
             $this->pkNames[] = $field->getName();
@@ -128,29 +128,34 @@ class DbTableSchema
         unset($this->fields[$fieldName]);
     }
 
+    /**
+     * @return array<DbForeignKeyInfo>
+     */
     public function getForeignKeysInfo(): array
     {
-        $result = $this->fks;
-        $fields = $this->getFields();
-        foreach ($fields as $field) {
+        $result = [];
+        foreach ($this->fks as $fk) {
+            $fk['table'] = $this->getName();
+            $result[] = new DbForeignKeyInfo($this, $fk);
+        }
+        foreach ($this->getFields() as $field) {
             if ($field->isFk()) {
-                $fkConfig = $field->getFkConfig();
-                $result[] = [
-                    'fields' => [$field->getName()],
-                    'relatedTable' => $fkConfig['table'],
-                    'relatedFields' => [$fkConfig['field']],
-                ];
+                $result[] = $field->getForeignKeyInfo();
             }
         }
-
         return $result;
     }
 
     /**
-     * @param array|string|null $fieldNames
+     * @return array<DbForeignKeyInfo>
      */
-    public function getContrForeignKeysInfo($fieldNames = null): array
+    public function getContrForeignKeysInfo(?array $fieldNames = null): array
     {
-        return $this->getDb()->getContrForeignKeysInfo($this->getName(), $fieldNames);
+        $info = $this->getDb()->getContrForeignKeysInfo($this->getName(), $fieldNames);
+        $result = [];
+        foreach ($info as $fk) {
+            $result[] = new DbForeignKeyInfo($this, $fk);
+        }
+        return $result;
     }
 }

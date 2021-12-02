@@ -97,19 +97,16 @@ class DbTableEditor
         $db = $this->getDb();
         $db->transactionBegin();
 
-        foreach ($this->schema->getFields() as $field) {
-            if ($field->isFk()) {
-                $fk = $field->getDefinition()['fk'];
-                $query = $db->getDropForeignKeyQuery(
-                    $this->schema->getName(),
-                    $field->getName(),
-                    $fk['name'] ?? null
-                );
-                $result = $db->query($query);
-                if (!$result) {
-                    $db->transactionRollback();
-                    return false;
-                }
+        foreach ($this->schema->getForeignKeysInfo() as $fk) {
+            $query = $db->getDropForeignKeyQuery(
+                $fk->getTableName(),
+                $fk->getFieldNames(),
+                $fk->getName()
+            );
+            $result = $db->query($query);
+            if (!$result) {
+                $db->transactionRollback();
+                return false;
             }
         }
 
@@ -138,13 +135,13 @@ class DbTableEditor
         }
 
         if ($field->isFk()) {
-            $fk = $field->getDefinition()['fk'];
+            $fk = $field->getForeignKeyInfo();
             $query = $db->getAddForeignKeyQuery(
-                $this->schema->getName(),
-                $field->getName(),
-                $fk['table'],
-                $fk['field'],
-                $fk['name'] ?? null
+                $fk->getTableName(),
+                $fk->getFieldNames(),
+                $fk->getRelatedTableName(),
+                $fk->getRelatedFieldNames(),
+                $fk->getName()
             );
             $result = $db->query($query);
             if (!$result) {
@@ -164,11 +161,11 @@ class DbTableEditor
 
         $field = $this->schema->getField($fieldName);
         if ($field->isFk()) {
-            $fk = $field->getDefinition()['fk'];
+            $fk = $field->getForeignKeyInfo();
             $query = $db->getDropForeignKeyQuery(
-                $this->schema->getName(),
-                $field->getName(),
-                $fk['name'] ?? null
+                $fk->getTableName(),
+                $fk->getFieldNames(),
+                $fk->getName()
             );
             $result = $db->query($query);
             if (!$result) {

@@ -185,7 +185,7 @@ class PluginBuildContext implements ContextTreeInterface
 		if (!empty($this->moduleDependencies)) {
 			$dependencies['m'] = $this->moduleDependencies;
 		}
-		if (!ArrayHelper::deepEmpty($dependencies)) {
+		if (!ArrayHelper::isDeepEmpty($dependencies)) {
 			$info['dep'] = $dependencies;
 		}
 

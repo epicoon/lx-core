@@ -243,16 +243,13 @@ Of all the elements of the architecture a service and a plugin are configurable 
   * plugin rendering can be initiated with passing parameters if they are provided
   
   List of plugin infrastructure elements:
-  * Plugin JS-code. There are two main executed files: the first one will be executed before the plugin is loaded on the client (the file path specified by the configuration key `jsBootstrap`), the second one will be executed after the plugin is loaded on the client (the file path specified by the configuration key `jsMain`).
+  * Plugin JS-code. The file path is specified by the configuration key `jsMain`.
   * Respondents. PHP Classes. They are AJAX controllers that send data to the plugin client side (configuration key `respondents`).
   * Snippets. Plugin rendering starts with the root snippet, the code of which is described in the file, the path to which determines the `rootSnippet` configuration key. In certain situations, it is convenient to call snippets by the name of their files (or directories) relative to the common root directory for snippets. A list of such directories can also be specified in the configuration (the `snippets` key).
   * Images (configuration key `images`). You can set the directory in which the images of the plugin will lie.
   * CSS files (configuratoin key `css`). You can set the directory in which the CSS files will lie. When the plugin is loaded, these files will be automatically added to the page.<br>
   An example of setting up the elements of the plugin infrastructure in the lx-configuration:
   ```yaml
-  # JS-code that runs before the plugin is loaded, will be in the file
-  # 'frontend/_bootstrap.js' relative to the root directory of the plugin
-  jsBootstrap: frontend/_bootstrap.js
   # JS-code that runs after the plugin is loaded, will be in the file
   # 'frontend/_main.js' relative to the root directory of the plugin
   jsMain: frontend/_main.js

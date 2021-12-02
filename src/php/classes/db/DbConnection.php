@@ -23,10 +23,7 @@ abstract class DbConnection implements DbConnectionInterface
     abstract public function connect(): bool;
     abstract public function disconnect(): bool;
     abstract public function getTableSchema(string $tableName): ?DbTableSchema;
-    /**
-     * @param array|string|null $fields
-     */
-    abstract public function getContrForeignKeysInfo(string $tableName, $fields = null): array;
+    abstract public function getContrForeignKeysInfo(string $tableName, ?array $fields = null): array;
 
     abstract public function getTableName(string $name): string;
     abstract public function tableExists(string $name): bool;

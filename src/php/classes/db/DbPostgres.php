@@ -186,17 +186,14 @@ class DbPostgres extends DbConnection
         return $schema;
     }
 
-    /**
-     * @param array|string|null $fields
-     */
-    public function getContrForeignKeysInfo(string $tableName, $fields = null): array
+    public function getContrForeignKeysInfo(string $tableName, ?array $fields = null): array
     {
         list($schemaName, $shortTableName) = $this->splitTableName($tableName);
         $query = "
             SELECT
-                ccu.column_name as field,
-                kcu.table_schema || '.' || kcu.table_name as rel_table,
-                kcu.column_name as rel_field,
+                ccu.column_name as rel_field_name,
+                kcu.table_schema || '.' || kcu.table_name as table_name,
+                kcu.column_name as field_name,
                 tc.constraint_name as fk_name
             FROM information_schema.table_constraints as tc
                 LEFT JOIN information_schema.key_column_usage AS kcu
@@ -210,7 +207,6 @@ class DbPostgres extends DbConnection
                 AND ccu.table_name='$shortTableName'
         ";
         if ($fields) {
-            $fields = (array)$fields;
             foreach ($fields as &$field) {
                 $field = $this->convertValueForQuery($field);
             }
@@ -224,9 +220,10 @@ class DbPostgres extends DbConnection
         $fks = [];
         foreach ($constraints as $constraint) {
             $fks[$constraint['fk_name']][] = [
-                'field' => $constraint['field'],
-                'relTable' => $constraint['rel_table'],
-                'relField' => $constraint['rel_field'],
+                'field' => $constraint['field_name'],
+                'table' => $constraint['table_name'],
+                'relTable' => $tableName,
+                'relField' => $constraint['rel_field_name'],
             ];
         }
 
@@ -234,6 +231,7 @@ class DbPostgres extends DbConnection
         foreach ($fks as $fkName => $fk) {
             $fields = [];
             $relFields = [];
+            $table = $fk[0]['table'];
             $relTable = $fk[0]['relTable'];
             foreach ($fk as $data) {
                 if (!in_array($data['field'], $fields)) {
@@ -244,10 +242,11 @@ class DbPostgres extends DbConnection
                 }
             }
             $result[] = [
+                'name' => $fkName,
+                'table' => $table,
                 'fields' => $fields,
                 'relatedTable' => $relTable,
                 'relatedFields' => $relFields,
-                'name' => $fkName
             ];
         }
         
@@ -414,10 +413,11 @@ class DbPostgres extends DbConnection
         $fks = $schema->getForeignKeysInfo();
         foreach ($fks as $fk) {
             $fkQuery = $this->getAddForeignKeyQuery(
-                $schema->getName(),
-                $fk['fields'],
-                $fk['relatedTable'],
-                $fk['relatedFields'],
+                $fk->getTableName(),
+                $fk->getFieldNames(),
+                $fk->getRelatedTableName(),
+                $fk->getRelatedFieldNames(),
+                $fk->getName()
             );
             $query .= $fkQuery . ';';
         }

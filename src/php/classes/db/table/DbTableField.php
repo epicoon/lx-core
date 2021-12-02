@@ -14,6 +14,7 @@ class DbTableField
     
     const ATTRIBUTE_UNIQUE = 'uniqie';
 
+    private DbTableSchema $schema;
     private string $name;
     private string $type;
     private array $attributes;
@@ -24,8 +25,9 @@ class DbTableField
     private bool $pk;
     private ?array $fk;
 
-    public function __construct(array $definition)
+    public function __construct(DbTableSchema $schema, array $definition)
     {
+        $this->schema = $schema;
         $this->name = $definition['name'];
         $this->type = $definition['type'] ?? self::TYPE_STRING;
         $this->attributes = $definition['attributes'] ?? [];
@@ -128,9 +130,19 @@ class DbTableField
     {
         return $this->fk !== null;
     }
-
-    public function getFkConfig(): ?array
+    
+    public function getForeignKeyInfo(): ?DbForeignKeyInfo
     {
-        return $this->fk;
+        if (!$this->isFk()) {
+            return null;
+        }
+        
+        return new DbForeignKeyInfo($this->schema, [
+            'name' => $this->fk['name'] ?? null,
+            'table' => $this->schema->getName(),
+            'fields' => [$this->getName()],
+            'relatedTable' => $this->fk['table'],
+            'relatedFields' => [$this->fk['field']],
+        ]);
     }
 }

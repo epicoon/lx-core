@@ -138,7 +138,7 @@ class ArrayHelper
 		return $array;
 	}
 
-	public static function deepEmpty(iterable $arr): bool
+	public static function isDeepEmpty(iterable $arr): bool
 	{
 		$rec = function ($arr) use (&$rec) {
 			if (self::isEmpty($arr)) {
