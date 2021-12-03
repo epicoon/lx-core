@@ -156,6 +156,7 @@ return [
 	'I18nHelper' => 'classes/helpers',
     'ErrorHelper' => 'classes/helpers',
     'PhpConfigHelper' => 'classes/helpers',
+    'CodeConverterHelper' => 'classes/helpers',
 
 
 	/*******************************************************************************************************************

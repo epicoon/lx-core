@@ -9,8 +9,14 @@ class ClassHelper
      */
 	public static function checkInstance($currentClass, string $baseClass): bool
 	{
-        if (is_string($currentClass) && $currentClass == $baseClass) {
-            return true;
+        if (is_string($currentClass)) {
+            if ($currentClass == $baseClass) {
+                return true;
+            }
+        } else {
+            if ($currentClass instanceof $baseClass) {
+                return true;
+            }
         }
 
 		return (
@@ -41,6 +47,15 @@ class ClassHelper
 		if (is_string($class) && !self::exists($class)) {
 			return false;
 		}
+
+        if (!is_string($class)) {
+            foreach (array($interfaces) as $interface) {
+                if (!($class instanceof $interface)) {
+                    return false;
+                }
+            }
+            return true;
+        }
 
 		try {
 			$reflected = new \ReflectionClass($class);

@@ -556,7 +556,7 @@ class JsCompiler
             }
 
             $data = Yaml::runParse($yaml, $path);
-            $result = ArrayHelper::arrayToJsCode($data);
+            $result = CodeConverterHelper::arrayToJsCode($data);
             $result = $this->processMacroses($result, $yaml);
             return $result;
         }, $code);
@@ -578,7 +578,7 @@ class JsCompiler
 			}
 
 			$data = $file->get();
-			$result = ArrayHelper::arrayToJsCode($data);
+			$result = CodeConverterHelper::arrayToJsCode($data);
 			return $result;
 		}, $code);
 

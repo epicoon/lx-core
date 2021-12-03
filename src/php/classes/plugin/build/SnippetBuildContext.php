@@ -179,9 +179,9 @@ class SnippetBuildContext implements ContextTreeInterface
 		$plugin = $this->getPlugin();
 		$snippet = $this->snippet;
 
-		$appData = ArrayHelper::arrayToJsCode($app->getBuildData());
-		$pluginData = ArrayHelper::arrayToJsCode($plugin->getBuildData());
-		$snippetData = ArrayHelper::arrayToJsCode($snippet->getBuildData());
+		$appData = CodeConverterHelper::arrayToJsCode($app->getBuildData());
+		$pluginData = CodeConverterHelper::arrayToJsCode($plugin->getBuildData());
+		$snippetData = CodeConverterHelper::arrayToJsCode($snippet->getBuildData());
 
         $core = [
             '@core/js/server/Module',

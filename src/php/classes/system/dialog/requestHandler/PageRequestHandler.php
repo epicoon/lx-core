@@ -66,7 +66,7 @@ class PageRequestHandler extends RequestHandler
         }
 
         list($jsBootstrap, $jsMain) = lx::$app->getCommonJs();
-        $settings = ArrayHelper::arrayToJsCode(lx::$app->getSettings());
+        $settings = CodeConverterHelper::arrayToJsCode(lx::$app->getSettings());
         $js = "lx.start($settings, `$modules`, `$jsBootstrap`, `$pluginInfo`, `$jsMain`);";
 
         /** @var HtmlRendererInterface $renderer */

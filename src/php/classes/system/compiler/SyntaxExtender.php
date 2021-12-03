@@ -27,13 +27,13 @@ class SyntaxExtender
 			if (is_string($result)) {
 				$result = "'$result'";
 			} elseif (is_array($result)) {
-				$result = ArrayHelper::arrayToJsCode($result);
+				$result = CodeConverterHelper::arrayToJsCode($result);
 			} elseif (is_object($result)) {
 				if (method_exists($result, 'toString')) {
 					$result = "'{$result->toString()}'";
 				} else {
 					$arr = json_decode(json_encode($result), true);
-					$result = ArrayHelper::arrayToJsCode($arr);
+					$result = CodeConverterHelper::arrayToJsCode($arr);
 				}
 			}
 
@@ -398,7 +398,7 @@ class SyntaxExtender
 
                         $schema = $manager->getModelSchema($modelName);
                         $schemaArray = $schema ? ($schema->toArray())['fields'] : [];
-                        $schemaString = ArrayHelper::arrayToJsCode($schemaArray);
+                        $schemaString = CodeConverterHelper::arrayToJsCode($schemaArray);
 						$fieldCode = "static __setSchema(){this.initSchema($schemaString);}";
 						return $fieldCode;
 					},

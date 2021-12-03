@@ -176,7 +176,7 @@ class AssetCompiler
         }
 
 		if (\lx::$app->language) {
-			$code .= 'lx.lang=' . ArrayHelper::arrayToJsCode(\lx::$app->language->getCurrentData()) . ';';
+			$code .= 'lx.lang=' . CodeConverterHelper::arrayToJsCode(\lx::$app->language->getCurrentData()) . ';';
 		}
 
 		return $code;
