@@ -1,4 +1,4 @@
-class ModuleRequest extends lx.Request #lx:namespace lx {
+class ModuleRequest extends lx.HttpRequest #lx:namespace lx {
 	constructor(moduleClassName, methodName, params = {}) {
 		super('', params);
 		this.setHeader('lx-type', 'module');

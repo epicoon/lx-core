@@ -18,7 +18,7 @@ lx.move = function(event) {
 		Y = event.clientY || event.changedTouches[0].clientY;
 
 	var el = (this.moveParams.parentMove || this.moveParams.parentResize) ? this.parent : this;
-	lx.WidgetHelper.bringToFront(el);
+	el.emerge();
 
 	delete el.geom.bpg;
 	delete el.geom.bpv;

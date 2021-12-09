@@ -12,6 +12,11 @@ class ModelSchema #lx:namespace lx {
 	 *
 	 * */
 	set(list) {
+		if (lx.isArray(list)) {
+			let temp = {};
+			list.forEach(value=>temp[value] = {});
+			list = temp;
+		}
 		this.fields = list.lxClone();
 	}
 

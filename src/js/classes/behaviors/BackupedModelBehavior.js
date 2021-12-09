@@ -2,8 +2,8 @@ class BackupedModelBehavior extends lx.Behavior #lx:namespace lx {
 	/**
 	 *
 	 * */
-	static inject(supportedClass, config=null) {
-		super.inject(supportedClass);
+	static injectInto(supportedClass, config=null) {
+		super.injectInto(supportedClass);
 
 		class Backup extends lx.Model {};
 		var schema = {};

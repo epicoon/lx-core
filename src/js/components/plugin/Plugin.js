@@ -12,6 +12,7 @@ class Plugin #lx:namespace lx {
 		this.namespaces = [];
 		this.dependencies = {};
 
+		this._keypressManager = null;
 		this._eventDispatcher = null;
 		this._onFocus = null;
 		this._onUnfocus = null;
@@ -65,6 +66,13 @@ class Plugin #lx:namespace lx {
 
 	onUnfocus(callback) {
 		this._onUnfocus = callback.bind(this);
+	}
+
+	setKeypressManager(className) {
+		let manager = lx.createObject(className);
+		manager.setContext({plugin: this});
+		manager.run();
+		this._keypressManager = manager;
 	}
 
 	onKeydown(key, func) {

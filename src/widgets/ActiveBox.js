@@ -23,8 +23,8 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 		}
 	}
 
-	getZShift() {
-		return 100;
+	getDepthCluster() {
+		return lx.DepthClusterMap.CLUSTER_PRE_FRONT;
 	}
 
 	/**
@@ -66,8 +66,8 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 			this.setBuildMode(true);
 
 			if (this.contains('resizer') || this.contains('header')) {
-				this.on('mousedown', ()=>lx.WidgetHelper.bringToFront(this));
-				lx.WidgetHelper.bringToFront(this);
+				this.on('mousedown', ()=>this.emerge());
+				this.emerge();
 			}
 
 			if (this.contains('header')) {
@@ -104,7 +104,7 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 		}
 
 		show() {
-			lx.WidgetHelper.bringToFront(this);
+			this.emerge();
 			super.show();
 		}
 	}

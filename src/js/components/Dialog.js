@@ -242,7 +242,7 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 			break;
 	}
 
-	return handlerMap;
+	// return handlerMap;
 }
 
 /**

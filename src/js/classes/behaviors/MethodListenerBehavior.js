@@ -6,8 +6,8 @@ class MethodListenerBehavior extends lx.Behavior #lx:namespace lx {
 	/**
 	 *
 	 * */
-	static inject(supportedEssence, config=null) {
-		super.inject(supportedEssence);
+	static injectInto(supportedEssence, config=null) {
+		super.injectInto(supportedEssence);
 
 		supportedEssence.behaviorMap.set(behKey, 'methodEvents', {});
 	}

@@ -97,10 +97,11 @@ class Calendar extends lx.Input #lx:namespace lx {
 		list->month.value( date.getMonth() );
 		list->year.value( date.getFullYear() );
 
-		tab.cells(1, 0, 6, 6)
-			.call('text', '')
-			.call('removeClass', __active.basicCss.cellDay)
-			.call('removeClass', __active.basicCss.cellToday);
+		tab.cells(1, 0, 6, 6).forEach(child=>{
+			child.text('');
+			child.removeClass(__active.basicCss.cellDay);
+			child.removeClass(__active.basicCss.cellToday);
+		});
 		for (var i=1; i<=max; i++) {
 			var d = lx.Date( date.getFullYear(), date.getMonth(), i ),
 				dow = d.getDay();
@@ -194,8 +195,8 @@ class Calendar extends lx.Input #lx:namespace lx {
 		tab.setColWidth(0, '29px');
 		tab.setContent([ 'П', 'В', 'С', 'Ч', 'П', 'С', 'В' ]);
 		tab.row(0).addClass(__active.basicCss.dayOfWeek);
-		tab.cells().call('align', lx.CENTER, lx.MIDDLE);
-		tab.cells(1, 0, 6, 6).call('click', _handler_setDate);
+		tab.cells().forEach(child=>child.align(lx.CENTER, lx.MIDDLE));
+		tab.cells(1, 0, 6, 6).forEach(child=>child.click(_handler_setDate));
 
 		var today = new lx.Box({
 			key: 'today',

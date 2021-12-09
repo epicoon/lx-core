@@ -63,7 +63,6 @@ class BindableModel extends lx.Model #lx:namespace lx {
 	static initSchema(config) {
 		this.dropSchema();
 		super.initSchema(config);
-		lx.SetterListenerBehavior.inject(this);
 	}
 
 	/**
@@ -71,6 +70,13 @@ class BindableModel extends lx.Model #lx:namespace lx {
 	 * */
 	static __afterDefinition() {
 		super.__afterDefinition();
-		if (this.lxHasMethod('afterSet')) this.afterSet(function(field){lx.Binder.refresh(this, field)});
+		lx.SetterListenerBehavior.injectInto(this);
+		this.afterSet(function(field){lx.Binder.refresh(this, field)});
+	}
+
+	__init(data={}) {
+		this.ignoreSetterListener(true);
+		super.__init(data);
+		this.ignoreSetterListener(false);
 	}
 }

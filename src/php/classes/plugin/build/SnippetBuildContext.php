@@ -195,14 +195,19 @@ class SnippetBuildContext implements ContextTreeInterface
 			'@core/js/server/hash/HashMd5',
 
 			'@core/js/helpers/Geom',
-			'@core/js/classes/Object',
-			'@core/js/tools/Collection',
             '@core/js/tools/Math',
-			'@core/js/tools/Tree',
+
+			'@core/js/classes/Object',
 			'@core/js/classes/DomElementDefinition',
 			'@core/js/classes/TagRenderer',
+            '@core/js/widgetTools/DepthClusterMap',
 			'@core/js/classes/bit/BitLine',
 			'@core/js/classes/bit/BitMap',
+            '@core/js/classes/dataContainers/Tree',
+            '@core/js/classes/dataContainers/Collection',
+            '@core/js/classes/dataContainers/support/CollectionSelector',
+            '@core/js/classes/dataContainers/support/TreeConverter',
+
 			'@core/js/components/Date',
 
             '@core/js/classes/css/Color',

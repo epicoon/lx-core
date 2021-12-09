@@ -1,10 +1,7 @@
 class Behavior #lx:namespace lx {
 	onAfterConstruct(supportedObject) {}
 
-	/**
-	 *
-	 * */
-	static inject(supportedEssence, config=null) {
+	static injectInto(supportedEssence, config=null) {
 		var names = Object.getOwnPropertyNames(this.prototype);
 		var funcNames = [];
 		for (var i=0, l=names.length; i<l; i++) {
@@ -37,9 +34,6 @@ class Behavior #lx:namespace lx {
 		supportedEssence.behaviorMap.register(this);
 	}
 
-	/**
-	 *
-	 * */
 	static overridedMethods() {
 		return [];
 	}

@@ -2,6 +2,7 @@
 	len
 	isEmpty
 	clear()
+	getEmptyInstance()
 	at(k)
 	to(k)
 	set(i, val)
@@ -22,15 +23,8 @@
 	removeAt(k)
 	pop()
 	sub(k, amt)
-	sum(method, ...args) TODO - убрать
-	call() TODO - избыточно?
-	callRepeat() TODO - избыточно?
  	forEach(func)
-	eachToEach(func) TODO - избыточно?
 	forEachRevert(func)
-	getEach(funcName, args) TODO - что-то для селекторной логики, название непонятное, разобрать
-	mix(c, func, repeat) TODO - таким должен отдельный класс заниматься
-	select(func) TODO - таким должен отдельный класс заниматься
 	stop()
 
 ***************************************************************/
@@ -60,20 +54,6 @@ class Collection extends lx.Object #lx:namespace lx {
 		return new this(obj);
 	}
 
-
-	// var object = {};
-	// object.constructor = arguments.callee;
-	// object.actPart = null;
-	// object.actI = null;
-	// object.actPartI = null;
-
-	// object.isCopy = false;
-	// object.elements = [];
-	// object.map = [];
-
-	// object.stopFlag = false;
-	// object.repeat = true;
-
 	clear() {
 		this.actPart = null;
 		this.actI = null;
@@ -82,6 +62,10 @@ class Collection extends lx.Object #lx:namespace lx {
 		this.isCopy = false;
 		this.elements = [];
 		this.map = [];
+	}
+
+	getEmptyInstance() {
+		return new lx.Collection();
 	}
 
 	at(k) {
@@ -93,7 +77,7 @@ class Collection extends lx.Object #lx:namespace lx {
 	/*
 	 * k - может быть как индекс (если число), так и элемент (кроме числа)
 	 * k - может быть null, тогда просто сбрасывается позиционирование итератора
-	 * */
+	 */
 	to(k) {
 		if (k === null) {
 			this.actPart = null;
@@ -357,11 +341,8 @@ class Collection extends lx.Object #lx:namespace lx {
 	}
 
 	indexOf(el) {
-		//todo - возможно неоптимально
 		this.toCopy();
-		var index = this.elements.indexOf(el);
-		if (index == -1) return false;
-		return index;
+		return this.elements.indexOf(el);
 	}
 
 	insert(index, value) {
@@ -411,58 +392,6 @@ class Collection extends lx.Object #lx:namespace lx {
 		return c;
 	}
 
-	sum(method, ...args) {
-		var result = 0;
-		this.forEach((a)=> {
-			var val = 0;
-			if (a[method]) {
-				if (lx.isNumber(a[method])) val = a[method];
-				else if (lx.isFunction(a[method])) val = a[method].apply(a, args);
-			} else if (a.toNumber) val = a.toNumber();
-			if (!lx.isNumber(val)) val = 0;
-			result += val;
-		});
-		return result;
-	}
- 	
-	call(funcName, ...args) {
-		this.forEach((a)=> {
-			if ( a === null || !a.lxHasMethod(funcName) ) return;
-			a[funcName].apply(a, args);
-		});
-
-		return this;
-	}
-
-	callRepeat(funcName, args) {
-		var current = 0;
-		this.forEach((a)=> {
-			if (a === null || !a.lxHasMethod(funcName) ) return;
-
-			if (lx.isArray(args[current])) a[funcName].apply(a, args[current]);
-			else a[funcName].call(a, args[current]);
-			current++;
-			if (current == args.len) current = 0;
-		});
-
-		return this;
-	}
-
-	cachePosition() {
-		if (!this.cachepos) this.cachepos = [];
-		this.cachepos.push([this.actPart, this.actI, this.actPartI]);
-	}
-
-	loadPosition() {
-		if (!this.cachepos) return false;
-		var cache = this.cachepos.pop();
-		this.actPart = cache[0];
-		this.actI = cache[1];
-		this.actPartI = cache[2];
-		if (!this.cachepos.len) delete this.cachepos;
-		return true;
-	}
-
 	forEach(func) {
 		this.stopFlag = false;
 		this.cachePosition();
@@ -476,9 +405,22 @@ class Collection extends lx.Object #lx:namespace lx {
 		return this;
 	}
 
+	forEachRevert(func) {
+		this.stopFlag = false;
+		this.cachePosition();
+		var i = this.len - 1,
+			el = this.last();
+		while (el && !this.stopFlag) {
+			func.call( this, el, i-- );
+			el = this.prev();
+		}
+		this.loadPosition();
+		return this;
+	}
+
 	/**
 	 * Метод для взаимодействия каждого элемента коллекции с каждым элементом коллекции
-	 * */
+	 */
 	eachToEach(func) {
 		this.stopFlag = false;
 		this.cachePosition();
@@ -504,122 +446,23 @@ class Collection extends lx.Object #lx:namespace lx {
 		return this;
 	}
 
-	forEachRevert(func) {
-		this.stopFlag = false;
-		this.cachePosition();
-		var i = this.len - 1,
-			el = this.last();
-		while (el && !this.stopFlag) {
-			func.call( this, el, i-- );
-			el = this.prev();
-		}
-		this.loadPosition();
-		return this;
-	}
-
-	getEach(attr, args) {
-		var c = new lx.Collection();
-		this.forEach(function(a) {
-			if (!(attr in a)) return;
-			if (a[attr] instanceof Function) {
-				if (args === undefined) {
-					c.add(a[attr]());
-					return;
-				}
-				c.add(lx.isArray(args) ? a[attr].apply(a, args) : a[attr].call(a, args));
-			}
-			else c.add(a[attr]);
-		});
-		return c;
-	}
-
-	mix(c, func, repeat = false) {
-		if (lx.isArray(c)) c = self::cast(c);
-		this.to(null); c.to(null);
-		for (var i=0, len=repeat ? Math.max(this.len, c.len) : Math.min(this.len, c.len); i<len; i++) {
-			this.next();
-			if (!this.current()) this.next();
-			c.next();
-			if (!c.current()) c.next();
-			func.call(this, this.current(), c.current(), i);
-		}
-		return this;
-	}
-
-	/*
-	 * Варианты аргументов:
-	 * 1. (func(a)) - функция, возвращающая bool для каждого элемента коллекции
-	 * 2. (prop) - выберет все объекты, которые имеют свойство с именем prop
-	 * 3. (prop, val) - выберет все объекты, у которых есть свойство prop и оно равно val
-	 * 4. (prop, op, val) - выберет все объекты, у которых есть свойство prop и сравнит с val, варианты оператора op:
-	 *    a. >, <, >=, <=
-	 *    b. contains - для массива prop на наличие элемента val
-	 *    c. like - для строки prop проверяет совпадение регулярным выражением
-	 * */
-	select() {
-		var amt = arguments.length;
-		if (!amt) return new lx.Collection();
-
-		if (amt == 1) {
-			var c = new lx.Collection(),
-				arg = arguments[0];
-
-			// функция
-			if (arg instanceof Function) {
-				this.forEach(function(a) { if (arg(a)) c.add(a); });
-				return c;
-			}
-
-			// набор правил
-			if (lx.isArray(arg)) {
-				this.forEach(function(a) {
-					var match = true;
-					// анализ правил
-					for (var i=0,l=arg.len; i<l; i++) {
-						var rule = arg[i];
-						if (!(rule[0] in a)) {
-							match = false;
-							break;
-						}
-						// правила из двух элементов - на сравнение
-						if (rule.length == 2) {
-							if (a[rule[0]] != rule[1]) match = false;
-						// правила из трех элементов - с оператором
-						} else if (rule.length == 3) {
-							var prop = rule[0],
-								val = rule[2];
-							switch (rule[1]) {
-								case '>': if (a[prop] <= val) match = false; break;
-								case '<': if (a[prop] >= val) match = false; break;
-								case '>=': if (a[prop] < val) match = false; break;
-								case '<=': if (a[prop] > val) match = false; break;
-								case 'contains':
-									if (!lx.isArray(a[prop]) || a[prop].indexOf(val) == -1) match = false;
-								break;
-								case 'like':
-									if (!lx.isString(a[prop]) || !a[prop].match(new RegExp(val))) match = false;
-								break;
-							}
-						}
-						if (!match) break;
-					}
-					if (match) c.add(a);
-				});
-				return c;
-			}
-
-			// просто проверка на наличие свойства
-			this.forEach(function(a) {
-				if (arg in a) c.add(a);
-			});
-			return c;
-		}
-
-		return this.select([arguments]);
-	}
-
 	stop() {
 		this.stopFlag = true;
+	}
+
+	cachePosition() {
+		if (!this.cachepos) this.cachepos = [];
+		this.cachepos.push([this.actPart, this.actI, this.actPartI]);
+	}
+
+	loadPosition() {
+		if (!this.cachepos) return false;
+		var cache = this.cachepos.pop();
+		this.actPart = cache[0];
+		this.actI = cache[1];
+		this.actPartI = cache[2];
+		if (!this.cachepos.len) delete this.cachepos;
+		return true;
 	}
 }
 
@@ -649,7 +492,7 @@ class Collection extends lx.Object #lx:namespace lx {
  * 	},
  * 	{height: 10}
  * );
- * */
+ */
 Object.defineProperty(lx.Collection, "construct", {
 	value: function(/*arguments*/) {
 		var result = this(), // lx.Collection(),

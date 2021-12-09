@@ -1,78 +1,41 @@
 class Request #lx:namespace lx {
-	constructor(url = '', params = {}) {
-		this.method = 'post';
-		this.url = url;
-
-		this.headers = {};
-		this.params = params;
-
-		this.handler = null;
+	constructor() {
+		this._success = null;
+		this._wait = null;
+		this._error = null;
 	}
 
-	get successMethodName() { return 'success' }
-	get errorMethodName() { return 'error' }
-
-	success(result, request) {}
-	error(request) {}
-
 	then(func) {
-		this.handler.success = func;
+		this._success = func;
 		return this;
 	}
 
 	catch(func) {
-		this.handler.error = func;
+		this._error = func;
 		return this;
 	}
 
 	send() {
-		var url = this.url,
-			headers = this.headers;
-
-		this.handler = lx.Dialog.request({
-			method: this.method,
-			url: url,
-			headers: headers,
-			data: this.params,
-			success: this[this.successMethodName],
-			error: this[this.errorMethodName]
-		});
-
-		return this;
+		// abstract
 	}
 
-	setMethod(method) {
-		this.method = method.toLowerCase();
+	onLoad(callback) {
+		this._success = callback;
 	}
 
-	checkMethod(method) {
-		return this.method == method.toLowerCase();
+	onWait(callback) {
+		this._wait = callback;
 	}
 
-	setHeaders(headers) {
-		this.headers = headers;
+	onError(callback) {
+		this._error = callback;
 	}
 
-	setHeader(name, value) {
-		this.headers[name] = value;
+	getLoadCallback() {
+		return this._success;
 	}
 
-	setParams(params) {
-		this.params = params;
-	}
-
-	setParam(params) {
-		for (var name in params)
-			this.params[name] = params[name];
-	}
-
-	setHandlers(handlers) {
-		if (lx.isFunction(handlers)) {
-			this.success = handlers;
-			return;
-		}
-
-		if (handlers.success) this.success = handlers.success;
-		if (handlers.error) this.error = handlers.error;
+	getErrorCallback() {
+		return this._error;
 	}
 }

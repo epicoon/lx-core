@@ -58,9 +58,9 @@ class HtmlBody
 
 		foreach ($scripts as $pluginKey => $script) {
 			$location = $script['location'] ?? JsScriptAsset::LOCATION_HEAD;
-			if ($location == JsScriptAsset::LOCATION_BODY_BEGIN) {
+			if ($location == JsScriptAsset::LOCATION_BODY_TOP) {
 				$this->beginScripts[$pluginKey] = $script;
-			} elseif ($location == JsScriptAsset::LOCATION_BODY_END) {
+			} elseif ($location == JsScriptAsset::LOCATION_BODY_BOTTOM) {
 				$this->endScripts[$pluginKey] = $script;
 			}
 		}

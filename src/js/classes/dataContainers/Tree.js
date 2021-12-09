@@ -22,9 +22,9 @@ class Tree #lx:namespace lx {
 					var newNode = node.add('k' + (counter++));
 					let value = obj[key];
 					if (lx.isArray(value) || lx.isObject(value)) {
-						newNode.data = {key};
+						newNode.data = {key, hasContent: true};
 						re(newNode, value);
-					} else newNode.data = {key, value};
+					} else newNode.data = {key, value, hasContent: false};
 				}
 			}
 		}
@@ -34,13 +34,28 @@ class Tree #lx:namespace lx {
 		return tree;
 	}
 
-	static uCreateFromObject(obj, childrenKey, callback) {
+	static uCreateFromObject(obj, childrenKey, callback = null) {
 		var counter = 0;
 		function re(node, obj) {
 			if (obj === null || obj === undefined) return;
 
-			if (lx.isArray(obj) || lx.isObject(obj)) {
+			if (lx.isArray(obj)) {
+				obj.forEach(elem=>{
+					let newNode = node.add('k' + (counter++));
+					re(newNode, elem);
+				});
+				return;
+			}			
+
+			if (lx.isObject(obj)) {
 				if (callback) callback(obj, node);
+				else {
+					node.data = {};
+					for (var i in obj) {
+						if (i == childrenKey) continue;
+						node.data[i] = obj[i];
+					}
+				}
 
 				if (childrenKey in obj) {
 					let children = obj[childrenKey];
@@ -58,35 +73,7 @@ class Tree #lx:namespace lx {
 		return tree;
 	}
 
-	//TODO переименовать, раскопать что в коде метода делает url - ему явно тут не место
-	static create(treeData, itemsFiled) {
-		var counter = 0;
-		function re(node, obj) {
-			var key = 'k' + (counter++);
-			var newNode = node.add(key);
-			newNode.data = {};
-			for (var i in obj) {
-				if (i == itemsFiled) continue;
-				newNode.data[i] = obj[i];
-			}
-			if (obj.url) {
-				for (var i in obj) {
-					if (i in newNode.data) continue;
-					newNode.data[i] = obj[i];
-				}
-				return;
-			}
-			if (!obj[itemsFiled]) return;
-			obj[itemsFiled].forEach(a=>re(newNode, a));
-		}
-
-		var result = new this();
-		for (var i in treeData) re(result, treeData[i]);
-		return result;
-	}
-
-	//TODO переименовать isEmpty
-	empty() {
+	isEmpty() {
 		return this.keys.length == 0;
 	}
 
@@ -193,56 +180,6 @@ class Tree #lx:namespace lx {
 			path: path,
 			fullKey: fullKey
 		};
-	}
-
-	//TODO private, метод не рабочий - использует устаревшее поле path
-	//TODO - методы преобразования Json тянет на отдельный инструмент TreeSerializer
-	collectJSON(key, root, arr) {
-		var index = arr.length;
-		var temp = {
-			root,
-			data: this.data,
-			path: this.path
-		};
-		if (this.comment) temp.comment = this.comment;
-		if (this.fill) temp.fill = +this.fill;
-		if (key !== '') temp.key = key;
-
-		arr.push(temp);
-		for (var i=0, l=this.keys.len; i<l; i++) {
-			var key = this.keys[i];
-			this.nodes[key].collectJSON(key, index, arr);
-		}
-	}
-
-	toJSON() {
-		var arr = [];
-		for (var i=0, l=this.keys.len; i<l; i++) {
-			var key = this.keys[i];
-			this.nodes[key].collectJSON(key, -1, arr);
-		}
-
-		if (arr.lxEmpty()) return '';
-		return JSON.stringify(arr);
-	}
-
-	fromJSON(str) {
-		if (str == '') return this;
-
-		var arr = JSON.parse( str ),
-			temp = [ this ];
-		for (var i=0, l=arr.length; i<l; i++) {
-			var info = arr[i],
-				br = temp[ info.root+1 ].add( info.key );
-
-			br.data = info.data;
-			br.key = info.key;
-			if (info.comment) br.comment = info.comment;
-			if (info.fill != undefined) br.fill = info.fill;
-			temp.push(br);
-		}
-
-		return this;
 	}
 
 	add(...args) {

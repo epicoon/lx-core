@@ -66,7 +66,7 @@ class MultiBox extends lx.Box #lx:namespace lx {
 			this.sheets = lx.Box.construct(marks.len, {parent: sheetsBox, key: 'sheet', geom: true});
 		}
 
-		this.sheets.call('hide');
+		this.sheets.forEach(child=>child.hide());
 
 		if (this.mode == self::MODE_UNI_SHEET) this.select(0);
 		if (config.animation) this.animation = config.animation;

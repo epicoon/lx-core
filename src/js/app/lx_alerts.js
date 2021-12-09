@@ -18,7 +18,7 @@ function __print(msg) {
 		header: 'Alert',
 		closeButton: {click: function(){this.parent.parent.del();}}
 	});
-	el.style('zIndex', 1000);
+	el.style('zIndex', lx.DepthClusterMap.calculateZIndex(lx.DepthClusterMap.CLUSTER_URGENT));
 	el.overflow('auto');
 	el->body.html('<pre>' + msg + '</pre>');
 }

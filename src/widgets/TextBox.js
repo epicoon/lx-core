@@ -106,7 +106,7 @@ class TextBox extends lx.Rect #lx:namespace lx {
 		 * */
 		static adaptTextByMin(c) {
 			c = lx.Collection.cast(c);
-			c.call("adapt");
+			c.forEach(child=>child.adapt());
 			var min = Infinity;
 			c.forEach(a=>{
 				var s = parseFloat(a.domElem.style('fontSize'));

@@ -184,10 +184,11 @@ class Dropbox extends lx.Box #lx:namespace lx {
 
 		options.resetContent(data, true);
 
-		options.cells()
-			.call('align', lx.CENTER, lx.MIDDLE)
-			.call('click', _handler_choose)
-			.call('addClass', self.basicCss.option);
+		options.cells().for(child=>{
+			child.align(lx.CENTER, lx.MIDDLE);
+			child.click(_handler_choose);
+			child.addClass(self.basicCss.option);
+		});
 
 		options.satelliteTo(self);
 

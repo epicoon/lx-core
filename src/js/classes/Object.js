@@ -26,7 +26,7 @@ class Object #lx:namespace lx {
 	 * */
 	addBehavior(behavior, config=null) {
 		if (this.behaviorMap.has(behavior) || self::behaviorMap.has(behavior)) return;
-		behavior.inject(this, config);
+		behavior.injectInto(this, config);
 	}
 
 	/**
@@ -41,7 +41,7 @@ class Object #lx:namespace lx {
 	 * */
 	static addBehavior(behavior, config=null) {
 		if (this.behaviorMap.has(behavior)) return;
-		behavior.inject(this, config);
+		behavior.injectInto(this, config);
 	}
 
 	/**

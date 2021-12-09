@@ -1,4 +1,4 @@
-class PluginRequest extends lx.Request #lx:namespace lx {
+class PluginRequest extends lx.HttpRequest #lx:namespace lx {
 	constructor(plugin, respondent, params=[]) {
 		params = {
 			attributes: plugin.attributes,

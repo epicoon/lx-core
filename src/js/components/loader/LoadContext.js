@@ -78,11 +78,7 @@ class LoadContext {
 		}
 
 		// Синхронизируем загрузку ресурсов и старт выполнения плагина
-		var synchronizer = new lx.Synchronizer();
-		synchronizer.setCallback(()=>{
-			this.process(el, parent, clientCallback)
-			this.task.setCompleted();
-		});
+		var synchronizer = new lx.RequestSynchronizer();
 
 		var scriptTags = {forHead:[], forBegin:[]},
 			cssTags = [];
@@ -94,57 +90,37 @@ class LoadContext {
 				need: this.necessaryModules,
 				have: lx.dependencies.getCurrentModules()
 			});
-			modulesRequest.success = function(result) {
+			modulesRequest.onLoad(function(result) {
 				if (result) lx._f.createAndCallFunction('', result.data);
-			};
+			});
 			synchronizer.register(modulesRequest);
 		}
 
 		// script-ресурсы регистрируются в синхронайзере
 		if (this.necessaryScripts) {
 			for (var i=0; i<this.necessaryScripts.len; i++) {
-				var tag = this.createScriptTag(this.necessaryScripts[i]);
-				switch (tag[1]) {
-					case 'head':
-						scriptTags.forHead.push(tag[0]);
-						synchronizer.register(tag[0], 'onload', 'onerror');
-						break;
-					case 'body-begin':
-						scriptTags.forBegin.push(tag[0]);
-						synchronizer.register(tag[0], 'onload', 'onerror');
-						break;
-					case 'body-end':
-						this.postScripts.push(tag[0]);
-						break;
-				}
+				var src = this.necessaryScripts[i];
+				src.attributes = {name: 'plugin_asset'};
+				var tagRequest = lx.TagResourceRequest.createByConfig(src);
+				if (tagRequest.location == 'body-bottom')
+					this.postScripts.push(tagRequest);
+				else synchronizer.register(tagRequest);
 			}
 		}
 
 		// css-ресурсы регистрируются в синхронайзере
 		if (this.necessaryCss) {
 			for (var i=0; i<this.necessaryCss.len; i++) {
-				var tag = this.createCssTag(this.necessaryCss[i]);
-				if (!tag) continue;
-				synchronizer.register(tag, 'onload', 'onerror');
-				cssTags.push(tag);
+				var tagRequest = new lx.TagResourceRequest(this.necessaryCss[i], {name: 'plugin_asset'});
+				synchronizer.register(tagRequest);
 			}
 		}
 
 		// Плагин стартанёт после подключения ресурсов
-		synchronizer.start();
-
-		// Подтягиваем виджеты
-		if (modulesRequest) modulesRequest.send();
-
-		// Подключение скриптов
-		this.applyScriptTags(scriptTags);
-		
-		// Подключение стилей
-		if (cssTags.len) {
-			var head = document.getElementsByTagName('head')[0];
-			for (var i=0; i<cssTags.len; i++)
-				head.appendChild(cssTags[i]);
-		}
+		synchronizer.send().then(()=>{
+			this.process(el, parent, clientCallback)
+			this.task.setCompleted();
+		});
 	}
 
 	process(el, parent, clientCallback) {
@@ -204,7 +180,7 @@ class LoadContext {
 		var argsStr = [];
 		var args = [];
 		var code = 'const Plugin=lx.plugins["' + plugin.key
-			+ '"];const Snippet=Plugin.root.snippet;lx.WidgetHelper.autoParent=Plugin.root;'
+			+ '"];const Snippet=Plugin.root.snippet;lx.Rect.setAutoParent(Plugin.root);'
 
 		// Build js-code after plugin render but before run
 		if (info.beforeRun) {
@@ -223,47 +199,12 @@ class LoadContext {
 		var snippetsJs = node.compileCode();
 		code += snippetsJs[1];
 
-		code += 'lx.WidgetHelper.removeAutoParent(Plugin.root);';
+		code += 'lx.Rect.removeAutoParent(Plugin.root);';
 		lx._f.createAndCallFunction(snippetsJs[0], code, null, snippetsJs[2]);
 	}
 
 	createPluginByAnchor(anchor, el, parentPlugin) {
 		var info = this.plugins[anchor];
 		this.createPlugin(info, el, parentPlugin);
-	}
-
-	createCssTag(href) {
-		var link  = document.createElement('link');
-		link.rel  = 'stylesheet';
-		link.type = 'text/css';
-		link.href = href;
-		link.setAttribute('name', 'plugin_asset');
-		return link;
-	}
-
-	applyScriptTags(scriptTags) {
-		if (scriptTags.forHead.len) {
-			var head = document.getElementsByTagName('head')[0];
-			scriptTags.forHead.forEach(script=>head.appendChild(script));
-		}
-
-		if (scriptTags.forBegin.len) {
-			var body = document.getElementsByTagName('body')[0];
-			scriptTags.forBegin.lxForEachRevert(script=>{
-				if (body.children.length)
-					body.insertBefore(script, body.children[0]);
-				else body.appendChild(script);
-			});
-		}
-	}
-
-	createScriptTag(src) {
-		var location = src.location || 'head';
-		var script = document.createElement('script');
-		script.setAttribute('name', 'plugin_asset');
-		script.src = src.path;
-		if (src.onLoad) script.onLoad = lx._f.createFunction(src.onLoad).bind(script);
-		if (src.onError) script.error = lx._f.createFunction(src.onError).bind(script);
-		return [script, location];
 	}
 };

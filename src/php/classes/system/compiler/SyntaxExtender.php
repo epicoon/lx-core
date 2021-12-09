@@ -40,31 +40,31 @@ class SyntaxExtender
 			return $result;
 		}, $code);
 
-		// ? >#id => lx.WidgetHelper.getById('id')
+		// ? >#id => lx.DomSelector.getWidgetById('id')
 		$code = preg_replace_callback('/\?>#(\b.+?\b)/', function($matches) {
-			return 'lx.WidgetHelper.getById(\'' . $matches[1] . '\')';
+			return 'lx.DomSelector.getWidgetById(\'' . $matches[1] . '\')';
 		}, $code);
-		// ? >#{id} => lx.WidgetHelper.getById(id)
+		// ? >#{id} => lx.DomSelector.getWidgetById(id)
 		$code = preg_replace_callback('/\?>#{(.+?)}/', function($matches) {
-			return 'lx.WidgetHelper.getById(' . $matches[1] . ')';
+			return 'lx.DomSelector.getWidgetById(' . $matches[1] . ')';
 		}, $code);
 
-		// ? >.class => lx.WidgetHelper.getByClass('class')
+		// ? >.class => lx.DomSelector.getWidgetByClass('class')
 		$code = preg_replace_callback('/\?>\.(\b.+?\b)/', function($matches) {
-			return 'lx.WidgetHelper.getByClass(\'' . $matches[1] . '\')';
+			return 'lx.DomSelector.getWidgetByClass(\'' . $matches[1] . '\')';
 		}, $code);
-		// ? >.{class} => lx.WidgetHelper.getByClass(class)
+		// ? >.{class} => lx.DomSelector.getWidgetByClass(class)
 		$code = preg_replace_callback('/\?>\.{(.+?)}/', function($matches) {
-			return 'lx.WidgetHelper.getByClass(' . $matches[1] . ')';
+			return 'lx.DomSelector.getWidgetByClass(' . $matches[1] . ')';
 		}, $code);
 
-		// ? >name => lx.WidgetHelper.getByName('name')
+		// ? >name => lx.DomSelector.getWidgetByName('name')
 		$code = preg_replace_callback('/\?>(\b.+?\b)/', function($matches) {
-			return 'lx.WidgetHelper.getByName(\'' . $matches[1] . '\')';
+			return 'lx.DomSelector.getWidgetByName(\'' . $matches[1] . '\')';
 		}, $code);
-		// ? >{name} => lx.WidgetHelper.getByName(name)
+		// ? >{name} => lx.DomSelector.getWidgetByName(name)
 		$code = preg_replace_callback('/\?>{(.+?)}/', function($matches) {
-			return 'lx.WidgetHelper.getByName(' . $matches[1] . ')';
+			return 'lx.DomSelector.getWidgetByName(' . $matches[1] . ')';
 		}, $code);
 
 		// self:: => this.constructor.
@@ -102,24 +102,12 @@ class SyntaxExtender
 		//==============================================================================================================
 
 		// ^self::method(arg1, arg2) => self::ajax('method', [arg1, arg2]).send()
-		/*
-		Рекурсивная подмаска регулярного выражения:
-		(?P<name>{ ( (?>[^{}]+)|(?P>name) )* })
-		(?P<name>reg) - задает имя группе
-		(?P>name) - рекурсивно вызывает группу. Без именования рекурсия замыкается на все выражение, обозначается (?R)
-		*/
 		$regexp = '/\^this\.constructor\.([\w_][\w\d_]*?)(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/';
 		preg_match_all($regexp, $code, $matches);
 		for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
 			$method = $matches[1][$i];
-
 			$args = $matches[2][$i];
-			/*
-			Аргументы тоже ищутся рекурсивной подмаской - т.к. может быть и так ^Resp.method(f(), f2())...
-			При этом может быть и так ^Resp.method()... а пустые скобки нам не нужны, заменяем их на пустую строку
-			*/
-			$args = preg_replace('/^\(/', '', $args);
-			$args = preg_replace('/\)$/', '', $args);
+			$args = preg_replace('/(^\(|\)$)/', '', $args);
 
 			$text = "this.constructor.ajax('$method',[$args]).send()";
 			$code = str_replace($matches[0][$i], $text, $code);
@@ -130,14 +118,8 @@ class SyntaxExtender
 		preg_match_all($regexp, $code, $matches);
 		for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
 			$method = $matches[1][$i];
-
 			$args = $matches[2][$i];
-			/*
-			Аргументы тоже ищутся рекурсивной подмаской - т.к. может быть и так ^Resp.method(f(), f2())...
-			При этом может быть и так ^Resp.method()... а пустые скобки нам не нужны, заменяем их на пустую строку
-			*/
-			$args = preg_replace('/^\(/', '', $args);
-			$args = preg_replace('/\)$/', '', $args);
+			$args = preg_replace('/(^\(|\)$)/', '', $args);
 
 			$text = "Plugin.ajax('$method',[$args]).send()";
 			$code = str_replace($matches[0][$i], $text, $code);
@@ -147,66 +129,39 @@ class SyntaxExtender
 		//==============================================================================================================
 		//==============================================================================================================
 
-		// #lx:model e = { a, b, sum }; => const e = (function(){ class _am_ extends lx.BindableModel { field a, b, sum; } return new _am_; })();
-		// #lx:model e = ModelName; => const e = (function(){ class _am_ extends lx.BindableModel { #lx:modelName ModelName; } return new _am_; })();
-		$regexp = '/#lx:model\s*(\b[\w_][\w\d_]*\b)\s*=\s*([\w\W]+?);/';
-		preg_match_all($regexp, $code, $matches);
-		for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
-			$name = $matches[1][$i];
-			$fields = $matches[2][$i];
-			$fields = trim($fields, ' ');
-			if ($fields[0] == '{') {
-				if (preg_match('/^{/', $fields)) $fields = preg_replace('/^{/', '', $fields);
-				if (preg_match('/}$/', $fields)) $fields = preg_replace('/}$/', '', $fields);
-				$fields = trim($fields, ' ');
-				$fields = '#lx:schema ' . $fields;
-			} else {
-				$fields = '#lx:modelName ' . $fields;				
-			}
-			$text = "const $name = (function(){ class _am_ extends lx.BindableModel {" . $fields . ";} return new _am_();})();";
-			$code = str_replace($matches[0][$i], $text, $code);
-		}
+        // #lx:model <ModelName>;
+        // =>
+        // (function(){ class _am_ extends lx.BindableModel { #lx:schema <ModelName>; } return new _am_; })();
 
-		/*
-		#lx:model-collection c = ModelName; =>
-		const c = (function(){
-			let c = new lx.ModelCollection();
-			class _am_ extends lx.BindableModel { #lx:modelName ModelName; }
-			c.setModelClass(_am_);
-			return c;
-		})();
+        // #lx:model { a, b };
+        // =>
+        // (function(){ class _am_ extends lx.BindableModel { #lx:schema a, b; } return new _am_; })();
 
-		#lx:model-collection c2 = { x, y }; =>
-		const c2 = (function(){
-			let c = new lx.ModelCollection();
-			class _am_ extends lx.BindableModel { field x, y; }
-			c.setModelClass(_am_);
-			return c;
-		})();
-		*/
-		$regexp = '/#lx:model-collection\s*(\b[\w_][\w\d_]*\b)\s*=\s*([\w\W]+?);/';
-		preg_match_all($regexp, $code, $matches);
-		for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
-			$name = $matches[1][$i];
-			$fields = $matches[2][$i];
-			$fields = trim($fields, ' ');
-			if ($fields[0] == '{') {
-				$fields = preg_replace('/^{/', '', $fields);
-				$fields = preg_replace('/}$/', '', $fields);
-				$fields = preg_replace('/(\n\r|\r\n|\r|\n)$/', '', $fields);
-				$fields = preg_replace('/(\r|\n|\t)/', '', $fields);
-				$fields = trim($fields, ' ');
-				$fields = '#lx:schema ' . $fields;
-			} else {
-				$fields = '#lx:modelName ' . $fields;
-			}
-			$text = "const $name = (function(){ let c=new lx.ModelCollection; class _am_ extends lx.BindableModel {" . $fields . ';} c.setModelClass(_am_); return c; })();';
-			$code = str_replace($matches[0][$i], $text, $code);
-		}
+        $regexp = '/#lx:model\s*(<(?:[\w\d_])+?>|(?P<therec>{((?>[^{}]+)|(?P>therec))*}));/';
+        $code = preg_replace_callback($regexp, function ($matches) {
+            $schema = $matches[1];
+            $schema = preg_replace('/(^\{|\}$)/', '', $schema);
+            return "(function(){ class _am_ extends lx.BindableModel { #lx:schema $schema; } return new _am_; })();";
+        }, $code);
 
 		//=====================================================================================================================
 		//=====================================================================================================================
 		//=====================================================================================================================
+
+        // #lx:modelSchema <Car>  =>  {/* schema */}
+        $regexp = '/#lx:modelSchema\s*<([^>]+?)>/';
+        $code = preg_replace_callback($regexp, function ($matches) use ($path) {
+            $modelName = $matches[1];
+            $schemaString = $this->getModelSchemaString($modelName, $path);
+            if ($schemaString === null) {
+                return '{}';
+            }
+            return $schemaString;
+        }, $code);
+
+        //=====================================================================================================================
+        //=====================================================================================================================
+        //=====================================================================================================================
 
 
 		$reg = '/\'?#lx:i18n(?P<therec>\(((?>[^()]+)|(?P>therec))*\))\'?/';
@@ -317,14 +272,16 @@ class SyntaxExtender
 				// Среди таких классов - отнаследованные от модели имеют свой синтаксис:
 				// 1. #lx:schema ...;
 				/*
+                    #lx:schema <ModelName>;
+
 					#lx:schema
 						aaa : {type:'integer', default: 11},
 						bbb,
 						ccc << arr[0],
 						ddd << arr[1] : {type:'string', default: 'ee'};
 
-					__setSchema() {
-						this.setSchema({
+					static __setSchema() {
+						this.initSchema({
 							aaa:{type:'integer', default: 11},
 							bbb:{},
 							ccc:{ref:'arr[0]'},
@@ -332,36 +289,53 @@ class SyntaxExtender
 						});
 					}
 				*/
-				$implementResult = preg_replace_callback($this->inClassReg('schema'), function ($matches) {
-					$schema = $matches[2];
-					$regexp = '/(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
-					preg_match_all($regexp, $schema, $defs);
-					$schema = preg_replace($regexp, '№№№', $schema);
-					$fields = preg_split('/\s*,\s*/', $schema);
-					$index = 0;
-					foreach ($fields as &$field) {
-						$pare = preg_split('/\s*:\s*/', $field);
-						$key = $pare[0];
-						$def = (isset($pare[1])) ? $pare[1] : '{}';
-						if ($def == '№№№') {
-							$def = $defs[0][$index++];
-						}
-						if (preg_match('/<</', $key)) {
-							$temp = preg_split('/[\s\r]*<<[\s\r]*/', $key);
-							$key = $temp[0];
-							if ($def == '{}')
-								$def = '{ref:\''.$temp[1].'\'}';
-							else {
-								$def = preg_replace('/}$/', ',ref:\''.$temp[1].'\'}', $def);
-							}
-						}
-						$field = "$key:$def";
-					}
-					unset($field);
+				$implementResult = preg_replace_callback(
+                    $this->inClassReg('schema'),
+                    function ($matches) use ($path) {
+                        $schema = $matches[2];
+                        if ($schema == '') {
+                            return $matches[1];
+                        }
 
-					$code = 'static __setSchema(){this.initSchema({'. implode(',', $fields) .'});}';
-					return $matches[1] . $code;
-				}, $implementResult);
+                        if ($schema[0] == '<') {
+                            $schema = trim($schema, '><');
+                            $schemaCode = $this->getModelSchemaString($schema, $path);
+                            if ($schemaCode === null) {
+                                return $matches[1];
+                            }
+                        } else {
+                            $regexp = '/(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
+                            preg_match_all($regexp, $schema, $defs);
+                            $schema = preg_replace($regexp, '№№№', $schema);
+                            $fields = preg_split('/\s*,\s*/', $schema);
+                            $index = 0;
+                            foreach ($fields as &$field) {
+                                $pare = preg_split('/\s*:\s*/', $field);
+                                $key = $pare[0];
+                                $def = (isset($pare[1])) ? $pare[1] : '{}';
+                                if ($def == '№№№') {
+                                    $def = $defs[0][$index++];
+                                }
+                                if (preg_match('/<</', $key)) {
+                                    $temp = preg_split('/[\s\r]*<<[\s\r]*/', $key);
+                                    $key = $temp[0];
+                                    if ($def == '{}')
+                                        $def = '{ref:\''.$temp[1].'\'}';
+                                    else {
+                                        $def = preg_replace('/}$/', ',ref:\''.$temp[1].'\'}', $def);
+                                    }
+                                }
+                                $field = "$key:$def";
+                            }
+                            unset($field);
+                            $schemaCode = '{' . implode(',', $fields) . '}';
+                        }
+
+                        $code = 'static __setSchema(){this.initSchema(' . $schemaCode . ');}';
+                        return $matches[1] . $code;
+                    },
+                    $implementResult
+                );
 
 				// 2. #lx:behaviors ...;
 				/*
@@ -372,38 +346,13 @@ class SyntaxExtender
 				$implementResult = preg_replace_callback($this->inClassReg('behaviors?'), function ($matches) {
 					$behaviors = preg_split('/[\s\r]*,[\s\r]*/', $matches[2]);
 					foreach ($behaviors as &$behavior) {
-						$behavior .= '.inject(this);';
+						$behavior .= '.injectInto(this);';
 					}
 					unset($behavior);
 					$behaviorsCode = 'static __injectBehaviors(){' . implode(',', $behaviors) . '}';
 
 					return $matches[1] . $behaviorsCode;
 				}, $implementResult);
-
-				// 3. #lx:modelName xxx;
-				$implementResult = preg_replace_callback(
-					'/#lx:modelName[\s\r]+([^;]+)?;/',
-					function ($matches) use ($path) {
-						$modelName = $matches[1];
-
-                        $service = $this->getCurrentService($path);
-                        if (!$service) {
-                            return '';
-                        }
-
-                        $manager = $service->modelManager;
-                        if (!$manager) {
-                            return '';
-                        }
-
-                        $schema = $manager->getModelSchema($modelName);
-                        $schemaArray = $schema ? ($schema->toArray())['fields'] : [];
-                        $schemaString = CodeConverterHelper::arrayToJsCode($schemaArray);
-						$fieldCode = "static __setSchema(){this.initSchema($schemaString);}";
-						return $fieldCode;
-					},
-					$implementResult
-				);
 
 				$code = str_replace($implement, $implementResult, $code);
 			}
@@ -613,4 +562,25 @@ class SyntaxExtender
 		$this->currentService = \lx::$app->serviceProvider->setFileName($path)->getService();
 		return $this->currentService;
 	}
+    
+    private function getModelSchemaString(?string $modelName, ?string $path): ?string
+    {
+        if (!$modelName) {
+            return null;
+        }
+
+        $service = $this->getCurrentService($path);
+        if (!$service) {
+            return null;
+        }
+
+        $manager = $service->modelManager;
+        if (!$manager) {
+            return null;
+        }
+
+        $schema = $manager->getModelSchema($modelName);
+        $schemaArray = $schema ? ($schema->toArray())['fields'] : [];
+        return CodeConverterHelper::arrayToJsCode($schemaArray);
+    }
 }

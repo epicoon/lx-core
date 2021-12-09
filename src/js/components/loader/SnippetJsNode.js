@@ -15,7 +15,7 @@ class SnippetJsNode {
 		else this.loadContext.snippetTrees[plugin.key] = this;
 	}
 
-	empty() {
+	isEmpty() {
 		return !this.children.len;
 	}
 
@@ -32,8 +32,8 @@ class SnippetJsNode {
 		var args = [];
 
 		var counter = 0,
-			pre = '(function(_w){const Snippet=_w.snippet;Snippet.run();lx.WidgetHelper.autoParent=_w;_w=undefined;',
-			post = 'lx.WidgetHelper.removeAutoParent(Snippet.widget);',
+			pre = '(function(_w){const Snippet=_w.snippet;Snippet.run();lx.Rect.setAutoParent(_w);_w=undefined;',
+			post = 'lx.Rect.removeAutoParent(Snippet.widget);',
 			begin = [],
 			end = [];
 
@@ -46,7 +46,7 @@ class SnippetJsNode {
 			let head = pre + js + post;
 			let tail = '})('+elem+');';
 
-			if (node.empty()) begin.push(head + tail);
+			if (node.isEmpty()) begin.push(head + tail);
 			else {
 				begin.push(head);
 				end.push(tail);

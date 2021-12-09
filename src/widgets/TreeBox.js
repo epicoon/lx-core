@@ -79,7 +79,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 	}
 
 	#lx:server beforePack() {
-		if (this.data) this.data = this.data.toJSON();
+		if (this.data) this.data = (new lx.TreeConverter).treeToJson(this.data);
 		if (this.leafConstructor)
 			this.leafConstructor = this.packFunction(this.leafConstructor);
 	}
@@ -105,11 +105,8 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		postUnpack(config) {
 			super.postUnpack(config);
 
-			if (this.data && lx.isString(this.data)) {
-				var tree = new lx.Tree();
-				tree.fromJSON(this.data);
-				this.data = tree;
-			}
+			if (this.data && lx.isString(this.data))
+				this.data = (new lx.TreeConverter).jsonToTree(this.data);
 
 			if (this.leafConstructor && lx.isString(this.leafConstructor))
 				this.leafConstructor = this.unpackFunction(this.leafConstructor);

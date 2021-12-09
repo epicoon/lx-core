@@ -3,6 +3,12 @@ class ModelCollection extends lx.Collection #lx:namespace lx {
 		this.modelClass = modelClass;
 	}
 
+	getEmptyInstance() {
+		let result = new lx.ModelCollection();
+		result.modelClass = this.modelClass;
+		return result;
+	}
+
 	add(data) {
 		var obj;
 		if (!data) {
@@ -63,27 +69,19 @@ class ModelCollection extends lx.Collection #lx:namespace lx {
 		return indexes;
 	}
 
-	select(fields) {
-		var result = [];
-		this.forEach(elem=>{
-			for (let name in fields) {
-				if (!(name in elem) || fields[name] != elem[name]) return;
-			}
-			result.push(elem);
-		});
-		return result;
-	}
-
 	unbind() {
 		this.forEach(elem=>elem.unbind());
 	}
 
 	static create(config) {
-		class _am_ extends lx.BindableModel {};
-		_am_.initSchema(config.schema);
+		class _am_ extends lx.BindableModel {
+			static __setSchema() {
+				this.initSchema(config.schema);
+			}
+		}
 		let c = new lx.ModelCollection();
 		c.setModelClass(_am_);
-		c.load(config.list);
+		if (config.list) c.load(config.list);
 		return c;
 	}
 }

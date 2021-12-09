@@ -87,7 +87,8 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 		#lx:client{ this.timer.stop(); }
 
 		this.clear();
-		var slides = lx.Box.construct(count, { key:'s', parent:this, geom:[0,0,100,100] }).call('hide');
+		var slides = lx.Box.construct(count, { key:'s', parent:this, geom:[0,0,100,100] })
+			.forEach(child=>child.hide());
 		if (count) slides.at(0).show();
 
 		#lx:client {

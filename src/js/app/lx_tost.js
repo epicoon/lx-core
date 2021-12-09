@@ -61,7 +61,7 @@ lx.Tost = function(config, typeArg) {
 	el.roundCorners('8px');
 	el.border({color: borderColor});
 	el.fill(color);
-	el.style('zIndex', 1000);
+	el.style('zIndex', lx.DepthClusterMap.calculateZIndex(lx.DepthClusterMap.CLUSTER_URGENT));
 
 	el.width(lx.Tost.widthLimit);
 	el.width( el->text.width('px') + 20 + 'px' );

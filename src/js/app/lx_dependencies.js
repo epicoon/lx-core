@@ -111,13 +111,13 @@ function __dropZero() {
 }
 
 function __dropZeroModules() {
-	// Modules are permanent cached in current system
+	// Modules are permanent cached in current implementation
 }
 
 function __dropZeroCss() {
 	for (var name in __data.css) {
 		if (__data.css[name] == 0) {
-			var asset = lx.WidgetHelper.getElementByAttrs({
+			var asset = lx.DomSelector.getElementByAttrs({
 				href: name,
 				name: 'plugin_asset'
 			});
@@ -130,7 +130,7 @@ function __dropZeroCss() {
 function __dropZeroScripts() {
 	for (var name in __data.scripts) {
 		if (__data.scripts[name] == 0) {
-			var asset = lx.WidgetHelper.getElementByAttrs({
+			var asset = lx.DomSelector.getElementByAttrs({
 				src: name,
 				name: 'plugin_asset'
 			});

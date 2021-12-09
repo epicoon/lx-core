@@ -5,8 +5,8 @@ namespace lx;
 class JsScriptAsset
 {
 	const LOCATION_HEAD = 'head';
-	const LOCATION_BODY_BEGIN = 'body-begin';
-	const LOCATION_BODY_END = 'body-end';
+	const LOCATION_BODY_TOP = 'body-top';
+	const LOCATION_BODY_BOTTOM = 'body-bottom';
 
 	private Plugin $plugin;
 	private string $path;

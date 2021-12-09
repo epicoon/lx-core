@@ -1,5 +1,7 @@
 #lx:module lx.Rect;
 
+let __autoParentStack = [];
+
 /**
  * @group {i18n:widgets}
  * */
@@ -20,8 +22,11 @@ class Rect extends lx.Module #lx:namespace lx {
         this.build(config);
         #lx:client { this.clientBuild(config); };
 
-        if (this.getZShift() && this.style('z-index') === null)
-            this.style('z-index', this.getZShift());
+        if (this.style('z-index') === null) {
+            let zIndex = lx.DepthClusterMap.calculateZIndex(this.getDepthCluster());
+            if (zIndex !== 0)
+                this.style('z-index', zIndex);
+        }
         this.type = this.lxClassName();
         var namespace = this.lxNamespace();
         if (namespace != 'lx') this._namespace = namespace;
@@ -134,7 +139,7 @@ class Rect extends lx.Module #lx:namespace lx {
             parent = config.after.parent;
         } else if (config.parent) parent = config.parent;
         if (parent === null && config.parent !== null)
-            parent = lx.WidgetHelper.autoParent;
+            parent = lx.Rect.getAutoParent();
 
         config.parent = parent;
         if (parent) parent.useRenderCache();
@@ -201,6 +206,35 @@ class Rect extends lx.Module #lx:namespace lx {
     
     //==================================================================================================================
     /* 2. Common */
+    static setAutoParent(val) {
+        #lx:client {
+            if (val === lx.body) return;
+        }
+
+        if (val === null) this.resetAutoParent();
+        if (this.getAutoParent() !== val) __autoParentStack.push(val);
+    }
+
+    static getAutoParent() {
+        if (!__autoParentStack.length) {
+            #lx:server{ return Snippet.widget; }
+            #lx:client{ return lx.body; }
+        }
+        return __autoParentStack.lxLast();
+    }
+
+    static removeAutoParent(val) {
+        #lx:client {
+            if (val === lx.body) return;
+        }
+
+        if (this.getAutoParent() === val) __autoParentStack.pop();
+    }
+
+    static resetAutoParent() {
+        __autoParentStack = [];
+    }
+
     get index() {
         if (this._index === undefined) return 0;
         return this._index;
@@ -227,8 +261,12 @@ class Rect extends lx.Module #lx:namespace lx {
         return this;
     }
 
-    getZShift() {
-        return 0;
+    getDepthCluster() {
+        return lx.DepthClusterMap.CLUSTER_DEEP;
+    }
+
+    emerge() {
+        lx.DepthClusterMap.bringToFront(this);
     }
 
     /* 2. Common */
@@ -1044,7 +1082,7 @@ class Rect extends lx.Module #lx:namespace lx {
                 parent = config.after.parent;
                 next = config.after.nextSibling();
             } else {
-                parent = config.parent || lx.WidgetHelper.autoParent;
+                parent = config.parent || lx.Rect.getAutoParent();
             }
         }
         if (!parent) return null;

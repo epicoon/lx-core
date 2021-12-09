@@ -178,16 +178,16 @@ class Box extends lx.Rect #lx:namespace lx {
     }
 
     begin() {
-        lx.WidgetHelper.autoParent = this;
+        lx.Rect.setAutoParent(this);
         return true;
     }
 
     isAutoParent() {
-        return (lx.WidgetHelper.autoParent === this);
+        return (lx.Rect.getAutoParent() === this);
     }
 
     end() {
-        lx.WidgetHelper.removeAutoParent(this);
+        lx.Rect.removeAutoParent(this);
         return true;
     }
 
@@ -475,7 +475,7 @@ class Box extends lx.Rect #lx:namespace lx {
         // После чего можно разом обнулить содержимое
         #lx:client{
             container.domElem.html('');
-            lx.WidgetHelper.checkFrontMap();
+            lx.DepthClusterMap.checkFrontMap();
         }
 
         container.children.reset();
@@ -526,7 +526,7 @@ class Box extends lx.Rect #lx:namespace lx {
             var pre = el.prevSibling();
             container.domElem.removeChild(el.domElem);
             container.children.remove(el);
-            #lx:client{ lx.WidgetHelper.checkFrontMap(); }
+            #lx:client{ lx.DepthClusterMap.checkFrontMap(); }
             container.positioning().actualize({from: pre, deleted: [el]});
             container.positioning().onDel();
             result.add(el);
@@ -545,7 +545,7 @@ class Box extends lx.Rect #lx:namespace lx {
                 pre = elem.prevSibling();
             container.domElem.removeChild(elem.domElem);
             container.children.remove(elem);
-            #lx:client{ lx.WidgetHelper.checkFrontMap(); }
+            #lx:client{ lx.DepthClusterMap.checkFrontMap(); }
             delete container.childrenByKeys[key];
             container.positioning().actualize({from: pre, deleted: [elem]});
             container.positioning().onDel();
@@ -571,7 +571,7 @@ class Box extends lx.Rect #lx:namespace lx {
             container.domElem.removeChild(elem.domElem);
             container.children.remove(elem);
         }
-        #lx:client{ lx.WidgetHelper.checkFrontMap(); }
+        #lx:client{ lx.DepthClusterMap.checkFrontMap(); }
 
         container.childrenByKeys[key].splice(index, count);
         for (var i=index,l=container.childrenByKeys[key].length; i<l; i++)

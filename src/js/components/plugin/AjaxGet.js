@@ -34,7 +34,14 @@ function __requestProcess(self, key, data={}) {
 
 	if (activeUrl.useServer) {
 		var request = new lx.PluginRequest(self.plugin, activeUrl.respondent, data);
-		request.setHandlers(activeUrl.handlers);
+		if (lx.isFunction(activeUrl.handlers))
+			request.onLoad(activeUrl.handlers);
+		else if (lx.isObject(activeUrl.handlers)) {
+			if (activeUrl.handlers.onLoad)
+				request.onLoad(activeUrl.handlers.onLoad);
+			if (activeUrl.handlers.onError)
+				request.onError(activeUrl.handlers.onError);
+		}
 		request.send();
 	} else {
 		activeUrl.handlers(data);

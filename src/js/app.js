@@ -39,5 +39,6 @@ lx.off = function(eventName, func) {
 #lx:require components/;
 #lx:require -R classes/;
 #lx:require tools/;
+#lx:require widgetTools/;
 
 lx.plugins = new lx.Dict();
