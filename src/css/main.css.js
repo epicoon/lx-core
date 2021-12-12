@@ -452,43 +452,60 @@ var calendarSideBackground = 'linear-gradient(to bottom, #9AD9F7, #146FBB)';
 var calendarSideTextColor = 'white';
 
 cssContext.inheritClass('lx-Calendar', 'lx-Input');
+cssContext.inheritClass('lx-Calendar-daysTable', 'lx-Box');
+cssContext.inheritClass('lx-Calendar-monthTable', 'lx-Box');
 
-cssContext.addClass('lx-Calendar-arroy', {
-	backgroundImage: 'url(img/calendarArroy.png)',
-	backgroundRepeat: 'no-repeat',
-	backgroundSize: '100% 100%',
+cssContext.addClass('lx-Calendar-monthItem', {
 	cursor: 'pointer'
 }, {
 	hover: {
-		top: '-7px !important',
-		height: '45px !important'
+		backgroundColor: '#EEEEEE'
 	}
 });
 
-cssContext.addClass('lx-Calendar-day-of-week', {
-	backgroundImage: calendarSideBackground,
-	color: calendarSideTextColor,
-	fontWeight: 'bold'
+cssContext.addAbstractClass('lx-Calendar-arroy', {
+	cursor: 'pointer',
+	opacity: 0.5
+}, {
+	hover: {
+		opacity: 1
+	}
 });
+cssContext.inheritClasses({
+	'lx-Calendar-arroyL' : { '@icon': ['\\2770', 16] },
+	'lx-Calendar-arroyR': { '@icon': ['\\2771', 16] }
+}, 'lx-Calendar-arroy');
 
-cssContext.inheritClass('lx-Calendar-today', 'lx-Calendar-day-of-week', {
-	borderBottomLeftRadius: borderRadius,
-	borderBottomRightRadius: borderRadius,
+cssContext.inheritClass('lx-Calendar-month', 'Input', {
 	cursor: 'pointer'
 });
 
-cssContext.inheritClass('lx-Calendar-cell-today', 'lx-Calendar-day-of-week', {
+cssContext.addClass('lx-Calendar-dayTitle', {
+	background: widgetGradient,
+	color: widgetIconColor
+});
+
+cssContext.addClass('lx-Calendar-today', {
+	background: widgetGradient,
+	color: widgetIconColor,
 	cursor: 'pointer'
 });
 
-cssContext.addClass('lx-Calendar-cell-day', {
+cssContext.addAbstractClass('lx-Calendar-every-day', {
 	cursor: 'pointer'
+}, {
+	hover: {
+		backgroundColor: '#DDDDDD'
+	}
 });
+cssContext.inheritClasses({
+	'lx-Calendar-day': {},
+	'lx-Calendar-side-day': { color: 'gray' }
+}, 'lx-Calendar-every-day');
 
-cssContext.addClass('lx-Calendar-menu');
-cssContext.addStyleGroup('.lx-Calendar-menu', {
-	'.lx-Table' : 'border-radius: 0px',
-	'.lx-Calendar-cell-day:hover': 'font-weight: bold'
+cssContext.addClass('lx-Calendar-current-day', {
+	background: widgetGradient,
+	color: widgetIconColor
 });
 /* Calendar */
 /*============================================================================*/

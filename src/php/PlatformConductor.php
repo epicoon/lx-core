@@ -11,8 +11,9 @@ namespace lx;
  * @property-read string $webCss
  * @property-read string $webJs
  * @property-read string $core
- * @property-read string $jsCore
  * @property-read string $jsNode
+ * @property-read string $jsServerCore
+ * @property-read string $jsClientCore
  * @property-read string $lxData
  * @property-read string $stdResponses
  * @property-read string $devLog
@@ -24,8 +25,9 @@ class PlatformConductor
 	private string $_webCss;
 	private string $_webJs;
 	private string $_core;
-	private string $_jsCore;
 	private string $_jsNode;
+    private string $_jsServerCore;
+    private string $_jsClientCore;
 	private string $_stdResponses;
 	private string $_lxFiles;
 	private string $_system;
@@ -46,8 +48,9 @@ class PlatformConductor
         $this->_webJs = $this->_web . '/js';
 
 		$this->_core = $this->_sitePath . '/vendor/lx/core/src';
-		$this->_jsCore = $this->_core . '/js/app.js';
-		$this->_jsNode = $this->_core . '/js/exec.js';
+		$this->_jsNode = $this->_core . '/js/nodeStarter.js';
+        $this->_jsServerCore = $this->_core . '/js/serverCore.js';
+        $this->_jsClientCore = $this->_core . '/js/clientCore.js';
 		$this->_stdResponses = $this->_core . '/php/stdResponses';
 
 		$this->_lxFiles = $this->_sitePath . '/lx';
@@ -67,8 +70,9 @@ class PlatformConductor
 			'webCss',
             'webJs',
 			'core',
-			'jsCore',
 			'jsNode',
+            'jsServerCore',
+            'jsClientCore',
 			'lxData',
 			'stdResponses',
 			'devLog',

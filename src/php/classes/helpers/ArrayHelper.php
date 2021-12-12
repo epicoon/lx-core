@@ -161,14 +161,18 @@ class ArrayHelper
 
 	public static function mergeRecursiveDistinct(iterable $array1, iterable $array2, bool $rewrite = false): iterable
 	{
+        if (!self::isAssoc($array1) && !self::isAssoc($array2)) {
+            return array_merge($array1, $array2);
+        }
+
 		$merged = $array1;
 		foreach ($array2 as $key => $value) {
 			if ((is_iterable($value)) && isset($merged[$key]) && (is_iterable($merged[$key]))) {
 				$merged[$key] = self::mergeRecursiveDistinct($merged[$key], $value, $rewrite);
 			} else {
-				if (!isset($merged[$key]) || $rewrite) {
-					$merged[$key] = $value;
-				}
+                if (!isset($merged[$key]) || $rewrite) {
+                    $merged[$key] = $value;
+                }
 			}
 		}
 

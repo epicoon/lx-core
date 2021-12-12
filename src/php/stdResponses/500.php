@@ -7,8 +7,6 @@
     <link rel="shortcut icon" href="/lx/web/icon.png" type="image/png">
 </head>
 <body>
-    <pre>
-        <?=$error?>
-    </pre>
+    <pre><?=$error?></pre>
 </body>
 </html>

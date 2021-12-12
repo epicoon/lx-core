@@ -152,7 +152,6 @@ return [
 	'ArrayHelper' => 'classes/helpers',
 	'StringHelper' => 'classes/helpers',
 	'Yaml' => 'classes/helpers',
-	'WidgetHelper' => 'classes/helpers',
 	'I18nHelper' => 'classes/helpers',
     'ErrorHelper' => 'classes/helpers',
     'PhpConfigHelper' => 'classes/helpers',

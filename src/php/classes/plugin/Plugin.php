@@ -38,7 +38,7 @@ class Plugin extends Resource implements FusionInterface
 	protected array $config;
 	private string $anchor;
 	private string $rootSnippetKey;
-	private array $dependencies = [];
+	private array $dependencies = ['modules' => ['lx.Box']];
     private array $beforeRenderCallbacks = [];
 	private array $beforeRunCallbacks = [];
 	private array $scripts = [];
@@ -458,11 +458,6 @@ class Plugin extends Resource implements FusionInterface
 	public function beforeRun(string $code): void
 	{
 		$this->beforeRunCallbacks[] = $code;
-	}
-
-	public function setDependencies(array $list): void
-	{
-		$this->dependencies = $list;
 	}
 
 	public function addDependencies(array $dependencies): void

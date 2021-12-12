@@ -152,7 +152,7 @@ class NodeJsExecutor
             $code = I18nHelper::localize($code, $this->i18nMap);
         }
 
-        return $this->runCodeForce($code);
+        return $this->runCode($code);
 	}
 
 
@@ -165,7 +165,7 @@ class NodeJsExecutor
         $compilerContext = $this->compiler->getContext();
         $this->compiler->setContext(JsCompiler::CONTEXT_SERVER);
 
-        $core = $this->compiler->compileCode('#lx:require @core/js/lx.js;', $this->filePath);
+        $core = $this->compiler->compileCode('#lx:require ' . $this->getServerAppJs() . ';', $this->filePath);
         $commonCore = '';
         foreach ($this->core as $coreItem) {
             $commonCore .= '#lx:require ' . $coreItem . ';';
@@ -193,7 +193,7 @@ class NodeJsExecutor
     /**
      * @return mixed
      */
-    private function runCodeForce(string $code)
+    private function runCode(string $code)
     {
         $file = \lx::$conductor->getTempFile('js');
         $file->put($code);
@@ -283,5 +283,10 @@ class NodeJsExecutor
     private function getExecJs(): string
     {
         return \lx::$conductor->jsNode;
+    }
+
+    private function getServerAppJs(): string
+    {
+        return \lx::$conductor->jsServerCore;
     }
 }

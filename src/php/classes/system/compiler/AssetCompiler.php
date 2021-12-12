@@ -153,13 +153,15 @@ class AssetCompiler
 		    $compiler->setBuildModules(true);
 			$exec = new NodeJsExecutor($compiler);
             $res = $exec->setFile($cssJsFile)->run();
-			$cssFile->put($res);
+            if ($res !== false) {
+                $cssFile->put($res);
+            }
 		}
 	}
 
 	public function compileJsCore(): string
 	{
-		$path = \lx::$conductor->jsCore;
+		$path = \lx::$conductor->jsClientCore;
 		$code = file_get_contents($path);
 
 		$jsCompiler = new JsCompiler();

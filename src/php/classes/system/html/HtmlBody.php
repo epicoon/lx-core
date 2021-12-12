@@ -4,6 +4,10 @@ namespace lx;
 
 class HtmlBody
 {
+    const LXID_BODY = '_1';
+    const LXID_TOSTS = '_2';
+    const LXID_ALERTS = '_3';
+
 	private string $js;
 	private array $beginScripts = [];
 	private array $endScripts = [];
@@ -16,11 +20,16 @@ class HtmlBody
 
 	public function render(): string
 	{
+        $script = 'lx.getBodyElement=()=>{return document.querySelector("[lxid^=\'' . self::LXID_BODY . '\']");};'
+            . 'lx.getTostsElement=()=>{return document.querySelector("[lxid^=\'' . self::LXID_TOSTS . '\']");};'
+            . 'lx.getAlertsElement=()=>{return document.querySelector("[lxid^=\'' . self::LXID_ALERTS . '\']");};';
+
 		return
+            '<script>' . $script . '</script>'.
 			$this->renderBeginScripts() .
-			'<div lxid=' . WidgetHelper::LXID_ALERTS . ' class="lxbody"></div>' .
-			'<div lxid=' . WidgetHelper::LXID_TOSTS . ' class="lxbody"></div>' .
-			'<div lxid=' . WidgetHelper::LXID_BODY . ' class="lxbody"></div>' .
+			'<div lxid=' . self::LXID_ALERTS . ' class="lxbody"></div>' .
+            '<div lxid=' . self::LXID_TOSTS . ' class="lxbody"></div>' .
+            '<div lxid=' . self::LXID_BODY . ' class="lxbody"></div>' .
 			'<script id=__js>document.body.removeChild(document.getElementById("__js"));' .
 			$this->js . '</script>' .
 			$this->renderEndScripts();

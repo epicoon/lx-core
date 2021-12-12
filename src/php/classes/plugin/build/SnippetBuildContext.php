@@ -184,39 +184,13 @@ class SnippetBuildContext implements ContextTreeInterface
 		$snippetData = CodeConverterHelper::arrayToJsCode($snippet->getBuildData());
 
         $core = [
-            '@core/js/server/Module',
+            '-R @core/js/server/app/classes/',
+            '-R @core/js/server/tools/',
         ];
 		$requires = [
-			'@core/js/server/Application',
-			'@core/js/server/Plugin',
-			'@core/js/server/Snippet',
-
-			'@core/js/server/file/',
-			'@core/js/server/hash/HashMd5',
-
-			'@core/js/helpers/Geom',
-            '@core/js/tools/Math',
-
-			'@core/js/classes/Object',
-			'@core/js/classes/DomElementDefinition',
-			'@core/js/classes/TagRenderer',
-            '@core/js/widgetTools/DepthClusterMap',
-			'@core/js/classes/bit/BitLine',
-			'@core/js/classes/bit/BitMap',
-            '@core/js/classes/dataContainers/Tree',
-            '@core/js/classes/dataContainers/Collection',
-            '@core/js/classes/dataContainers/support/CollectionSelector',
-            '@core/js/classes/dataContainers/support/TreeConverter',
-
-			'@core/js/components/Date',
-
-            '@core/js/classes/css/Color',
-            '@core/js/classes/css/Css',
-            '@core/js/classes/css/CssContext',
+            '-R @core/js/common/tools/',
 		];
-		$modules = array_merge([
-			'lx.Box',
-		], $plugin->getModuleDependencies());
+        $modules = $plugin->getModuleDependencies();
 		$pre = "
 			lx.globalContext.App = new lx.Application($appData);
 			lx.globalContext.Plugin = new lx.Plugin($pluginData);

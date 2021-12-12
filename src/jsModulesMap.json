@@ -1,139 +1,158 @@
 {
+    "lx.Color": {
+        "name": "lx.Color",
+        "path": "js\/modules\/Color.js"
+    },
+    "lx.CssContext": {
+        "name": "lx.CssContext",
+        "path": "js\/modules\/CssContext.js"
+    },
+    "lx.Date": {
+        "name": "lx.Date",
+        "path": "js\/modules\/Date.js"
+    },
+    "lx.BitMap": {
+        "name": "lx.BitMap",
+        "path": "js\/modules\/bitMap\/BitMap.js"
+    },
     "lx.ColorSchema.dark": {
         "name": "lx.ColorSchema.dark",
-        "path": "modules\/colorSchemas\/dark.js"
+        "path": "js\/modules\/colorSchemas\/dark.js"
     },
     "lx.ColorSchema.white": {
         "name": "lx.ColorSchema.white",
-        "path": "modules\/colorSchemas\/white.js"
+        "path": "js\/modules\/colorSchemas\/white.js"
     },
     "lx.MainCssContext": {
         "name": "lx.MainCssContext",
-        "path": "modules\/cssContexts\/MainCssContext.js"
+        "path": "js\/modules\/cssContexts\/MainCssContext.js"
     },
     "lx.ActiveBox": {
         "name": "lx.ActiveBox",
-        "path": "widgets\/ActiveBox.js"
+        "path": "js\/modules\/widgets\/ActiveBox.js"
     },
     "lx.Box": {
         "name": "lx.Box",
-        "path": "widgets\/Box\/Box.js"
+        "path": "js\/modules\/widgets\/Box\/Box.js"
     },
     "lx.BoxSlider": {
         "name": "lx.BoxSlider",
-        "path": "widgets\/BoxSlider.js"
+        "path": "js\/modules\/widgets\/BoxSlider.js"
     },
     "lx.Button": {
         "name": "lx.Button",
-        "path": "widgets\/Button.js"
+        "path": "js\/modules\/widgets\/Button.js"
     },
     "lx.Calendar": {
         "name": "lx.Calendar",
-        "path": "widgets\/Calendar.js"
+        "path": "js\/modules\/widgets\/Calendar\/Calendar.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
     },
     "lx.Checkbox": {
         "name": "lx.Checkbox",
-        "path": "widgets\/Checkbox.js"
+        "path": "js\/modules\/widgets\/Checkbox.js"
     },
     "lx.CheckboxGroup": {
         "name": "lx.CheckboxGroup",
-        "path": "widgets\/CheckboxGroup.js"
+        "path": "js\/modules\/widgets\/CheckboxGroup.js"
     },
     "lx.ConfirmPopup": {
         "name": "lx.ConfirmPopup",
-        "path": "widgets\/ConfirmPopup\/ConfirmPopup.js",
+        "path": "js\/modules\/widgets\/ConfirmPopup\/ConfirmPopup.js",
         "data": {
             "i18n": "i18n.yaml"
         }
     },
     "lx.Dropbox": {
         "name": "lx.Dropbox",
-        "path": "widgets\/Dropbox.js"
+        "path": "js\/modules\/widgets\/Dropbox.js"
     },
     "lx.EggMenu": {
         "name": "lx.EggMenu",
-        "path": "widgets\/EggMenu.js"
+        "path": "js\/modules\/widgets\/EggMenu.js"
     },
     "lx.Form": {
         "name": "lx.Form",
-        "path": "widgets\/Form.js"
+        "path": "js\/modules\/widgets\/Form.js"
     },
     "lx.Image": {
         "name": "lx.Image",
-        "path": "widgets\/Image.js"
+        "path": "js\/modules\/widgets\/Image.js"
     },
     "lx.ImageSlider": {
         "name": "lx.ImageSlider",
-        "path": "widgets\/ImageSlider.js"
+        "path": "js\/modules\/widgets\/ImageSlider.js"
     },
     "lx.Input": {
         "name": "lx.Input",
-        "path": "widgets\/Input.js"
+        "path": "js\/modules\/widgets\/Input.js"
     },
     "lx.InputPopup": {
         "name": "lx.InputPopup",
-        "path": "widgets\/InputPopup\/InputPopup.js",
+        "path": "js\/modules\/widgets\/InputPopup\/InputPopup.js",
         "data": {
             "i18n": "i18n.yaml"
         }
     },
     "lx.JointMover": {
         "name": "lx.JointMover",
-        "path": "widgets\/JointMover.js"
+        "path": "js\/modules\/widgets\/JointMover.js"
     },
     "lx.LabeledGroup": {
         "name": "lx.LabeledGroup",
-        "path": "widgets\/LabeledGroup.js"
+        "path": "js\/modules\/widgets\/LabeledGroup.js"
     },
     "lx.LanguageSwitcher": {
         "name": "lx.LanguageSwitcher",
-        "path": "widgets\/LanguageSwitcher.js"
+        "path": "js\/modules\/widgets\/LanguageSwitcher.js"
     },
     "lx.MessageBox": {
         "name": "lx.MessageBox",
-        "path": "widgets\/MessageBox.js"
+        "path": "js\/modules\/widgets\/MessageBox.js"
     },
     "lx.MultiBox": {
         "name": "lx.MultiBox",
-        "path": "widgets\/MultiBox.js"
+        "path": "js\/modules\/widgets\/MultiBox.js"
     },
     "lx.Paginator": {
         "name": "lx.Paginator",
-        "path": "widgets\/Paginator\/Paginator.js",
+        "path": "js\/modules\/widgets\/Paginator\/Paginator.js",
         "data": {
             "i18n": "i18n.yaml"
         }
     },
     "lx.Radio": {
         "name": "lx.Radio",
-        "path": "widgets\/Radio.js"
+        "path": "js\/modules\/widgets\/Radio.js"
     },
     "lx.RadioGroup": {
         "name": "lx.RadioGroup",
-        "path": "widgets\/RadioGroup.js"
+        "path": "js\/modules\/widgets\/RadioGroup.js"
     },
     "lx.Rect": {
         "name": "lx.Rect",
-        "path": "widgets\/Rect.js"
+        "path": "js\/modules\/widgets\/Rect\/Rect.js"
     },
     "lx.Slider": {
         "name": "lx.Slider",
-        "path": "widgets\/Slider.js"
+        "path": "js\/modules\/widgets\/Slider.js"
     },
     "lx.Table": {
         "name": "lx.Table",
-        "path": "widgets\/Table.js"
+        "path": "js\/modules\/widgets\/Table.js"
     },
     "lx.TextBox": {
         "name": "lx.TextBox",
-        "path": "widgets\/TextBox.js"
+        "path": "js\/modules\/widgets\/TextBox.js"
     },
     "lx.Textarea": {
         "name": "lx.Textarea",
-        "path": "widgets\/Textarea.js"
+        "path": "js\/modules\/widgets\/Textarea.js"
     },
     "lx.TreeBox": {
         "name": "lx.TreeBox",
-        "path": "widgets\/TreeBox.js"
+        "path": "js\/modules\/widgets\/TreeBox.js"
     }
 }

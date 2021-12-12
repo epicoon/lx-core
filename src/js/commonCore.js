@@ -1,0 +1,3 @@
+#lx:require common/app/scripts/js_extends;
+#lx:require common/app/scripts/lx_core;
+#lx:require common/app/scripts/lx_function;

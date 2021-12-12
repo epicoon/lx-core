@@ -99,9 +99,9 @@ class HtmlRenderer implements HtmlRendererInterface, ObjectInterface
         extract($this->params);
         ob_start();
         require($templatePath);
-
         $content = ob_get_contents();
         ob_end_clean();
+
         return $content;
     }
 }
