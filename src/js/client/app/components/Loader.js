@@ -2,12 +2,13 @@
 
 lx.Loader = {
 	run: function(info, el, parent, clientCallback) {
-		var task = new lx.Task();
-		var loadContext = new LoadContext(task);
-		task.setCallback(()=>{
+		new lx.Task('loadPlugin', function() {
+			var loadContext = new LoadContext();
 			loadContext.parseInfo(info);
-			loadContext.run(el, parent, clientCallback);
+			loadContext.run(el, parent, ()=>{
+				this.setCompleted();
+				if (clientCallback) clientCallback();
+			});
 		});
-		task.setQueue('loadPlugin');
 	}
 };

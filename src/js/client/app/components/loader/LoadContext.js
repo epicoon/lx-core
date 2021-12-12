@@ -1,9 +1,7 @@
 #lx:public;
 
 class LoadContext {
-	constructor(task) {
-		this.task = task;
-
+	constructor() {
 		this.isAjax = null;
 		this.plugins = {};
 		this.snippetsInfo = {};
@@ -69,11 +67,10 @@ class LoadContext {
 		}
 	}
 
-	run(el, parent, clientCallback) {
+	run(el, parent, callback) {
 		// Если нет необходимости в загрузке ресурсов
 		if (!this.hasAssets()) {
-			this.process(el, parent, clientCallback);
-			this.task.setCompleted();
+			this.process(el, parent, callback);
 			return;
 		}
 
@@ -118,12 +115,11 @@ class LoadContext {
 
 		// Плагин стартанёт после подключения ресурсов
 		synchronizer.send().then(()=>{
-			this.process(el, parent, clientCallback)
-			this.task.setCompleted();
+			this.process(el, parent, callback)
 		});
 	}
 
-	process(el, parent, clientCallback) {
+	process(el, parent, callback) {
 		this.createPlugin(this.plugins[this.rootKey], el, parent);
 
 		if (this.postScripts.len) {
@@ -131,7 +127,7 @@ class LoadContext {
 			this.postScripts.lxForEachRevert(script=>body.appendChild(script));
 		}
 
-		if (clientCallback) clientCallback();
+		callback();
 	}
 
 	hasAssets() {

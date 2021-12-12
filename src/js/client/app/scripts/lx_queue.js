@@ -35,7 +35,7 @@ class Task #lx:namespace lx {
 
 	run() {
 		this.setPending();
-		if (this.callback) this.callback();
+		if (this.callback) this.callback.call(this);
 	}
 
 	isStatus(status) {
@@ -73,8 +73,13 @@ function __getQueueKey() {
 }
 
 class Queue {
-	constructor(name) {
+	#lx:const
+		TYPE_TEMPORARY = 1,
+		TYPE_CONSTANT = 2;
+
+	constructor(name, type = null) {
 		this.name = name;
+		this.type = type || self::TYPE_TEMPORARY;
 		this.list = {};
 		this.keys = [];
 		this.counter = 0;
@@ -104,6 +109,8 @@ class Queue {
 		if (!this.keys.len) {
 			lx.removeTimer(this);
 			this.active = false;
+			if (this.type == self::TYPE_TEMPORARY)
+				delete lx.Queues.list[this.name];
 		}
 	}
 
