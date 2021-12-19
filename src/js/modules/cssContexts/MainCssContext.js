@@ -4,11 +4,11 @@
 
 #lx:public;
 
-var borderRadius = '5px';
-var butShadowSize = Math.floor(shadowSize * 0.33) + 3;
-var butShadowShift = Math.floor(butShadowSize * 0.5);
+let borderRadius = '5px';
+let butShadowSize = Math.floor(shadowSize * 0.33) + 3;
+let butShadowShift = Math.floor(butShadowSize * 0.5);
 
-var cssContext = new lx.CssContext();
+const cssContext = new lx.CssContext();
 
 cssContext.registerMixin('icon', (iconCode, config=null)=>{
     var iconFlex = {

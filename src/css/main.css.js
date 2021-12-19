@@ -62,6 +62,7 @@ cssContext.addClass('lx-Box', {
 /*============================================================================*/
 /* TextBox */
 /* Button */
+/* Scroll */
 /* ActiveBox */
 /* MultiBox */
 /* Input */
@@ -104,6 +105,44 @@ cssContext.addClass('lx-TextBox', {
 /* Button */
 cssContext.inheritClass('lx-Button', 'ActiveButton');
 /* Button */
+/*============================================================================*/
+
+
+/*============================================================================*/
+/* Scroll */
+#lx:use lx.Scroll;
+var scrollSize = parseInt(lx.Scroll.DEFAULT_SIZE, 10),
+	trackPadding = Math.floor(scrollSize / 3);
+const scrollBorderRadius = Math.round(scrollSize * 0.5) + 'px';
+const scrollTrackPadding = trackPadding + 'px';
+const scrollTrackBorderRadius = Math.round((scrollSize - trackPadding * 2) * 0.5) + 'px';
+
+cssContext.addClass('lx-Scroll-back', {
+	backgroundColor: widgetIconColor,
+	borderRadius: scrollBorderRadius,
+	opacity: 0
+});
+cssContext.addStyle('.lx-Scroll:hover .lx-Scroll-back', {
+	opacity: 0.2,
+	transition: 'opacity 0.3s linear'
+});
+
+cssContext.addClass('lx-Scroll-handle-back', {
+	padding: scrollTrackPadding
+});
+
+cssContext.addClass('lx-Scroll-handle', {
+	width: '100%',
+	height: '100%',
+	borderRadius: scrollTrackBorderRadius,
+	backgroundColor: widgetIconColor,
+	opacity: 0.3
+});
+cssContext.addStyle('.lx-Scroll-handle-back:hover .lx-Scroll-handle', {
+	opacity: 0.6,
+	transition: 'opacity 0.3s linear'
+});
+/* Scroll */
 /*============================================================================*/
 
 
@@ -153,7 +192,13 @@ cssContext.addClass('lx-ActiveBox-resizer', {
 	borderRadius: borderRadius,
 	color: widgetIconColor,
 	backgroundColor: bodyBackgroundColor,
-	'@icon': ['\\21F2', {fontSize:10, paddingBottom:'0px'}]
+	'@icon': ['\\21F2', {fontSize:10, paddingBottom:'0px'}],
+	opacity: 0
+}, {
+	hover: {
+		opacity: 1,
+		transition: 'opacity 0.3s linear'
+	}
 });
 
 cssContext.addClass('lx-ActiveBox-move', {

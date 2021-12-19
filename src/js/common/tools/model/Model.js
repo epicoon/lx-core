@@ -95,13 +95,13 @@ class Model extends lx.Object #lx:namespace lx {
 
 		var val;
 		switch (type) {
-			case 'integer':
+			case 'int':
 				val = lx.getFirstDefined(dflt, self::defaultIntegerFieldValue());
 				break;
 			case 'string':
 				val = lx.getFirstDefined(dflt, self::defaultStringFieldValue());
 				break;
-			case 'boolean':
+			case 'bool':
 				val = lx.getFirstDefined(dflt, self::defaultBooleanFieldValue());
 				break;
 			default:

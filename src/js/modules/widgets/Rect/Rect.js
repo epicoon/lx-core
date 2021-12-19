@@ -30,7 +30,7 @@ class Rect extends lx.Module #lx:namespace lx {
             if (zIndex !== 0)
                 this.style('z-index', zIndex);
         }
-        this.type = this.lxClassName();
+        this._type = this.lxClassName();
         var namespace = this.lxNamespace();
         if (namespace != 'lx') this._namespace = namespace;
     }
@@ -165,6 +165,7 @@ class Rect extends lx.Module #lx:namespace lx {
      * */
     destructProcess() {
         this.trigger('beforeDestruct');
+        this.unbind();
         this.destruct();
         this.parent = null;
         if (this.domElem) this.domElem.clear();
@@ -238,6 +239,14 @@ class Rect extends lx.Module #lx:namespace lx {
 
     static resetAutoParent() {
         __autoParentStack = [];
+    }
+
+    bind(model, type=lx.Binder.BIND_TYPE_FULL) {
+        model.bind(this, type);
+    }
+
+    unbind() {
+        lx.Binder.unbindWidget(this);
     }
 
     get index() {
@@ -516,8 +525,8 @@ class Rect extends lx.Module #lx:namespace lx {
      * Варианты аргумента val:
      * 1. Число - скругление по всем углам в пикселях
      * 2. Объект: {
-     *     side: string    // указание углов для скругления в виде 'tlbr'
-     *     value: integer  // скругление по всем углам в пикселях
+     *     side: string  // указание углов для скругления в виде 'tlbr'
+     *     value: int    // скругление по всем углам в пикселях
      * }
      * */
     roundCorners(val) {
@@ -551,22 +560,6 @@ class Rect extends lx.Module #lx:namespace lx {
         this.domElem.style('oTransform', 'rotate(' + angle + 'deg)');      // Для Opera
         this.domElem.style('transform', 'rotate(' + angle + 'deg)');
         return this;
-    }
-
-    scrollTo(adr) {
-        if (lx.isObject(adr)) {
-            if (adr.x !== undefined) this.domElem.param('scrollLeft', +adr.x);
-            if (adr.y !== undefined) this.domElem.param('scrollTop', +adr.y);
-        } else this.domElem.param('scrollTop', adr);
-        this.trigger('scroll');
-        return this;
-    }
-
-    scrollPos() {
-        return {
-            x: this.domElem.param('scrollLeft'),
-            y: this.domElem.param('scrollTop')
-        };
     }
 
     visibility(vis) {
@@ -617,6 +610,22 @@ class Rect extends lx.Module #lx:namespace lx {
         ];
         if (param == lx.HEIGHT) return this.domElem.param('clientHeight');
         if (param == lx.WIDTH) return this.domElem.param('clientWidth');
+    }
+    
+    resize(config) {
+        if (this.parent) this.parent.tryChildReposition(this, config);
+        else {
+            let w, h;
+            if (this.getDomElem()) {
+                w = this.getDomElem().clientWidth;
+                h = this.getDomElem().clientHeight;
+            }
+            for (let paramName in config)
+                this.setGeomParam(lx.Geom.geomConst(paramName), config[paramName]);
+            if (this.getDomElem() && (w != this.getDomElem().clientWidth || h != this.getDomElem().clientHeight))
+                this.trigger('resize');
+        }
+        return this;
     }
 
     /**

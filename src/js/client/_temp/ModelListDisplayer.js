@@ -105,17 +105,20 @@ class ModelListDisplayer #lx:namespace lx {
 		};
 	}
 
+	unbindData() {
+		if (this.box.contains('side'))
+			lx.Binder.unbindMatrix(this.box->side);
+		if (this.box.contains('body'))
+			lx.Binder.unbindMatrix(this.box->body);
+	}
+
 	/**
 	 *
 	 * */
 	dropData() {
 		if (!this.data) return;
 
-		if (this.box.contains('side'))
-			lx.Binder.unbindMatrix(this.box->side);
-		if (this.box.contains('body'))
-			lx.Binder.unbindMatrix(this.box->body);
-
+		this.unbindData();
 		this.data = null;
 		this.box.clear();
 	}
@@ -192,17 +195,14 @@ class ModelListDisplayer #lx:namespace lx {
 
 		var headBody = elem.add(lx.Box, {
 			key: 'headBody',
-			left: sideWidth,
-			width: bodyWidth,
-			height: height,
+			geom: [sideWidth, 0, bodyWidth, height],
 			style: {border:'', fill:'lightgray'}
 		});
 		headBody.streamProportional({direction: lx.HORIZONTAL});
 
 		var headSide = elem.add(lx.Box, {
 			key: 'headSide',
-			width: sideWidth,
-			height: height,
+			geom: [0, 0, sideWidth, height],
 			style: {border:'', fill:'lightgray'}
 		});
 		headSide.streamProportional({direction: lx.HORIZONTAL});
@@ -244,8 +244,8 @@ class ModelListDisplayer #lx:namespace lx {
 			var side = +lock.includes(name);
 			switch (schema[name]) {
 				case 'pk'     : width[side] += wInt[0];  widget = lx.Box;      break;
-				case 'boolean': width[side] += wBool[0]; widget = lx.Checkbox; break;
-				case 'integer': width[side] += wInt[0];  widget = lx.Input;    break;
+				case 'bool': width[side] += wBool[0]; widget = lx.Checkbox; break;
+				case 'int': width[side] += wInt[0];  widget = lx.Input;    break;
 				default: width[side] += w[0]; widget = lx.Input;
 			}
 			if (side) {

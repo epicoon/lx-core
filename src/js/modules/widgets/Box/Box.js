@@ -25,10 +25,13 @@
  * clear()
  * del(el, index, count)
  * text(text)
- * tryChildReposition(elem, param, val)
- * childHasAutoresized(elem)
  * static entry()
  * showOnlyChild(key)
+ * scrollTo(adr)
+ * scrollPos()
+ * getScrollSize()
+ * checkScrollSizeChanged(scrollSize)
+ * checkResizeChild(callback)
  *
  * * 3. Content navigation
  * get(path)
@@ -57,6 +60,8 @@
  * gridAdaptive(config={})
  * slot(config)
  * setIndents(config)
+ * tryChildReposition(elem, param, val)
+ * childHasAutoresized(elem)
  *
  * * 5. Load
  * setPlugin(info, attributes, func)
@@ -98,9 +103,12 @@ class Box extends lx.Rect #lx:namespace lx {
                 this.positioningStrategy.actualize();
         }
 
-        destruct() {
-            this.unbind();
+        restoreLinks(loader) {
+            if (this._container)
+                this._container = loader.getWidget(this._container);
+        }
 
+        destruct() {
             var container = __getContainer(this);
             container.dropPlugin();
 
@@ -135,6 +143,7 @@ class Box extends lx.Rect #lx:namespace lx {
             if (this.positioningStrategy !== null) {
                 this.__ps = this.positioningStrategy.pack();
             }
+            if (this._container) this._container = this._container.renderIndex;
         }
     }
 
@@ -279,44 +288,59 @@ class Box extends lx.Rect #lx:namespace lx {
         }
 
         useRenderCache() {
-            if (this.renderCacheStatus === undefined) {
-                this.stopPositioning();
-                
-                this.renderCacheStatus = true;
-                this.renderCache = 0;
+            if (this.renderCacheStatus !== undefined) return;
 
-                var container = __getContainer(this);
-                if (container !== this) {
-                    container.renderCacheStatus = true;
-                    container.renderCache = 0;
-                }
+            this.stopPositioning();
+
+            // var temp = __getContainer(this);
+            // do {
+            //     temp.renderCacheStatus = true;
+            //     temp.renderCache = 0;
+            //     temp = temp.parent;
+            // } while (temp !== this);
+
+            this.renderCacheStatus = true;
+            this.renderCache = 0;
+            var container = __getContainer(this);
+            if (container !== this) {
+                container.renderCacheStatus = true;
+                container.renderCache = 0;
             }
         }
 
-        applyRenderCache() {
+        applyRenderCache(context = null) {
             // Если элемент не существует - применять некуда. Скорее всего, этот элемент сам находится в кэше
             // и применять кэш нужно на уровень выше
             if (!this.getDomElem()) return;
 
+            // Если на элементе не стартовали сбор кэша
             if (!this.renderCacheStatus) return;
+
             delete this.renderCacheStatus;
 
+            // Если ничего не добавлялось
             if (this.renderCache === 0) {
-                this.eachChild((c)=>{
-                    if (c.lxHasMethod('applyRenderCache')) c.applyRenderCache()
-                });
+                // this.eachChild(c=>{
+                //     if (c.lxHasMethod('applyRenderCache')) c.applyRenderCache()
+                // });
 
                 var container = __getContainer(this);
-                if (container !== this) container.applyRenderCache()
+                // Элемент является обёрткой над контейнером
+                if (container !== this) container.applyRenderCache(context || this)
+                // Элемент просто не менялся
                 else this.startPositioning();
                 return;
             }
 
+            var scrollSize = this.getScrollSize();
             var text = __renderContent(this);
             this.domElem.html(text);
             __refreshAfterRender(this);
-
             this.startPositioning();
+            if (this.checkScrollSizeChanged(scrollSize)) {
+                context = context || this;
+                context.trigger('contentResize');
+            }
         }
     }
 
@@ -333,7 +357,12 @@ class Box extends lx.Rect #lx:namespace lx {
      * с потомками, добавляемыми уже после создания виджета
      */
     getContainer() {
+        if (this._container) return this._container;
         return this;
+    }
+    
+    setContainer(box) {
+        this._container = box;
     }
 
     /**
@@ -357,7 +386,8 @@ class Box extends lx.Rect #lx:namespace lx {
 
         var clientHeight0, clientWidth0;
         if (container.getDomElem() && widget.getDomElem()) {
-            var tElem = container.getDomElem();
+            var tElem = container.getDomElem(),
+                scrollSize = container.getScrollSize();
             clientHeight0 = tElem.clientHeight;
             clientWidth0 = tElem.clientWidth;
         }
@@ -390,6 +420,9 @@ class Box extends lx.Rect #lx:namespace lx {
                 container.trigger('yScrollBarChange');
                 if (!trigged) container.trigger('scrollBarChange');
             }
+
+            if (container.checkScrollSizeChanged(scrollSize))
+                this.trigger('contentResize');
 
             widget.trigger('displayin');
         }
@@ -441,6 +474,13 @@ class Box extends lx.Rect #lx:namespace lx {
      *    ]);
      * */
     add(type, count=1, config={}, configurator={}) {
+        var conf = (lx.isObject(count)) ? count : config;
+        if (conf.buildMode)
+            return this.addStructure(type, count, config, configurator);
+        return this.addContent(type, count, config, configurator);
+    }
+
+    addContent(type, count=1, config={}, configurator={}) {
         if (lx.isArray(type)) {
             var result = [];
             for (var i=0, l=type.len; i<l; i++)
@@ -453,11 +493,19 @@ class Box extends lx.Rect #lx:namespace lx {
             count = 1;
         }
         config.parent = this;
+        delete config.buildMode;
 
-        if (count == 1) return new type(config);
+        var result = (count == 1)
+            ? new type(config)
+            : type.construct(count, config, configurator);
 
-        var result = type.construct(count, config, configurator);
         return result;
+    }
+
+    addStructure(type, count=1, config={}, configurator={}) {
+        this.setBuildMode(true);
+        this.addContent(type, count, config, configurator);
+        this.setBuildMode(false);
     }
 
     /**
@@ -466,6 +514,8 @@ class Box extends lx.Rect #lx:namespace lx {
     clear() {
         var container = __getContainer(this);
         #lx:client{ if (container.domElem.html() == '') return; }
+
+        let sizes = container.getScrollSize();
 
         // Сначала все потомки должны освободить используемые ресурсы
         container.eachChild((child)=>{
@@ -481,6 +531,8 @@ class Box extends lx.Rect #lx:namespace lx {
         container.children.reset();
         container.childrenByKeys = {};
         container.positioning().reset();
+        if (container.checkScrollSizeChanged(sizes))
+            this.trigger('contentResize');
     }
 
     /*
@@ -502,7 +554,7 @@ class Box extends lx.Rect #lx:namespace lx {
     }
 
     /*
-     * Удаление элементов в вариантах:
+     * Извлечение элементов в вариантах:
      * 1. Аргумент el - элемент - если такой есть в элементе, на котом вызван метод, он будет удален
      * 2. Аргумент el - ключ (единственный аргумент) - удаляется элемент по ключу, если по ключу - массив,
      *    то удаляются все элементы из этого массива
@@ -511,12 +563,13 @@ class Box extends lx.Rect #lx:namespace lx {
      * 4. Аргументы el (ключ) + index + count - как 4, но удаляется count элементов начиная с index
      * */
     remove(el, index, count) {
+        const container = __getContainer(this);
+        const scrollSize = container.getScrollSize();
+
         // el - объект
         if (!lx.isString(el)) {
-            // Проверка на дурака - не удаляем чужой элемент
+            // Не удаляем чужой элемент
             if (el.parent !== this) return false;
-
-            var container = __getContainer(this);
 
             // Если у элемента есть ключ - будем удалять по ключу
             if (el.key && el.key in container.childrenByKeys) return this.remove(el.key, el._index, 1);
@@ -530,12 +583,12 @@ class Box extends lx.Rect #lx:namespace lx {
             container.positioning().actualize({from: pre, deleted: [el]});
             container.positioning().onDel();
             result.add(el);
+            if (container.checkScrollSizeChanged(scrollSize)) this.trigger('contentResize');
             return result;
         }
 
         // el - ключ
         var key = el;
-        var container = __getContainer(this);
         var result = new lx.Collection();
         if (!(key in container.childrenByKeys)) return result;
 
@@ -550,6 +603,7 @@ class Box extends lx.Rect #lx:namespace lx {
             container.positioning().actualize({from: pre, deleted: [elem]});
             container.positioning().onDel();
             result.add(elem);
+            if (container.checkScrollSizeChanged(scrollSize)) this.trigger('contentResize');
             return result;
         }
 
@@ -585,6 +639,7 @@ class Box extends lx.Rect #lx:namespace lx {
         container.positioning().actualize({from: pre, deleted});
         container.positioning().onDel();
         result.add(deleted);
+        if (container.checkScrollSizeChanged(scrollSize)) this.trigger('contentResize');
         return result;
     }
 
@@ -638,6 +693,64 @@ class Box extends lx.Rect #lx:namespace lx {
 
     showOnlyChild(key) {
         this.eachChild(c=>c.visibility(c.key == key));
+    }
+
+    scrollTo(adr) {
+        const c = __getContainer(this);
+        if (lx.isObject(adr)) {
+            if (adr.x !== undefined) c.domElem.param('scrollLeft', +adr.x);
+            if (adr.y !== undefined) c.domElem.param('scrollTop', +adr.y);
+
+            if (adr.xShift !== undefined) {
+                let size = c.getScrollSize();
+                let shift = Math.round((size.width - c.width('px')) * adr.xShift);
+                c.domElem.param('scrollLeft', shift);
+            }
+            if (adr.yShift !== undefined) {
+                let size = c.getScrollSize();
+                let shift = Math.round((size.height - c.height('px')) * adr.yShift);
+                c.domElem.param('scrollTop', shift);
+            }
+
+        } else c.domElem.param('scrollTop', adr);
+        this.trigger('scroll');
+        return this;
+    }
+
+    scrollPos() {
+        const c = __getContainer(this);
+        return {
+            x: c.domElem.param('scrollLeft'),
+            y: c.domElem.param('scrollTop')
+        };
+    }
+
+    getScrollSize() {
+        let c = __getContainer(this);
+        return {
+            width: c.getDomElem().scrollWidth,
+            height: c.getDomElem().scrollHeight
+        };
+    }
+
+    checkScrollSizeChanged(scrollSize) {
+        let current = this.getScrollSize();
+        return current.width !== scrollSize.width || current.height !== scrollSize.height;
+    }
+    
+    #lx:client hasOverflow(direction = null) {
+        if (!this.getDomElem()) return false;
+        
+        let c = __getContainer(this),
+            scrollSize = c.getScrollSize();
+        if (direction == lx.VERTICAL)
+            return scrollSize.height > this.getDomElem().clientHeight;
+
+        if (direction == lx.HORIZONTAL)
+            return scrollSize.width > this.getDomElem().clientWidth;
+
+        return scrollSize.height > this.getDomElem().clientHeight
+            || scrollSize.width > this.getDomElem().clientWidth;
     }
     /* 2. Content managment */
     //==================================================================================================================
@@ -918,7 +1031,41 @@ class Box extends lx.Rect #lx:namespace lx {
     }
 
     tryChildReposition(elem, param, val) {
-        return this.positioning().tryReposition(elem, param, val);
+        let el = this.getDomElem();
+
+        if (lx.isObject(param)) {
+            let config = param;
+            if (!el) {
+                for (let paramName in config)
+                    this.positioning().tryReposition(elem, lx.Geom.geomConst(paramName), config[paramName]);
+                return;
+            }
+
+            let w, h, sizes = this.getScrollSize();
+            if (elem.getDomElem()) {
+                w = elem.getDomElem().clientWidth;
+                h = elem.getDomElem().clientHeight;
+            }
+
+            for (let paramName in config)
+                this.positioning().tryReposition(elem, lx.Geom.geomConst(paramName), config[paramName]);
+
+            if (elem.getDomElem() && (w != elem.getDomElem().clientWidth || h != elem.getDomElem().clientHeight))
+                elem.trigger('resize');
+            if (this.checkScrollSizeChanged(sizes))
+                this.trigger('contentResize');
+            return;
+        }
+
+        if (!el) {
+            this.positioning().tryReposition(elem, param, val);
+            return;
+        }
+
+        let sizes = this.getScrollSize();
+        this.positioning().tryReposition(elem, param, val);
+        if (this.checkScrollSizeChanged(sizes))
+            this.trigger('contentResize');
     }
 
     childHasAutoresized(elem) {
@@ -959,14 +1106,6 @@ class Box extends lx.Rect #lx:namespace lx {
 
     //==================================================================================================================
     /* 6. Client-features */
-    bind(model, type=lx.Binder.BIND_TYPE_FULL) {
-        model.bind(this, type);
-    }
-
-    unbind() {
-        lx.Binder.unbindWidget(this);
-    }
-
     /**
      * Если один аргумент - полная передача конфига:
      * {
@@ -974,7 +1113,7 @@ class Box extends lx.Rect #lx:namespace lx {
      * 	itemBox: [Widget, Config],
      * 	itemRender: function(itemBox, model) {}
      *  afterBind: function(itemBox, model) {}
-     * 	type: boolean
+     * 	type: bool
      * }
      * Если три(два) аргумента - краткая передача коллекции и коллбэков:
      * - lx.Collection
@@ -1019,7 +1158,13 @@ lx.Box.defaultMatrixItemBox = lx.Box;
  **********************************************************************************************************************/
 function __getContainer(self) {
     if (self.__buildMode) return self;
-    return self.getContainer();
+    let temp = self;
+    let contaner = temp.getContainer();
+    while (contaner !== temp) {
+        temp = contaner;
+        contaner = temp.getContainer();
+    }
+    return temp;
 }
 
 function __get(self, path) {

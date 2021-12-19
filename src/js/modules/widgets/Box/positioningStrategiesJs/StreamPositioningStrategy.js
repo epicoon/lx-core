@@ -18,8 +18,8 @@ class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx 
 				: lx.VERTICAL;
 		this.direction = config.direction;
 
-		if (config.rowDefaultHeight !== undefined) this.rowDefaultHeight = config.rowDefaultHeight;
-		if (config.columnDefaultWidth !== undefined) this.columnDefaultWidth = config.columnDefaultWidth;
+		if (config.height !== undefined) this.rowDefaultHeight = config.rowDefaultHeight;
+		if (config.width !== undefined) this.columnDefaultWidth = config.width;
 
 		this.owner.addClass(this.direction == lx.VERTICAL ? 'lxps-grid-v' : 'lxps-grid-h');
 		if (this.type == self::TYPE_SIMPLE) {

@@ -9,8 +9,8 @@ class MessageBox extends lx.Box #lx:namespace lx {
 		this.msgConfig = config.messageConfig || {};
 
 		var streamConfig = config.stream || {};
-		if (streamConfig.rowDefaultHeight === undefined)
-			streamConfig.rowDefaultHeight = 'auto';
+		if (streamConfig.height === undefined)
+			streamConfig.height = 'auto';
 
 		this.stream(streamConfig);
 	}

@@ -1,6 +1,5 @@
 #lx:module lx.EggMenu;
 
-#lx:use lx.Rect;
 #lx:use lx.Box;
 
 class EggMenu extends lx.Box #lx:namespace lx {

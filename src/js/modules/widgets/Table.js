@@ -5,11 +5,11 @@
 class Table extends lx.Box #lx:namespace lx {
 	/**
 	 * config = {
-	 * 	rows: integer
-	 *	cols: integer
+	 * 	rows: int
+	 *	cols: int
 	 *	rowHeight: string | number
 	 *	indents: {}
-	 *	interactive: {} | boolean
+	 *	interactive: {} | bool
 	 * }
 	 * */
 	build(config) {
@@ -28,7 +28,7 @@ class Table extends lx.Box #lx:namespace lx {
 		if (indentData.stepY) rowStreamConfig.stepY = indentData.stepY;
 		if (indentData.paddingTop)    rowStreamConfig.paddingTop    = indentData.paddingTop;
 		if (indentData.paddingBottom) rowStreamConfig.paddingBottom = indentData.paddingBottom;
-		if (config.rowHeight) rowStreamConfig.rowDefaultHeight = config.rowHeight;
+		if (config.rowHeight) rowStreamConfig.height = config.rowHeight;
 		this.stream(rowStreamConfig);
 
 		if (!rows || !this.cols) return;

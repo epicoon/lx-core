@@ -133,7 +133,13 @@ class AssetCompiler
                 $compiler = new JsCompiler();
                 $compiler->setBuildModules(true);
                 $exec = new NodeJsExecutor($compiler);
-                $cssCode = $exec->setFile($pare['js'])->run();
+                $cssCode = $exec
+                    ->setCore([
+                        '-R @core/js/server/app/classes/',
+                        '-R @core/js/server/tools/',
+                    ])
+                    ->setFile($pare['js'])
+                    ->run();
 				$pare['css']->put($cssCode);
 			}
 		}
@@ -152,7 +158,13 @@ class AssetCompiler
 		    $compiler = new JsCompiler();
 		    $compiler->setBuildModules(true);
 			$exec = new NodeJsExecutor($compiler);
-            $res = $exec->setFile($cssJsFile)->run();
+            $res = $exec
+                ->setCore([
+                    '-R @core/js/server/app/classes/',
+                    '-R @core/js/server/tools/',
+                ])
+                ->setFile($cssJsFile)
+                ->run();
             if ($res !== false) {
                 $cssFile->put($res);
             }

@@ -7,7 +7,7 @@ class Checkbox extends lx.Rect #lx:namespace lx {
 	 * config = {
 	 *	// стандартные для Rect,
 	 *	
-	 *	value: boolean
+	 *	value: bool
 	 * }
 	 * */
 	build(config) {

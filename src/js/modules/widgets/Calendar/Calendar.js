@@ -4,7 +4,6 @@
 };
 
 #lx:use lx.Date;
-#lx:use lx.Rect;
 #lx:use lx.Box;
 #lx:use lx.Input;
 

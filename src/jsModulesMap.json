@@ -112,6 +112,10 @@
         "name": "lx.MessageBox",
         "path": "js\/modules\/widgets\/MessageBox.js"
     },
+    "lx.ModelCollectionGrid": {
+        "name": "lx.ModelCollectionGrid",
+        "path": "js\/modules\/widgets\/ModelCollectionGrid.js"
+    },
     "lx.MultiBox": {
         "name": "lx.MultiBox",
         "path": "js\/modules\/widgets\/MultiBox.js"
@@ -134,6 +138,10 @@
     "lx.Rect": {
         "name": "lx.Rect",
         "path": "js\/modules\/widgets\/Rect\/Rect.js"
+    },
+    "lx.Scroll": {
+        "name": "lx.Scroll",
+        "path": "js\/modules\/widgets\/Scroll.js"
     },
     "lx.Slider": {
         "name": "lx.Slider",

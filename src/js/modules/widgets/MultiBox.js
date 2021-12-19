@@ -23,13 +23,13 @@ class MultiBox extends lx.Box #lx:namespace lx {
 	 *	// стандартные для Box,
 	 *	
 	 *  mode: self::MODE_UNI_SHEET | self::MODE_MULTI_SHEET
-	 *  markWidth: integer
-	 *  markHeight: integer
-	 *  indent: integer
+	 *  markWidth: int
+	 *  markHeight: int
+	 *  indent: int
 	 *	marks: lx.Collection | array,
 	 *	template: object,
 	 *	sheets: lx.Collection | array | lx.Box | 'auto'
-	 *  animation: bool | integer
+	 *  animation: bool | int
 	 * }
 	 * */
 	build(config) {

@@ -105,7 +105,7 @@ class Paginator extends lx.Box #lx:namespace lx {
     }
 
     runBuild() {
-	    this.streamProportional({direction: lx.HORIZONTAL, columnDefaultWidth: null});
+	    this.streamProportional({direction: lx.HORIZONTAL, width: null});
 	    this.begin();
 	        //TODO 40px по задумке должны брыться из CSS, но не работает!
             new lx.Box({key: 'toStart', width:'40px', css: this.basicCss.toStart});
@@ -119,7 +119,7 @@ class Paginator extends lx.Box #lx:namespace lx {
         middle.stream({
             direction: lx.HORIZONTAL,
             indent: '5px',
-            columnDefaultWidth: null,
+            width: null,
             minWidth: 0
         });
 	}

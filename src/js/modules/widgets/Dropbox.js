@@ -1,6 +1,5 @@
 #lx:module lx.Dropbox;
 
-#lx:use lx.Rect;
 #lx:use lx.Box;
 #lx:use lx.Input;
 #lx:use lx.Table;

@@ -7,7 +7,7 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 	 * config = {
 	 *	// стандартные для Box,
 	 *	
-	 *	cols: integer
+	 *	cols: int
 	 *	widget: class
 	 *	widgetSize: string
 	 *	labelSide: lx.LEFT | lx.RIGHT

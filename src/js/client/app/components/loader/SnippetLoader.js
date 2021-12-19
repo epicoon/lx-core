@@ -97,18 +97,18 @@ class SnippetLoader {
 
 			var namespaceObj = lx.getNamespace(namespace);
 			if (!(namespaceObj)) {
-				console.error('Widget not found:', namespace + '.' + info.type);
+				console.error('Widget not found:', namespace + '.' + info._type);
 				this.elems.push(null);
 				continue;
 			}
 
 			var type = null;
 
-			if (info.type in namespaceObj) type = namespaceObj[info.type];
+			if (info._type in namespaceObj) type = namespaceObj[info._type];
 			else if (namespace == 'lx') type = lx.Box;
 
 			if (type === null) {
-				console.error('Widget not found:', namespace + '.' + info.type);
+				console.error('Widget not found:', namespace + '.' + info._type);
 				this.elems.push(null);
 				continue;
 			}
@@ -200,6 +200,13 @@ class SnippetLoader {
 				func.apply(el, args);
 			}
 		}
+	}
+
+	/**
+	 * Для использования в [[lx.Rect::restoreLinks(loader)]]
+	 */
+	getWidget(renderIndex) {
+		return this.elems[renderIndex];
 	}
 
 	/**

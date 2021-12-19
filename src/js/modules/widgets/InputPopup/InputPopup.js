@@ -3,7 +3,6 @@
     i18n: i18n.yaml
 };
 
-#lx:use lx.Rect;
 #lx:use lx.Box;
 #lx:use lx.Button;
 #lx:use lx.Input;

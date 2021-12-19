@@ -84,49 +84,64 @@ function watchForMove(event) {
 		y: Y - movedDelta.y
 	};
 
-	if (info.parentResize) {
-		var p = el.parent, pp = p.parent;
-		if (info.xMove) {
-			if (info.moveStep > 1) newPos.x = Math.floor( newPos.x / info.moveStep ) * info.moveStep;
-			if (info.xLimit && newPos.x > pp.width('px')) newPos.x = pp.width('px');
-			p.width( newPos.x - p.left('px') + 'px' );
-		}
-		if (info.yMove) {
-			if (info.moveStep > 1) newPos.y = Math.floor( newPos.y / info.moveStep ) * info.moveStep;
-			if (info.yLimit && newPos.y > pp.height('px')) newPos.y = pp.height('px');
-			p.height( newPos.y - p.top('px') + 'px' );
-		}
+	if (info.parentMove) newPos = __limitPosition(el.parent, newPos, info);
+	else if (info.parentResize) newPos = __limitPositionForResize(el, newPos, info);
+	else newPos = __limitPosition(el, newPos, info);
 
+	el.trigger('beforeMove', event, newPos);
+
+	if (info.parentResize) {
+		var p = el.parent;
+		if (info.xMove) p.width( newPos.x - p.left('px') + 'px' );
+		if (info.yMove) p.height( newPos.y - p.top('px') + 'px' );
 		el.trigger('move', event);
 		p.trigger('resize', event);
-
 		return;
 	}
 
-	var movedEl = (info.parentMove) ? el.parent : el,
-		parent = movedEl.parent;
-
-	if (info.xMove) {
-		if (info.moveStep > 1) newPos.x = Math.floor( newPos.x / info.moveStep ) * info.moveStep;
-		if (info.xLimit) {
-			if (newPos.x + movedEl.width('px') > parent.width('px'))
-				newPos.x = parent.width('px') - movedEl.width('px');
-			if (newPos.x < 0) newPos.x = 0;
-		}
-
-		movedEl.left( newPos.x + 'px' );
-	}
-
-	if (info.yMove) {
-		if (info.moveStep > 1) newPos.y = Math.floor( newPos.y / info.moveStep ) * info.moveStep;
-		if (info.yLimit) {
-			if (newPos.y + movedEl.height('px') > parent.height('px'))
-				newPos.y = parent.height('px') - movedEl.height('px');
-			if (newPos.y < 0) newPos.y = 0;
-		}
-		movedEl.top( newPos.y + 'px' );
-	}
+	var movedEl = (info.parentMove) ? el.parent : el;
+	if (info.xMove) movedEl.left( newPos.x + 'px' );
+	if (info.yMove) movedEl.top( newPos.y + 'px' );
 
 	if (info.parentMove) el.trigger('move', event);
 	movedEl.trigger('move', event);
+}
+
+function __limitPositionForResize(el, newPos, info) {
+	var p = el.parent, pp = p.parent;
+	if (info.xMove) {
+		if (info.moveStep > 1) newPos.x = Math.floor( newPos.x / info.moveStep ) * info.moveStep;
+		if (info.xLimit) {
+			if (newPos.x > pp.width('px')) newPos.x = pp.width('px');
+			if (newPos.x < 0) newPos.x = 0;
+		}
+	}
+	if (info.yMove) {
+		if (info.moveStep > 1) newPos.y = Math.floor( newPos.y / info.moveStep ) * info.moveStep;
+		if (info.yLimit) {
+			if (newPos.y > pp.height('px')) newPos.y = pp.height('px');
+			if (newPos.y < 0) newPos.y = 0;
+		}
+	}
+	return newPos;
+}
+
+function __limitPosition(el, newPos, info) {
+	if (info.xMove) {
+		if (info.moveStep > 1) newPos.x = Math.floor( newPos.x / info.moveStep ) * info.moveStep;
+		if (info.xLimit) {
+			if (newPos.x + el.width('px') > el.parent.width('px'))
+				newPos.x = el.parent.width('px') - el.width('px');
+			if (newPos.x < 0) newPos.x = 0;
+		}
+	} else newPos.x = el.left('px');
+	if (info.yMove) {
+		if (info.moveStep > 1) newPos.y = Math.floor( newPos.y / info.moveStep ) * info.moveStep;
+		if (info.yLimit) {
+			if (newPos.y + el.height('px') > el.parent.height('px'))
+				newPos.y = el.parent.height('px') - el.height('px');
+			if (newPos.y < 0) newPos.y = 0;
+		}
+	} else newPos.y = el.top('px');
+	return newPos;
 }

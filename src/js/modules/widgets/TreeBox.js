@@ -1,6 +1,5 @@
 #lx:module lx.TreeBox;
 
-#lx:use lx.Rect;
 #lx:use lx.Box;
 #lx:use lx.Input;
 
@@ -476,7 +475,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			if (config instanceof Function) config = {click: config};
 
 			if (config.key === undefined) config.key = 'button';
-			if (config.type === undefined) config.type = lx.Rect;
+			if (config.widget === undefined) config.widget = lx.Box;
 			return this.createChild(config);
 		}
 

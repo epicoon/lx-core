@@ -33,9 +33,9 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 	 * 	headerHeight: 
 	 * 	headerConfig: {}
 	 * 	closeButton	 
-	 * 	move: boolean
-	 * 	resize: boolean
-	 *	adhesive: boolean
+	 * 	move: bool
+	 * 	resize: bool
+	 *	adhesive: bool
 	 * }
 	 * */
 	build(config) {

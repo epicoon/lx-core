@@ -1,6 +1,5 @@
 #lx:module lx.Slider;
 
-#lx:use lx.Rect;
 #lx:use lx.Box;
 
 class Slider extends lx.Box #lx:namespace lx {
