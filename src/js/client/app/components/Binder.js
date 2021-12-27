@@ -443,7 +443,8 @@ function __matrixNewBox(w, obj, type, rowConfig = null) {
 	r.matrixModel = function() {return __getMatrixCollection(this.parent).at(this.index || 0);};
 	r.useRenderCache();
 	r.begin();
-	w.lxcwb_itemRender(r, obj);
+	if (w.lxcwb_itemRender)
+		w.lxcwb_itemRender(r, obj);
 	r.end();
 	r.applyRenderCache();
 	__bind(obj, r, type);

@@ -52,6 +52,7 @@ class Paginator extends lx.Box #lx:namespace lx {
 
 	#lx:client {
         clientBuild(config) {
+            super.clientBuild(config);
             this->toStart.click(self::toFirstPage);
             this->toLeft.click(self::toPrevPage);
             this->toRight.click(self::toNextPage);

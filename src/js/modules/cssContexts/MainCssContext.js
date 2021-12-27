@@ -4,9 +4,9 @@
 
 #lx:public;
 
-let borderRadius = '5px';
-let butShadowSize = Math.floor(shadowSize * 0.33) + 3;
-let butShadowShift = Math.floor(butShadowSize * 0.5);
+const borderRadius = '5px';
+const butShadowSize = Math.floor(shadowSize * 0.33) + 3;
+const butShadowShift = Math.floor(butShadowSize * 0.5);
 
 const cssContext = new lx.CssContext();
 

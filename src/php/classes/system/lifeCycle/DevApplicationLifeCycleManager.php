@@ -46,7 +46,7 @@ class DevApplicationLifeCycleManager implements FusionComponentInterface, EventL
         $cssCompiler = new AssetCompiler();
         foreach ($css as $value) {
             $path = $plugin->conductor->getFullPath($value);
-            $cssCompiler->compileCssInDirectory($path);
+            $cssCompiler->compileCssInDirectory($plugin, $path);
         }
     }
 

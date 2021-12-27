@@ -3,7 +3,6 @@
 namespace lx;
 
 /**
- * @property-read HttpAssetsManager $assets
  * @property-read Router $router
  * @property-read Dialog $dialog
  */
@@ -12,7 +11,6 @@ class HttpApplication extends BaseApplication
     public function getDefaultFusionComponents(): array
     {
         return array_merge(parent::getDefaultFusionComponents(), [
-            'assets' => HttpAssetsManager::class,
             'router' => Router::class,
             'dialog' => Dialog::class,
             'user' => UserInterface::class,

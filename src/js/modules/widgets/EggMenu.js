@@ -3,8 +3,8 @@
 #lx:use lx.Box;
 
 class EggMenu extends lx.Box #lx:namespace lx {
-	getContainer() {
-		return this->menuBox.getContainer();
+	_getContainer() {
+		return this->menuBox._getContainer();
 	}
 
 	modifyConfigBeforeApply(config={}) {

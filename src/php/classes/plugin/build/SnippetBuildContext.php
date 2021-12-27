@@ -206,7 +206,7 @@ class SnippetBuildContext implements ContextTreeInterface
 				.lxMerge(Snippet.getDependencies())
 		};';
 
-		$compiler = new JsCompiler($plugin->conductor);
+		$compiler = new JsCompiler($plugin->conductor, $plugin->assetManager);
 		$compiler->setBuildModules(true);
 		$executor = new NodeJsExecutor($compiler);
 		$res = $executor

@@ -13,6 +13,7 @@ use lx;
  * @property-read ServiceI18nMap $i18nMap
  * @property-read DbConnectorInterface|null $dbConnector
  * @property-read ModelManagerInterface|null $modelManager
+ * @property-read AssetManagerInterface $assetManager
  */
 class Service implements FusionInterface
 {
@@ -44,6 +45,7 @@ class Service implements FusionInterface
             'modelManager' => ModelManagerInterface::class,
             'router' => ServiceRouter::class,
             'i18nMap' => ServiceI18nMap::class,
+            'assetManager' => AssetManagerInterface::class,
         ];
     }
 
@@ -52,6 +54,7 @@ class Service implements FusionInterface
         return [
             'router' => ServiceRouter::class,
             'i18nMap' => ServiceI18nMap::class,
+            'assetManager' => ServiceAssetManager::class,
         ];
     }
 

@@ -2,6 +2,7 @@
 
 #lx:require Geom;
 #lx:require DepthClusterMap;
+#lx:require tools;
 
 let __autoParentStack = [];
 
@@ -55,6 +56,7 @@ class Rect extends lx.Module #lx:namespace lx {
     #lx:client __construct() {
         this.domElem = null;
         this.parent = null;
+        this.__sizeHolder = new SizeHolder();
     }
 
     static getStaticTag() {
@@ -181,9 +183,20 @@ class Rect extends lx.Module #lx:namespace lx {
          * Логика общая для создания элемента и на клиенте и для допиливания при получении от сервера
          * */
         clientBuild(config={}) {
+            this.__sizeHolder.refresh(this.width('px'), this.height('px'));
             this.on('scroll', lx.checkDisplay);
+
             if (!config) return;
             if (config.disabled !== undefined) this.disabled(config.disabled);
+        }
+
+        checkResize(e) {
+            var res = this.__sizeHolder.refresh(this.width('px'), this.height('px'));
+            if (res) {
+                if (this.parent) this.parent.checkContentResize(e);
+                this.trigger('resize', e);
+            }
+            return res;
         }
 
         /**
@@ -517,7 +530,7 @@ class Rect extends lx.Module #lx:namespace lx {
                 this.domElem.style('border' + sideName[i] + 'Style', style);
             }
         }
-        this.trigger('resize');
+        #lx:client{ this.checkResize(); }
         return this;
     }
 
@@ -622,8 +635,10 @@ class Rect extends lx.Module #lx:namespace lx {
             }
             for (let paramName in config)
                 this.setGeomParam(lx.Geom.geomConst(paramName), config[paramName]);
-            if (this.getDomElem() && (w != this.getDomElem().clientWidth || h != this.getDomElem().clientHeight))
-                this.trigger('resize');
+            #lx:client {
+                if (this.getDomElem() && (w != this.getDomElem().clientWidth || h != this.getDomElem().clientHeight))
+                    this.checkResize();
+            }
         }
         return this;
     }
@@ -714,8 +729,7 @@ class Rect extends lx.Module #lx:namespace lx {
         if (geom[3] !== null && geom[3] !== undefined) this.height(geom[3]);
         if (geom[4] !== null && geom[4] !== undefined) this.right(geom[4]);
         if (geom[5] !== null && geom[5] !== undefined) this.bottom(geom[5]);
-
-        this.trigger('resize');
+        #lx:client{ this.checkResize(); }
     }
 
     getGeomMask(units = undefined) {
@@ -743,8 +757,7 @@ class Rect extends lx.Module #lx:namespace lx {
         this.setGeomParam(pV[1], units ? geomMask[pV[1]] + units : geomMask[pV[1]]);
         this.setGeomParam(pV[0], units ? geomMask[pV[0]] + units : geomMask[pV[0]]);
         if (geomMask.geom) this.geom = geomMask.geom.lxClone();
-
-        this.trigger('resize');
+        #lx:client{ this.checkResize(); }
 
         return this;
     }
@@ -762,8 +775,7 @@ class Rect extends lx.Module #lx:namespace lx {
         this.setGeomParam(pV[1], units ? geomMask[pV[1]] + units : geomMask[pV[1]]);
         this.setGeomParam(pV[0], units ? geomMask[pV[0]] + units : geomMask[pV[0]]);
         if (geomMask.geom) this.geom = geomMask.geom.lxClone();
-
-        this.trigger('resize');
+        #lx:client{ this.checkResize(); }
 
         return this;
     }
@@ -1617,7 +1629,7 @@ class Rect extends lx.Module #lx:namespace lx {
 
         /**
          * Метод, вызываемый загрузчиком для допиливания элемента
-         * */
+         */
         postLoad() {
             var config = this.lxExtract('__postBuild') || {};
             this.postUnpack(config);

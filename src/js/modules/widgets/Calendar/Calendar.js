@@ -38,6 +38,7 @@ class Calendar extends lx.Input #lx:namespace lx {
 
     #lx:client {
         clientBuild(config) {
+            super.clientBuild(config);
             this.on('mouseup', _handler_open);
             this.on('blur', _handler_blur);
         }

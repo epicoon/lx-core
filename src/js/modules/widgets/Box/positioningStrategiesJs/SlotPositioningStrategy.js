@@ -139,7 +139,7 @@ class SlotPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 					this.setParam(slot, lx.TOP, y + 'px');
 					this.setParam(slot, lx.WIDTH, sz[0] + 'px');
 					this.setParam(slot, lx.HEIGHT, sz[1] + 'px');
-					slot.trigger('resize');
+					#lx:client{ slot.checkResize(); }
 					x += sz[0] + step[0];
 				}
 				x = x0;

@@ -15,7 +15,6 @@ return [
 
     'PluginProvider' => 'classes/system/app',
     'ServiceProvider' => 'classes/system/app',
-    'HttpAssetsManager' => 'classes/system/app',
 	'ApplicationConductor' => 'classes/system/app',
 	'ApplicationLogger' => 'classes/system/app',
 	'DevLogger' => 'classes/system/app',
@@ -26,7 +25,13 @@ return [
     'DependencyBuilder' => 'classes/system/di',
 
     'DevApplicationLifeCycleManager' => 'classes/system/lifeCycle',
-    
+
+    'AssetCompiler' => 'classes/system/asset',
+    'AbstractAssetManager' => 'classes/system/asset',
+    'ApplicationAssetManager' => 'classes/system/asset',
+    'ServiceAssetManager' => 'classes/system/asset',
+    'PluginAssetManager' => 'classes/system/asset',
+
 	'Dialog' => 'classes/system/dialog',
 	'Cookie' => 'classes/system/dialog',
 	'ResponseCodeEnum' => 'classes/system/dialog',
@@ -64,7 +69,6 @@ return [
     'JsCompilerExtension' => 'classes/system/compiler',
     'PluginFrontendJsCompiler' => 'classes/system/compiler',
 	'JsCompileDependencies' => 'classes/system/compiler',
-	'AssetCompiler' => 'classes/system/compiler',
 	'NodeJsExecutor' => 'classes/system/compiler',
     'Minimizer' => 'classes/system/compiler',
     'SyntaxExtender' => 'classes/system/compiler',
@@ -200,6 +204,7 @@ return [
 	'ResourceVoterInterface' => 'interfaces',
 	'ResourceAccessDataInterface' => 'interfaces',
     'JsCompilerExtensionInterafce' => 'interfaces',
+    'AssetManagerInterface' => 'interfaces',
 
     'DbConnectorInterface' => 'interfaces/db',
     'DbConnectionInterface' => 'interfaces/db',

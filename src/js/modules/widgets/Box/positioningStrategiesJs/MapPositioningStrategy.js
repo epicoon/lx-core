@@ -76,7 +76,7 @@ class MapPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		if ( geom.b !== undefined ) this.setParam(elem, lx.BOTTOM, geom.b);
 		if ( geom.h !== undefined ) this.setParam(elem, lx.HEIGHT, geom.h);
 		if ( geom.t !== undefined ) this.setParam(elem, lx.TOP, geom.t);
-		elem.trigger('resize');
+		// elem.trigger('resize');
 	}
 
 	setParam(elem, param, val) {
@@ -90,7 +90,7 @@ class MapPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 			return;
 		}
 
-		let container = elem.parent.getContainerBox();
+		let container = elem.parent.getContainer();
 		if (container.getDomElem() && elem.getDomElem()) {
 			__setParam(this, container, elem, param, val, finalFormat);
 			return;
@@ -98,7 +98,7 @@ class MapPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 
 		let self = this;
 		elem.displayOnce(function() {
-			__setParam(self, elem.parent.getContainerBox(), this, param, val, finalFormat);
+			__setParam(self, elem.parent.getContainer(), this, param, val, finalFormat);
 		});
 	}
 }

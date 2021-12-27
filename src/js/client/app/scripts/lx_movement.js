@@ -95,7 +95,7 @@ function watchForMove(event) {
 		if (info.xMove) p.width( newPos.x - p.left('px') + 'px' );
 		if (info.yMove) p.height( newPos.y - p.top('px') + 'px' );
 		el.trigger('move', event);
-		p.trigger('resize', event);
+		p.checkResize(event);
 		return;
 	}
 

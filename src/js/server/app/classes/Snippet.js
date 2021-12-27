@@ -216,6 +216,7 @@ class PackData {
                 }
                 continue;
             }
+
             this.data[name] = value;
         }
     }

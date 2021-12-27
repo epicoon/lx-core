@@ -62,7 +62,7 @@ class PositioningStrategy #lx:namespace lx {
 		var geom = this.geomFromConfig(config);
 
 		if (geom.lxEmpty()) {
-			elem.trigger('resize');
+			// elem.trigger('resize');
 			return;
 		}
 
@@ -97,16 +97,13 @@ class PositioningStrategy #lx:namespace lx {
 		if ( geom.t !== undefined ) this.setParam(elem, lx.TOP, geom.t);
 		if ( geom.b !== undefined ) this.setParam(elem, lx.BOTTOM, geom.b);
 		if ( geom.h !== undefined ) this.setParam(elem, lx.HEIGHT, geom.h);
-		elem.trigger('resize');
+		// elem.trigger('resize');
 	}
 
 	/**
 	 * Актуализация позиций элементов в контейнере
 	 */
-	actualizeProcess() {
-		//TODO а если размер не менялся?
-		this.owner.getChildren().forEach(a=>a.trigger('resize'));
-	}
+	actualizeProcess() {}
 
 	/**
 	 * Сброс данных стратегии при очистке контейнера

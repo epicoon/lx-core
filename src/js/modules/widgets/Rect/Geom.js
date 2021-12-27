@@ -56,6 +56,21 @@ lx.Geom = {
 		return [+num, f];
 	},
 
+	calculate: function(op, ...args) {
+		let baseSplitted = this.splitGeomValue(args[0]),
+			result = baseSplitted[0],
+			units = baseSplitted[1];
+
+		for (let i=1, l=args.len; i<l; i++) {
+			let splitted = this.splitGeomValue(args[i]);
+			if (splitted[1] !== units)
+				return NaN;
+
+			result += splitted[0];
+		}
+		return result + units;
+	},
+
 	/**
 	 * Подгоняем x и y в шаблон размером xC на yC
 	 * */

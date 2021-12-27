@@ -61,7 +61,6 @@ class Slider extends lx.Box #lx:namespace lx {
 		this->track.click(self::trackClick);
 	}
 
-	//TODO предусмотреть чтобы нормально дизаблилось
 	getBasicCss() {
 		return {
 			track: 'lx-slider-track',

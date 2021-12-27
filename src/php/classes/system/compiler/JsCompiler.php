@@ -19,11 +19,13 @@ class JsCompiler
 	private array $compiledFiles;
 	private SyntaxExtender $syntaxExtender;
 	private ConductorInterface $conductor;
+    private AssetManagerInterface $assetManager;
 	private ?JsCompileDependencies $dependencies;
 
-	public function __construct(?ConductorInterface $conductor = null)
+	public function __construct(?ConductorInterface $conductor = null, ?AssetManagerInterface $assetManager = null)
 	{
 		$this->conductor = $conductor ?? lx::$app->conductor;
+        $this->assetManager = $assetManager ?? lx::$app->assetManager;
 		$this->syntaxExtender = new SyntaxExtender($this);
 
 		$this->context = self::CONTEXT_CLIENT;
@@ -318,6 +320,8 @@ class JsCompiler
 		$moduleMap = new JsModuleMap();
 		$filePathes = [];
 		foreach ($moduleNames as $moduleName) {
+            $moduleName = $this->assetManager->resolveModuleName($moduleName);
+
 		    if (in_array($moduleName, $this->ignoreModules) || !$moduleMap->moduleExists($moduleName)) {
                 //TODO зафиксировать проблему если модуль не существует
 		        continue;

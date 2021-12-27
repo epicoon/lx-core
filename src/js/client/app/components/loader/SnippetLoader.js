@@ -116,7 +116,7 @@ class SnippetLoader {
 			var el = type.rise(node);
 
 			for (var prop in info) {
-				if (prop == 'type' || prop == '_namespace' || prop in el) continue;
+				if (prop == '_type' || prop == '_namespace' || prop in el) continue;
 				el[prop] = info[prop];
 			}
 

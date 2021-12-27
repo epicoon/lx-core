@@ -11,6 +11,7 @@ use lx;
  * @property-read PluginDirectory $directory
  * @property-read PluginConductor $conductor
  * @property-read PluginI18nMap $i18nMap
+ * @property-read AssetManagerInterface $assetManager
  */
 class Plugin extends Resource implements FusionInterface
 {
@@ -142,6 +143,7 @@ class Plugin extends Resource implements FusionInterface
     {
         return [
             'i18nMap' => PluginI18nMap::class,
+            'assetManager' => AssetManagerInterface::class,
         ];
     }
 
@@ -149,6 +151,7 @@ class Plugin extends Resource implements FusionInterface
 	{
 		return [
 			'i18nMap' => PluginI18nMap::class,
+            'assetManager' => PluginAssetManager::class,
 		];
 	}
     

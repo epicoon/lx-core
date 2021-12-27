@@ -30,7 +30,7 @@ class TextBox extends lx.Rect #lx:namespace lx {
 		if (val === undefined) return this.html();
 		this.html(val);
 		this.reportSizeHasChanged();
-		this.trigger('resize');
+		#lx:client { this.checkResize(); }
 	}
 
 	setFontSize(sz) {

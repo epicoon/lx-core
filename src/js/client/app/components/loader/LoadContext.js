@@ -145,7 +145,7 @@ class LoadContext {
 		if (!el) {
 			lx.body = lx.Box.rise(lx.getBodyElement());
 			lx.body.key = 'body';
-			lx.body.on('scroll', lx.checkDisplay);
+			lx.body.clientBuild();
 			el = lx.body;
 		}
 		var info = pluginInfo.info;

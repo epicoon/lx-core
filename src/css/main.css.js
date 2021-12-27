@@ -1,4 +1,47 @@
-#lx:use #lx:php(\lx::$app->assets->getCssColorSchema());
+/**
+ * @const {String} mainBackgroundColor
+ * @const {String} altMainBackgroundColor
+ * @const {String} bodyBackgroundColor
+ * @const {String} altBodyBackgroundColor
+ * @const {String} textBackgroundColor
+ * @const {String} widgetBackgroundColor
+ * @const {String} widgetGradient
+ * @const {String} widgetBorderColor
+ * @const {String} widgetIconColor
+ * @const {String} widgetIconColorDisabled
+ * @const {String} headerTextColor
+ * @const {String} textColor
+ * @const {String} textColorDisabled
+ * @const {String} shadowSize
+ * @const {String} checkedMainColor
+ * @const {String} checkedSoftColor
+ * @const {String} checkedLightColor
+ * @const {String} checkedDarkColor
+ * @const {String} checkedDeepColor
+ * @const {String} coldMainColor
+ * @const {String} coldSoftColor
+ * @const {String} coldLightColor
+ * @const {String} coldDarkColor
+ * @const {String} coldDeepColor
+ * @const {String} hotMainColor
+ * @const {String} hotSoftColor
+ * @const {String} hotLightColor
+ * @const {String} hotDarkColor
+ * @const {String} hotDeepColor
+ * @const {String} neutralMainColor
+ * @const {String} neutralSoftColor
+ * @const {String} neutralLightColor
+ * @const {String} neutralDarkColor
+ * @const {String} neutralDeepColor
+ */
+#lx:use lx.CssColorSchema;
+
+/**
+ * @const {String} borderRadius
+ * @const {Number} butShadowSize
+ * @const {Number} butShadowShift
+ * @const {lx.CssContext} cssContext
+ */
 #lx:use lx.MainCssContext;
 
 
@@ -29,6 +72,12 @@ cssContext.addClass('lxps-grid-h', {
 	gridAutoFlow: 'column',
 	gridTemplateRows: '1fr',
 	gridAutoColumns: 'auto'
+});
+
+cssContext.addClass('lx-ellipsis', {
+	overflow: 'hidden',
+	whiteSpace: 'nowrap',
+	textOverflow: 'ellipsis'
 });
 
 cssContext.addStyle('input', {
@@ -79,6 +128,7 @@ cssContext.addClass('lx-Box', {
 /* Paginator */
 /* TableManager */
 /* EggMenu */
+/* ModelCollectionGrid */
 /*============================================================================*/
 
 
@@ -593,5 +643,25 @@ cssContext.addClass('lx-EggMenu-move', {
 });
 /* EggMenu */
 /*============================================================================*/
+
+
+/*============================================================================*/
+/* ModelCollectionGrid */
+cssContext.addClass('lx-MCG-lPart', {
+	borderRight: 'thick double ' + widgetBorderColor
+});
+
+cssContext.addClass('lx-MCG-head', {
+	backgroundColor: altMainBackgroundColor,
+	borderBottom: 'thick double ' + widgetBorderColor
+});
+
+cssContext.addClass('lx-MCG-rowBack', {
+	backgroundColor: altMainBackgroundColor
+});
+
+/* ModelCollectionGrid */
+/*============================================================================*/
+
 
 return cssContext.toString();

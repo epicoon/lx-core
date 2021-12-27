@@ -37,6 +37,7 @@ class Scroll extends lx.Box #lx:namespace lx {
 
         this.type = config.type || lx.VERTICAL;
         this.target = config.target;
+        this.target.overflow('hidden');
         this.target.getContainer().overflow('hidden');
         this.add(lx.Box, {key: 'back', geom: true, css: this.basicCss.back});
         let handle = this.add(lx.Box, {
@@ -65,7 +66,7 @@ class Scroll extends lx.Box #lx:namespace lx {
 
         if (this.isVertical()) {
             this.target.on('wheel', (e)=>{
-                let pos = this.target.scrollPos();
+                let pos = this.target.getScrollPos();
                 this.target.scrollTo({y: pos.y + e.deltaY});
                 __actualizeHandlePos(this);
             });
@@ -91,12 +92,9 @@ class Scroll extends lx.Box #lx:namespace lx {
             __actualizeByHandle(this);
         });
 
-        this.target.on('contentResize', ()=>{
-            let show = this.target.hasOverflow(this.type);
-            this.visibility(show);
-            if (show) __actualizeHandle(this);
-        });
-        this.target.on('resize', ()=>__actualizeHandle(this));
+        __handler_onResize(this);
+        this.target.getContainer().on('contentResize', ()=>__handler_onResize(this));
+        this.target.getContainer().on('resize', ()=>__handler_onResize(this));
     }
 
     #lx:server beforePack() {
@@ -109,6 +107,14 @@ class Scroll extends lx.Box #lx:namespace lx {
 
     isVertical() {
         return this.type == lx.VERTICAL;
+    }
+
+    #lx:client moveTo(pos) {
+        if (this.isVertical())
+            this.target.scrollTo({y: pos});
+        else
+            this.target.scrollTo({x: pos});
+        __actualizeHandlePos(this);
     }
 }
 
@@ -131,7 +137,7 @@ function __actualizeHandleSize(self) {
 
 function __actualizeHandlePos(self) {
     let scrollSize = self.target.getScrollSize(),
-        scrollPos = self.target.scrollPos();
+        scrollPos = self.target.getScrollPos();
     if (self.isVertical()) {
         let t = Math.floor((self.height('px') * scrollPos.y) / scrollSize.height);
         self->handle.top(t + 'px');
@@ -147,4 +153,10 @@ function __actualizeByHandle(self) {
         self.target.scrollTo({y: Math.round((self->handle.top('px') * scrollSize.height) / self.height('px'))});
     else
         self.target.scrollTo({x: Math.round((self->handle.left('px') * scrollSize.width) / self.width('px'))});
+}
+
+function __handler_onResize(self) {
+    let show = self.target.hasOverflow(self.type);
+    self.visibility(show);
+    if (show) __actualizeHandle(self);
 }

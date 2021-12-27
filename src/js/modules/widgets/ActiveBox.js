@@ -8,7 +8,7 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 		HEADER_HEIGHT = 40,
 		INDENT = 5;
 
-	getContainer() {
+	_getContainer() {
 		return this->body;
 	}
 
@@ -374,7 +374,7 @@ function __setBody(self, constructor) {
 				if (delta === null) delta = el.left('px') - r;
 				el.width(el.width('px') + delta + 'px');
 				el.left(r + 'px');
-				el.trigger('resize');
+				#lx:client{ el.checkResize(); }
 			}
 		}
 
@@ -388,7 +388,7 @@ function __setBody(self, constructor) {
 				if (delta === null) delta = el.top('px') - b;
 				el.height(el.height('px') + delta + 'px');
 				el.top(b + 'px');
-				el.trigger('resize');
+				#lx:client{ el.checkResize(); }
 			}
 		}
 	}
