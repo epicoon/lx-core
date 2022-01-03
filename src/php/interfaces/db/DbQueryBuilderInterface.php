@@ -50,4 +50,5 @@ interface DbQueryBuilderInterface extends FlightRecorderHolderInterface
      * @param array|string|int|null $condition
      */
     public function getDeleteQuery(string $tableName, $condition = null): ?string;
+    public function convertValueForQuery($value): string;
 }

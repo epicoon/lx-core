@@ -224,7 +224,7 @@ class PostgresConnection extends DbConnection
         ";
         if ($fields) {
             foreach ($fields as &$field) {
-                $field = $this->convertValueForQuery($field);
+                $field = $this->getQueryBuilder()->convertValueForQuery($field);
             }
             unset($field);
             $fields = implode(',', $fields);

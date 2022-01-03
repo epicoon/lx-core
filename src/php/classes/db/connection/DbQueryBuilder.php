@@ -58,4 +58,5 @@ abstract class DbQueryBuilder implements DbQueryBuilderInterface
      * @param array|string|int|null $condition
      */
     abstract public function getDeleteQuery(string $tableName, $condition = null): ?string;
+    abstract public function convertValueForQuery($value): string;
 }

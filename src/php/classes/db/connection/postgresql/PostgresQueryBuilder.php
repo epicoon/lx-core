@@ -317,6 +317,17 @@ class PostgresQueryBuilder extends DbQueryBuilder
         return $query;
     }
 
+    /**
+     * @param mixed $value
+     */
+    public function convertValueForQuery($value): string
+    {
+        if (is_string($value)) return "'$value'";
+        if (is_bool($value)) return $value ? 'TRUE' : 'FALSE';
+        if (is_null($value)) return 'NULL';
+        return (string)$value;
+    }
+
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * PRIVATE
@@ -487,16 +498,5 @@ class PostgresQueryBuilder extends DbQueryBuilder
         }
 
         return $result;
-    }
-
-    /**
-     * @param mixed $value
-     */
-    private function convertValueForQuery($value): string
-    {
-        if (is_string($value)) return "'$value'";
-        if (is_bool($value)) return $value ? 'TRUE' : 'FALSE';
-        if (is_null($value)) return 'NULL';
-        return (string)$value;
     }
 }
