@@ -189,6 +189,28 @@ class Directory extends BaseFile implements DirectoryInterface
 	}
 
     /**
+     * Recursive search
+     */
+    public function find(string $filename): ?CommonFileInterface
+    {
+        $arr = explode('/', $filename);
+
+        if (count($arr) == 1) {
+            $f = self::staticFind($this->path, $filename);
+        } else {
+            $medName = array_shift($arr);
+            $fn = implode('/', $arr);
+            $f = self::staticFindExt($this->path, $medName, $fn);
+        }
+
+        if (!$f) {
+            return null;
+        }
+
+        return BaseFile::construct($f);
+    }
+
+    /**
      * @return Vector<FileInterface>
      */
 	public function getFiles(?string $pattern = null): Vector
@@ -259,28 +281,6 @@ class Directory extends BaseFile implements DirectoryInterface
             'dirs' => true,
         ]);
     }
-
-	/**
-	 * Recursive search
-	 */
-	public function find(string $filename): ?CommonFileInterface
-	{
-		$arr = explode('/', $filename);
-
-		if (count($arr) == 1) {
-			$f = self::staticFind($this->path, $filename);
-		} else {
-			$medName = array_shift($arr);
-			$fn = implode('/', $arr);
-			$f = self::staticFindExt($this->path, $medName, $fn);
-		}
-
-		if (!$f) {
-			return null;
-		}
-		
-		return BaseFile::construct($f);
-	}
 
 	/**
 	 * @return Vector<FileInterface>

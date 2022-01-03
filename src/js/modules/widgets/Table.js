@@ -11,7 +11,7 @@ class Table extends lx.Box #lx:namespace lx {
 	 *	indents: {}
 	 *	interactive: {} | bool
 	 * }
-	 * */
+	 */
 	build(config) {
 		super.build(config);
 
@@ -22,13 +22,12 @@ class Table extends lx.Box #lx:namespace lx {
 		var indentData = this.indents.get();
 
 		var rowStreamConfig = {};
-
 		if (config.rowHeight === undefined)
 			rowStreamConfig.type = lx.StreamPositioningStrategy.TYPE_PROPORTIONAL;
-		if (indentData.stepY) rowStreamConfig.stepY = indentData.stepY;
+		else rowStreamConfig.height = config.rowHeight;
+		if (indentData.stepY)         rowStreamConfig.stepY         = indentData.stepY;
 		if (indentData.paddingTop)    rowStreamConfig.paddingTop    = indentData.paddingTop;
 		if (indentData.paddingBottom) rowStreamConfig.paddingBottom = indentData.paddingBottom;
-		if (config.rowHeight) rowStreamConfig.height = config.rowHeight;
 		this.stream(rowStreamConfig);
 
 		if (!rows || !this.cols) return;
@@ -79,12 +78,12 @@ class Table extends lx.Box #lx:namespace lx {
 		return 0;
 	}
 
-	rows(r0=0, r1) {
+	rows(r0=0, r1=null) {
 		var c = new lx.Collection();
 
 		var rows = this.rowsCount();
 		if (!rows) return c;
-		if (r1 == undefined || r1 >= rows) r1 = rows - 1;
+		if (r1 === null || r1 >= rows) r1 = rows - 1;
 
 		if (r0 == 0 && r1 == rows - 1) return c.add(this->r);
 	
@@ -92,16 +91,16 @@ class Table extends lx.Box #lx:namespace lx {
 		return c;
 	}
 
-	cells(r0=0, c0=0, r1, c1) {
+	cells(r0=0, c0=0, r1=null, c1=null) {
 		var c = new lx.Collection(),
 			rows = this.rowsCount();
 
-		if (r1 == undefined || r1 >= rows) r1 = rows - 1;
+		if (r1 === null || r1 >= rows) r1 = rows - 1;
 
 		for (var i=r0; i<=r1; i++) {
 			var r = this.row(i),
 				cols = this.colsCount(i);
-			if (c1 == undefined || c1 >= cols) c1 = cols - 1;
+			if (c1 === null || c1 >= cols) c1 = cols - 1;
 
 			if (c0 == 0 && c1 == cols - 1) c.add(r->c);
 			else {
@@ -117,17 +116,20 @@ class Table extends lx.Box #lx:namespace lx {
 		this.rows().forEach(func);
 	}
 
-	/*
-	 * Метод для перебора ячеек "в линию"
-	 * для transpon==false (по умолчанию) по строкам, по колонкам
-	 * для transpon==true по колонкам, по строкам
-	 * */
-	eachCell(func, transpon=false, r0=0, c0=0, r1, c1) {
+	/**
+	 * @param {Function} func - callback function
+	 * @param {Boolean} transpon - false as default, rows in priority while filling
+	 * @param {Number} r0 - row to start
+	 * @param {Number} c0 - column to start
+	 * @param {Number} r1 - row to finish
+	 * @param {Number} c1 - column to finish
+	 */
+	eachCell(func, transpon = false, r0 = 0, c0 = 0, r1 = null, c1 = null) {
 		var rows = this.rowsCount(),
 			cols = this.colsCount(),
 			counter = 0;
-		if (r1 === undefined || r1 >= rows) r1 = rows - 1;
-		if (c1 === undefined || c1 >= cols) c1 = cols - 1;
+		if (r1 === null || r1 >= rows) r1 = rows - 1;
+		if (c1 === null || c1 >= cols) c1 = cols - 1;
 
 		if (transpon) {
 			for (var j=c0; j<=c1; j++)
@@ -145,12 +147,13 @@ class Table extends lx.Box #lx:namespace lx {
 		return this;
 	}
 
-	/*
-	 * content - линейный массив, либо двумерный
-	 * transpon - по умолчанию false, приоритет строкам, true - приоритет колонкам
-	 * r0, c0 - с какой ячейки начинать заполнение
-	 * */
-	setContent(content, transpon=false, r0=0, c0=0) {
+	/**
+	 * @param {Array} content - line or two-dimensional array
+	 * @param {Boolean} transpon - false as default, rows in priority while filling
+	 * @param {Number} r0 - row to start filling
+	 * @param {Number} c0 - column to start filling
+	 */
+	setContent(content, transpon = false, r0 = 0, c0 = 0) {
 		var r1, c1;
 
 		if (!lx.isArray(content[0])) content = [content];
@@ -163,7 +166,6 @@ class Table extends lx.Box #lx:namespace lx {
 			c1 = c0 + content[0].len;
 		}
 
-		// Чтобы данные вошли в таблицу, возможно, нужно увеличить число строк
 		if (r1 > this.rowsCount()) this.setRowsCount(r1);
 
 		this.eachCell((cell, r, c)=> {
@@ -222,9 +224,6 @@ class Table extends lx.Box #lx:namespace lx {
 		return this;
 	}
 
-	/*
-	 * object.setRowsHeight('30px') - изменит высоту всех строк и запомнит как стандарт для таблицы
-	 * */
 	setRowsHeight(height) {
 		if (this.positioningStrategy.type == lx.StreamPositioningStrategy.TYPE_PROPORTIONAL) return this;
 		this.positioningStrategy.rowDefaultHeight = height;
@@ -255,16 +254,13 @@ class Table extends lx.Box #lx:namespace lx {
 			return;
 		}
 
-		this.eachRow((r)=>r.cell(col).width(width));
+		this.eachRow(r=>r.cell(col).width(width));
 		this.colsWidths = this.row(0).style('grid-template-columns')
 	}
-
-	// todo
-	// merge(r0, c0, r1, c1)
 }
-//=============================================================================================================================
 
-//=============================================================================================================================
+
+//======================================================================================================================
 class TableRow extends lx.Box #lx:namespace lx {
 	build(config) {
 		var colConfig = {direction: lx.HORIZONTAL},
@@ -316,9 +312,9 @@ class TableRow extends lx.Box #lx:namespace lx {
 		return c;
 	}
 }
-//=============================================================================================================================
 
-//=============================================================================================================================
+
+//======================================================================================================================
 class TableCell extends lx.Box #lx:namespace lx {
 	table() {
 		return this.parent.parent;

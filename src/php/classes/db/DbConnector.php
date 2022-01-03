@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class DbConnector implements FusionComponentInterface, DbConnectorInterface
 {
     use FusionComponentTrait;
@@ -10,45 +12,36 @@ class DbConnector implements FusionComponentInterface, DbConnectorInterface
     const MAIN_DB_CONNECTION_KEY = 'main';
     const REPLICA_DB_CONNECTION_KEY = 'replica';
 
-    const POSTGRESQL = 'pgsql';
-    const MYSQL = 'mysql';
-
     private static ?DbConnectionRegistry $connectionsReestr = null;
-
+    private ?DbConnectionFactoryInterface $connectionFactory = null;
     private array $config = [];
-    private array $connectionClassesMap = [];
     private array $connections = [];
 
     public function __construct(iterable $config = [])
     {
         $this->__objectConstruct($config);
 
-        if (array_key_exists('connectionClassesMap', $config)) {
-            $this->connectionClassesMap = $config['connectionClassesMap'];
-            unset($config['connectionClassesMap']);
-        } else {
-            $this->connectionClassesMap = [
-                self::POSTGRESQL => DbPostgres::class,
-                self::MYSQL => DbMysql::class,
-            ];
-        }
-
         if (array_key_exists('driver', $config)) {
-            if (array_key_exists($config['driver'], $this->connectionClassesMap)) {
-                $this->config[self::DEFAULT_DB_CONNECTION_KEY] = $config;
-            }
+            $this->config[self::DEFAULT_DB_CONNECTION_KEY] = $config;
         } else {
             foreach ($config as $key => $value) {
-                if (array_key_exists(($value['driver'] ?? null), $this->connectionClassesMap)) {
+                if (array_key_exists('driver', $value)) {
                     $this->config[$key] = $value;
                 }
             }
         }
     }
 
-    public function getConnectionClassesMap(): array
+    public function getConnectionFactory(): DbConnectionFactoryInterface
     {
-        return $this->connectionClassesMap;
+        if ($this->connectionFactory === null) {
+            $this->connectionFactory = lx::$app->diProcessor->build()
+                ->setInterface(DbConnectionFactoryInterface::class)
+                ->setDefaultClass(DbConnectionFactory::class)
+                ->getInstance();
+        }
+
+        return $this->connectionFactory;
     }
 
     public function hasConnection(string $connectionKey): bool

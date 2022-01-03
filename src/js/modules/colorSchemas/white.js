@@ -3,7 +3,7 @@
 #lx:public;
 
 const mainBackgroundColor = 'white';
-const altMainBackgroundColor = 'white';
+const altMainBackgroundColor = '#F0F0F0';
 const bodyBackgroundColor = 'white';
 const altBodyBackgroundColor = '#F0F0F0';
 const textBackgroundColor = 'white';

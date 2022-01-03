@@ -117,6 +117,29 @@ class File extends BaseFile implements FileInterface
 		return true;
 	}
 
+    public function read(int $offset = 0, ?int $length = null): ?string
+    {
+        $opened = ($this->opened != '');
+        if ($this->opened != 'r') {
+            $this->open('r');
+        }
+
+        if (!rewind($this->instance)) {
+            return null;
+        }
+        if (fseek($this->instance, $offset) !== 0) {
+            return null;
+        }
+
+        $data = fread($this->instance, $length);
+
+        if (!$opened) {
+            $this->close();
+        }
+
+        return $data;
+    }
+
 	public function close(): bool
 	{
 		if ($this->instance) {
@@ -179,35 +202,6 @@ class File extends BaseFile implements FileInterface
 		}
 		
 		return $result;
-	}
-
-	public function match(string $pattern): bool
-	{
-		if ( ! $this->exists()) {
-			return false;
-		}
-		
-		if ($pattern[0] != '/') {
-			$pattern = '/' . $pattern . '/';
-		}
-		
-		$text = file_get_contents($this->path);
-		return (bool)preg_match($pattern, $text);
-	}
-
-	public function replace(string $pattern, string $replacement): bool
-	{
-		if (!$this->exists()) {
-			return false;
-		}
-		
-		$text = file_get_contents($this->path);
-		if ($pattern[0] != '/') {
-			$pattern = '/' . $pattern . '/';
-		}
-		$text = preg_replace($pattern, $replacement, $text);
-		file_put_contents($this->path, $text);
-		return true;
 	}
 
 	/**

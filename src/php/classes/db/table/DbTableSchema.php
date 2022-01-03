@@ -21,6 +21,13 @@ class DbTableSchema
      *             'pk' => true,
      *             'type' => \lx\DbTableField::TYPE_SERIAL,
      *         ],
+     *         'price' => [
+     *              'type' => \lx\DbTableField::TYPE_DECIMAL,
+     *              'details' => [
+     *                  'precision' => 10,
+     *                  'scale' => 2,
+     *              ],
+     *         ],
      *         'field_fk' => [
      *             'type' => \lx\DbTableField::TYPE_INTEGER,
      *             'fk' => [

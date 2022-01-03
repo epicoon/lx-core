@@ -4,7 +4,7 @@ namespace lx;
 
 //TODO сотояние кода устарело
 
-class DbMysql extends DbConnection
+class MysqlConnection extends DbConnection
 {
     //новый метод
     public function connect(): bool

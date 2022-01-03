@@ -13,7 +13,7 @@ interface FileInterface extends CommonFileInterface
      * @param mixed $info
      */
     public function write($info, string $flags='w'): bool;
-    //TODO read
+    public function read(int $offset = 0, ?int $length = null): ?string;
     public function close(): bool;
     /**
      * @param mixed $info
@@ -28,8 +28,4 @@ interface FileInterface extends CommonFileInterface
      */
     public function get();
     public function getTail(int $rowsCount): string;
-    
-    //TODO match, replace - должно быть в FileHelper
-    public function match(string $pattern): bool;
-    public function replace(string $pattern, string $replacement): bool;
 }

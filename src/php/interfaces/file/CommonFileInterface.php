@@ -11,8 +11,7 @@ interface CommonFileInterface
     public function getParentDirPath(): string;
     public function getParentDir(): DirectoryInterface;
     public function exists(): bool;
-    //TODO FileLinkInterface
-    public function createLink(string $path): ?FileLink;
+    public function createLink(string $path): ?FileLinkInterface;
     public function remove(): bool;
     /**
      * @param string|DirectoryInterface $parent
@@ -27,7 +26,7 @@ interface CommonFileInterface
     public function isOlder(CommonFileInterface $file): bool;
     public function isDirectory(): bool;
     public function isFile(): bool;
-    //TODO isLink
+    public function isLink(): bool;
     public function getType(): int;
     public function rename(string $newName): bool;
     public function moveTo(DirectoryInterface $dir, ?string $newName = null);

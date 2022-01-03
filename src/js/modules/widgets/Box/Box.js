@@ -328,10 +328,12 @@ class Box extends lx.Rect #lx:namespace lx {
             // Если ничего не добавлялось
             if (this.renderCache === 0) {
                 var container = __getContainer(this);
+                // Возможно, менялось содержимое
+                if (container === this) {
+                    this.getChildren(c=>{if (c.applyRenderCache) c.applyRenderCache()});
+                    this.startPositioning();
                 // Элемент является обёрткой над контейнером
-                if (container !== this) container.applyRenderCache()
-                // Элемент просто не менялся
-                else this.startPositioning();
+                } else container.applyRenderCache();
                 return;
             }
 

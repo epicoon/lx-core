@@ -11,6 +11,10 @@
         "name": "lx.Date",
         "path": "js\/modules\/Date.js"
     },
+    "lx.TableManager": {
+        "name": "lx.TableManager",
+        "path": "js\/modules\/TableManager.js"
+    },
     "lx.BitMap": {
         "name": "lx.BitMap",
         "path": "js\/modules\/bitMap\/BitMap.js"

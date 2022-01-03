@@ -2,11 +2,14 @@
 
 namespace lx;
 
+use lx;
+
 abstract class BaseFile implements CommonFileInterface
 {
 	const WRONG = 0;
 	const DIRECTORY = 1;
 	const FILE = 2;
+    const LINK = 3;
 
 	protected string $path;
 	protected string $name;
@@ -37,19 +40,23 @@ abstract class BaseFile implements CommonFileInterface
 
 	public static function construct(string $path): ?CommonFileInterface
 	{
-		if (is_link($path)) {
-			return new FileLink($path);
-		}
-
-		if (is_dir($path)) {
-			return new Directory($path);
-		}
-
-		if (is_file($path)) {
-			return new File($path);
-		}
-
-		return null;
+        $builder = lx::$app->diProcessor->build()->setParams([$path]);
+        if (is_link($path)) {
+            $builder
+                ->setInterface(FileLinkInterface::class)
+                ->setDefaultClass(FileLink::class);
+        } elseif (is_dir($path)) {
+            $builder
+                ->setInterface(DirectoryInterface::class)
+                ->setDefaultClass(Directory::class);
+        } elseif (is_file($path)) {
+            $builder
+                ->setInterface(FileInterface::class)
+                ->setDefaultClass(File::class);
+        } else {
+            return null;
+        }
+        return $builder->getInstance();
 	}
 
 	public function getPath(): string
@@ -69,7 +76,11 @@ abstract class BaseFile implements CommonFileInterface
 
 	public function getParentDir(): Directory
 	{
-		return (new Directory($this->parentDir));
+        return lx::$app->diProcessor->build()
+            ->setParams([$this->parentDir])
+            ->setInterface(DirectoryInterface::class)
+            ->setDefaultClass(Directory::class)
+            ->getInstance();
 	}
 
 	public function exists(): bool
@@ -77,7 +88,7 @@ abstract class BaseFile implements CommonFileInterface
 		return file_exists($this->path);
 	}
 
-	public function createLink(string $path): ?FileLink
+	public function createLink(string $path): ?FileLinkInterface
 	{
 		if (!$this->exists()) {
 			return null;
@@ -87,7 +98,12 @@ abstract class BaseFile implements CommonFileInterface
 			$path = $this->getParentDirPath() . '/' . $path;
 		}
 
-		$link = new FileLink($path);
+        /** @var FileLinkInterface $link */
+        $link = lx::$app->diProcessor->build()
+            ->setParams([$path])
+            ->setInterface(FileLinkInterface::class)
+            ->setDefaultClass(FileLink::class)
+            ->getInstance();
 		$link->create($this);
 		return $link;
 	}
@@ -165,10 +181,16 @@ abstract class BaseFile implements CommonFileInterface
 		return is_file($this->path);
 	}
 
+    public function isLink(): bool
+    {
+        return is_link($this->path);
+    }
+
 	public function getType(): int
 	{
 		if ($this->isDirectory()) return self::DIRECTORY;
 		if ($this->isFile()) return self::FILE;
+        if ($this->isLink()) return self::LINK;
 		return self::WRONG;
 	}
 

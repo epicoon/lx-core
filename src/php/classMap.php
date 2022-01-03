@@ -24,7 +24,8 @@ return [
 	'DependencyProcessor' => 'classes/system/di',
     'DependencyBuilder' => 'classes/system/di',
 
-    'DevApplicationLifeCycleManager' => 'classes/system/lifeCycle',
+    'AbstractApplicationLifeCycleHandler' => 'classes/system/lifeCycle',
+    'DevApplicationLifeCycleHandler' => 'classes/system/lifeCycle',
 
     'AssetCompiler' => 'classes/system/asset',
     'AbstractAssetManager' => 'classes/system/asset',
@@ -112,11 +113,15 @@ return [
 
 	'DataObject' => 'classes/dataClasses',
 
-	'DbConnectionRegistry' => 'classes/db',
-	'DbConnector' => 'classes/db',
-	'DbConnection' => 'classes/db',
-	'DbPostgres' => 'classes/db',
-	'DbMysql' => 'classes/db',
+    'DbConnector' => 'classes/db',
+	'DbConnectionRegistry' => 'classes/db/connection',
+    'DbConnectionFactory' => 'classes/db/connection',
+	'DbConnection' => 'classes/db/connection',
+    'DbQueryBuilder' => 'classes/db/connection',
+	'PostgresConnection' => 'classes/db/connection/postgresql',
+    'PostgresQueryBuilder' => 'classes/db/connection/postgresql',
+	'MysqlConnection' => 'classes/db/connection/mysql',
+    'MysqlQueryBuilder' => 'classes/db/connection/mysql',
     'DbTable' => 'classes/db/table',
     'DbTableEditor' => 'classes/db/table',
     'DbTableSchema' => 'classes/db/table',
@@ -126,7 +131,6 @@ return [
     'DbSelectParser' => 'classes/db/query',
     'DbQueryTableData' => 'classes/db/query',
     'DbQueryFieldData' => 'classes/db/query',
-    'DbQueryBuilder' => 'classes/db/query',
 
 	'Request' => 'classes/tools',
 	'Vector' => 'classes/tools',
@@ -150,6 +154,7 @@ return [
 	 * Helpers
 	 ******************************************************************************************************************/
 
+    'FileHelper' => 'classes/helpers',
 	'ConfigHelper' => 'classes/helpers',
 	'ClassHelper' => 'classes/helpers',
 	'Math' => 'classes/helpers',
@@ -205,13 +210,17 @@ return [
 	'ResourceAccessDataInterface' => 'interfaces',
     'JsCompilerExtensionInterafce' => 'interfaces',
     'AssetManagerInterface' => 'interfaces',
+    'ApplicationLifeCycleInterface' => 'interfaces',
 
     'DbConnectorInterface' => 'interfaces/db',
+    'DbConnectionFactoryInterface' => 'interfaces/db',
     'DbConnectionInterface' => 'interfaces/db',
+    'DbQueryBuilderInterface' => 'interfaces/db',
 
     'CommonFileInterface' => 'interfaces/file',
     'DirectoryInterface' => 'interfaces/file',
     'FileInterface' => 'interfaces/file',
+    'FileLinkInterface' => 'interfaces/file',
     'DataFileInterface' => 'interfaces/file',
 
 	'ModelInterface' => 'interfaces/model',

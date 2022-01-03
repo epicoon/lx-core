@@ -14,29 +14,13 @@ class DbConnectionRegistry
             return $this->list[$key]['connection'];
 		}
 
-		$connectionClass = $this->getConnectionClass($settings);
-        if (!ClassHelper::exists($connectionClass)) {
-            \lx::devLog(['_' => [__FILE__, __CLASS__, __METHOD__, __LINE__],
-                '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT & DEBUG_BACKTRACE_IGNORE_ARGS),
-                'msg' => "Connection class '$connectionClass' does not exist",
-            ]);
-            return null;
-        }
-
-        if (!ClassHelper::implements($connectionClass, DbConnectionInterface::class)) {
-            \lx::devLog(['_' => [__FILE__, __CLASS__, __METHOD__, __LINE__],
-                '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT & DEBUG_BACKTRACE_IGNORE_ARGS),
-                'msg' => "Connection class '$connectionClass' has to implement 'lx\\DbConnectionInterface'",
-            ]);
-            return null;
-        }
-
-        /** @var DbConnectionInterface $connection */
-        $connection = new $connectionClass($settings);
+        /** @var DbConnector $connector */
+        $connector = $settings['connector'];
+        $connection = $connector->getConnectionFactory()->getConnection($settings['driver'], $settings);
         if (!$connection->connect()) {
             \lx::devLog(['_' => [__FILE__, __CLASS__, __METHOD__, __LINE__],
                 '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT & DEBUG_BACKTRACE_IGNORE_ARGS),
-                'msg' => "Error while '$connectionClass' connection creating: " . $connection->getFirstFlightRecord(),
+                'msg' => "Error while '{$settings['driver']}' connection creating: " . $connection->getFirstFlightRecord(),
             ]);
 
             return null;
@@ -90,17 +74,9 @@ class DbConnectionRegistry
 
     private function getKey(array $settings): string
     {
-        return $this->getConnectionClass($settings)
+        return $settings['driver']
             . '_' . $settings['hostname']
             . '_' . $settings['username']
             . '_' . $settings['dbName'];
-    }
-
-    private function getConnectionClass(array $settings): string
-    {
-        /** @var DbConnector $connector */
-        $connector = $settings['connector'];
-        $map = $connector->getConnectionClassesMap();
-        return $map[$settings['driver']];
     }
 }

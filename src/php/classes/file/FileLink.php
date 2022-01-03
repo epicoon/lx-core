@@ -2,9 +2,9 @@
 
 namespace lx;
 
-class FileLink extends BaseFile
+class FileLink extends BaseFile implements FileLinkInterface
 {
-	public function create(CommonFileInterface $file)
+	public function create(CommonFileInterface $file): void
 	{
         if ($this->exists()) {
             $this->remove();

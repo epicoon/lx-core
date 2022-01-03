@@ -17,6 +17,7 @@ interface DirectoryInterface extends CommonFileInterface
      */
     public function getContent(array $rules = []): Vector;
     public function get(string $name): ?CommonFileInterface;
+    public function find(string $filename): ?CommonFileInterface;
     /**
      * @return Vector<FileInterface>
      */
@@ -41,8 +42,6 @@ interface DirectoryInterface extends CommonFileInterface
      * @return Vector<string>
      */
     public function getDirectoryNames(): Vector;
-    //TODO find должен возвращать Vector, текущий метод должен называться findFirst
-    public function find(string $filename): ?CommonFileInterface;
     /**
      * @return Vector<FileInterface>
      */

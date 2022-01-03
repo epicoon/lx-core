@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class DbPostgres extends DbConnection
+class PostgresConnection extends DbConnection
 {
     /** @var array<array<DbTableSchema>> */
     private array $schemas = [];
@@ -77,12 +77,28 @@ class DbPostgres extends DbConnection
             } elseif (preg_match('/^timestamp/', $type)) {
                 //TODO use with timezone
                 $type = DbTableField::TYPE_TIMESTAMP;
+            } elseif (preg_match('/^double/', $type)) {
+                $type = DbTableField::TYPE_FLOAT;
             }
             $definition['type'] = $type;
 
-            $size = $field['character_maximum_length'];
+            $details = [];
+            // VERCHAR
+            $size = $field['character_maximum_length'] ?? null;
             if ($size !== null) {
-                $definition['size'] = (int)$size;
+                $details['size'] = (int)$size;
+            }
+            // DECIMAL|NUMERIC
+            $precision = $field['numeric_precision'] ?? null;
+            if ($precision !== null) {
+                $details['precision'] = $precision;
+            }
+            $scale = $field['numeric_scale'] ?? null;
+            if ($scale !== null) {
+                $details['scale'] = $scale;
+            }
+            if (!empty($details)) {
+                $definition['details'] = $details;
             }
 
             $definition['nullable'] = ($field['is_nullable'] == 'YES');
@@ -295,244 +311,6 @@ class DbPostgres extends DbConnection
         return true;
     }
 
-    public function massUpdate(string $tableName, array $rows): bool
-    {
-        /*
-        -- This query will work:
-        UPDATE table_name SET
-            f_int = t.f_int,
-            f_string = t.f_string
-        FROM (
-            SELECT
-                unnest(array[1, 2]) as id,
-                unnest(array[1, null::integer]) as f_int,
-                unnest(array[null, 'aaa']) as f_string
-        ) as t
-        WHERE table_name.id = t.id;
-        */
-
-        $sampleRow = $rows[0] ?? null;
-        if (!$sampleRow) {
-            $this->addFlightRecord('Nothing to update');
-            return false;
-        }
-
-        $schema = $this->getTableSchema($tableName);
-        $pks = [];
-        foreach ($sampleRow as $key => $value) {
-            if (!$schema->hasField($key)) {
-                $this->addFlightRecord("The table does not have column $key");
-                return false;
-            }
-
-            $field = $schema->getField($key);
-            if ($field->isPk()) {
-                $pks[] = $key;
-            }
-        }
-        if (empty($pks)) {
-            $this->addFlightRecord('There are no any primary keys for rows matching');
-            return false;
-        }
-
-        $set = [];
-        $values = [];
-        foreach ($schema->getFields() as $fieldName => $field) {
-            $vals = [];
-            foreach ($rows as $row) {
-                if ($row !== $sampleRow) {
-                    $diff = array_diff(array_keys($sampleRow), array_keys($row));
-                    if (!empty($diff)) {
-                        $this->addFlightRecord('All rows have to use the same structure');
-                        return false;
-                    }
-                }
-
-                $val = $this->convertValueForQuery($row[$fieldName] ?? null);
-                if ($val == 'NULL' && $field->getType() != DbTableField::TYPE_STRING) {
-                    $val .= '::' . $field->getType();
-                }
-                $vals[] = $val;
-            }
-            $vals = implode(', ', $vals);
-            $values[] = "unnest(array[{$vals}]) as {$fieldName}";
-
-            if ($field->isPk()) {
-                continue;
-            }
-
-            $set[] = "{$fieldName} = t.{$fieldName}";
-        }
-        $set = implode(', ', $set);
-        $values = implode(', ', $values);
-        
-        $query = "UPDATE {$tableName} SET $set FROM (SELECT $values) as t WHERE ";
-        $pkConditions = [];
-        foreach ($pks as $pk) {
-            $pkConditions[] = "{$tableName}.{$pk} = t.{$pk}";
-        }
-        $query .= implode(' AND ', $pkConditions);
-        
-        $res = pg_query($this->connection, $query);
-        if ($res === false) {
-            $this->addFlightRecord(pg_last_error($this->connection));
-            return false;
-        }
-
-        pg_free_result($res);
-        return true;
-    }
-
-    public function getCreateTableQuery(DbTableSchema $schema): string
-    {
-        $name = $schema->getName();
-        $query = '';
-        if (preg_match('/\./', $name)) {
-            $arr = explode('.', $name);
-            $query = "CREATE SCHEMA IF NOT EXISTS {$arr[0]};";
-        }
-
-        $query .= "CREATE TABLE IF NOT EXISTS $name (";
-
-        $cols = [];
-        $fields = $schema->getFields();
-        foreach ($fields as $field) {
-            $cols[] = $this->fieldToString($field);
-        }
-        $cols = implode(', ', $cols);
-
-        $query .= "$cols);";
-
-        $pkNames = $schema->getPKNames();
-        if (!empty($pkNames)) {
-            $pKeyName = str_replace('.', '_', $name) . '_pkey';
-            $pks = implode(', ', $pkNames);
-            $query .= "ALTER TABLE $name ADD CONSTRAINT $pKeyName PRIMARY KEY ($pks);";
-        }
-
-        $fks = $schema->getForeignKeysInfo();
-        foreach ($fks as $fk) {
-            $fkQuery = $this->getAddForeignKeyQuery(
-                $fk->getTableName(),
-                $fk->getFieldNames(),
-                $fk->getRelatedTableName(),
-                $fk->getRelatedFieldNames(),
-                $fk->getName()
-            );
-            $query .= $fkQuery . ';';
-        }
-
-        return $query;
-    }
-
-    /**
-     * @param string|array $fields
-     * @param string|array $relFields
-     */
-    public function getAddForeignKeyQuery(
-        string $tableName,
-        $fields,
-        string $relTableName,
-        $relFields,
-        ?string $constraintName = null
-    ): string
-    {
-        $fields = (array)$fields;
-        $relFields = (array)$relFields;
-
-        if ($constraintName === null) {
-            $tableKey = str_replace('.', '_', $tableName);
-            $constraintName = "fk__{$tableKey}__" . implode('__', $fields);
-        }
-
-        $fields = implode(', ', $fields);
-        $relFields = implode(', ', $relFields);
-        //TODO ON DELETE|UPDATE CASCADE|RESTRICT
-        return "ALTER TABLE {$tableName} ADD CONSTRAINT $constraintName "
-            . "FOREIGN KEY ({$fields}) REFERENCES {$relTableName}({$relFields})";
-    }
-
-    /**
-     * @param string|array $fields
-     */
-    public function getDropForeignKeyQuery(
-        string $tableName,
-        $fields,
-        ?string $constraintName = null
-    ): string
-    {
-        if ($constraintName === null) {
-            $fields = (array)$fields;
-            $tableKey = str_replace('.', '_', $tableName);
-            $constraintName = "fk__{$tableKey}__" . implode('__', $fields);
-        }
-
-        return"ALTER TABLE $tableName DROP CONSTRAINT $constraintName";
-    }
-    
-    public function getAddColumnQuery(string $tableName, DbTableField $field): string
-    {
-        $definition = $this->fieldToString($field);
-        //TODO if ($field->isFk())
-
-        return "ALTER TABLE {$tableName} ADD COLUMN {$definition}";
-    }
-
-    public function getDelColumnQuery(string $tableName, string $fieldName): string
-    {
-        return "ALTER TABLE {$tableName} DROP COLUMN {$fieldName}";
-    }
-
-    public function getChangeColumnQuery(string $tableName, DbTableField $field): string
-    {
-        $type = $field->getTypeDefinition();
-        $queries = [
-            "ALTER TABLE $tableName ALTER COLUMN $fieldName TYPE $type;"
-        ];
-
-        if ($field->isNullable()) {
-            $queries[] = "ALTER TABLE $tableName ALTER COLUMN $fieldName DROP NOT NULL;";
-        } else {
-            $queries[] = "ALTER TABLE $tableName ALTER COLUMN $fieldName SET NOT NULL;";
-        }
-
-        $default = $field->getDefault();
-        if ($default === null) {
-            $queries[] = "ALTER TABLE $tableName ALTER COLUMN $fieldName DROP DEFAULT;";
-        } else {
-            $default = $this->convertValueForQuery($default);
-            $queries[] = "ALTER TABLE $tableName ALTER COLUMN $fieldName SET DEFAULT $default;";
-        }
-        
-        $attributes = $field->getAttributes();
-        $key = "unique__$tableName__$fieldName";
-        if (in_array(DbTableField::ATTRIBUTE_UNIQUE, $attributes)) {
-            $queries[] = "ALTER TABLE $tableName ADD CONSTRAINT $key UNIQUE ($fieldName);";
-        } else {
-            $queries[] = "ALTER TABLE $tableName DROP CONSTRAINT $key;";
-        }
-        
-        //TODO if ($field->isFk())
-
-        $query = implode('', $queries);
-        return $query;
-    }
-
-    public function getRenameColumnQuery(string $tableName, string $oldFieldName, string $newFieldName): string
-    {
-        return "ALTER TABLE {$tableName} RENAME COLUMN {$oldFieldName} TO {$newFieldName}";
-    }
-
-    /**
-     * @param mixed $value
-     */
-    public function convertValueForQuery($value): string
-    {
-        if (is_string($value)) return "'$value'";
-        if (is_bool($value)) return $value ? 'TRUE' : 'FALSE';
-        if (is_null($value)) return 'NULL';
-        return (string)$value;
-    }
 
 
     //TODO
@@ -559,21 +337,25 @@ class DbPostgres extends DbConnection
      * PRIVATE
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	private function select(string $query, int $selectType = DbConnection::SELECT_TYPE_ASSOC, bool $useParser = true)
+	private function select(
+        string $query,
+        int $selectType = DbConnection::SELECT_TYPE_ASSOC,
+        bool $useParser = true
+    ): ?array
     {
         if ($useParser) {
             try {
                 $queryObject = new DbSelectQuery($this, $query);
             } catch (\Exception $exception) {
                 $this->addFlightRecord($exception->getMessage());
-                return false;
+                return null;
             }
         }
 
 		$res = pg_query($this->connection, $query);
 		if ($res === false) {
 			$this->addFlightRecord(pg_last_error($this->connection));
-			return false;//TODO null
+			return null;
 		}
 
 		switch ($selectType) {
@@ -670,27 +452,5 @@ class DbPostgres extends DbConnection
         }
 
         return [$schemaName, $shortTableName];
-    }
-    
-    private function fieldToString(DbTableField $field): string
-    {
-        $result = $field->getName() . ' ' . $field->getTypeDefinition();
-
-        $attributes = $field->getAttributes();
-        if (!empty($attributes)) {
-            $result .= ' ' . implode(' ' , $attributes);
-        }
-
-        if (!$field->isNullable()) {
-            $result .= ' not null';
-        }
-
-        $default = $field->getDefault();
-        if ($default !== null) {
-            $default = $this->convertValueForQuery($default);
-            $result .= " default {$default}";
-        }
-
-        return $result;
     }
 }

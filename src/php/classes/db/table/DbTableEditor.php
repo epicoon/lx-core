@@ -77,7 +77,7 @@ class DbTableEditor
             }
         }
 
-        $query = $db->getCreateTableQuery($this->schema);
+        $query = $db->getQueryBuilder()->getCreateTableQuery($this->schema);
         $result = $db->query($query);
         if (!$result) {
             $db->transactionRollback();

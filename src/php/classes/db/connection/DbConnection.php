@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 abstract class DbConnection implements DbConnectionInterface
 {
     use FlightRecorderHolderTrait;
@@ -20,51 +22,30 @@ abstract class DbConnection implements DbConnectionInterface
         $this->connection = null;
     }
 
+    public function getDriver(): string
+    {
+        return $this->settings['driver'];
+    }
+
+    public function getQueryBuilder(): DbQueryBuilderInterface
+    {
+        $builder = lx::$app->dbConnector->getConnectionFactory()->getQueryBuilder($this->getDriver());
+        $builder->setConnection($this);
+        return $builder;
+    }
+
     abstract public function connect(): bool;
     abstract public function disconnect(): bool;
+
     abstract public function getTableSchema(string $tableName): ?DbTableSchema;
     abstract public function getContrForeignKeysInfo(string $tableName, ?array $fields = null): array;
-
     abstract public function getTableName(string $name): string;
     abstract public function tableExists(string $name): bool;
     abstract public function renameTable(string $oldName, string $newName): bool;
-
     /**
      * @return mixed
      */
     abstract public function query(string $query);
-    abstract public function massUpdate(string $tableName, array $rows): bool;
-
-    abstract public function getCreateTableQuery(DbTableSchema $schema): string;
-    /**
-     * @param string|array $fields
-     * @param string|array $relFields
-     */
-    abstract public function getAddForeignKeyQuery(
-        string $table, $fields,
-        string $relTable, $relFields,
-        ?string $constraintName = null
-    ): string;
-    /**
-     * @param string|array $fields
-     */
-    abstract public function getDropForeignKeyQuery(
-        string $table, $fields,
-        ?string $constraintName = null
-    ): string;
-    abstract public function getAddColumnQuery(string $tableName, DbTableField $field): string;
-    abstract public function getDelColumnQuery(string $tableName, string $fieldName): string;
-    abstract public function getChangeColumnQuery(string $tableName, DbTableField $field): string;
-    abstract public function getRenameColumnQuery(
-        string $tableName,
-        string $oldFieldName,
-        string $newFieldName
-    ): string;
-
-    /**
-     * @param mixed $value
-     */
-    abstract public function convertValueForQuery($value): string;
 
     public function transactionBegin(): void
     {

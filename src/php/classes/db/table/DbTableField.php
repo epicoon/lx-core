@@ -9,6 +9,7 @@ class DbTableField
     const TYPE_STRING = 'varchar';
     const TYPE_FLOAT = 'float';
     const TYPE_DECIMAL = 'decimal';
+    const TYPE_NUMERIC = 'numeric';
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_TIMESTAMP = 'timestamp';
     
@@ -18,7 +19,7 @@ class DbTableField
     private string $name;
     private string $type;
     private array $attributes;
-    private ?int $size;
+    private array $details;
     private bool $isNullable;
     /** @var mixed */
     private $defailt;
@@ -31,10 +32,7 @@ class DbTableField
         $this->name = $definition['name'];
         $this->type = $definition['type'] ?? self::TYPE_STRING;
         $this->attributes = $definition['attributes'] ?? [];
-        $this->size = $definition['size'] ?? null;
-        if ($this->size !== null) {
-            $this->size = (int)$this->size;
-        }
+        $this->details = $definition['details'] ?? [];
         $this->isNullable = $definition['nullable'] ?? true;
         $this->defailt = $definition['default'] ?? null;
 
@@ -48,11 +46,6 @@ class DbTableField
             'name' => $this->getName(),
             'type' => $this->getType(),
         ];
-
-        $size = $this->getSize();
-        if ($size !== null) {
-            $result['size'] = $size;
-        }
 
         $default = $this->getDefault();
         if ($default !== null) {
@@ -71,6 +64,10 @@ class DbTableField
         if ($this->fk) {
             $result['fk'] = $this->fk;
         }
+        
+        if (!empty($this->details)) {
+            $result['details'] = $this->details;
+        }
 
         return $result;
     }
@@ -87,11 +84,19 @@ class DbTableField
 
     public function getTypeDefinition(): string
     {
-        if ($this->size === null) {
+        if (empty($this->details)) {
             return $this->type;
         }
-
-        return $this->type . '(' . $this->size . ')';
+        
+        if (array_key_exists('size', $this->details)) {
+            return $this->type . '(' . $this->details['size'] . ')';
+        }
+        
+        if (array_key_exists('precision', $this->details) && array_key_exists('scale', $this->details)) {
+            return $this->type . '(' . $this->details['precision'] . ',' . $this->details['scale'] . ')';
+        }
+        
+        return $this->type;
     }
     
     public function getAttributes(): array
@@ -99,9 +104,9 @@ class DbTableField
         return $this->attributes;
     }
 
-    public function getSize(): ?int
+    public function getDetails(): array
     {
-        return $this->size;
+        return $this->details;
     }
 
     /**
