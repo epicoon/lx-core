@@ -137,6 +137,7 @@ class AssetCompiler
                     ->setCore([
                         '-R @core/js/server/app/classes/',
                         '-R @core/js/server/tools/',
+                        '-R @core/js/common/tools/',
                     ])
                     ->setFile($pare['js'])
                     ->run();
@@ -162,6 +163,7 @@ class AssetCompiler
                 ->setCore([
                     '-R @core/js/server/app/classes/',
                     '-R @core/js/server/tools/',
+                    '-R @core/js/common/tools/',
                 ])
                 ->setFile($cssJsFile)
                 ->run();

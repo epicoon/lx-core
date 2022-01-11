@@ -6,4 +6,11 @@ class Module #lx:namespace lx {
     static ajax(key, params = []) {
         return new lx.ModuleRequest(this.lxFullName(), key, params);
     }
+
+    /**
+     * @param {lx.CssContext} css
+     */
+    static initCssAsset(css) {
+        // pass
+    }
 }

@@ -8,22 +8,33 @@ class JsModuleProvider extends Resource
 {
 	public function getModulesCode(array $list, array $except = []): string
 	{
-		$modulesCode = '';
-		foreach ($list as $moduleName) {
-			$modulesCode .= '#lx:use ' . $moduleName . ';';
-		}
-		$compiler = new JsCompiler();
-		$compiler->setBuildModules(true);
-		$compiler->ignoreModules($except);
-		$modulesCode = $compiler->compileCode($modulesCode);
-		$modulesCode = I18nHelper::localize($modulesCode, lx::$app->i18nMap);
-
+        list ($modulesCode, $pass) = $this->runCompile($list, $except);
 		return $modulesCode;
 	}
 
 	public function getModulesResponse(array $list): ResponseInterface
     {
-        $code = $this->getModulesCode($list['need'], $list['have']);
-        return lx::$app->diProcessor->createByInterface(ResponseInterface::class, [$code]);
+        list ($modulesCode, $modules) = $this->runCompile($list['need'], $list['have']);
+        return lx::$app->diProcessor->createByInterface(ResponseInterface::class, [
+            [
+                'code' => $modulesCode,
+                'compiledModules' => $modules,
+            ]
+        ]);
+    }
+
+    private function runCompile(array $list, array $except = []): array
+    {
+        $modulesCode = '';
+        foreach ($list as $moduleName) {
+            $modulesCode .= '#lx:use ' . $moduleName . ';';
+        }
+        $compiler = new JsCompiler();
+        $compiler->setBuildModules(true);
+        $compiler->ignoreModules($except);
+        $modulesCode = $compiler->compileCode($modulesCode);
+        $modulesCode = I18nHelper::localize($modulesCode, lx::$app->i18nMap);
+
+        return [$modulesCode, $compiler->getCompiledModules()];
     }
 }

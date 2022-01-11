@@ -62,5 +62,10 @@ lx._f = {
 		if (code === undefined) return Function(args);
 		if (args) return Function(args, code);
 		return Function(code);
+	},
+	isEmptyFunction: function(func) {
+		let funcText = func.toString();
+		funcText = funcText.slice(funcText.indexOf('{') + 1, funcText.lastIndexOf('}'));
+		return /^\s*$/.test(funcText);
 	}
 };

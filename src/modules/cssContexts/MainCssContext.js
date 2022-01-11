@@ -1,7 +1,5 @@
 #lx:module lx.MainCssContext;
 
-#lx:use lx.CssContext;
-
 #lx:public;
 
 const borderRadius = '5px';

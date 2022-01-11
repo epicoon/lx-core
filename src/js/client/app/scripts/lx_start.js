@@ -11,7 +11,7 @@ lx.checkDisplay = function(event) {
 }
 
 
-lx.start = function(settings, modules, jsBootstrap, plugin, jsMain) {
+lx.start = function(settings, modules, moduleNames, jsBootstrap, plugin, jsMain) {
 	this.setSettings(settings);
 
 	this.setWatchForKeypress(true);
@@ -22,6 +22,7 @@ lx.start = function(settings, modules, jsBootstrap, plugin, jsMain) {
 
 	// Js-модули
 	if (modules && modules != '') lx._f.createAndCallFunction('', modules);
+	this.runModules(moduleNames);
 
 	// Глобальный js-код, выполняемый ДО загрузки корневого плагина
 	if (jsBootstrap && jsBootstrap != '') lx._f.createAndCallFunction('', jsBootstrap, this);
@@ -38,6 +39,22 @@ lx.start = function(settings, modules, jsBootstrap, plugin, jsMain) {
 
 	// Врубаем поддержку контроля времени
 	lx.go([Function("lx.doActions();")]);
+};
+
+lx.runModules = function(moduleNames) {
+	for (let i=0, l=moduleNames.len; i<l; i++) {
+		let moluleName = moduleNames[i],
+			moduleClass = lx.getClassConstructor(moluleName);
+		if (!moduleClass) continue;
+
+		if (moduleClass.initCssAsset) {
+			if (lx._f.isEmptyFunction(moduleClass.initCssAsset)) continue;
+			if (lx.Css.exists(moluleName)) continue;
+			const css = new lx.Css(moluleName);
+			moduleClass.initCssAsset(css.context);
+			css.commit();
+		}
+	}
 };
 
 function __windowOnresize(event) {

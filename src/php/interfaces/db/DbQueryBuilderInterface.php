@@ -7,7 +7,6 @@ interface DbQueryBuilderInterface extends FlightRecorderHolderInterface
     public function setConnection(DbConnectionInterface $connection): void;
     public function getConnection(): ?DbConnectionInterface;
 
-    //TODO DbTableSchema нужен интерфейс?
     public function getCreateTableQuery(DbTableSchema $schema): string;
 
     /**

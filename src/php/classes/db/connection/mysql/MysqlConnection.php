@@ -2,11 +2,8 @@
 
 namespace lx;
 
-//TODO сотояние кода устарело
-
 class MysqlConnection extends DbConnection
 {
-    //новый метод
     public function connect(): bool
     {
         if ($this->connection !== null) {
@@ -32,7 +29,6 @@ class MysqlConnection extends DbConnection
         return true;
     }
 
-    //новый метод
     public function disconnect(): bool
     {
         if ($this->connection === null) {
@@ -50,6 +46,8 @@ class MysqlConnection extends DbConnection
     }
 
 
+
+    //TODO дальше надо смотреть
 
     
     public function __construct(array $settings)
@@ -245,9 +243,6 @@ class MysqlConnection extends DbConnection
 		return $result;
 	}
 
-	/**
-	 *
-	 * */
 	public function renameTable($oldName, $newName) {
 
 	}
@@ -315,13 +310,5 @@ class MysqlConnection extends DbConnection
 		AND 
 		  cols.TABLE_NAME="ИМЯ_ТАБЛИЦЫ";
 		*/
-	}
-
-	/**
-	 * Дефиниция для таймштампа без временной зоны
-	 * */
-	public function timestamp($conf=[]) {
-		$conf['type'] = 'timestamp';
-		return new DbColumnDefinition($conf);
 	}
 }

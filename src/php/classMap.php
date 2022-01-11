@@ -147,6 +147,9 @@ return [
 	'JsonDataFileAdapter' => 'classes/file/dataFileAdapter',
 	'YamlDataFileAdapter' => 'classes/file/dataFileAdapter',
 
+    'Yaml' => 'classes/converters',
+    'MdConverter' => 'classes/converters/mdConverter',
+
     'DbException' => 'classes/exceptions',
 
 
@@ -160,12 +163,18 @@ return [
 	'Math' => 'classes/helpers',
 	'ArrayHelper' => 'classes/helpers',
 	'StringHelper' => 'classes/helpers',
-	'Yaml' => 'classes/helpers',
 	'I18nHelper' => 'classes/helpers',
     'ErrorHelper' => 'classes/helpers',
     'PhpConfigHelper' => 'classes/helpers',
     'CodeConverterHelper' => 'classes/helpers',
 
+
+    /*******************************************************************************************************************
+     * Modules
+     ******************************************************************************************************************/
+
+    'WebCli' => '../modules/webCli',
+    
 
 	/*******************************************************************************************************************
 	 * Behaviors

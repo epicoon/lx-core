@@ -17,10 +17,13 @@ class JsCompiler
 	private array $ignoreModules;
 	private array $allCompiledFiles;
 	private array $compiledFiles;
+    private array $compiledModules;
 	private SyntaxExtender $syntaxExtender;
 	private ConductorInterface $conductor;
     private AssetManagerInterface $assetManager;
 	private ?JsCompileDependencies $dependencies;
+    private ?JsModuleMap $moduleMap;
+    private array $waitingForModules;
 
 	public function __construct(?ConductorInterface $conductor = null, ?AssetManagerInterface $assetManager = null)
 	{
@@ -33,7 +36,11 @@ class JsCompiler
 		$this->ignoreModules = [];
 		$this->allCompiledFiles = [];
 		$this->compiledFiles = [];
+        $this->compiledModules = [];
 		$this->dependencies = null;
+
+        $this->moduleMap = null;
+        $this->waitingForModules = [];
 	}
 
 	public function setContext(string $context): void
@@ -49,6 +56,14 @@ class JsCompiler
 	{
 		return $this->context;
 	}
+
+    public function getModuleMap(): JsModuleMap
+    {
+        if ($this->moduleMap === null) {
+            $this->moduleMap = new JsModuleMap();
+        }
+        return $this->moduleMap;
+    }
 
 	public function setBuildModules(bool $value): void
 	{
@@ -79,6 +94,11 @@ class JsCompiler
 	{
 		return $this->compiledFiles;
 	}
+    
+    public function getCompiledModules(): array
+    {
+        return $this->compiledModules;
+    }
 
 	public function compileFile(string $path): string
 	{
@@ -169,6 +189,7 @@ class JsCompiler
 
         $code = $this->cutCoordinationDirectives($code);
         $code = $this->parseYaml($code, $path);
+        $code = $this->parseMd($code, $path);
         $code = $this->processMacroses($code);
         $code = $this->applyContext($code);
         $code = $this->syntaxExtender->applyExtendedSyntax($code, $path);
@@ -317,33 +338,62 @@ class JsCompiler
 			return $code;
 		}
 
-		$moduleMap = new JsModuleMap();
 		$filePathes = [];
+        $modulesForBuild = [];
 		foreach ($moduleNames as $moduleName) {
-            $moduleName = $this->assetManager->resolveModuleName($moduleName);
-
-		    if (in_array($moduleName, $this->ignoreModules) || !$moduleMap->moduleExists($moduleName)) {
-                //TODO зафиксировать проблему если модуль не существует
-		        continue;
-            }
-
-		    $path = $moduleMap->getModulePath($moduleName);
-		    if (!$path) {
-		        //TODO зафиксировать проблему
-		        continue;
-            }
-            $filePathes[] = $path;
-
-            $data = $moduleMap->getModuleData($moduleName);
-		    if (!empty($data)) {
-                $this->applyModuleData($data, $path);
-            }
+            $this->checkModule($moduleName, $modulesForBuild, $filePathes);
 		}
 
 		$modulesCode = $this->compileFileGroup($filePathes, DataObject::create(), $rootPath);
 		$code = $modulesCode . $code;
+        foreach ($modulesForBuild as $name) {
+            if (!in_array($name, $this->compiledModules)) {
+                $this->compiledModules[] = $name;
+            }
+        }
 		return $code;
 	}
+
+    private function checkModuleDependencies(string $modulePath, &$modulesForBuild, &$filePathes): void
+    {
+        $pattern = '/(?<!\/ )(?<!\/)#lx:use\s+[\'"]?([^;]+?)[\'"]?;/';
+        $code = file_get_contents($modulePath);
+        preg_match_all($pattern, $code, $matches);
+        if (empty($matches[0])) {
+            return;
+        }
+        $moduleNames = $matches[1];
+        foreach ($moduleNames as $moduleName) {
+            $moduleName = $this->assetManager->resolveModuleName($moduleName);
+            $this->checkModule($moduleName, $modulesForBuild, $filePathes);
+        }
+    }
+
+    private function checkModule(string $moduleName, &$modulesForBuild, &$filePathes): void
+    {
+        $moduleMap = $this->getModuleMap();
+
+        if (in_array($moduleName, $this->ignoreModules)
+            || in_array($modulesForBuild)
+            || !$moduleMap->moduleExists($moduleName)
+        ) {
+            //TODO зафиксировать проблему если модуль не существует
+            return;
+        }
+        $path = $moduleMap->getModulePath($moduleName);
+        if (!$path || in_array($path, $filePathes)) {
+            //TODO зафиксировать проблему
+            return;
+        }
+        $filePathes[] = $path;
+
+        $data = $moduleMap->getModuleData($moduleName);
+        if (!empty($data)) {
+            $this->applyModuleData($data, $path);
+        }
+        $modulesForBuild[] = $moduleName;
+        $this->checkModuleDependencies($path, $modulesForBuild, $filePathes);
+    }
 
 	private function applyModuleData(array $moduleData, string $modulePath): void
 	{
@@ -404,21 +454,28 @@ class JsCompiler
 			}
 
 			// Находим случаи наследования
-            $extends = array_diff($matches[2], ['', $fileName]);
+            $dependsOf = array_diff($matches[2], ['', $fileName]);
+
+            // Находим использование модулей
+            $pattern = '/(?<!\/ )(?<!\/)#lx:use\s+[\'"]?([^;]+?)[\'"]?;/';
+            preg_match_all($pattern, $originalCode, $matches);
+            if (!empty($matches[0])) {
+                $dependsOf = array_values(array_unique(array_merge($dependsOf, $matches[1])));
+            }
 
             // Формируем список инфы по файлам
 			$list[$fileName] = [
 				'path' => $fileName,
                 'code' => $code,
-				'extends' => $extends,
-				'depends' => [],
+				'dependsOf' => $dependsOf,
+				'dependencies' => [],
 				'counter' => 0
 			];
 		}
 
 		// Расстановка зависимостей
 		foreach ($list as $currentClassPath => &$item) {
-			foreach ($item['extends'] as $parentClassName) {
+			foreach ($item['dependsOf'] as $parentClassName) {
 				if (!array_key_exists($parentClassName, $classesMap)) {
 				    continue;
                 }
@@ -428,7 +485,9 @@ class JsCompiler
 				    continue;
                 }
 
-				$list[$parentClassPath]['depends'][] = $currentClassPath;
+                if (!in_array($currentClassPath, $list[$parentClassPath]['dependencies'])) {
+                    $list[$parentClassPath]['dependencies'][] = $currentClassPath;
+                }
 			}
 		}
 		unset($item);
@@ -436,7 +495,7 @@ class JsCompiler
 		// Рекурсивное увеличение счетчика зависимостей
 		$re = function ($index) use (&$re, &$list) {
 			$list[$index]['counter']++;
-			foreach ($list[$index]['depends'] as $depend) {
+			foreach ($list[$index]['dependencies'] as $depend) {
                 $re($depend);
             }
 		};
@@ -562,6 +621,33 @@ class JsCompiler
             $data = Yaml::runParse($yaml, $path);
             $result = CodeConverterHelper::arrayToJsCode($data);
             $result = $this->processMacroses($result, $yaml);
+            return $result;
+        }, $code);
+
+        return $code;
+    }
+
+    private function parseMd(string $code, ?string $path): string
+    {
+        $parentDir = $path === null ? null : dirname($path) . '/';
+
+        $pattern = '/(?<!\/ )(?<!\/)#lx:md\s*\(\s*[\'"]?(.*?)[\'"]?\)/';
+        $code = preg_replace_callback($pattern, function ($matches) use ($parentDir) {
+            $path = $matches[1];
+            if (!preg_match('/\.md$/', $path)) {
+                $path .= '.md';
+            }
+            $fullPath = $this->conductor->getFullPath($path, $parentDir);
+            $file = new File($fullPath);
+            if (!$file->exists()) {
+                return '""';
+            }
+
+            $converter = new MdConverter();
+            $result = $converter->setFile($file)->run();
+            $result = addcslashes($result, '"');
+            $result = '"' . $result . '"';
+
             return $result;
         }, $code);
 

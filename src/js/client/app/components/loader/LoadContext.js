@@ -88,7 +88,10 @@ class LoadContext {
 				have: lx.dependencies.getCurrentModules()
 			});
 			modulesRequest.onLoad(function(result) {
-				if (result) lx._f.createAndCallFunction('', result.data);
+				if (result) {
+					lx._f.createAndCallFunction('', result.data.code);
+					lx.runModules(result.data.compiledModules);
+				}
 			});
 			synchronizer.register(modulesRequest);
 		}

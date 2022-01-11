@@ -11,7 +11,6 @@ interface DbConnectionInterface extends FlightRecorderHolderInterface
     public function connect(): bool;
     public function disconnect(): bool;
 
-    //TODO DbTableSchema нужен интерфейс?
     public function getTableSchema(string $tableName): ?DbTableSchema;
     public function getContrForeignKeysInfo(string $tableName, ?array $fields = null): array;
 
@@ -23,7 +22,6 @@ interface DbConnectionInterface extends FlightRecorderHolderInterface
     public function tableExists(string $name): bool;
     public function renameTable(string $oldName, string $newName): bool;
     public function dropTable(string $name): bool;
-    //TODO DbTable нужен интерфейс?
     public function getTable(string $name): DbTable;
 
     /**

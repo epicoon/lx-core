@@ -1,5 +1,3 @@
-#lx:use lx.CssContext;
-
 class Css #lx:namespace lx {
 	constructor(factor) {
 		if (lx.isString(factor)) {

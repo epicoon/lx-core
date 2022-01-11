@@ -6,7 +6,7 @@ class PostgresConnection extends DbConnection
 {
     /** @var array<array<DbTableSchema>> */
     private array $schemas = [];
-    
+
     public function connect(): bool
     {
         if ($this->connection !== null) {
