@@ -37,7 +37,9 @@ class MdBlocksBuilder
         return [
             'checkLine',
             'checkTitle',
+            'checkTable',
             'checkCodeblock',
+            'checkCodeblockTyped',
             'checkBlockquote',
             'checkOrderedList',
             'checkUnorderedList',
@@ -78,6 +80,13 @@ class MdBlocksBuilder
         }
     }
 
+    private function checkTable(ParseData $parseData): void
+    {
+        if (preg_match('/^\|.+?\|\s*$/', $parseData->line)) {
+            $this->defineType(MdBlockTypeEnum::TYPE_TABLE);
+        }
+    }
+
     private function checkCodeblock(ParseData $parseData): void
     {
         if ($parseData->indent
@@ -94,6 +103,23 @@ class MdBlocksBuilder
         ) {
             $this->defineType(MdBlockTypeEnum::TYPE_CODEBLOCK);
         }
+    }
+
+    private function checkCodeblockTyped(ParseData $parseData): void
+    {
+        preg_match('/^(```|~~~)(\w+)?/', $parseData->line, $matches);
+        if (empty($matches)) {
+            if ($this->isCurrentType(MdBlockTypeEnum::TYPE_CODEBLOCK_TYPED)) {
+                $this->defineType(MdBlockTypeEnum::TYPE_CODEBLOCK_TYPED);
+            }
+            return;
+        }
+
+        $type = $matches[2] ?? null;
+        if ($type) {
+            $parseData->info['codeType'] = $type;
+        }
+        $this->defineType(MdBlockTypeEnum::TYPE_CODEBLOCK_TYPED);
     }
 
     private function checkBlockquote(ParseData $parseData): void
@@ -182,21 +208,22 @@ class MdBlocksBuilder
             }
 
             if ($this->typeIsChanged()) {
-                $this->result[] = [
+                $this->result[] = array_merge([
                     'type' => $this->prevType,
                     'lines' => $parseData->blockLines,
-                ];
+                ], $parseData->info);
                 $parseData->blockLines = [];
+                $parseData->info = [];
             }
             if (!$this->isCurrentType(MdBlockTypeEnum::TYPE_NONE)) {
                 $parseData->blockLines[] = $lineData;
             }
         }
         if (!empty($lines = $parseData->blockLines)) {
-            $this->result[] = [
+            $this->result[] = array_merge([
                 'type' => $this->currentType,
                 'lines' => $lines,
-            ];
+            ], $parseData->info);
         }
     }
 
@@ -224,6 +251,7 @@ class MdBlocksBuilder
  * @property int $spaces
  * @property int $spacesBefore
  * @property array $blockLines
+ * @property array $info
  */
 class ParseData extends DataObject {
     public function __construct()
@@ -234,6 +262,7 @@ class ParseData extends DataObject {
             'spaces' => 0,
             'spacesBefore' => 0,
             'blockLines' => [],
+            'info' => [],
         ]);
     }
 

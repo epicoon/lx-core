@@ -7,19 +7,9 @@ class MdParser
     public function run(string $mdText): array
     {
         $lines = preg_split('/(\r\n|\r|\n)/', $mdText);
-        $lines = $this->processLines($lines);
         $map = $this->buildMap($lines);
         $map = $this->processMap($map);
         return $map;
-    }
-
-    private function processLines(array $lines): array
-    {
-        foreach ($lines as &$line) {
-            $line = preg_replace('/  $/', '<br>', $line);
-        }
-        unset($line);
-        return $lines;
     }
 
     private function buildMap(array $lines): array
@@ -50,8 +40,8 @@ class MdParser
             $indent = strlen($matches[1]);
         }
 
-        $line = preg_replace('/^( |\t)*/', str_repeat(' ', $indent * 4), $line);
-        $lineData['line'] = $line;
+        $lineData['originLine'] = $line;
+        $lineData['line'] = preg_replace('/^( |\t)*/', str_repeat(' ', $indent * 4), $line);
         $lineData['indent'] = $indent;
     }
 
@@ -121,6 +111,7 @@ class MdParser
                 if (preg_match($regexp, $nextLineData['line'])) {
                     $farLineData = $nextLineData;
                 } else {
+                    $lineData['line'] = preg_replace('/  $/','<br>', $lineData['line']);
                     $lineData['line'] .= ' ' . $nextLineData['line'];
                     unset($block['lines'][$i + 1]);
                     $block['lines'] = array_values($block['lines']);

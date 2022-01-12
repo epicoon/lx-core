@@ -14,7 +14,9 @@ class MdBlockTypeEnum
     const TYPE_TITLE_6 = 'title6';
     const TYPE_PARAGRAPH = 'paragraph';
     const TYPE_CODEBLOCK = 'codeblock';
+    const TYPE_CODEBLOCK_TYPED = 'codeblockTyped';
     const TYPE_BLOCKQUOTE = 'blockquote';
     const TYPE_ORDERED_LIST = 'orderedList';
     const TYPE_UNORDERED_LIST = 'unorderedList';
+    const TYPE_TABLE = 'table';
 }
