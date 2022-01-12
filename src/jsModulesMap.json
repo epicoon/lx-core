@@ -19,17 +19,21 @@
         "name": "lx.CodeEditor",
         "path": "modules\/codeEditor\/CodeEditor.js"
     },
-    "lx.ColorSchema.dark": {
-        "name": "lx.ColorSchema.dark",
+    "lx.CssColorSchema.dark": {
+        "name": "lx.CssColorSchema.dark",
         "path": "modules\/colorSchemas\/dark.js"
     },
-    "lx.ColorSchema.white": {
-        "name": "lx.ColorSchema.white",
+    "lx.CssColorSchema.white": {
+        "name": "lx.CssColorSchema.white",
         "path": "modules\/colorSchemas\/white.js"
     },
     "lx.MainCssContext": {
         "name": "lx.MainCssContext",
         "path": "modules\/cssContexts\/MainCssContext.js"
+    },
+    "lx.MdHighlighter": {
+        "name": "lx.MdHighlighter",
+        "path": "modules\/mdHighlighter\/MdHighlighter.js"
     },
     "lx.WebCli": {
         "name": "lx.WebCli",

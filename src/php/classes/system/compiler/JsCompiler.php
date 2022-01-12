@@ -374,7 +374,7 @@ class JsCompiler
         $moduleMap = $this->getModuleMap();
 
         if (in_array($moduleName, $this->ignoreModules)
-            || in_array($modulesForBuild)
+            || in_array($moduleName, $modulesForBuild)
             || !$moduleMap->moduleExists($moduleName)
         ) {
             //TODO зафиксировать проблему если модуль не существует

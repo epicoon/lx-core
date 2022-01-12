@@ -5,13 +5,26 @@ namespace lx;
 class MdRenderer
 {
     private string $result = '';
+    private bool $useWrapper = true;
+
+    public function useWrapper(bool $value = true): MdRenderer
+    {
+        $this->useWrapper = $value;
+        return $this;
+    }
 
     public function run(array $map): string
     {
         $this->result = '';
         $this->renderMap($map);
         $this->renderInLines();
-        return $this->result;
+        if (!$this->useWrapper) {
+            return $this->result;
+        }
+
+        $result = $this->openTag('div');
+        $result .= $this->result . '</div>';
+        return $result;
     }
 
     private function renderMap(array $map): void
@@ -62,18 +75,18 @@ class MdRenderer
         $line = preg_replace('/^#{1,6}/', '', $line);
         if (preg_match('/\{#([\w\d_-]+?)\}$/', $line, $matches)) {
             $line = preg_replace('/\s*\{#[\w\d_-]+?\}$/', '', $line);
-            $this->openTag($tag, [
+            $this->result .= $this->openTag($tag, [
                 'id' => $matches[1],
             ]);
         } else {
-            $this->openTag($tag);
+            $this->result .= $this->openTag($tag);
         }
         $this->result .= $line . "</{$tag}>";
     }
 
     private function renderTable($block): void
     {
-        $this->openTag('table');
+        $this->result .= $this->openTag('table');
 
         $firstRow = 0;
         $aligns = [];
@@ -85,10 +98,10 @@ class MdRenderer
             $firstRow = 2;
             $header = trim($block['lines'][0]['line'], '| ');
             $titles = preg_split('/\s*\|\s*/', $header);
-            $this->openTag('thead');
-            $this->openTag('tr');
+            $this->result .= $this->openTag('thead');
+            $this->result .= $this->openTag('tr');
             foreach ($titles as $title) {
-                $this->openTag('th', [
+                $this->result .= $this->openTag('th', [
                     'style' => 'text-align: center',
                 ]);
                 $this->result .= $title . '</th>';
@@ -109,15 +122,15 @@ class MdRenderer
             unset($align);
         }
 
-        $this->openTag('tbody');
+        $this->result .= $this->openTag('tbody');
         for ($i=$firstRow, $l=count($block['lines']); $i<$l; $i++) {
-            $this->openTag('tr');
+            $this->result .= $this->openTag('tr');
             $line = $block['lines'][$i]['line'];
             $values = preg_split('/\s*\|\s*/', trim($line, '| '));
             foreach ($values as $col => $value) {
                 $align = $aligns[$col] ?? 'none';
                 $params = ($align == 'none') ? [] : ['style' => "text-align: {$align}"];
-                $this->openTag('td', $params);
+                $this->result .= $this->openTag('td', $params);
                 $this->result .= $value . '</td>';
             }
             $this->result .= '</tr>';
@@ -129,7 +142,7 @@ class MdRenderer
 
     private function renderParagraph(array $block): void
     {
-        $this->openTag('p');
+        $this->result .= $this->openTag('p');
         $paragraph = '';
         foreach ($block['lines'] as $lineData) {
             $lineData['line'] = preg_replace('/  $/', '<br>', $lineData['line']);
@@ -140,7 +153,7 @@ class MdRenderer
 
     private function renderCodeBlock(array $block): void
     {
-        $this->openTag('pre');
+        $this->result .= $this->openTag('pre');
         $code = [];
         foreach ($block['lines'] as $lineData) {
             $line = $lineData['line'];
@@ -153,7 +166,10 @@ class MdRenderer
 
     private function renderCodeBlockTyped(array $block): void
     {
-        $this->openTag('pre');
+        $this->result .= '<div>';
+        $codeType = $block['codeType'] ?? null;
+        $params = $codeType ? ['code-type' => $codeType] : [];
+        $this->result .= $this->openTag('pre', $params);
         $code = [];
         foreach ($block['lines'] as $lineData) {
             if (preg_match('/^(```|~~~)/', $lineData['line'])) {
@@ -163,21 +179,20 @@ class MdRenderer
         }
         $code = implode('<br>', $code);
         $this->result .= $code . '</pre>';
-
-        //TODO $lineData['codeType'] - highlight syntax?
+        $this->result .= '<img src="" onerror="if(lx.MdHighlighter)lx.MdHighlighter.highlight(this.parentNode.children[0]);this.parentNode.removeChild(this)">';
     }
 
     private function renderBlockquote(array $block): void
     {
-        $this->openTag('blockquote');
+        $this->result .= $this->openTag('blockquote');
         $subRenderer = new MdRenderer();
-        $this->result .= $subRenderer->run($block['content']) . '</blockquote>';
+        $this->result .= $subRenderer->useWrapper(false)->run($block['content']) . '</blockquote>';
     }
 
     private function renderList(array $block): void
     {
         $tag = ($block['type'] == MdBlockTypeEnum::TYPE_ORDERED_LIST) ? 'ol' : 'ul';
-        $this->openTag($tag);
+        $this->result .= $this->openTag($tag);
 
         $regexp = ($block['type'] == MdBlockTypeEnum::TYPE_ORDERED_LIST)
             ? '/^\d+\. /'
@@ -185,11 +200,11 @@ class MdRenderer
         foreach ($block['lines'] as $lineData) {
             $line = $lineData['line'];
             $line = preg_replace($regexp, '', $line);
-            $this->openTag('li');
+            $this->result .= $this->openTag('li');
             $this->result .= $line;
             if (array_key_exists('content', $lineData)) {
                 $subRenderer = new MdRenderer();
-                $this->result .= $subRenderer->run($lineData['content']);
+                $this->result .= $subRenderer->useWrapper(false)->run($lineData['content']);
             }
             $this->result .= '</li>';
         }
@@ -256,23 +271,44 @@ class MdRenderer
         }, $this->result);
     }
 
-    private function openTag(string $tag, array $args = []): void
+    private function openTag(string $tag, array $args = []): string
     {
-        $this->result .= "<{$tag}";
+        $text = "<{$tag}";
         $class = $this->getCssClass($tag);
         if ($class) {
-            $this->result .= " class=\"{$class}\"";
+            $text .= " class=\"{$class}\"";
         }
         if (!empty($args)) {
             foreach ($args as $key => $value) {
-                $this->result .= " {$key}=\"{$value}\"";
+                $text .= " {$key}=\"{$value}\"";
             }
         }
-        $this->result .= '>';
+        $text .= '>';
+        return $text;
     }
 
     private function getCssClass(string $tag): ?string
     {
+        /* div
+         * h1, h2, h3, h4, h5, h6
+         * table, thead, tbody, tr, th, td
+         * p, pre, blockquote
+         * ol, ul, li
+         */
+        
+        switch ($tag) {
+            case 'div': return 'md-container';
+            
+            case 'p': return 'md-paragraph';
+            case 'pre': return 'md-codeblock';
+            case 'blockquote': return 'md-blockquote';
+
+            case 'table': return 'md-table';
+            case 'th': return 'md-table-header';
+            case 'td': return 'md-table-cell';
+        }
+        
+        
         return null;
     }
 }
