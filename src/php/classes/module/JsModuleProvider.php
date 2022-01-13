@@ -8,13 +8,13 @@ class JsModuleProvider extends Resource
 {
 	public function getModulesCode(array $list, array $except = []): string
 	{
-        list ($modulesCode, $pass) = $this->runCompile($list, $except);
+        list ($modulesCode, $pass) = $this->compile($list, $except);
 		return $modulesCode;
 	}
 
 	public function getModulesResponse(array $list): ResponseInterface
     {
-        list ($modulesCode, $modules) = $this->runCompile($list['need'], $list['have']);
+        list ($modulesCode, $modules) = $this->compile($list['need'], $list['have']);
         return lx::$app->diProcessor->createByInterface(ResponseInterface::class, [
             [
                 'code' => $modulesCode,
@@ -23,7 +23,7 @@ class JsModuleProvider extends Resource
         ]);
     }
 
-    private function runCompile(array $list, array $except = []): array
+    public function compile(array $list, array $except = []): array
     {
         $modulesCode = '';
         foreach ($list as $moduleName) {

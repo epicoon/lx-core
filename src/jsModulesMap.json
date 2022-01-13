@@ -73,6 +73,13 @@
         "name": "lx.CheckboxGroup",
         "path": "modules\/widgets\/CheckboxGroup.js"
     },
+    "lx.ColorPicker": {
+        "name": "lx.ColorPicker",
+        "path": "modules\/widgets\/ColorPicker\/ColorPicker.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
+    },
     "lx.ConfirmPopup": {
         "name": "lx.ConfirmPopup",
         "path": "modules\/widgets\/ConfirmPopup\/ConfirmPopup.js",

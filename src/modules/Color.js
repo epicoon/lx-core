@@ -2,52 +2,56 @@
 
 class Color #lx:namespace lx {
 	constructor(color) {
+		this.init(color);
+	}
+
+	init(color) {
 		this.HSL = null;
 		this.alpha = 1;
 
 		if (!color) {
-			this.R = 0;
-			this.G = 0;
-			this.B = 0;
+			this._R = 0;
+			this._G = 0;
+			this._B = 0;
 			return;
 		}
 
 		if (lx.isNumber(color)) {
 			var res = __16strToRGB(color.toString(16));
-			this.R = res[0];
-			this.G = res[1];
-			this.B = res[2];
+			this._R = res[0];
+			this._G = res[1];
+			this._B = res[2];
 			return;
 		}
 
 		if (lx.isString(color)) {
 			if (color[0] == '#') {
 				var res = __16strToRGB(color.replace(/^#/, ''));
-				this.R = res[0];
-				this.G = res[1];
-				this.B = res[2];
+				this._R = res[0];
+				this._G = res[1];
+				this._B = res[2];
 				return;
 			}
 
 			var name = color.toLowerCase();
 			if (name in colorsMap) {
-				this.R = colorsMap[name][0];
-				this.G = colorsMap[name][1];
-				this.B = colorsMap[name][2];
+				this._R = colorsMap[name][0];
+				this._G = colorsMap[name][1];
+				this._B = colorsMap[name][2];
 			} else {
 				color = color.replace(' ', '');
 				if (color.match(/^rgba?\(\d{1,3},\d{1,3},\d{1,3}(,(0\.\d|\d))?\)/)) {
 					color = color.replace(/^rgba?\(/, '');
 					color = color.replace(')', '');
 					color = color.split(',');
-					this.R = color[0];
-					this.G = color[1];
-					this.B = color[2];
+					this._R = color[0];
+					this._G = color[1];
+					this._B = color[2];
 					if (color.len == 4) this.alpha = color[3];
 				} else {
-					this.R = 0;
-					this.G = 0;
-					this.B = 0;
+					this._R = 0;
+					this._G = 0;
+					this._B = 0;
 				}
 			}
 			return;
@@ -55,13 +59,13 @@ class Color #lx:namespace lx {
 
 		if (lx.isArray(color)) {
 			if (color.len == 3) {
-				this.R = color[0];
-				this.G = color[1];
-				this.B = color[2];
+				this._R = color[0];
+				this._G = color[1];
+				this._B = color[2];
 			} else if (color.len == 4) {
-				this.R = color[0];
-				this.G = color[1];
-				this.B = color[2];
+				this._R = color[0];
+				this._G = color[1];
+				this._B = color[2];
 				this.alpha = color[3];
 			}
 			return;
@@ -73,21 +77,21 @@ class Color #lx:namespace lx {
 		}
 
 		if (lx.isObject(color)) {
-			this.R = color.R || color.r || color.Red || color.red || 0;
-			this.G = color.G || color.g || color.Green || color.green || 0;
-			this.B = color.B || color.b || color.Blue || color.blue || 0;
+			this._R = color._R || color.r || color.Red || color.red || 0;
+			this._G = color._G || color.g || color.Green || color.green || 0;
+			this._B = color._B || color.b || color.Blue || color.blue || 0;
 			return;
 		}
 
-		this.R = 0;
-		this.G = 0;
-		this.B = 0;
+		this._R = 0;
+		this._G = 0;
+		this._B = 0;
 	}
 
 	copy(color) {
-		this.R = color.R;
-		this.G = color.G;
-		this.B = color.B;
+		this._R = color._R;
+		this._G = color._G;
+		this._B = color._B;
 		this.alpha = color.alpha;
 		if (color.HSL)
 			this.HSL = [color.HSL[0], color.HSL[1], color.HSL[2]];
@@ -116,22 +120,67 @@ class Color #lx:namespace lx {
 	}
 
 	getLuma() {
-		var r = this.R / 255,
-			g = this.G / 255,
-			b = this.B / 255;
+		var r = this._R / 255,
+			g = this._G / 255,
+			b = this._B / 255;
 		r = (r <= 0.03928) ? r / 12.92 : Math.pow(((r + 0.055) / 1.055), 2.4);
 		g = (g <= 0.03928) ? g / 12.92 : Math.pow(((g + 0.055) / 1.055), 2.4);
 		b = (b <= 0.03928) ? b / 12.92 : Math.pow(((b + 0.055) / 1.055), 2.4);
 		return (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
 	}
 
+	setHue(value) {
+		let HSL = this.getHSL();
+		HSL[0] = value;
+		this.setHSL(HSL);
+	}
+
+	setSaturation(value) {
+		let HSL = this.getHSL();
+		HSL[1] = value;
+		this.setHSL(HSL);
+	}
+
+	setLightness(value) {
+		let HSL = this.getHSL();
+		HSL[2] = value;
+		this.setHSL(HSL);
+	}
+
 	setHSL(hsl) {
 		this.HSL = hsl;
 		var RGB = __HSLtoRGB(hsl);
-		this.R = RGB[0];
-		this.G = RGB[1];
-		this.B = RGB[2];
+		this._R = RGB[0];
+		this._G = RGB[1];
+		this._B = RGB[2];
 		return this;
+	}
+
+	get R() {
+		return this._R;
+	}
+
+	get G() {
+		return this._G;
+	}
+
+	get B() {
+		return this._B;
+	}
+
+	set R(value) {
+		this._R = value;
+		this.HSL = null;
+	}
+
+	set G(value) {
+		this._G = value;
+		this.HSL = null;
+	}
+
+	set B(value) {
+		this._B = value;
+		this.HSL = null;
 	}
 
 	darken(persent) {
@@ -192,9 +241,9 @@ class Color #lx:namespace lx {
 			a = this.alpha - color.alpha,
 			w1 = ((w * a == -1 ? w : (w + a)/(1 + w * a)) + 1) / 2.0,
 			w2 = 1.0 - w1;
-		this.R = Math.round(w1 * this.R + w2 * color.R);
-		this.G = Math.round(w1 * this.G + w2 * color.G);
-		this.B = Math.round(w1 * this.B + w2 * color.B);
+		this._R = Math.round(w1 * this._R + w2 * color._R);
+		this._G = Math.round(w1 * this._G + w2 * color._G);
+		this._B = Math.round(w1 * this._B + w2 * color._B);
 		this.HSL = null;
 		if (this.alpha != 1 || color.alpha != 1)
 			this.alpha = this.alpha * weight + color.alpha * (weight - 1);
@@ -217,7 +266,7 @@ class Color #lx:namespace lx {
 	}
 
 	toRGB() {
-		return [this.R, this.G, this.B];
+		return [this._R, this._G, this._B];
 	}
 
 	[Symbol.toPrimitive](hint) {
@@ -231,9 +280,9 @@ class Color #lx:namespace lx {
 	}
 
 	toNumber() {
-		var sR = this.R.toString(16),
-			sG = this.G.toString(16),
-			sB = this.B.toString(16);
+		var sR = this._R.toString(16),
+			sG = this._G.toString(16),
+			sB = this._B.toString(16);
 		if (sR.length < 2) sR = '0' + sR;
 		if (sG.length < 2) sG = '0' + sG;
 		if (sB.length < 2) sB = '0' + sB;
@@ -242,19 +291,19 @@ class Color #lx:namespace lx {
 
 	toString() {
 		if (this.alpha != 1) return 'rgba('
-			+ this.R
+			+ this._R
 			+ ', '
-			+ this.G
+			+ this._G
 			+ ', '
-			+ this.B
+			+ this._B
 			+ ', '
 			+ this.alpha
 			+ ')';
 
 
-		var sR = this.R.toString(16),
-			sG = this.G.toString(16),
-			sB = this.B.toString(16);
+		var sR = this._R.toString(16),
+			sG = this._G.toString(16),
+			sB = this._B.toString(16);
 		if (sR.length < 2) sR = '0' + sR;
 		if (sG.length < 2) sG = '0' + sG;
 		if (sB.length < 2) sB = '0' + sB;
@@ -263,11 +312,11 @@ class Color #lx:namespace lx {
 
 	toStringWithAlfa() {
 		return 'rgba('
-			+ this.R
+			+ this._R
 			+ ', '
-			+ this.G
+			+ this._G
 			+ ', '
-			+ this.B
+			+ this._B
 			+ ', '
 			+ this.alpha
 			+ ')';

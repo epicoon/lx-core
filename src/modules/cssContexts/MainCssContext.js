@@ -16,6 +16,10 @@ class MainCssContext #lx:namespace lx {
         
         return this.__css;
     }
+    
+    static getClass(name) {
+        return this.cssContext.getClass(name);
+    }
 }
 
 function __init(cssContext) {
@@ -47,6 +51,12 @@ function __init(cssContext) {
             }
         };
     });
+
+    cssContext.addAbstractClass('AbstractBox', {
+        borderRadius: lx.MainCssContext.borderRadius,
+        boxShadow: '0 0px ' + lx.CssColorSchema.shadowSize + 'px rgba(0,0,0,0.5)',
+        backgroundColor: lx.CssColorSchema.bodyBackgroundColor
+});
 
     cssContext.addAbstractClass('Button', {
         overflow: 'hidden',

@@ -295,7 +295,6 @@ class MdRenderer
          * p, pre, blockquote
          * ol, ul, li
          */
-        
         switch ($tag) {
             case 'div': return 'md-container';
             
@@ -307,8 +306,6 @@ class MdRenderer
             case 'th': return 'md-table-header';
             case 'td': return 'md-table-cell';
         }
-        
-        
         return null;
     }
 }

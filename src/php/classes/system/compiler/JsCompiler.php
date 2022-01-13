@@ -364,13 +364,13 @@ class JsCompiler
         }
         $moduleNames = $matches[1];
         foreach ($moduleNames as $moduleName) {
-            $moduleName = $this->assetManager->resolveModuleName($moduleName);
             $this->checkModule($moduleName, $modulesForBuild, $filePathes);
         }
     }
 
     private function checkModule(string $moduleName, &$modulesForBuild, &$filePathes): void
     {
+        $moduleName = $this->assetManager->resolveModuleName($moduleName);
         $moduleMap = $this->getModuleMap();
 
         if (in_array($moduleName, $this->ignoreModules)

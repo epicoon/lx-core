@@ -9,8 +9,6 @@ class MdHighlighter extends lx.Module #lx:namespace lx {
         });
         css.addClass('md-paragraph', {
             margin: 0,
-            // marginTop: '10px',
-            // marginBottom: '10px',
             paddingTop: '10px',
             paddingBottom: '10px'
         });

@@ -45,7 +45,7 @@ class HtmlHead
 	{
 		return '<link href="'
 			. ($this->getCssPath() . '/main.css')
-			. '" type="text/css" rel="stylesheet">';
+			. '" name="base_css" type="text/css" rel="stylesheet">';
 	}
 
 	private function getLxJs(): string

@@ -58,18 +58,18 @@ class PageRequestHandler extends RequestHandler
         $pluginData = $this->response->getData();
         $pluginInfo = addcslashes($pluginData['pluginInfo'], '\\');
 
-        $modules = '';
+        $modulesCode = '';
         $moduleNames = '';
         if (!empty($pluginData['modules'])) {
             $moduleProvider = new JsModuleProvider();
-            $modules = $moduleProvider->getModulesCode($pluginData['modules']);
-            $modules = addcslashes($modules, '\\');
-            $moduleNames = "'" . implode("','", $pluginData['modules']) . "'";
+            list ($modulesCode, $modules) = $moduleProvider->compile($pluginData['modules']);
+            $modulesCode = addcslashes($modulesCode, '\\');
+            $moduleNames = "'" . implode("','", $modules) . "'";
         }
 
         list($jsBootstrap, $jsMain) = lx::$app->getCommonJs();
         $settings = CodeConverterHelper::arrayToJsCode(lx::$app->getSettings());
-        $js = "lx.start($settings, `$modules`, [$moduleNames], `$jsBootstrap`, `$pluginInfo`, `$jsMain`);";
+        $js = "lx.start($settings, `$modulesCode`, [$moduleNames], `$jsBootstrap`, `$pluginInfo`, `$jsMain`);";
 
         /** @var HtmlRendererInterface $renderer */
         $renderer = lx::$app->diProcessor->createByInterface(HtmlRendererInterface::class);

@@ -50,7 +50,7 @@ lx.runModules = function(moduleNames) {
 		if (moduleClass.initCssAsset) {
 			if (lx._f.isEmptyFunction(moduleClass.initCssAsset)) continue;
 			if (lx.Css.exists(moluleName)) continue;
-			const css = new lx.Css(moluleName);
+			const css = new lx.Css(moluleName, lx.Css.POSITION_TOP);
 			moduleClass.initCssAsset(css.context);
 			css.commit();
 		}

@@ -18,11 +18,11 @@ class CssColorSchema #lx:namespace lx {
         shadowSize = 10,
 
         // Green
-        checkedMainColor = '#6FCC5B',
-        checkedSoftColor = '#A0DD93',
-        checkedLightColor = '#86D676',
-        checkedDarkColor = '#5DC447',
-        checkedDeepColor = '#4DC035',
+        checkedMainColor = '#378028',
+        checkedSoftColor = '#50b73a',
+        checkedLightColor = '#419d2f',
+        checkedDarkColor = '#2f6a22',
+        checkedDeepColor = '#255c19',
         // Blue
         coldMainColor = '#7553A6',
         coldSoftColor = '#9C84BE',

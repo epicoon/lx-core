@@ -310,6 +310,7 @@ class SyntaxExtender
                             $fields = preg_split('/\s*,\s*/', $schema);
                             $index = 0;
                             foreach ($fields as &$field) {
+                                $field = preg_replace('/\s*$/','', $field);
                                 $pare = preg_split('/\s*:\s*/', $field);
                                 $key = $pare[0];
                                 $def = (isset($pare[1])) ? $pare[1] : '{}';

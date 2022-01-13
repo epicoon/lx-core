@@ -1,5 +1,6 @@
 #lx:module lx.ModelCollectionGrid;
 
+#lx:use lx.CssColorSchema;
 #lx:use lx.Box;
 #lx:use lx.Paginator;
 #lx:use lx.Input;
@@ -17,6 +18,19 @@ class ModelCollectionGrid extends lx.Box #lx:namespace lx {
             head: 'lx-MCG-head',
             rowBack: 'lx-MCG-rowBack'
         }
+    }
+    
+    static initCssAsset(css) {
+        css.addClass('lx-MCG-lPart', {
+            borderRight: 'thick double ' + lx.CssColorSchema.widgetBorderColor
+        });
+        css.addClass('lx-MCG-head', {
+            backgroundColor: lx.CssColorSchema.altMainBackgroundColor,
+            borderBottom: 'thick double ' + lx.CssColorSchema.widgetBorderColor
+        });
+        css.addClass('lx-MCG-rowBack', {
+            backgroundColor: lx.CssColorSchema.altMainBackgroundColor
+        });
     }
 
     build(config) {

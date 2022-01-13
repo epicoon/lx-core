@@ -7,7 +7,7 @@ abstract class AbstractAssetManager implements AssetManagerInterface, FusionComp
     use FusionComponentTrait;
 
     protected array $modules = [
-        'lx.CssColorSchema' => 'lx.ColorSchema.white',
+        'lx.CssColorSchema' => 'lx.CssColorSchema.white',
     ];
 
     public function resolveModuleName(string $moduleName): string

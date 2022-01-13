@@ -77,6 +77,7 @@ class CssContext #lx:namespace lx {
         this.classes[name] = {
             name,
             parent,
+            context: this,
             content: processed.content,
             pseudoclasses: processed.pseudoclasses
         };
@@ -87,6 +88,7 @@ class CssContext #lx:namespace lx {
         this.abstractClasses[name] = {
             name,
             parent,
+            context: this,
             content: processed.content,
             pseudoclasses: processed.pseudoclasses
         };
@@ -102,6 +104,14 @@ class CssContext #lx:namespace lx {
 
     registerMixin(name, callback) {
         this.mixins[name] = callback;
+    }
+    
+    getClass(name) {
+        if (name in this.abstractClasses)
+            return this.abstractClasses[name];
+        if (name in this.classes)
+            return this.classes[name];
+        return null;
     }
 
     toString() {
@@ -196,15 +206,17 @@ function __renderClass(self, classData) {
 function __getPropertyWithParent(self, classData, property) {
     if (!classData.parent) return classData[property];
     var parentClass = null;
-    if (self.abstractClasses[classData.parent])
+    if (lx.isObject(classData.parent))
+        parentClass = classData.parent;
+    else if (self.abstractClasses[classData.parent])
         parentClass = self.abstractClasses[classData.parent];
-    if (self.classes[classData.parent])
+    else if (self.classes[classData.parent])
         parentClass = self.classes[classData.parent];
     if (!parentClass) return classData[property];
 
 
     var pProperty = parentClass.parent
-        ? __getPropertyWithParent(self, parentClass, property)
+        ? __getPropertyWithParent(parentClass.context, parentClass, property)
         : parentClass[property];
     if (!pProperty) pProperty = {};
     if (lx.isString(pProperty)) pProperty = {__str__:[pProperty]};
