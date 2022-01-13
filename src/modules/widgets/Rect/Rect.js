@@ -191,10 +191,12 @@ class Rect extends lx.Module #lx:namespace lx {
         }
 
         checkResize(e) {
-            var res = this.__sizeHolder.refresh(this.width('px'), this.height('px'));
+            let oldW = this.__sizeHolder.width,
+                oldH = this.__sizeHolder.height,
+                res = this.__sizeHolder.refresh(this.width('px'), this.height('px'));
             if (res) {
                 if (this.parent) this.parent.checkContentResize(e);
-                this.trigger('resize', e);
+                this.trigger('resize', e, oldW, oldH);
             }
             return res;
         }
