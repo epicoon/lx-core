@@ -286,13 +286,14 @@ class Box extends lx.Rect #lx:namespace lx {
             }
 
             if (!config.path) return;
-            if (!config.attributes) config.attributes = {};
+            var maker = lx.SnippetMap.getSnippetMaker(config.path);
+            if (!maker) return;
 
             var container = __getContainer(this);
             container.isSnippet = true;
 
+            if (!config.attributes) config.attributes = {};
             var snippet = new lx.Snippet(this, config);
-            var maker = lx.SnippetMap.getSnippetMaker(config.path);
 
             this.useRenderCache();
             this.begin();

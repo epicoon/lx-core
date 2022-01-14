@@ -280,3 +280,12 @@ Object.defineProperty(Array.prototype, "lxForEachRevert", {
 			func.call(this, this[i], i);
 	}
 });
+
+Object.defineProperty(Array.prototype, "lxMerge", {
+	value: function(arr, unique = true) {
+		for (var i=0, l=arr.len; i<l; i++) unique
+			? this.lxPushUnique(arr[i])
+			: this.push(arr[i]);
+		return this;
+	}
+});
