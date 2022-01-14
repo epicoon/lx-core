@@ -20,61 +20,12 @@ defined('STDOUT') or define('STDOUT', fopen('php://stdout', 'w'));
 require_once(__DIR__ . '/main.php');
 $site = new Directory(lx::$conductor->sitePath);
 
-$lx = $site->getOrMakeDirectory('services');
-
-$lx = $site->getOrMakeDirectory('lx');
-$system = $lx->getOrMakeDirectory('.system');
-$system->getOrMakeDirectory('temp');
-
-$gitignore = $site->makeFile('.gitignore');
-if ($gitignore->exists()) {
-    $str = '';
-    $text = $gitignore->get();
-    if ( ! preg_match('/\/lx\/.system\b/', $text)) {
-        $str .= '# lx local system dir' . PHP_EOL . '/lx/.system' . PHP_EOL . PHP_EOL;
-    }
-    if ( ! preg_match('/\/vendor\b/', $text)) {
-        $str .= '# composer vendor dir' . PHP_EOL . '/vendor' . PHP_EOL . PHP_EOL;
-    }
-    $str .= $text;
-} else {
-	$str = '# lx local system dir' . PHP_EOL . '/lx/.system' . PHP_EOL . PHP_EOL;
-	$str .= '# composer vendor dir' . PHP_EOL . '/vendor' . PHP_EOL . PHP_EOL;
-}
-$gitignore->put($str);
-
-require(__DIR__ . '/install-src/lxConsole.php');
-/**
- * @var $lxConsoleCode
- */
-$lxConsole = $lx->makeFile('lx');
-$lxConsole->put($lxConsoleCode);
-
-$firstConfig = [];
-if (!$lx->contains('config')) {
-	$config = $lx->makeDirectory('config');
-
-	require(__DIR__ . '/install-src/configTpl.php');
-	/**
-	 * @var $configMainCode
-	 * @var $configRoutesCode
-	 * @var $configPluginCode
-	 * @var $configServiceCode
-	 */
-
-	$configMain = $config->makeFile('main.php');
-	$configMain->put($configMainCode);
-
-	$configRoutes = $config->makeFile('routes.php');
-	$configRoutes->put($configRoutesCode);
-
-	$configPlugin = $config->makeFile('plugin.php');
-	$configPlugin->put($configPluginCode);
-
-	$configService = $config->makeFile('service.php');
-	$configService->put($configServiceCode);
-
-    $firstConfig = [
+$app = new lx\ConsoleApplication(
+    $site->contains('lx/config/main.php') ? []
+    : [
+        lx\AbstractApplication::CONFIG_KEY_CONSTRUCT_FLAGS => [
+            lx\AbstractApplication::CONSTRUCT_FLAG_IGNORE_CONFIG => true,
+        ],
         'packagesMap' => [
             'vendor',
             'services',
@@ -82,39 +33,106 @@ if (!$lx->contains('config')) {
         'aliases' => [
             'services' => '@site/services',
         ],
-    ];
-} else {
-    $configMain = $lx->get('config/main.php');
-    if ($configMain->exists()) {
-        $firstConfig = lx\PhpConfigHelper::get($configMain, ['packagesMap', 'aliases']);
-    } else {
-        $configMain = new lx\DataFile($configMain->getPath());
-        $data = $configMain->get();
-        $firstConfig = [
-            'packagesMap' => $data['packagesMap'] ?? [],
-            'aliases' => $data['aliases'] ?? [],
-        ];
-    }
-}
+    ]
+);
 
-$data = $lx->getOrMakeDirectory('data');
-if (!$data->contains('languages.php')) {
-	$languages = $data->makeFile('languages.php');
-	$languages->put(require(__DIR__ . '/install-src/data/languages.php'));
-}
-
-$firstConfig[lx\AbstractApplication::CONFIG_KEY_CONSTRUCT_FLAGS] = [
-    lx\AbstractApplication::CONSTRUCT_FLAG_IGNORE_CONFIG => true,
-];
-$app = new lx\ConsoleApplication($firstConfig);
-
-(new AutoloadMapBuilder())->createCommonAutoloadMap();
-lx::$autoloader->map->reset();
-(new JsModuleMapBuilder())->renewHead();
-
-$web = $site->getOrMakeDirectory('web');
-$cssCompiler = new AssetCompiler();
-$cssCompiler->copyLxCss();
-$cssCompiler->makePluginsAssetLinks();
-
+actualizeGitignore($site);
+genFileStructure($site);
+genConfig($site);
+refreshMaps();
 lx\Console::outln('Done');
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Functions
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+function actualizeGitignore(Directory $siteDirectory): void
+{
+    $gitignore = $siteDirectory->makeFile('.gitignore');
+    if ($gitignore->exists()) {
+        $str = '';
+        $text = $gitignore->get();
+        if ( ! preg_match('/\/lx\/.system\b/', $text)) {
+            $str .= '# lx local system dir' . PHP_EOL . '/lx/.system' . PHP_EOL . PHP_EOL;
+        }
+        if ( ! preg_match('/\/vendor\b/', $text)) {
+            $str .= '# composer vendor dir' . PHP_EOL . '/vendor' . PHP_EOL . PHP_EOL;
+        }
+        $str .= $text;
+    } else {
+        $str = '# lx local system dir' . PHP_EOL . '/lx/.system' . PHP_EOL . PHP_EOL;
+        $str .= '# composer vendor dir' . PHP_EOL . '/vendor' . PHP_EOL . PHP_EOL;
+    }
+    $gitignore->put($str);
+}
+
+function genFileStructure(Directory $siteDirectory): void
+{
+    if (!$siteDirectory->contains('services')) {
+        $services = $siteDirectory->makeDirectory('services');
+        $gitkeep = $services->makeFile('.gitkeep');
+        $gitkeep->put('');
+    }
+
+    $lx = $siteDirectory->getOrMakeDirectory('lx');
+    $system = $lx->getOrMakeDirectory('.system');
+    $system->getOrMakeDirectory('temp');
+
+    if (!$lx->contains('lx')) {
+        require(__DIR__ . '/install-src/lxConsole.php');
+        /**
+         * @var $lxConsoleCode
+         */
+        $lxConsole = $lx->makeFile('lx');
+        $lxConsole->put($lxConsoleCode);
+    }
+
+    $data = $lx->getOrMakeDirectory('data');
+    if (!$data->contains('languages.php')) {
+        $languages = $data->makeFile('languages.php');
+        $languages->put(require(__DIR__ . '/install-src/data/languages.php'));
+    }
+
+    $siteDirectory->getOrMakeDirectory('web');
+}
+
+function genConfig(Directory $siteDirectory): void
+{
+    $lx = $siteDirectory->get('lx');
+    if ($lx->contains('config')) {
+        return;
+    }
+
+    $config = $lx->makeDirectory('config');
+    /**
+     * @var $configMainCode
+     * @var $configRoutesCode
+     * @var $configPluginCode
+     * @var $configServiceCode
+     */
+    require(__DIR__ . '/install-src/configTpl.php');
+
+    $configMain = $config->makeFile('main.php');
+    $configMain->put($configMainCode);
+
+    $configRoutes = $config->makeFile('routes.php');
+    $configRoutes->put($configRoutesCode);
+
+    $configPlugin = $config->makeFile('plugin.php');
+    $configPlugin->put($configPluginCode);
+
+    $configService = $config->makeFile('service.php');
+    $configService->put($configServiceCode);
+}
+
+function refreshMaps(): void
+{
+    (new AutoloadMapBuilder())->createCommonAutoloadMap();
+    lx::$autoloader->map->reset();
+    (new JsModuleMapBuilder())->renewHead();
+
+    $cssCompiler = new AssetCompiler();
+    $cssCompiler->copyLxCss();
+    $cssCompiler->makePluginsAssetLinks();
+}
