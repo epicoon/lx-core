@@ -61,17 +61,12 @@ cssContext.addStyle('@font-face', {
 	fontWeight: 600
 });
 
-cssContext.addClass('lx-Box', {
-	borderRadius: >>>Css.borderRadius,
-	boxShadow: '0 0px ' + >>>Color.shadowSize + 'px rgba(0,0,0,0.5)',
-	backgroundColor: >>>Color.bodyBackgroundColor
-});
+cssContext.inheritClass('lx-Box', 'AbstractBox');
 /*============================================================================*/
 
 
 /*============================================================================*/
 /* TextBox */
-/* Button */
 /* Scroll */
 /* ActiveBox */
 /* MultiBox */
@@ -109,13 +104,6 @@ cssContext.addClass('lx-TextBox', {
 	textOverflow: 'inherit',
 });
 /* TextBox */
-/*============================================================================*/
-
-
-/*============================================================================*/
-/* Button */
-cssContext.inheritClass('lx-Button', 'ActiveButton');
-/* Button */
 /*============================================================================*/
 
 
@@ -217,23 +205,6 @@ cssContext.addClass('lx-ActiveBox-move', {
 	boxShadow: '0 '+(Math.round(abShadowShift*1.5))+'px '+(Math.round(abShadowSize*1.5))+'px rgba(0,0,0,0.5)',
 });
 /* ActiveBox */
-/*============================================================================*/
-
-
-/*============================================================================*/
-/* MultiBox */
-cssContext.inheritClass('lx-MultiBox', 'lx-Box', {});
-
-cssContext.inheritClass('lx-MultiBox-mark', 'ActiveButton', {
-	backgroundColor: >>>Color.coldSoftColor,
-	color: >>>Color.coldDeepColor
-});
-
-cssContext.addClass('lx-MultiBox-active', {
-	backgroundColor: >>>Color.coldDeepColor,
-	color: >>>Color.coldSoftColor
-});
-/* MultiBox */
 /*============================================================================*/
 
 
@@ -512,8 +483,8 @@ var calendarSideBackground = 'linear-gradient(to bottom, #9AD9F7, #146FBB)';
 var calendarSideTextColor = 'white';
 
 cssContext.inheritClass('lx-Calendar', 'lx-Input');
-cssContext.inheritClass('lx-Calendar-daysTable', 'lx-Box');
-cssContext.inheritClass('lx-Calendar-monthTable', 'lx-Box');
+cssContext.inheritClass('lx-Calendar-daysTable', 'AbstractBox');
+cssContext.inheritClass('lx-Calendar-monthTable', 'AbstractBox');
 
 cssContext.addClass('lx-Calendar-monthItem', {
 	cursor: 'pointer'
@@ -607,25 +578,6 @@ cssContext.addClass('lx-EggMenu-move', {
 	boxShadow: '0 '+(Math.round(abShadowShift*1.5))+'px '+(Math.round(abShadowSize*1.5))+'px rgba(0,0,0,0.5)'
 });
 /* EggMenu */
-/*============================================================================*/
-
-
-/*============================================================================*/
-/* ModelCollectionGrid */
-cssContext.addClass('lx-MCG-lPart', {
-	borderRight: 'thick double ' + >>>Color.widgetBorderColor
-});
-
-cssContext.addClass('lx-MCG-head', {
-	backgroundColor: >>>Color.altMainBackgroundColor,
-	borderBottom: 'thick double ' + >>>Color.widgetBorderColor
-});
-
-cssContext.addClass('lx-MCG-rowBack', {
-	backgroundColor: >>>Color.altMainBackgroundColor
-});
-
-/* ModelCollectionGrid */
 /*============================================================================*/
 
 

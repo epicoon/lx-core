@@ -387,10 +387,13 @@ class Dialog implements FusionComponentInterface
 			if (empty($post)) {
 				$input = file_get_contents('php://input');
 				$post = json_decode($input, true);
+                if (!is_array($post)) {
+                    $post = [];
+                }
 			}
 		}
 
-		$this->_params = $post + $get;
+        $this->_params = $post + $get;
 	}
 
 	private function retrieveCookie(): void

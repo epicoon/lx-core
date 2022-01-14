@@ -2,7 +2,7 @@ lx.Dialog = {
 	/**
 	 * Отправка запроса на сервер указанным методом
 	 * */
-	request: function(config) {
+	request: function(config, ignoreEvents = []) {
 		return sendRequest(
 			config.method,
 			config.url,
@@ -10,7 +10,8 @@ lx.Dialog = {
 			config.headers,
 			config.success,
 			config.waiting,
-			config.error
+			config.error,
+			ignoreEvents
 		);
 	},
 
@@ -146,8 +147,8 @@ function requestParamsFromString(str) {
  * headers - заголовки в виде объекта
  * success - функция-обработчик ответа от сервера
  * */
-function sendRequest(method, url, args, headers, success, waiting, error) {
-	if (!url) url = '';
+function sendRequest(method, url, data, headers, success, waiting, error, ignoreEvents = []) {
+	let calculatedUrl = url || '';
 
 	// Создаём запрос
 	var request = createRequest();
@@ -160,8 +161,8 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 
 	// Если требуется сделать GET-запрос, сформируем путь с аргументами
 	if (method.toLowerCase() == "get") {
-		args = requestParamsToString(args);
-		if (args != '') url += '?' + args;
+		let argsString = requestParamsToString(data);
+		if (argsString != '') url += '?' + argsString;
 	}
 
 	function callHandler(handler, args) {
@@ -176,14 +177,13 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 	}
 
 	// Обертка при успешном ответе - он может нести отладочную информацию
-	function handlerWrapper(request, handler) {
+	function successHandlerWrapper(request, handler) {
 		var response = request.response;
 
 		lx.User.setGuestFlag(request.getResponseHeader('lx-user-status') !== null);
 
 		// Передаем управление обработчику пользователя
-		var contentType = request.getResponseHeader('Content-Type') || '',
-			result;
+		var contentType = request.getResponseHeader('Content-Type') || '';
 
 		#lx:mode-case: dev
 			var responseAndDump = __findDump(response), dump;
@@ -191,7 +191,7 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 			dump = responseAndDump[1];
 		#lx:mode-end;
 
-		result = contentType.match(/text\/json/)
+		var result = contentType.match(/text\/json/)
 			? JSON.parse(response)
 			: response;
 		callHandler(handler, [result, request]);
@@ -199,6 +199,42 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 		#lx:mode-case: dev
 			if (dump) lx.Alert(dump);
 		#lx:mode-end;
+	}
+
+	function errorHandlerWrapper(request, handler) {
+		var response = request.response,
+			contentType = request.getResponseHeader('Content-Type') || '';
+
+		#lx:mode-case: dev
+			var responseAndDump = __findDump(response), dump;
+			response = responseAndDump[0];
+			dump = responseAndDump[1];
+		#lx:mode-end;
+
+		var result = contentType.match(/text\/json/) ? JSON.parse(response) : response;
+
+		callHandler(handler, [result, request]);
+
+		#lx:mode-case: dev
+			if (dump) lx.Alert(dump);
+		#lx:mode-end;
+
+		if (__isAjax(calculatedUrl)) {
+			switch (result.error_code) {
+				case 401:
+					if (!ignoreEvents.includes(lx.EVENT_AJAX_REQUEST_UNAUTHORIZED)) lx.trigger(
+						lx.EVENT_AJAX_REQUEST_UNAUTHORIZED,
+						[result, request, {method, url, data, headers, success, waiting, error}]
+					);
+					break;
+				case 403:
+					if (!ignoreEvents.includes(lx.EVENT_AJAX_REQUEST_FORBIDDEN)) lx.trigger(
+						lx.EVENT_AJAX_REQUEST_FORBIDDEN,
+						[result, request, {method, url, data, headers, success, waiting, error}]
+					);
+					break;
+			}
+		}
 	}
 
 	// Назначаем пользовательский обработчик
@@ -211,17 +247,18 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 		}
 
 		if (request.status == 200) {
-			handlerWrapper(request, handlerMap.success);
+			successHandlerWrapper(request, handlerMap.success);
 		} else {
 			// Оповещаем пользователя о произошедшей ошибке
-			handlerWrapper(request, handlerMap.error);
+			errorHandlerWrapper(request, handlerMap.error);
 		}
 	};
 
 	// Инициализируем соединение
-	request.open(method, url, true);
-	if (__isAjax(url)) {
-		lx.trigger(lx.EVENT_BEFORE_AJAX_REQUEST, [request]);
+	request.open(method, calculatedUrl, true);
+	if (__isAjax(calculatedUrl)) {
+		if (!ignoreEvents.includes(lx.EVENT_BEFORE_AJAX_REQUEST))
+			lx.trigger(lx.EVENT_BEFORE_AJAX_REQUEST, [request]);
 	}
 	for (var name in headers) {
 		request.setRequestHeader(name, headers[name]);
@@ -234,7 +271,7 @@ function sendRequest(method, url, args, headers, success, waiting, error) {
 
 			// Устанавливаем заголовок
 			request.setRequestHeader("Content-Type","application/json; charset=UTF8");
-			request.send(lx.Json.encode(args));
+			request.send(lx.Json.encode(data));
 			break;
 		case 'get':
 			// Посылаем нуль-запрос

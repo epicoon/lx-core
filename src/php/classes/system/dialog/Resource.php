@@ -85,7 +85,11 @@ class Resource implements ResourceInterface, ObjectInterface
 
 		if ($user && $this->voter) {
 			if (!$this->voter->run($user, $actionName, $params)) {
-				return $this->newResponse('Resource is unavailable',ResponseCodeEnum::FORBIDDEN);
+                if ($user->isGuest()) {
+                    return $this->newResponse('Unauthorized', ResponseCodeEnum::UNAUTHORIZED);
+                }
+
+				return $this->newResponse('Forbidden',ResponseCodeEnum::FORBIDDEN);
 			}
 
 			$params = $this->voter->processActionParams($user, $actionName, $params);

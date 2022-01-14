@@ -8,6 +8,7 @@ interface ResponseInterface
     public function beforeSend(): void;
     public function getCode(): int;
     public function isForbidden(): bool;
+    public function requireAuthorization(): bool;
     /**
      * @return mixed
      */

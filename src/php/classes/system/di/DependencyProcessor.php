@@ -313,12 +313,12 @@ class DependencyProcessor
             }
         }
 
-        if (array_key_exists($interfaceName, $this->interfaces)) {
-            return $this->interfaces[$interfaceName];
-        }
-
         if (array_key_exists($interfaceName, $contextWeakDependencies)) {
             return $contextWeakDependencies[$interfaceName];
+        }
+
+        if (array_key_exists($interfaceName, $this->interfaces)) {
+            return $this->interfaces[$interfaceName];
         }
 
         return null;

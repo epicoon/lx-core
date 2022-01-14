@@ -1,7 +1,11 @@
 lx.EVENT_BEFORE_AJAX_REQUEST = 'beforeAjax';
+lx.EVENT_AJAX_REQUEST_UNAUTHORIZED = 'ajaxUnauthorized';
+lx.EVENT_AJAX_REQUEST_FORBIDDEN = 'ajaxForbidden';
 
 let callbacks = {
-    beforeAjax: []
+    beforeAjax: [],
+    ajaxUnauthorized: [],
+    ajaxForbidden: []
 };
 
 lx.subscribe = function (eventName, callback) {

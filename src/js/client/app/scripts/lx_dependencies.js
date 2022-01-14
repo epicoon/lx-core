@@ -35,7 +35,8 @@ lx.dependencies = {
 					return;
 				}
 				
-				lx._f.createAndCallFunction('', res.data);
+				lx._f.createAndCallFunction('', res.data.code);
+				lx.runModules(res.data.compiledModules);
 				this.depend({modules: need});
 				if (callback) callback();
 			});

@@ -20,7 +20,7 @@ class PageRequestHandler extends RequestHandler
 
         $response = $this->resourceContext->invoke();
 
-        if ($response->isForbidden() && lx::$app->user->isGuest()) {
+        if ($response->requireAuthorization()) {
             $resourceContext = lx::$app->authenticationGate->responseToAuthenticate() ?? null;
             if ($resourceContext && $resourceContext->isPlugin()) {
                 $this->resourceContext = $resourceContext;

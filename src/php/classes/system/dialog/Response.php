@@ -42,6 +42,11 @@ class Response implements ResponseInterface
         return $this->getCode() == ResponseCodeEnum::FORBIDDEN;
     }
 
+    public function requireAuthorization(): bool
+    {
+        return $this->getCode() == ResponseCodeEnum::UNAUTHORIZED;
+    }
+
     public function isSuccessfull(): bool
     {
         return $this->getCode() == ResponseCodeEnum::OK;
