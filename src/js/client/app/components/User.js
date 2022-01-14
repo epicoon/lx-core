@@ -16,6 +16,8 @@ lx.User = {
     },
 
     set: function(data) {
+        if (__publicFieldNames.len) return;
+        
         for (let key in data) {
             __publicFieldNames.push(key);
             __publicFields[key] = data[key];
