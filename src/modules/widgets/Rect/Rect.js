@@ -1473,10 +1473,6 @@ class Rect extends lx.Module #lx:namespace lx {
             if (!elem) return;
             if (this.disabled() || !elem.events || !(eventName in elem.events)) return;
 
-            if (eventName == 'blur') {
-                elem.blur();
-                return true;
-            }
             return runEventHandlers(this, elem.events[eventName], args);
         }
     }

@@ -1,11 +1,39 @@
 #lx:module lx.BoxSlider;
 
+#lx:use lx.MainCssContext;
 #lx:use lx.Box;
 
 class BoxSlider extends lx.Box #lx:namespace lx {
 	#lx:const
 		TYPE_SLIDER = 1,
 		TYPE_OPACITY = 2;
+
+	getBasicCss() {
+		return {
+			leftButton: 'lx-IS-button-l',
+			rightButton: 'lx-IS-button-r'
+		};
+	}
+
+	static initCssAsset(css) {
+		css.addAbstractClass('lx-IS-button', {
+			backgroundImage: 'url(web/css/img/ISarroy.png)',
+			backgroundRepeat: 'no-repeat',
+			backgroundSize: '100% 100%',
+			borderTopLeftRadius: lx.MainCssContext.borderRadius,
+			borderBottomLeftRadius: lx.MainCssContext.borderRadius,
+			opacity: '0.3'
+		});
+		css.inheritClass('lx-IS-button-l', 'lx-IS-button', {
+			transform: 'rotate(180deg)',
+		}, {
+			hover: 'background-color: black'
+		});
+		css.inheritClass('lx-IS-button-r', 'lx-IS-button', {
+		}, {
+			hover: 'background-color: black'
+		});
+	}
 
 	build(config) {
 		super.build(config);
@@ -22,13 +50,6 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 
 		this.setSlides(config.count || 1);
 		this.style('overflowX', 'hidden');
-	}
-
-	getBasicCss() {
-		return {
-			leftButton: 'lx-IS-button-l',
-			rightButton: 'lx-IS-button-r'
-		};
 	}
 
 	#lx:client {

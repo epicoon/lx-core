@@ -1,5 +1,7 @@
 #lx:module lx.TreeBox;
 
+#lx:use lx.MainCssContext;
+#lx:use lx.CssColorSchema;
 #lx:use lx.Box;
 #lx:use lx.Input;
 
@@ -29,6 +31,39 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			buttonDel: 'lx-TW-Button-del',
 			label: 'lx-TW-Label'
 		};
+	}
+
+	static initCssAsset(css) {
+		css.useContext(lx.MainCssContext.instance);
+		css.addClass('lx-TreeBox', {
+			backgroundColor: lx.CssColorSchema.altBodyBackgroundColor,
+			borderRadius: '10px'
+		});
+		css.inheritAbstractClass('lx-TW-Button', 'ActiveButton', {
+			color: lx.CssColorSchema.widgetIconColor,
+			backgroundColor: lx.CssColorSchema.checkedMainColor
+		});
+		css.inheritClasses({
+			'lx-TW-Button-closed':
+				{ '@icon': ['\\25BA', {fontSize:10, paddingBottom:'3px', paddingLeft:'2px'}] },
+			'lx-TW-Button-opened':
+				{ '@icon': ['\\25BC', {fontSize:10, paddingBottom:'2px'}] },
+			'lx-TW-Button-add'   :
+				{ '@icon': ['\\002B', {fontSize:12, paddingBottom:'3px', fontWeight: 700}] },
+			'lx-TW-Button-del'   :
+				{ '@icon': ['\\002D', {fontSize:12, paddingBottom:'3px', fontWeight: 700}] }
+		}, 'lx-TW-Button');
+		css.inheritClass('lx-TW-Button-empty', 'Button', {
+			backgroundColor: lx.CssColorSchema.checkedMainColor,
+			cursor: 'default'
+		});
+		css.addClass('lx-TW-Label', {
+			overflow: 'hidden',
+			whiteSpace: 'nowrap',
+			textOverflow: 'ellipsis',
+			backgroundColor: lx.CssColorSchema.textBackgroundColor,
+			borderRadius: lx.MainCssContext.borderRadius
+		});
 	}
 
 	/* config = {

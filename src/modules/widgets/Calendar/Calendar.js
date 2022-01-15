@@ -3,6 +3,8 @@
     i18n: i18n.yaml
 };
 
+#lx:use lx.MainCssContext;
+#lx:use lx.CssColorSchema;
 #lx:use lx.Date;
 #lx:use lx.Box;
 #lx:use lx.Input;
@@ -28,6 +30,79 @@
 }
 
 class Calendar extends lx.Input #lx:namespace lx {
+    getBasicCss() {
+        return {
+            main: 'lx-Calendar',
+
+            arroyL: 'lx-Calendar-arroyL',
+            arroyR: 'lx-Calendar-arroyR',
+            month: 'lx-Calendar-month',
+            dayTitle: 'lx-Calendar-dayTitle',
+            today: 'lx-Calendar-today',
+
+            daysTable: 'lx-Calendar-daysTable',
+            day: 'lx-Calendar-day',
+            sideDay: 'lx-Calendar-side-day',
+            currentDay: 'lx-Calendar-current-day',
+
+            monthTable: 'lx-Calendar-monthTable',
+            monthItem: 'lx-Calendar-monthItem'
+        };
+    }
+
+    static initCssAsset(css) {
+        css.useContext(lx.MainCssContext.instance);
+        css.inheritClass('lx-Calendar', 'Input');
+        css.inheritClass('lx-Calendar-daysTable', 'AbstractBox');
+        css.inheritClass('lx-Calendar-monthTable', 'AbstractBox');
+        css.addClass('lx-Calendar-monthItem', {
+            cursor: 'pointer'
+        }, {
+            hover: {
+                backgroundColor: lx.CssColorSchema.checkedDarkColor
+            }
+        });
+        css.addAbstractClass('lx-Calendar-arroy', {
+            cursor: 'pointer',
+            opacity: 0.5
+        }, {
+            hover: {
+                opacity: 1
+            }
+        });
+        css.inheritClasses({
+            'lx-Calendar-arroyL' : { '@icon': ['\\2770', 16] },
+            'lx-Calendar-arroyR': { '@icon': ['\\2771', 16] }
+        }, 'lx-Calendar-arroy');
+        css.inheritClass('lx-Calendar-month', 'Input', {
+            cursor: 'pointer'
+        });
+        css.addClass('lx-Calendar-dayTitle', {
+            background: lx.CssColorSchema.widgetGradient,
+            color: lx.CssColorSchema.widgetIconColor
+        });
+        css.addClass('lx-Calendar-today', {
+            background: lx.CssColorSchema.widgetGradient,
+            color: lx.CssColorSchema.widgetIconColor,
+            cursor: 'pointer'
+        });
+        css.addAbstractClass('lx-Calendar-every-day', {
+            cursor: 'pointer'
+        }, {
+            hover: {
+                backgroundColor: lx.CssColorSchema.checkedDarkColor
+            }
+        });
+        css.inheritClasses({
+            'lx-Calendar-day': {},
+            'lx-Calendar-side-day': { color: 'gray' }
+        }, 'lx-Calendar-every-day');
+        css.addClass('lx-Calendar-current-day', {
+            background: lx.CssColorSchema.widgetGradient,
+            color: lx.CssColorSchema.widgetIconColor
+        });
+    }
+
     build(config) {
         this.date = config.date || (new Date()).toString();
         #lx:client {
@@ -48,26 +123,6 @@ class Calendar extends lx.Input #lx:namespace lx {
             this.date = new lx.Date(this.date);
             this.value( this.date.format() );
         }
-    }
-
-    getBasicCss() {
-        return {
-            main: 'lx-Calendar',
-
-            arroyL: 'lx-Calendar-arroyL',
-            arroyR: 'lx-Calendar-arroyR',
-            month: 'lx-Calendar-month',
-            dayTitle: 'lx-Calendar-dayTitle',
-            today: 'lx-Calendar-today',
-
-            daysTable: 'lx-Calendar-daysTable',
-            day: 'lx-Calendar-day',
-            sideDay: 'lx-Calendar-side-day',
-            currentDay: 'lx-Calendar-current-day',
-
-            monthTable: 'lx-Calendar-monthTable',
-            monthItem: 'lx-Calendar-monthItem'
-        };
     }
 
     value(val) {

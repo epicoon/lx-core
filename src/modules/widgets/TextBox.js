@@ -22,6 +22,22 @@ class TextBox extends lx.Rect #lx:namespace lx {
 		return 'lx-TextBox';
 	}
 
+	static initCssAsset(css) {
+		css.addClass('lx-TextBox', {
+			padding: '0px 5px',
+			width: 'auto',
+			height: 'auto',
+			fontFamily: 'MainFont',
+			fontSize: 'calc(10px + 1.0vh)',
+
+			color: 'inherit',
+			cursor: 'inherit',
+			overflow: 'inherit',
+			whiteSpace: 'inherit',
+			textOverflow: 'inherit',
+		});
+	}
+
 	text(val) {
 		return this.value(val);
 	}

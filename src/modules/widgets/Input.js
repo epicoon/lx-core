@@ -1,8 +1,26 @@
 #lx:module lx.Input;
 
+#lx:use lx.MainCssContext;
+#lx:use lx.CssColorSchema;
 #lx:use lx.Rect;
 
 class Input extends lx.Rect #lx:namespace lx {
+	getBasicCss() {
+		return 'lx-Input';
+	}
+	
+	static initCssAsset(css) {
+		css.inheritClass('lx-Input', lx.MainCssContext.getClass('Input'), {
+		}, {
+			focus: 'border: 1px solid ' + lx.CssColorSchema.checkedMainColor,
+			disabled: 'opacity: 0.5'
+		});
+	}
+
+	static getStaticTag() {
+		return 'input';
+	}
+
 	/**
 	 * config = {
 	 *	// стандартные для Rect,
@@ -42,14 +60,6 @@ class Input extends lx.Rect #lx:namespace lx {
 			if (this._oldValue === undefined) return null;
 			return this._oldValue;
 		}
-	}
-
-	getBasicCss() {
-		return 'lx-Input';
-	}
-
-	static getStaticTag() {
-		return 'input';
 	}
 
 	value(val) {

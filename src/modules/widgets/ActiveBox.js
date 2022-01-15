@@ -1,5 +1,7 @@
 #lx:module lx.ActiveBox;
 
+#lx:use lx.MainCssContext;
+#lx:use lx.CssColorSchema;
 #lx:use lx.Box;
 
 class ActiveBox extends lx.Box #lx:namespace lx {
@@ -21,6 +23,59 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 			resizer: 'lx-ActiveBox-resizer',
 			onMove: 'lx-ActiveBox-move',
 		}
+	}
+
+	static initCssAsset(css) {
+		let shadowSize = lx.CssColorSchema.shadowSize + 2,
+			shadowShift = Math.floor(shadowSize * 0.5);
+		css.useContext(lx.MainCssContext.instance);
+		css.addClass('lx-ActiveBox', {
+			overflow: 'hidden',
+			borderRadius: lx.MainCssContext.borderRadius,
+			boxShadow: '0 '+shadowShift+'px '+shadowSize+'px rgba(0,0,0,0.5)',
+			minWidth: '50px',
+			minHeight: '75px',
+			backgroundColor: lx.CssColorSchema.bodyBackgroundColor
+		});
+		css.addClass('lx-ActiveBox-header', {
+			overflow: 'hidden',
+			whiteSpace: 'nowrap',
+			textOverflow: 'ellipsis',
+			cursor: 'move',
+			borderRadius: lx.MainCssContext.borderRadius,
+			boxShadow: '0 0px 3px rgba(0,0,0,0.5) inset',
+			background: lx.CssColorSchema.widgetGradient
+		});
+		css.addClass('lx-ActiveBox-close', {
+			cursor: 'pointer',
+			color: lx.CssColorSchema.widgetIconColor,
+			'@icon': ['\\2715', {fontSize:10, paddingBottom:'3px'}]
+		});
+		css.addStyle('.lx-ActiveBox-header .lx-TextBox', {
+			fontWeight: 'bold',
+			color: lx.CssColorSchema.headerTextColor
+		});
+		css.addClass('lx-ActiveBox-body', {
+			overflow: 'auto',
+			backgroundColor: lx.CssColorSchema.altBodyBackgroundColor
+		});
+		css.addClass('lx-ActiveBox-resizer', {
+			cursor: 'se-resize',
+			borderRadius: lx.MainCssContext.borderRadius,
+			color: lx.CssColorSchema.widgetIconColor,
+			backgroundColor: lx.CssColorSchema.bodyBackgroundColor,
+			'@icon': ['\\21F2', {fontSize:10, paddingBottom:'0px'}],
+			opacity: 0
+		}, {
+			hover: {
+				opacity: 1,
+					transition: 'opacity 0.3s linear'
+			}
+		});
+		css.addClass('lx-ActiveBox-move', {
+			marginTop: '-2px',
+			boxShadow: '0 '+(Math.round(shadowShift*1.5))+'px '+(Math.round(shadowSize*1.5))+'px rgba(0,0,0,0.5)',
+		});
 	}
 
 	getDefaultDepthCluster() {

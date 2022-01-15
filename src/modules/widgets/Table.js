@@ -1,8 +1,38 @@
 #lx:module lx.Table;
 
+#lx:use lx.MainCssContext;
+#lx:use lx.CssColorSchema;
 #lx:use lx.Box;
 
 class Table extends lx.Box #lx:namespace lx {
+	getBasicCss() {
+		return {
+			main: 'lx-Table',
+			row: 'lx-Table-row',
+			cell: 'lx-Table-cell'
+		}
+	}
+
+	static initCssAsset(css) {
+		css.addClass('lx-Table', {
+			border: '1px solid ' + lx.CssColorSchema.widgetBorderColor,
+			borderRadius: lx.MainCssContext.borderRadius
+		});
+		css.addClass('lx-Table-row', {
+			borderTop: '1px solid ' + lx.CssColorSchema.widgetBorderColor
+		}, {
+			'first-child': 'border: 0px',
+			'nth-child(2n)': 'background-color: ' + lx.CssColorSchema.bodyBackgroundColor,
+			'nth-child(2n+1)': 'background-color: ' + lx.CssColorSchema.altBodyBackgroundColor
+		});
+		css.addClass('lx-Table-cell', {
+			height: '100%',
+			borderRight: '1px solid ' + lx.CssColorSchema.widgetBorderColor
+		}, {
+			'last-child': 'border: 0px'
+		});
+	}
+
 	/**
 	 * config = {
 	 * 	rows: int
@@ -41,14 +71,6 @@ class Table extends lx.Box #lx:namespace lx {
 	#lx:client postUnpack(config) {
 		super.postUnpack(config);
 		this.indents = lx.IndentData.unpackOrNull(this.indents);
-	}
-
-	getBasicCss() {
-		return {
-			main: 'lx-Table',
-			row: 'lx-Table-row',
-			cell: 'lx-Table-cell'
-		}
 	}
 
 	row(row) {

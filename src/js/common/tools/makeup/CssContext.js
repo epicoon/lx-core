@@ -6,6 +6,12 @@ class CssContext #lx:namespace lx {
         this.abstractClasses = {};
         this.classes = {};
         this.mixins = {};
+        
+        this.proxyContexts = [];
+    }
+
+    useContext(context) {
+        this.proxyContexts.lxPushUnique(context);
     }
 
     addStyle(name, content = {}) {
@@ -127,6 +133,34 @@ class CssContext #lx:namespace lx {
 /***********************************************************************************************************************
  * PRIVATE
  **********************************************************************************************************************/
+function __getMixin(self, name) {
+    let mixinName = (name[0] == '@') ? name.replace(/^@/, '') : name;
+    if (mixinName in self.mixins)
+        return self.mixins[mixinName];
+
+    for (let i in self.proxyContexts) {
+        let mixin = __getMixin(self.proxyContexts[i], name);
+        if (mixin) return mixin;
+    }
+
+    return null;
+}
+
+function __getClass(self, name) {
+    if (name in self.abstractClasses)
+        return self.abstractClasses[name];
+
+    if (name in self.classes)
+        return self.classes[name];
+
+    for (let i in self.proxyContexts) {
+        let c = __getClass(self.proxyContexts[i], name);
+        if (c) return c;
+    }
+
+    return null;
+}
+
 function __processContent(self, content, pseudoclasses) {
     if (lx.isString(content)) {
         return {content, pseudoclasses};
@@ -139,15 +173,19 @@ function __processContent(self, content, pseudoclasses) {
             continue;
         }
 
-        name = name.replace('@', '');
-        if (!(name in self.mixins)) continue;
+        let mixin = __getMixin(self, name);
+        if (!mixin) continue;
 
-        var args = content['@'+name];
+        var args = content[name];
         if (!lx.isArray(args)) args = [args];
-        var result = self.mixins[name].apply(null, args);
+        var result = mixin.apply(null, args);
 
-        processedContent.lxMerge(result.content);
-        pseudoclasses.lxMerge(result.pseudoclasses);
+        if (result.content) {
+            processedContent.lxMerge(result.content);
+            if (result.pseudoclasses) pseudoclasses.lxMerge(result.pseudoclasses);
+        } else {
+            processedContent.lxMerge(result);
+        }
     }
 
     return {
@@ -208,12 +246,8 @@ function __getPropertyWithParent(self, classData, property) {
     var parentClass = null;
     if (lx.isObject(classData.parent))
         parentClass = classData.parent;
-    else if (self.abstractClasses[classData.parent])
-        parentClass = self.abstractClasses[classData.parent];
-    else if (self.classes[classData.parent])
-        parentClass = self.classes[classData.parent];
+    if (!parentClass) parentClass = __getClass(self, classData.parent);
     if (!parentClass) return classData[property];
-
 
     var pProperty = parentClass.parent
         ? __getPropertyWithParent(parentClass.context, parentClass, property)

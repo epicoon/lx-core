@@ -1,8 +1,21 @@
 #lx:module lx.Slider;
 
+#lx:use lx.MainCssContext;
 #lx:use lx.Box;
 
 class Slider extends lx.Box #lx:namespace lx {
+	getBasicCss() {
+		return {
+			track: 'lx-slider-track',
+			handle: 'lx-slider-handle'
+		};
+	}
+	
+	static initCssAsset(css) {
+		css.inheritClass('lx-slider-track', lx.MainCssContext.getClass('Button'));
+		css.inheritClass('lx-slider-handle', lx.MainCssContext.getClass('ActiveButton'));
+	}
+
 	build(config) {
 		super.build(config);
 
@@ -59,13 +72,6 @@ class Slider extends lx.Box #lx:namespace lx {
 			.on('moveEnd', self::stop);
 
 		this->track.click(self::trackClick);
-	}
-
-	getBasicCss() {
-		return {
-			track: 'lx-slider-track',
-			handle: 'lx-slider-handle'
-		};
 	}
 
 	change(func) {

@@ -1,5 +1,6 @@
 #lx:module lx.Textarea;
 
+#lx:use lx.MainCssContext;
 #lx:use lx.Input;
 
 class Textarea extends lx.Input #lx:namespace lx {
@@ -9,5 +10,11 @@ class Textarea extends lx.Input #lx:namespace lx {
 
 	getBasicCss() {
 		return 'lx-Textarea';
+	}
+	
+	static initCssAsset(css) {
+		css.inheritClass('lx-Textarea', lx.MainCssContext.getClass('Input'), {
+			resize: 'none'
+		});
 	}
 }

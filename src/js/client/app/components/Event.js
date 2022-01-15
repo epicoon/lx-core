@@ -46,7 +46,7 @@ class Event #lx:namespace lx {
         var handlers = el.events && el.events[type];
         if (!handlers) return;
 
-        if (handler == undefined) {
+        if (handler === undefined) {
             for ( var handle in handlers ) {
                 delete el.events[type][handle];
             }

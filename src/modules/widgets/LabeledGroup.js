@@ -3,6 +3,29 @@
 #lx:use lx.Box;
 
 class LabeledGroup extends lx.Box #lx:namespace lx {
+	getBasicCss() {
+		return {
+			main: 'lx-LabeledGroup',
+			item: 'lx-LabeledGroup-item',
+			label: 'lx-LabeledGroup-label'
+		};
+	}
+	
+	static initCssAsset(css) {
+		css.addClass('lx-LabeledGroup', {
+			display: 'grid',
+			gridAutoFlow: 'row',
+			gridGap: '.8em',
+			padding: '1.2em'
+		});
+		css.addClass('lx-LabeledGroup-item', {
+			position: 'relative',
+			gridRow: 'auto'
+		});
+		css.addClass('lx-LabeledGroup-label', {
+		});
+	}
+
 	/**
 	 * config = {
 	 *	// стандартные для Box,
@@ -75,14 +98,6 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 			counter++;
 			if (counter >= cols) counter = 0;
 		}
-	}
-
-	getBasicCss() {
-		return {
-			main: 'lx-LabeledGroup',
-			item: 'lx-LabeledGroup-item',
-			label: 'lx-LabeledGroup-label'
-		};
 	}
 
 	#lx:client clientBuild(config) {

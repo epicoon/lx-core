@@ -1,5 +1,6 @@
 #lx:module lx.EggMenu;
 
+#lx:use lx.CssColorSchema;
 #lx:use lx.Box;
 
 class EggMenu extends lx.Box #lx:namespace lx {
@@ -19,6 +20,30 @@ class EggMenu extends lx.Box #lx:namespace lx {
 			bottom: 'lx-EggMenu-bottom',
 			onMove: 'lx-EggMenu-move',
 		}
+	}
+	
+	static initCssAsset(css) {
+		let shadowSize = lx.CssColorSchema.shadowSize + 2,
+			shadowShift = Math.floor(shadowSize * 0.5);
+		css.addClass('lx-EggMenu', {
+			overflow: 'visible',
+			borderRadius: '25px',
+			boxShadow: '0 '+shadowShift+'px '+shadowSize+'px rgba(0,0,0,0.5)'
+		});
+		css.addClass('lx-EggMenu-top', {
+			backgroundColor: lx.CssColorSchema.bodyBackgroundColor,
+			borderTopLeftRadius: '25px',
+			borderTopRightRadius: '25px'
+		});
+		css.addClass('lx-EggMenu-bottom', {
+			backgroundColor: lx.CssColorSchema.checkedSoftColor,
+			borderBottomLeftRadius: '25px',
+			borderBottomRightRadius: '25px'
+		});
+		css.addClass('lx-EggMenu-move', {
+			marginTop: '-2px',
+			boxShadow: '0 '+(Math.round(shadowShift*1.5))+'px '+(Math.round(shadowSize*1.5))+'px rgba(0,0,0,0.5)'
+		});
 	}
 
 	getDefaultDepthCluster() {

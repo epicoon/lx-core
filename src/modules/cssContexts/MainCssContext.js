@@ -2,23 +2,26 @@
 
 #lx:use lx.CssColorSchema;
 
-class MainCssContext #lx:namespace lx {
+let __instance = null;
+
+class MainCssContext extends lx.CssContext #lx:namespace lx {
     #lx:const
         borderRadius = '5px',
         butShadowSize = Math.floor(lx.CssColorSchema.shadowSize * 0.33) + 3,
         butShadowShift = Math.floor(this.butShadowSize * 0.5);
-    
-    static get cssContext() {
-        if (this.__css === undefined) {
-            this.__css = new lx.CssContext();
-            __init(this.__css);
-        }
-        
-        return this.__css;
+
+    constructor() {
+        super();
+        __init(this);
     }
-    
+
+    static get instance() {
+        if (__instance === null) __instance = new this();
+        return __instance;
+    }
+
     static getClass(name) {
-        return this.cssContext.getClass(name);
+        return this.instance.getClass(name);
     }
 }
 
@@ -33,9 +36,9 @@ function __init(cssContext) {
         var iconStyle = {
             fontSize: 'calc(30px + 1.0vh)',
             fontWeight: '500',
-            paddingBottom: '6px',
             color: 'inherit',
             fontFamily: 'MainFont',
+            content: "'" + iconCode + "'"
         };
         if (config) {
             if (lx.isNumber(config)) iconStyle.fontSize = config;
@@ -43,7 +46,6 @@ function __init(cssContext) {
             if (lx.isNumber(iconStyle.fontSize))
                 iconStyle.fontSize = 'calc('+iconStyle.fontSize+'px + 1.0vh)';
         }
-        iconStyle.lxMerge({content: "'" + iconCode + "'"});
         return {
             content: iconFlex,
             pseudoclasses: {
@@ -80,6 +82,13 @@ function __init(cssContext) {
         fontFamily: 'MainFont',
         fontSize: 'calc(10px + 1.0vh)',
         color: lx.CssColorSchema.textColor
+    });
+
+    cssContext.addAbstractClass('Checkbox-shape', {
+        width: '23px !important',
+        height: '23px !important',
+        backgroundImage: 'url(web/css/img/crsprite.png)',
+        cursor: 'pointer'
     });
 
     cssContext.inheritAbstractClass('ActiveButton', 'Button', {

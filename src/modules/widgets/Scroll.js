@@ -1,5 +1,6 @@
 #lx:module lx.Scroll;
 
+#lx:use lx.CssColorSchema;
 #lx:use lx.Box;
 
 class Scroll extends lx.Box #lx:namespace lx {
@@ -13,6 +14,37 @@ class Scroll extends lx.Box #lx:namespace lx {
             handleBack: 'lx-Scroll-handle-back',
             handle: 'lx-Scroll-handle'
         };
+    }
+    
+    static initCssAsset(css) {
+        let scrollSize = parseInt(this.DEFAULT_SIZE, 10),
+            trackPadding = Math.floor(scrollSize / 3),
+            scrollBorderRadius = Math.round(scrollSize * 0.5) + 'px',
+            scrollTrackPadding = trackPadding + 'px',
+            scrollTrackBorderRadius = Math.round((scrollSize - trackPadding * 2) * 0.5) + 'px';
+        css.addClass('lx-Scroll-back', {
+            backgroundColor: lx.CssColorSchema.widgetIconColor,
+            borderRadius: scrollBorderRadius,
+            opacity: 0
+        });
+        css.addStyle('.lx-Scroll:hover .lx-Scroll-back', {
+            opacity: 0.2,
+            transition: 'opacity 0.3s linear'
+        });
+        css.addClass('lx-Scroll-handle-back', {
+            padding: scrollTrackPadding
+        });
+        css.addClass('lx-Scroll-handle', {
+            width: '100%',
+            height: '100%',
+            borderRadius: scrollTrackBorderRadius,
+            backgroundColor: lx.CssColorSchema.widgetIconColor,
+            opacity: 0.3
+        });
+        css.addStyle('.lx-Scroll-handle-back:hover .lx-Scroll-handle', {
+            opacity: 0.6,
+            transition: 'opacity 0.3s linear'
+        });
     }
 
     modifyConfigBeforeApply(config) {

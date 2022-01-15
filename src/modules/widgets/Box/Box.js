@@ -2,7 +2,6 @@
 
 #lx:use lx.Rect;
 #lx:use lx.TextBox;
-#lx:use lx.Textarea;
 
 #lx:require positioningStrategiesJs/;
 #lx:require tools;
@@ -25,7 +24,11 @@
  * clear()
  * del(el, index, count)
  * text(text)
- * static entry()
+ * setEditable(value = true)
+ * isEditable()
+ * isEditing()
+ * edit()
+ * blur(e)
  * showOnlyChild(key)
  * scrollTo(adr)
  * getScrollPos()
@@ -673,38 +676,64 @@ class Box extends lx.Rect #lx:namespace lx {
         return container;
     }
 
-    /**
-     * Навешивается на обработчики - контекстом устанавливает активированный элемент
-     * */
-    entry() {
-        /*
-        todo
-        делать по механизму как редактор, а не через инпут
-        */
-        if ( this.contains('input') ) return;
+    setEditable(value = true) {
+        if (value && !this.isEditable()) {
+            let container = __getContainer(this);
+            if (!container.contains('text'))
+                this.add(lx.TextBox);
+            container->text.setAttribute('contentEditable','true');
+            container.on('click', __handlerEdit);
+            container->text.on('blur', __handlerBlur);
+        } else if (this.isEditable()) {
+            let container = __getContainer(this);
+            container->text.removeAttribute('contentEditable');
+            container.off('click', __handlerEdit);
+            container->text.off('blur', __handlerBlur);
+        }
+    }
 
-        var _t = this,
-            boof = this.text(),
-            input = new lx.Textarea({
-                parent: this,
-                key: 'input',
-                geom: [0, 0, this.width('px')+'px', this.height('px')+'px']
-            });
+    isEditable() {
+        var container = __getContainer(this);
+        if (!container.contains('text')) return false;
+        return !!container->text.getAttribute('contentEditable');
+    }
+    
+    isEditing() {
+        return this.__isEditing;
+    }
 
-        var elem = input.getDomElem();
-        elem.value = boof;
-        input.focus();
-        elem.select();
-        input.style('visibility', 'visible');
-        input.on('blur', function() {
-            var boof = this.domElem.param('value').replace(/<.+?>/g, 'tag');
-            _t.del('input');
-            _t.text(boof);
-            _t.show();
-            _t.trigger('blur', event);
-        });
+    edit() {
+        if (!this.isEditable() || this.__isEditing) return;
+        this.__isEditing = true;
 
-        this.hide();
+        const textElem = this->text.getDomElem();
+        textElem.focus();
+        if (textElem.innerText.length) {
+            let sel = window.getSelection();
+            if (textElem.lastChild.innerText && /(\r\n|\r|\n)/.test(textElem.lastChild.innerText)) {
+                sel.collapse(textElem.lastChild, 0);
+                return;
+            }
+            sel.collapse(
+                textElem.lastChild.innerText ? textElem.lastChild.firstChild : textElem.lastChild,
+                textElem.lastChild.innerText ? textElem.lastChild.innerText.length : textElem.lastChild.length
+            );
+        }
+    }
+
+    blur(e) {
+        if (!this.__isEditing) return;
+        
+        let container = __getContainer(this);
+        container.overflow('hidden');
+
+        let text = container->text.html();
+        text = text.replaceAll('<div>', '\r\n');
+        text = text.replaceAll('</div>', '');
+        container->text.html(text);
+
+        delete this.__isEditing;
+        this.trigger('blur', e);
     }
 
     showOnlyChild(key) {
@@ -1239,5 +1268,15 @@ function __get(self, path) {
 
         delete self.renderCacheStatus;
         delete self.renderCache;
+    }
+
+    function __handlerEdit(e) {
+        this.overflow('auto');
+        if (this.getDomElem() !== e.target) return;
+        this.edit();
+    }
+
+    function __handlerBlur(e) {
+        this.parent.blur(e);
     }
 };

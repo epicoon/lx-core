@@ -1,5 +1,7 @@
 #lx:module lx.Dropbox;
 
+#lx:use lx.MainCssContext;
+#lx:use lx.CssColorSchema;
 #lx:use lx.Box;
 #lx:use lx.Input;
 #lx:use lx.Table;
@@ -10,6 +12,50 @@
 }
 
 class Dropbox extends lx.Box #lx:namespace lx {
+	getBasicCss() {
+		return {
+			main: 'lx-Dropbox',
+			input: 'lx-Dropbox-input',
+			button: 'lx-Dropbox-but',
+			option: 'lx-Dropbox-cell'
+		};
+	}
+	
+	static initCssAsset(css) {
+		css.useContext(lx.MainCssContext.instance);
+		css.addClass('lx-Dropbox', {
+			borderRadius: lx.MainCssContext.borderRadius,
+			cursor: 'pointer',
+			overflow: 'hidden'
+		}, {
+			disabled: 'opacity: 0.5'
+		});
+		css.addClass('lx-Dropbox-input', {
+			position: 'absolute',
+			width: 'calc(100% - 30px)',
+			height: '100%',
+			borderTopRightRadius: 0,
+			borderBottomRightRadius: 0
+		});
+		css.addClass('lx-Dropbox-but', {
+			position: 'absolute',
+			right: 0,
+			width: '30px',
+			height: '100%',
+			borderTop: '1px solid ' + lx.CssColorSchema.widgetBorderColor,
+			borderBottom: '1px solid ' + lx.CssColorSchema.widgetBorderColor,
+			borderRight: '1px solid ' + lx.CssColorSchema.widgetBorderColor,
+			color: lx.CssColorSchema.widgetIconColor,
+			background: lx.CssColorSchema.widgetGradient,
+			cursor: 'pointer',
+			'@icon': ['\\25BC', 15]
+		});
+		css.addClass('lx-Dropbox-cell', {
+		}, {
+			hover: 'background-color:' + lx.CssColorSchema.checkedMainColor
+		});
+	}
+
 	/* params = {
 	 *	// стандартные для Box,
 	 *	
@@ -80,16 +126,6 @@ class Dropbox extends lx.Box #lx:namespace lx {
 		static getOpened() {
 			return __opened;
 		}
-	}
-
-	getBasicCss() {
-		return {
-			main: 'lx-Dropbox',
-			wrapper: 'lx-Dropbox-input-wrapper',
-			input: 'lx-Dropbox-input',
-			button: 'lx-Dropbox-but',
-			option: 'lx-Dropbox-cell'
-		};
 	}
 
 	/**

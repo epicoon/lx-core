@@ -3,6 +3,8 @@
     i18n: i18n.yaml
 };
 
+#lx:use lx.MainCssContext;
+#lx:use lx.CssColorSchema;
 #lx:use lx.Box;
 
 class Paginator extends lx.Box #lx:namespace lx {
@@ -21,6 +23,40 @@ class Paginator extends lx.Box #lx:namespace lx {
             page: 'lx-Paginator-page',
             active: 'lx-Paginator-active'
         };
+    }
+
+    static initCssAsset(css) {
+        css.useContext(lx.MainCssContext.instance);
+        css.addClass('lx-Paginator', {
+            gridTemplateRows: '100% !important',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+            border: 'solid 1px ' + lx.CssColorSchema.widgetBorderColor,
+            borderRadius: lx.MainCssContext.borderRadius
+        });
+        css.addClass('lx-Paginator-middle', {
+            width: 'auto'
+        });
+        css.addClass('lx-Paginator-page', {
+            cursor: 'pointer'
+        });
+        css.addAbstractClass('Paginator-button', {
+            background: lx.CssColorSchema.widgetGradient,
+            color: lx.CssColorSchema.widgetIconColor,
+            cursor: 'pointer'
+        });
+        css.inheritClass(
+            'lx-Paginator-active',
+            'Paginator-button',
+            { borderRadius: lx.MainCssContext.borderRadius }
+        );
+        css.inheritClasses({
+            'lx-Paginator-to-finish': { '@icon': ['\\00BB', {paddingBottom:'10px'}] },
+            'lx-Paginator-to-start' : { '@icon': ['\\00AB', {paddingBottom:'10px'}] },
+            'lx-Paginator-to-left'  : { '@icon': ['\\2039', {paddingBottom:'10px'}] },
+            'lx-Paginator-to-right' : { '@icon': ['\\203A', {paddingBottom:'10px'}] }
+        }, 'Paginator-button');
     }
 
     /* config = {
