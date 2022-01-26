@@ -4,7 +4,7 @@ namespace lx;
 
 abstract class BaseApplication extends AbstractApplication
 {
-    protected array $settings = [];
+    private array $settings = [];
 
     public function getDefaultFusionComponents(): array
     {
@@ -17,7 +17,7 @@ abstract class BaseApplication extends AbstractApplication
     public function getBuildData(): array
     {
         return [
-            'settings' => $this->settings,
+            'settings' => $this->getSettings(),
         ];
     }
 
@@ -27,6 +27,9 @@ abstract class BaseApplication extends AbstractApplication
 
     public function getSettings(): array
     {
+        if (!array_key_exists('cssPreset', $this->settings)) {
+            $this->settings['cssPreset'] = $this->assetManager->getDefaultCssPreset();
+        }
         return $this->settings;
     }
 
@@ -35,9 +38,8 @@ abstract class BaseApplication extends AbstractApplication
      */
     public function getSetting(string $name)
     {
-        if (array_key_exists($name, $this->settings))
-            return $this->settings[$name];
-        return null;
+        $settings = $this->getSettings();
+        return $settings[$name] ?? null;
     }
 
     /**

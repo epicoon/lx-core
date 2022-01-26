@@ -8,7 +8,7 @@ class Module #lx:namespace lx {
     }
 
     /**
-     * @param {lx.CssContext} css
+     * @param {lx.CssAsset} css
      */
     static initCssAsset(css) {
         // pass

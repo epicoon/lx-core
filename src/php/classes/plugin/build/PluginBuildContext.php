@@ -126,15 +126,23 @@ class PluginBuildContext implements ContextTreeInterface
 
     private function compile(): void
     {
-        $this->getPlugin()->beforeCompile();
         if ($this->compiled) {
             return;
         }
 
-        $this->compileSnippet();
+        $plugin = $this->getPlugin();
 
+        $plugin->beforeCompile();
+        $this->compileSnippet();
         $this->compileMainJs();
-        $this->applayDependencies($this->jsCompiler->getDependencies()->toArray());
+
+        $dependencies = $this->jsCompiler->getDependencies() ?? new JsCompileDependencies();
+        $cssPreset = $plugin->getCssPreset();
+        $cssPresetModule = lx::$app->assetManager->getCssPresetModule($cssPreset);
+        if ($cssPresetModule) {
+            $dependencies->addModule($cssPresetModule);
+        }
+        $this->applayDependencies($dependencies->toArray());
 
         $this->compilePluginInfo();
 
@@ -143,6 +151,7 @@ class PluginBuildContext implements ContextTreeInterface
             . "<bl $key>{$this->snippetData}</bl $key>"
             . "<mj $key>{$this->mainJs}</mj $key>";
         $this->commonData = I18nHelper::localizePlugin($this->getPlugin(), $data);
+        $this->applyCssPreset();
 
         $this->compiled = true;
         $this->getPlugin()->afterCompile();
@@ -202,25 +211,18 @@ class PluginBuildContext implements ContextTreeInterface
 	private function compileMainJs(): void
 	{
 		$plugin = $this->getPlugin();
-		$this->mainJs = $this->compileJs($plugin->conductor->getJsMain());
-	}
-
-	private function compileJs(?File $file): string
-	{
-		$fileExists = $file && $file->exists();
-		$code = '';
-		if ($fileExists) {
-			$code = $file->get();
-		}
-
-		if ($code == '') {
-		    return '';
+        $path = $plugin->conductor->getFullPath($plugin->getConfig('client'));
+        $file = new File($path);
+        $code = $file->exists() ? $file->get() : '';
+        if ($code == '') {
+            $this->mainJs = '';
+            return;
         }
-
-		return $this->jsCompiler->compileCode(
-			$code,
-			$fileExists ? $file->getPath() : $this->plugin->directory->getPath()
-		);
+        $code = $this->jsCompiler->compileCode(
+            '#lx:public;' . $code,
+            $file->exists() ? $file->getPath() : $this->plugin->directory->getPath()
+        );
+        $this->mainJs = '(info,el)=>{let __plugin__;' . $code . '__plugin__=new Plugin(info,el);return __plugin__;}';
 	}
 
 	private function collapseScripts(array $scripts): array
@@ -250,4 +252,10 @@ class PluginBuildContext implements ContextTreeInterface
 		}
 		return $result;
 	}
+
+    private function applyCssPreset(): void
+    {
+        $preset = $this->getPlugin()->getCssPreset();
+        $this->commonData = str_replace('#lx:preset:lx#', $preset, $this->commonData);
+    }
 }

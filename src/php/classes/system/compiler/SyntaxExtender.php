@@ -113,7 +113,7 @@ class SyntaxExtender
 			$code = str_replace($matches[0][$i], $text, $code);
 		}
 
-		// ^Resp.method(arg1, arg2) => Plugin.ajax('Resp.method', [arg1, arg2]).send()
+		// ^Resp.method(arg1, arg2) => __plugin__.ajax('Resp.method', [arg1, arg2]).send()
 		$regexp = '/\^([\w_][\w\d_]*?\.[\w_][\w\d_]*?)(?P<therec>\(((?>[^()]+)|(?P>therec))*\))/';
 		preg_match_all($regexp, $code, $matches);
 		for ($i=0, $l=count($matches[0]); $i<$l; $i++) {
@@ -121,7 +121,7 @@ class SyntaxExtender
 			$args = $matches[2][$i];
 			$args = preg_replace('/(^\(|\)$)/', '', $args);
 
-			$text = "Plugin.ajax('$method',[$args]).send()";
+			$text = "__plugin__.ajax('$method',[$args]).send()";
 			$code = str_replace($matches[0][$i], $text, $code);
 		}
 

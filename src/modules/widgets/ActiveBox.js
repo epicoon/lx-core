@@ -1,7 +1,5 @@
 #lx:module lx.ActiveBox;
 
-#lx:use lx.MainCssContext;
-#lx:use lx.CssColorSchema;
 #lx:use lx.Box;
 
 class ActiveBox extends lx.Box #lx:namespace lx {
@@ -18,6 +16,7 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 		return {
 			main: 'lx-ActiveBox',
 			header: 'lx-ActiveBox-header',
+			headerText: 'lx-ActiveBox-headerText',
 			close: 'lx-ActiveBox-close',
 			body: 'lx-ActiveBox-body',
 			resizer: 'lx-ActiveBox-resizer',
@@ -26,44 +25,44 @@ class ActiveBox extends lx.Box #lx:namespace lx {
 	}
 
 	static initCssAsset(css) {
-		let shadowSize = lx.CssColorSchema.shadowSize + 2,
+		let shadowSize = css.preset.shadowSize + 2,
 			shadowShift = Math.floor(shadowSize * 0.5);
-		css.useContext(lx.MainCssContext.instance);
 		css.addClass('lx-ActiveBox', {
 			overflow: 'hidden',
-			borderRadius: lx.MainCssContext.borderRadius,
+			borderRadius: css.preset.borderRadius,
 			boxShadow: '0 '+shadowShift+'px '+shadowSize+'px rgba(0,0,0,0.5)',
 			minWidth: '50px',
 			minHeight: '75px',
-			backgroundColor: lx.CssColorSchema.bodyBackgroundColor
+			backgroundColor: css.preset.bodyBackgroundColor
 		});
 		css.addClass('lx-ActiveBox-header', {
 			overflow: 'hidden',
 			whiteSpace: 'nowrap',
 			textOverflow: 'ellipsis',
+			color: css.preset.textColor,
 			cursor: 'move',
-			borderRadius: lx.MainCssContext.borderRadius,
+			borderRadius: css.preset.borderRadius,
 			boxShadow: '0 0px 3px rgba(0,0,0,0.5) inset',
-			background: lx.CssColorSchema.widgetGradient
+			background: css.preset.widgetGradient
 		});
 		css.addClass('lx-ActiveBox-close', {
 			cursor: 'pointer',
-			color: lx.CssColorSchema.widgetIconColor,
+			color: css.preset.widgetIconColor,
 			'@icon': ['\\2715', {fontSize:10, paddingBottom:'3px'}]
 		});
-		css.addStyle('.lx-ActiveBox-header .lx-TextBox', {
+		css.addClass('lx-ActiveBox-headerText', {
 			fontWeight: 'bold',
-			color: lx.CssColorSchema.headerTextColor
+			color: css.preset.headerTextColor
 		});
 		css.addClass('lx-ActiveBox-body', {
 			overflow: 'auto',
-			backgroundColor: lx.CssColorSchema.altBodyBackgroundColor
+			backgroundColor: css.preset.altBodyBackgroundColor
 		});
 		css.addClass('lx-ActiveBox-resizer', {
 			cursor: 'se-resize',
-			borderRadius: lx.MainCssContext.borderRadius,
-			color: lx.CssColorSchema.widgetIconColor,
-			backgroundColor: lx.CssColorSchema.bodyBackgroundColor,
+			borderRadius: css.preset.borderRadius,
+			color: css.preset.widgetIconColor,
+			backgroundColor: css.preset.bodyBackgroundColor,
 			'@icon': ['\\21F2', {fontSize:10, paddingBottom:'0px'}],
 			opacity: 0
 		}, {
@@ -221,6 +220,7 @@ function __setHeader(self, config) {
 	if (text != '') {
 		var wrapper = header.add(lx.Box, {size:['100%', '100%'], key:'textWrapper'});
 		wrapper.text(text);
+		wrapper->text.addClass(self.basicCss.headerText);
 		wrapper.align(lx.CENTER, lx.MIDDLE);
 	}
 

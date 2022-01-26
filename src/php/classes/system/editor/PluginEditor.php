@@ -22,7 +22,7 @@ class PluginEditor
 		        $path = $plaginPathes;
             }
         }
-		$pluginRootPath = $path == ''
+		$pluginRootPath = ($path == '')
 			? $servicePath
 			: $servicePath . '/' . $path;
 		$fullPath = $pluginRootPath . '/' . $name;
@@ -35,13 +35,13 @@ class PluginEditor
 			return null;
 		}
 
+        /**
+         * @var string $respondentCode
+         * @var string $mainJsCode
+         * @var string $viewCode
+         * @var string $pluginCode
+         */
 		require(__DIR__ . '/pluginTpl.php');
-		/**
-		 * @var string $respondentCode
-		 * @var string $mainJsCode
-		 * @var string $viewCode
-		 * @var string $pluginCode
-		 */
 
 		$namespace = '';
 		$psr = $this->service->getConfig('autoload.psr-4');
@@ -59,43 +59,47 @@ class PluginEditor
 				}
 			}
 		}
+        $namespace .= '\\server';
 
 		$d = (new Directory($pluginRootPath))->makeDirectory($name);
 		$pluginConfig = \lx::$app->getDefaultPluginConfig();
 
-		$mainJs = $d->makeFile($pluginConfig['jsMain']);
+		$mainJs = $d->makeFile($pluginConfig['client']);
 		$mainJs->put($mainJsCode);
 
 		$root = $d->makeFile($pluginConfig['rootSnippet']);
 		$root->put($viewCode);
 
-		$plugin = $d->makeFile('Plugin.php');
+		$plugin = $d->makeFile('server/Plugin.php');
 		$pluginCode = str_replace('namespace ', 'namespace ' . $namespace, $pluginCode);
 		$plugin->put($pluginCode);
 
 		$configFile = $d->makeFile('lx-config.yaml');
-		$text = 'class: ' . $namespace . '\\Plugin' . PHP_EOL . PHP_EOL;
+		$text = 'server: ' . $namespace . '\\Plugin' . PHP_EOL;
+        $text .= 'client: ' . $pluginConfig['client'] . PHP_EOL . PHP_EOL;
 
-		$text .= 'rootSnippet: ' . $pluginConfig['rootSnippet'] . PHP_EOL;
-		$text .= 'snippets: ' . $pluginConfig['snippets'] . PHP_EOL . PHP_EOL;
-
-		$text .= 'jsMain: ' . $pluginConfig['jsMain'] . PHP_EOL;
-
-		$text .= 'images: ' . $pluginConfig['images'] . PHP_EOL;
-		$text .= 'css: ' . $pluginConfig['css'] . PHP_EOL . PHP_EOL;
-
-		$text .= 'cacheType: ' . ($config['cacheType'] ?? $pluginConfig['cacheType'] ?? lx\Plugin::CACHE_NONE)
-			. PHP_EOL . PHP_EOL;
+        $text .= 'snippets: ' . $pluginConfig['snippets'] . PHP_EOL;
+		$text .= 'rootSnippet: ' . $pluginConfig['rootSnippet'] . PHP_EOL . PHP_EOL;
 
 		if (is_array($pluginConfig['respondents'])) {
 			if (empty($pluginConfig['respondents'])) {
-				$text .= 'respondents: {}';
+				$text .= 'respondents: {}'. PHP_EOL . PHP_EOL;
 			} else {
-				$text .= $this->createRespondents($pluginConfig['respondents'], $d, $namespace, $respondentCode);
+				$text .= $this->createRespondents(
+                    $pluginConfig['respondents'],
+                    $d->get('server'),
+                    $namespace,
+                    $respondentCode
+                ) . PHP_EOL . PHP_EOL;
 			}
 		} else {
 			$text .= 'respondents: ' . $pluginConfig['respondents'] . chr(10);
 		}
+
+        $text .= 'images: ' . $pluginConfig['images'] . PHP_EOL . PHP_EOL;
+
+        $text .= 'cacheType: ' . ($config['cacheType'] ?? $pluginConfig['cacheType'] ?? lx\Plugin::CACHE_NONE);
+
 		$configFile->put($text);
 
 		return Plugin::create($this->service, $name, $fullPath);

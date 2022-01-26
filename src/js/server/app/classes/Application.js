@@ -18,6 +18,10 @@ class Application #lx:namespace lx {
         return __settings[name];
     }
 
+    getCssPreset() {
+        return __settings.cssPreset;
+    }
+
     useI18n(config) {
         this.i18nArray['_' + lx.HashMd5.hex(config)] = config;
     }

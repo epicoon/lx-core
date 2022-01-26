@@ -9,6 +9,7 @@ class PluginProvider
     private ?Service $service = null;
     private ?string $serviceName = null;
     private ?string $pluginName = null;
+    private ?string $cssPreset = null;
     private ?array $attributes = null;
     private ?string $onLoad = null;
 
@@ -56,6 +57,10 @@ class PluginProvider
 
         $plugin = $service->getPlugin($pluginName);
 
+        if ($this->cssPreset) {
+            $plugin->setCssPreset($this->cssPreset);
+        }
+
         if ($this->attributes) {
             $plugin->addAttributes($this->attributes);
         }
@@ -78,6 +83,7 @@ class PluginProvider
         $this->service = $config['service'] ?? null;
         $this->serviceName = $config['serviceName'] ?? null;
         $this->pluginName = $config['name'] ?? $config['plugin'] ?? $config['pluginName'] ?? null;
+        $this->cssPreset = $config['cssPreset'] ?? null;
         $this->attributes = $config['attributes'] ?? null;
         $this->onLoad = $config['onLoad'] ?? null;
         return $this->getPlugin();

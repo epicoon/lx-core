@@ -1,6 +1,5 @@
 #lx:module lx.Scroll;
 
-#lx:use lx.CssColorSchema;
 #lx:use lx.Box;
 
 class Scroll extends lx.Box #lx:namespace lx {
@@ -22,8 +21,9 @@ class Scroll extends lx.Box #lx:namespace lx {
             scrollBorderRadius = Math.round(scrollSize * 0.5) + 'px',
             scrollTrackPadding = trackPadding + 'px',
             scrollTrackBorderRadius = Math.round((scrollSize - trackPadding * 2) * 0.5) + 'px';
+        css.addClass('lx-Scroll', {});
         css.addClass('lx-Scroll-back', {
-            backgroundColor: lx.CssColorSchema.widgetIconColor,
+            backgroundColor: css.preset.widgetIconColor,
             borderRadius: scrollBorderRadius,
             opacity: 0
         });
@@ -38,7 +38,7 @@ class Scroll extends lx.Box #lx:namespace lx {
             width: '100%',
             height: '100%',
             borderRadius: scrollTrackBorderRadius,
-            backgroundColor: lx.CssColorSchema.widgetIconColor,
+            backgroundColor: css.preset.widgetIconColor,
             opacity: 0.3
         });
         css.addStyle('.lx-Scroll-handle-back:hover .lx-Scroll-handle', {

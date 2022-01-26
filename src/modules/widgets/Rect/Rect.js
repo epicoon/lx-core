@@ -104,6 +104,8 @@ class Rect extends lx.Module #lx:namespace lx {
         if (config.field) this._field = config.field;
         if (config.html) this.html(config.html);
 
+        if (config.cssPreset) this.__cssPreset = config.cssPreset;
+
         this.applyBasicCss(config);
         if (config.css !== undefined) this.addClass(config.css);
 
@@ -402,12 +404,30 @@ class Rect extends lx.Module #lx:namespace lx {
         return this;
     }
 
+    getCssPreset() {
+        if (this.__cssPreset) return lx.CssPresetsList.getCssPreset(this.__cssPreset);
+        let ancestor = this.ancestor({hasProperty: '__cssPreset'});
+        if (ancestor) return ancestor.getCssPreset();
+        return null;
+    }
+
     /**
      * Можно передавать аргументы двумя путями:
      * 1. elem.addClass(class1, class2);
      * 2. elem.addClass([class1, class2]);
      * */
     addClass(...args) {
+        if (lx.isArray(args[0])) args = args[0];
+
+        args.forEach(name=>{
+            if (name == '') return;
+            name = __defineCssClassName(this, name);
+            this.domElem.addClass(name);
+        });
+        return this;
+    }
+
+    addAbsoluteClass(...args) {
         if (lx.isArray(args[0])) args = args[0];
 
         args.forEach(name=>{
@@ -423,6 +443,17 @@ class Rect extends lx.Module #lx:namespace lx {
      * 2. elem.removeClass([class1, class2]);
      * */
     removeClass(...args) {
+        if (lx.isArray(args[0])) args = args[0];
+
+        args.forEach(name=>{
+            if (name == '') return;
+            name = __defineCssClassName(this, name);
+            this.domElem.removeClass(name);
+        });
+        return this;
+    }
+
+    removeAbsoluteClass(...args) {
         if (lx.isArray(args[0])) args = args[0];
 
         args.forEach(name=>{
@@ -1318,9 +1349,13 @@ class Rect extends lx.Module #lx:namespace lx {
 
     getPlugin() {
         #lx:server { return Plugin; }
-        var root = this.getRootSnippet();
-        if (!root) return null;
-        return root.plugin;
+        #lx:client {
+            if (this.__plugin === undefined) {
+                var root = this.getRootSnippet();
+                this.__plugin = (root) ? root.plugin : null;
+            }
+            return this.__plugin;
+        }
     }
     /* 6. Environment navigation */
     //==================================================================================================================
@@ -1858,4 +1893,18 @@ function __setGeomPriorityV(self, val, val2) {
 
     self.geom.bpv[1] = val;
     return self;
+}
+
+function __defineCssClassName(self, name) {
+    if (lx.isCssClassAbsolute(name)) return name;
+
+    const cssPreset = self.getCssPreset();
+    if (cssPreset) return name + '-' + cssPreset.name;
+
+    #lx:server { return name + '-#lx:preset:lx#'; }
+
+    #lx:client {
+        let plugin = self.getPlugin();
+        return name + '-' + (plugin ? plugin.cssPreset.name : lx.getSetting('cssPreset'));
+    }
 }

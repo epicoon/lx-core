@@ -3,8 +3,6 @@
     i18n: i18n.yaml
 };
 
-#lx:use lx.MainCssContext;
-#lx:use lx.CssColorSchema;
 #lx:use lx.Date;
 #lx:use lx.Box;
 #lx:use lx.Input;
@@ -51,7 +49,6 @@ class Calendar extends lx.Input #lx:namespace lx {
     }
 
     static initCssAsset(css) {
-        css.useContext(lx.MainCssContext.instance);
         css.inheritClass('lx-Calendar', 'Input');
         css.inheritClass('lx-Calendar-daysTable', 'AbstractBox');
         css.inheritClass('lx-Calendar-monthTable', 'AbstractBox');
@@ -59,7 +56,7 @@ class Calendar extends lx.Input #lx:namespace lx {
             cursor: 'pointer'
         }, {
             hover: {
-                backgroundColor: lx.CssColorSchema.checkedDarkColor
+                backgroundColor: css.preset.checkedDarkColor
             }
         });
         css.addAbstractClass('lx-Calendar-arroy', {
@@ -78,19 +75,19 @@ class Calendar extends lx.Input #lx:namespace lx {
             cursor: 'pointer'
         });
         css.addClass('lx-Calendar-dayTitle', {
-            background: lx.CssColorSchema.widgetGradient,
-            color: lx.CssColorSchema.widgetIconColor
+            background: css.preset.widgetGradient,
+            color: css.preset.widgetIconColor
         });
         css.addClass('lx-Calendar-today', {
-            background: lx.CssColorSchema.widgetGradient,
-            color: lx.CssColorSchema.widgetIconColor,
+            background: css.preset.widgetGradient,
+            color: css.preset.widgetIconColor,
             cursor: 'pointer'
         });
         css.addAbstractClass('lx-Calendar-every-day', {
             cursor: 'pointer'
         }, {
             hover: {
-                backgroundColor: lx.CssColorSchema.checkedDarkColor
+                backgroundColor: css.preset.checkedDarkColor
             }
         });
         css.inheritClasses({
@@ -98,8 +95,8 @@ class Calendar extends lx.Input #lx:namespace lx {
             'lx-Calendar-side-day': { color: 'gray' }
         }, 'lx-Calendar-every-day');
         css.addClass('lx-Calendar-current-day', {
-            background: lx.CssColorSchema.widgetGradient,
-            color: lx.CssColorSchema.widgetIconColor
+            background: css.preset.widgetGradient,
+            color: css.preset.widgetIconColor
         });
     }
 

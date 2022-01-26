@@ -154,22 +154,51 @@ class AssetCompiler
             $this->copyLxCss();
         }
 
-        $cssFile = new File($path . '/main.css');
-        if (!$cssFile->exists() || $cssJsFile->isNewer($cssFile)) {
-            $compiler = new JsCompiler();
-            $compiler->setBuildModules(true);
-            $exec = new NodeJsExecutor($compiler);
-            $res = $exec
-                ->setCore([
-                    '-R @core/js/server/app/classes/',
-                    '-R @core/js/server/tools/',
-                    '-R @core/js/common/tools/',
-                ])
-                ->setFile($cssJsFile)
-                ->run();
-            if ($res !== false) {
-                $cssFile->put($res);
+        $presets = \lx::$app->assetManager->getCssPresets();
+        $need = [];
+        foreach ($presets as $name => $module) {
+            $cssFile = new File($path . "/main-{$name}.css");
+            if (!$cssFile->exists() || $cssJsFile->isNewer($cssFile)) {
+                $need[$name] = $cssFile;
             }
+        }
+        if (empty($need)) {
+            return;
+        }
+
+        $code = $cssJsFile->get();
+        $names = [];
+        $modules = [];
+        foreach ($need as $name => $file) {
+            $code .= '#lx:use ' . \lx::$app->assetManager->getCssPresetModule($name) . ';';
+            $names[] = "'{$name}'";
+        }
+        $code .= "
+            const list = [" . implode(',', $names) . "];
+            const map = {};
+            for (let i in list) {
+                let name = list[i];
+                const asset = new lx.CssAsset();
+                asset.usePreset(lx.CssPresetsList.getCssPreset(name));
+                initCssAsset(asset);
+                map[name] = asset.toString();
+            }
+            return map;
+        ";
+
+        $compiler = new JsCompiler();
+        $compiler->setBuildModules(true);
+        $exec = new NodeJsExecutor($compiler);
+        $map = $exec->setCore([
+            '-R @core/js/server/app/classes/',
+            '-R @core/js/server/tools/',
+            '-R @core/js/common/tools/',
+        ])->setPath($cssJsFile->getPath())
+            ->setCode($code)
+            ->run();
+
+        foreach ($need as $name => $file) {
+            $file->put($map[$name]);
         }
     }
 

@@ -1,7 +1,5 @@
 #lx:module lx.TableManager;
 
-#lx:use lx.CssColorSchema;
-
 // При анселекте таблицы выбранная на этот момент ячейка запомнится и продолжит подсвечиваться
 const DEFAULT_CELLS_FOR_SELECT = false;
 // Разрешает автодобавление строк при движении курсора вниз с последней строки
@@ -22,9 +20,9 @@ let __activeCell = null;
 class TableManager extends lx.Module #lx:namespace lx {
     static initCssAsset(css) {
         css.addClasses({
-            'lx-TM-table': 'border: ' + lx.CssColorSchema.checkedDarkColor + ' solid 2px !important',
-            'lx-TM-row': 'background-color: ' + lx.CssColorSchema.checkedMainColor + ' !important',
-            'lx-TM-cell': 'background-color: ' + lx.CssColorSchema.checkedMainColor + ' !important'
+            'lx-TM-table': 'border: ' + css.preset.checkedDarkColor + ' solid 2px !important',
+            'lx-TM-row': 'background-color: ' + css.preset.checkedMainColor + ' !important',
+            'lx-TM-cell': 'background-color: ' + css.preset.checkedMainColor + ' !important'
         });
     }
     

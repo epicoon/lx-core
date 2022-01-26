@@ -3,7 +3,6 @@
     i18n: i18n.yaml
 };
 
-#lx:use lx.MainCssContext;
 #lx:use lx.Color;
 #lx:use lx.Input;
 #lx:use lx.Button;
@@ -40,7 +39,7 @@ class ColorPicker extends lx.Box #lx:namespace lx {
     }
 
     static initCssAsset(css) {
-        css.inheritClass('lx-ColorPicker', lx.MainCssContext.getClass('AbstractBox'));
+        css.inheritClass('lx-ColorPicker', 'AbstractBox');
         css.addClass('lx-ColorPicker-pick', {
             cursor: 'pointer'
         });

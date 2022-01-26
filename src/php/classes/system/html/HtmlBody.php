@@ -24,12 +24,13 @@ class HtmlBody
             . 'lx.getTostsElement=()=>{return document.querySelector("[lxid^=\'' . self::LXID_TOSTS . '\']");};'
             . 'lx.getAlertsElement=()=>{return document.querySelector("[lxid^=\'' . self::LXID_ALERTS . '\']");};';
 
+        $cssClass = 'lxbody-' . \lx::$app->assetManager->getDefaultCssPreset();
 		return
             '<script>' . $script . '</script>'.
 			$this->renderBeginScripts() .
-			'<div lxid=' . self::LXID_ALERTS . ' class="lxbody"></div>' .
-            '<div lxid=' . self::LXID_TOSTS . ' class="lxbody"></div>' .
-            '<div lxid=' . self::LXID_BODY . ' class="lxbody"></div>' .
+			'<div lxid=' . self::LXID_ALERTS . ' class="' . $cssClass . '"></div>' .
+            '<div lxid=' . self::LXID_TOSTS . ' class="' . $cssClass . '"></div>' .
+            '<div lxid=' . self::LXID_BODY . ' class="' . $cssClass . '"></div>' .
 			'<script id=__js>document.body.removeChild(document.getElementById("__js"));' .
 			$this->js . '</script>' .
 			$this->renderEndScripts();

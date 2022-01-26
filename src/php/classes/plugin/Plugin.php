@@ -39,6 +39,7 @@ class Plugin extends Resource implements FusionInterface
 	protected array $config;
 	private string $anchor;
 	private string $rootSnippetKey;
+    private string $cssPreset;
 	private array $dependencies = ['modules' => ['lx.Box']];
     private array $beforeRenderCallbacks = [];
 	private array $beforeRunCallbacks = [];
@@ -67,6 +68,7 @@ class Plugin extends Resource implements FusionInterface
 		$this->config = $pluginConfig;
 
 		$this->initFusionComponents($this->getConfig('components') ?? []);
+        $this->resetCssPreset();
 		$this->init();
 	}
 
@@ -101,8 +103,8 @@ class Plugin extends Resource implements FusionInterface
 		$config = $configFile !== null
 			? $configFile->get()
 			: [];
-		$pluginClass = $config['class'] ?? self::class;
-		unset($config['class']);
+        $pluginClass = $config['server'] ?? self::class;
+        unset($config['server']);
 
 		$data = [
 			'service' => $service,
@@ -279,13 +281,28 @@ class Plugin extends Resource implements FusionInterface
             return null;
         }
 
-        return lx::$app->conductor->getRelativePath($icon, lx::$app->sitePath);
+        return '/' . lx::$app->conductor->getRelativePath($icon, lx::$app->sitePath);
     }
 
 	public function getRespondent(string $name): ?Respondent
 	{
 		return $this->conductor->getRespondent($name);
 	}
+
+    public function resetCssPreset(): void
+    {
+        $this->cssPreset = $this->assetManager->getDefaultCssPreset();
+    }
+
+    public function setCssPreset($cssPreset): void
+    {
+        $this->cssPreset = $cssPreset;
+    }
+
+    public function getCssPreset(): string
+    {
+        return $this->cssPreset;
+    }
 
 	/**
 	 * This method is used by ResourceContext for return Plugin as resource
@@ -568,6 +585,8 @@ class Plugin extends Resource implements FusionInterface
 		if (!empty($widgetBasicCssList)) {
 			$info['wgdl'] = $widgetBasicCssList;
 		}
+
+        $info['cssPreset'] = $this->getCssPreset();
 
 		return $info;
 	}

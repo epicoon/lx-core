@@ -1,7 +1,5 @@
 #lx:module lx.Table;
 
-#lx:use lx.MainCssContext;
-#lx:use lx.CssColorSchema;
 #lx:use lx.Box;
 
 class Table extends lx.Box #lx:namespace lx {
@@ -15,19 +13,19 @@ class Table extends lx.Box #lx:namespace lx {
 
 	static initCssAsset(css) {
 		css.addClass('lx-Table', {
-			border: '1px solid ' + lx.CssColorSchema.widgetBorderColor,
-			borderRadius: lx.MainCssContext.borderRadius
+			border: '1px solid ' + css.preset.widgetBorderColor,
+			borderRadius: css.preset.borderRadius
 		});
 		css.addClass('lx-Table-row', {
-			borderTop: '1px solid ' + lx.CssColorSchema.widgetBorderColor
+			borderTop: '1px solid ' + css.preset.widgetBorderColor
 		}, {
 			'first-child': 'border: 0px',
-			'nth-child(2n)': 'background-color: ' + lx.CssColorSchema.bodyBackgroundColor,
-			'nth-child(2n+1)': 'background-color: ' + lx.CssColorSchema.altBodyBackgroundColor
+			'nth-child(2n)': 'background-color: ' + css.preset.bodyBackgroundColor,
+			'nth-child(2n+1)': 'background-color: ' + css.preset.altBodyBackgroundColor
 		});
 		css.addClass('lx-Table-cell', {
 			height: '100%',
-			borderRight: '1px solid ' + lx.CssColorSchema.widgetBorderColor
+			borderRight: '1px solid ' + css.preset.widgetBorderColor
 		}, {
 			'last-child': 'border: 0px'
 		});

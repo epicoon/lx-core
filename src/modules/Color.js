@@ -321,6 +321,11 @@ class Color #lx:namespace lx {
 			+ this.alpha
 			+ ')';
 	}
+
+	toCssString() {
+		if (this.alpha != 1) return this.toStringWithAlfa();
+		return this.toString();
+	}
 }
 
 

@@ -255,17 +255,19 @@ class Box extends lx.Rect #lx:namespace lx {
 		}
 
 		setPlugin(name, attributes, onLoad) {
+            let cssPreset = null;
             if (attributes === undefined && lx.isObject(name)) {
                 attributes = name.attributes;
+                cssPreset = name.cssPreset || App.getCssPreset();
                 name = name.name;
-            }
+            } else cssPreset = App.getCssPreset();
 
             if (!lx.isString(name)) return;
 
             var container = __getContainer(this);
             container.pluginAnchor = App.genId();
 
-            var data = {name, anchor:container.pluginAnchor};
+            var data = {name, anchor:container.pluginAnchor, cssPreset};
             if (attributes) data.attributes = attributes;
             if (onLoad) data.onLoad = onLoad;
             this.getSnippet().addPlugin(data);

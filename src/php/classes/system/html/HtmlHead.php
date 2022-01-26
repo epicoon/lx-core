@@ -44,7 +44,7 @@ class HtmlHead
 	private function getLxCss(): string
 	{
 		return '<link href="'
-			. ($this->getCssPath() . '/main.css')
+			. ($this->getCssPath() . '/main-' . \lx::$app->assetManager->getDefaultCssPreset() . '.css')
 			. '" name="base_css" type="text/css" rel="stylesheet">';
 	}
 

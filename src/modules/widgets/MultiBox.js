@@ -1,7 +1,5 @@
 #lx:module lx.MultiBox;
 
-#lx:use lx.CssColorSchema;
-#lx:use lx.MainCssContext;
 #lx:use lx.Box;
 
 class MultiBox extends lx.Box #lx:namespace lx {
@@ -21,11 +19,11 @@ class MultiBox extends lx.Box #lx:namespace lx {
 	}
 
 	static initCssAsset(css) {
-		css.inheritClass('lx-MultiBox', lx.MainCssContext.getClass('AbstractBox'));
-		css.inheritClass('lx-MultiBox-mark', lx.MainCssContext.getClass('ActiveButton'));
+		css.inheritClass('lx-MultiBox', 'AbstractBox');
+		css.inheritClass('lx-MultiBox-mark', 'ActiveButton');
 		css.addClass('lx-MultiBox-active', {
-			backgroundColor: lx.CssColorSchema.checkedDarkColor,
-			color: lx.CssColorSchema.checkedSoftColor
+			backgroundColor: css.preset.checkedDarkColor,
+			color: css.preset.checkedSoftColor
 		});
 	}
 

@@ -19,17 +19,21 @@
         "name": "lx.CodeEditor",
         "path": "modules\/codeEditor\/CodeEditor.js"
     },
-    "lx.CssColorSchema.dark": {
-        "name": "lx.CssColorSchema.dark",
-        "path": "modules\/colorSchemas\/dark.js"
+    "lx.BasicCssAsset": {
+        "name": "lx.BasicCssAsset",
+        "path": "modules\/cssPresets\/BasicCssAsset.js"
     },
-    "lx.CssColorSchema.white": {
-        "name": "lx.CssColorSchema.white",
-        "path": "modules\/colorSchemas\/white.js"
+    "lx.CssPresetDark": {
+        "name": "lx.CssPresetDark",
+        "path": "modules\/cssPresets\/CssPresetDark.js"
     },
-    "lx.MainCssContext": {
-        "name": "lx.MainCssContext",
-        "path": "modules\/cssContexts\/MainCssContext.js"
+    "lx.CssPresetWhite": {
+        "name": "lx.CssPresetWhite",
+        "path": "modules\/cssPresets\/CssPresetWhite.js"
+    },
+    "lx.MainCssAsset": {
+        "name": "lx.MainCssAsset",
+        "path": "modules\/cssPresets\/MainCssAsset.js"
     },
     "lx.MdHighlighter": {
         "name": "lx.MdHighlighter",

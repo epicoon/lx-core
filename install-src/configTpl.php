@@ -100,23 +100,22 @@ return [
 	// Flag for use common plugin aliases
 	'useCommonAliases' => true,
 
+	// File name for plugin js-code
+	'client' => 'client/Plugin.js',
+
 	// Respondents map
 	'respondents' => [
-		'Respondent' => 'backend\Respondent',
+		'Respondent' => 'Respondent',
 	],
 
 	// Asset directories
 	'images' => 'assets/images',
-	'css' => 'assets/css',
 
 	// Snippets directory (or directories if value is array)
 	'snippets' => 'snippets',
 
 	// Root snippet
 	'rootSnippet' => 'snippets/_root.js',
-
-	// File name for plugin js-code
-	'jsMain' => 'frontend/_main.js',
 ];
 
 EOT;

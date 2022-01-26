@@ -1,6 +1,5 @@
 #lx:module lx.Checkbox;
 
-#lx:use lx.MainCssContext;
 #lx:use lx.Rect;
 
 class Checkbox extends lx.Rect #lx:namespace lx {
@@ -12,7 +11,6 @@ class Checkbox extends lx.Rect #lx:namespace lx {
 	}
 	
 	static initCssAsset(css) {
-		css.useContext(lx.MainCssContext.instance);
 		css.inheritClass('lx-Checkbox-0', 'Checkbox-shape', {
 			backgroundPosition: '-2px -3px'
 		}, {

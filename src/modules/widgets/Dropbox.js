@@ -1,7 +1,5 @@
 #lx:module lx.Dropbox;
 
-#lx:use lx.MainCssContext;
-#lx:use lx.CssColorSchema;
 #lx:use lx.Box;
 #lx:use lx.Input;
 #lx:use lx.Table;
@@ -22,9 +20,8 @@ class Dropbox extends lx.Box #lx:namespace lx {
 	}
 	
 	static initCssAsset(css) {
-		css.useContext(lx.MainCssContext.instance);
 		css.addClass('lx-Dropbox', {
-			borderRadius: lx.MainCssContext.borderRadius,
+			borderRadius: css.preset.borderRadius,
 			cursor: 'pointer',
 			overflow: 'hidden'
 		}, {
@@ -42,17 +39,17 @@ class Dropbox extends lx.Box #lx:namespace lx {
 			right: 0,
 			width: '30px',
 			height: '100%',
-			borderTop: '1px solid ' + lx.CssColorSchema.widgetBorderColor,
-			borderBottom: '1px solid ' + lx.CssColorSchema.widgetBorderColor,
-			borderRight: '1px solid ' + lx.CssColorSchema.widgetBorderColor,
-			color: lx.CssColorSchema.widgetIconColor,
-			background: lx.CssColorSchema.widgetGradient,
+			borderTop: '1px solid ' + css.preset.widgetBorderColor,
+			borderBottom: '1px solid ' + css.preset.widgetBorderColor,
+			borderRight: '1px solid ' + css.preset.widgetBorderColor,
+			color: css.preset.widgetIconColor,
+			background: css.preset.widgetGradient,
 			cursor: 'pointer',
 			'@icon': ['\\25BC', 15]
 		});
 		css.addClass('lx-Dropbox-cell', {
 		}, {
-			hover: 'background-color:' + lx.CssColorSchema.checkedMainColor
+			hover: 'background-color:' + css.preset.checkedMainColor
 		});
 	}
 

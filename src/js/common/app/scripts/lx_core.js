@@ -17,6 +17,18 @@ Object.defineProperty(lx, "EOL", {
     get: function() { return String.fromCharCode(13) + String.fromCharCode(10); }
 });
 
+/**
+ * TODO захардкожено определение внепресетовых классов. Нужно придумать нормальную систему
+ */
+lx.isCssClassAbsolute = function (className) {
+    return [
+        'lx-abspos',
+        'lxps-grid-v',
+        'lxps-grid-h',
+        'lx-ellipsis'
+    ].includes(className);
+};
+
 lx.getFirstDefined = function (...args) {
     for (var i = 0, l = args.len; i < l; i++)
         if (args[i] !== undefined) return args[i];

@@ -1,6 +1,5 @@
 #lx:module lx.BoxSlider;
 
-#lx:use lx.MainCssContext;
 #lx:use lx.Box;
 
 class BoxSlider extends lx.Box #lx:namespace lx {
@@ -17,11 +16,11 @@ class BoxSlider extends lx.Box #lx:namespace lx {
 
 	static initCssAsset(css) {
 		css.addAbstractClass('lx-IS-button', {
-			backgroundImage: 'url(web/css/img/ISarroy.png)',
+			backgroundImage: 'url(/web/css/img/ISarroy.png)',
 			backgroundRepeat: 'no-repeat',
 			backgroundSize: '100% 100%',
-			borderTopLeftRadius: lx.MainCssContext.borderRadius,
-			borderBottomLeftRadius: lx.MainCssContext.borderRadius,
+			borderTopLeftRadius: css.preset.borderRadius,
+			borderBottomLeftRadius: css.preset.borderRadius,
 			opacity: '0.3'
 		});
 		css.inheritClass('lx-IS-button-l', 'lx-IS-button', {

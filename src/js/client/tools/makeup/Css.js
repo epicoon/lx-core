@@ -22,18 +22,18 @@ class Css #lx:namespace lx {
 			this.tag = factor.tag;
 		}
 
-		this._context = new lx.CssContext();
+		this._asset = new lx.CssAsset();
 	}
 
 	static exists(name) {
 		return !!document.getElementById(name);
 	}
 
-	get context() {
-		return this._context;
+	getAsset() {
+		return this._asset;
 	}
 
 	commit() {
-		this.tag.innerHTML = this._context.toString();
+		this.tag.innerHTML = this._asset.toString();
 	}
 }

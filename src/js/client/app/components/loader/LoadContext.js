@@ -90,7 +90,6 @@ class LoadContext {
 			modulesRequest.onLoad(function(result) {
 				if (result) {
 					lx._f.createAndCallFunction('', result.data.code);
-					lx.runModules(result.data.compiledModules);
 				}
 			});
 			synchronizer.register(modulesRequest);
@@ -154,20 +153,33 @@ class LoadContext {
 		var info = pluginInfo.info;
 		if (parent) info.parent = parent;
 		info.key = pluginInfo.key;
-		var plugin = new lx.Plugin(info, el);
 
-		var snippets = pluginInfo.snippets,
-			mainJs = pluginInfo.mainJs;
+		const plugin = lx._f.createAndCallFunctionWithArguments({
+			info, el
+		}, pluginInfo.mainJs);
 
 		// Run js-code before plugin render
-		if (info.beforeRender)
-			for (var i=0, l=info.beforeRender.len; i<l; i++) {
-				var fCode = lx._f.parseFunctionString(info.beforeRender[i])[1];
-				lx._f.createAndCallFunction('', 'const Plugin=lx.plugins["'+plugin.key+'"];' + fCode);
+		plugin.beforeRender();
+
+		//TODO if css as file. Context???
+		const cssPreset = plugin.cssPreset;
+		if (plugin.initCssAsset && !lx._f.isEmptyFunction(plugin.initCssAsset)) {
+			let cssName = plugin.name + '-' + cssPreset.name;
+			if (!lx.Css.exists(cssName)) {
+				const css = new lx.Css(cssName);
+				const asset = css.getAsset();
+				asset.usePreset(cssPreset);
+				plugin.initCssAsset(asset);
+				css.commit();
 			}
+		}
+		// Actualize all modules
+		lx.actualizeModuleAssets({
+			presets: [cssPreset]
+		});
 
 		// Render snippets
-		this.snippetsInfo[plugin.key] = snippets;
+		this.snippetsInfo[plugin.key] = pluginInfo.snippets;
 		(new SnippetLoader(this, plugin, el, info.rsk)).unpack();
 
 		// Note screen mode
@@ -175,31 +187,22 @@ class LoadContext {
 			plugin.screenMode = plugin.idenfifyScreenMode();
 		}
 
-		// Start build plugin main js-code
-		var argsStr = [];
-		var args = [];
-		var code = 'const Plugin=lx.plugins["' + plugin.key
-			+ '"];const Snippet=Plugin.root.snippet;lx.Rect.setAutoParent(Plugin.root);'
+		// Run js-code after plugin render but before run
+		plugin.beforeRun();
 
-		// Build js-code after plugin render but before run
-		if (info.beforeRun) {
-			for (var i=0, l=info.beforeRun.len; i<l; i++) {
-				var str = lx._f.parseFunctionString(info.beforeRun[i])[1];
-				if (str[str.length-1] != ';') str += ';';
-				code += str;
-			}
-		}
-
-		// Finish build plugin main js-code
-		if (mainJs) code += mainJs;
+		// Run plugin main js-code
+		lx.Rect.setAutoParent(plugin.root);
+		plugin.run();
 
 		// Build snippets code
+		var code = 'const Plugin=lx.plugins["' + plugin.key + '"];const __plugin__=Plugin;const Snippet=Plugin.root.snippet;';
 		var node = this.snippetTrees[plugin.key];
 		var snippetsJs = node.compileCode();
 		code += snippetsJs[1];
-
-		code += 'lx.Rect.removeAutoParent(Plugin.root);';
 		lx._f.createAndCallFunction(snippetsJs[0], code, null, snippetsJs[2]);
+
+		lx.Rect.removeAutoParent(plugin.root);
+		return;
 	}
 
 	createPluginByAnchor(anchor, el, parentPlugin) {

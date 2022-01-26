@@ -16,10 +16,15 @@ EOT;
 
 
 $mainJsCode = <<<EOT
-/**
- * @const {lx.Plugin} Plugin
- * @const {lx.Snippet} Snippet
- */
+class Plugin extends lx.Plugin {
+    initCssAsset(css) {
+
+    }
+    
+    run() {
+
+    }
+}
 
 EOT;
 

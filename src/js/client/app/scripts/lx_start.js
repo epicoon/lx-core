@@ -22,7 +22,9 @@ lx.start = function(settings, modules, moduleNames, jsBootstrap, plugin, jsMain)
 
 	// Js-модули
 	if (modules && modules != '') lx._f.createAndCallFunction('', modules);
-	this.runModules(moduleNames);
+	this.actualizeModuleAssets({
+		modules: moduleNames
+	});
 
 	// Глобальный js-код, выполняемый ДО загрузки корневого плагина
 	if (jsBootstrap && jsBootstrap != '') lx._f.createAndCallFunction('', jsBootstrap, this);
@@ -41,17 +43,21 @@ lx.start = function(settings, modules, moduleNames, jsBootstrap, plugin, jsMain)
 	lx.go([Function("lx.doActions();")]);
 };
 
-lx.runModules = function(moduleNames) {
-	for (let i=0, l=moduleNames.len; i<l; i++) {
-		let moluleName = moduleNames[i],
-			moduleClass = lx.getClassConstructor(moluleName);
-		if (!moduleClass) continue;
-
-		if (moduleClass.initCssAsset) {
-			if (lx._f.isEmptyFunction(moduleClass.initCssAsset)) continue;
-			if (lx.Css.exists(moluleName)) continue;
-			const css = new lx.Css(moluleName, lx.Css.POSITION_TOP);
-			moduleClass.initCssAsset(css.context);
+lx.actualizeModuleAssets = function(config) {
+	let modules = config.modules || lx.dependencies.getCurrentModules(),
+		presets = config.presets || lx.CssPresetsList.getCssPresets();
+	for (let i in modules) {
+		let module = modules[i],
+			moduleClass = lx.getClassConstructor(module);
+		if (!moduleClass || !moduleClass.initCssAsset || lx._f.isEmptyFunction(moduleClass.initCssAsset)) continue;
+		for (let j in presets) {
+			let preset = presets[j],
+				cssName = module + '-' + preset.name;
+			if (lx.Css.exists(cssName)) continue;
+			const css = new lx.Css(cssName, lx.Css.POSITION_TOP);
+			const asset = css.getAsset();
+			asset.usePreset(preset);
+			moduleClass.initCssAsset(asset);
 			css.commit();
 		}
 	}

@@ -1,6 +1,5 @@
 #lx:module lx.Button;
 
-#lx:use lx.MainCssContext;
 #lx:use lx.Box;
 
 class Button extends lx.Box #lx:namespace lx {
@@ -15,6 +14,6 @@ class Button extends lx.Box #lx:namespace lx {
 	}
 	
 	static initCssAsset(css) {
-		css.inheritClass('lx-Button', lx.MainCssContext.getClass('ActiveButton'));
+		css.inheritClass('lx-Button', 'ActiveButton');
 	}
 }

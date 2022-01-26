@@ -3,8 +3,6 @@
     i18n: i18n.yaml
 };
 
-#lx:use lx.MainCssContext;
-#lx:use lx.CssColorSchema;
 #lx:use lx.Box;
 
 class Paginator extends lx.Box #lx:namespace lx {
@@ -26,14 +24,13 @@ class Paginator extends lx.Box #lx:namespace lx {
     }
 
     static initCssAsset(css) {
-        css.useContext(lx.MainCssContext.instance);
         css.addClass('lx-Paginator', {
             gridTemplateRows: '100% !important',
             overflow: 'hidden',
             whiteSpace: 'nowrap',
             textOverflow: 'ellipsis',
-            border: 'solid 1px ' + lx.CssColorSchema.widgetBorderColor,
-            borderRadius: lx.MainCssContext.borderRadius
+            border: 'solid 1px ' + css.preset.widgetBorderColor,
+            borderRadius: css.preset.borderRadius
         });
         css.addClass('lx-Paginator-middle', {
             width: 'auto'
@@ -42,14 +39,14 @@ class Paginator extends lx.Box #lx:namespace lx {
             cursor: 'pointer'
         });
         css.addAbstractClass('Paginator-button', {
-            background: lx.CssColorSchema.widgetGradient,
-            color: lx.CssColorSchema.widgetIconColor,
+            background: css.preset.widgetGradient,
+            color: css.preset.widgetIconColor,
             cursor: 'pointer'
         });
         css.inheritClass(
             'lx-Paginator-active',
             'Paginator-button',
-            { borderRadius: lx.MainCssContext.borderRadius }
+            { borderRadius: css.preset.borderRadius }
         );
         css.inheritClasses({
             'lx-Paginator-to-finish': { '@icon': ['\\00BB', {paddingBottom:'10px'}] },

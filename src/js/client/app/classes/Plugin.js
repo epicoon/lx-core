@@ -27,6 +27,10 @@ class Plugin #lx:namespace lx {
 		return document.title;
 	}
 
+	beforeRender() { /* pass */ }
+	beforeRun() { /* pass */ }
+	run() { /* pass */ }
+
 	get eventDispatcher() {
 		if (!this._eventDispatcher)
 			this._eventDispatcher = new lx.EventDispatcher();
@@ -252,6 +256,10 @@ class Plugin #lx:namespace lx {
 		return this.images[arr[1]] + arr[2];
 	}
 
+	get cssPreset() {
+		return lx.CssPresetsList.getCssPreset(this._cssPreset);
+	}
+
 	/**
 	 * Метод для переопределения оформления виджетов для конкретных плагинов
 	 */
@@ -290,6 +298,7 @@ function __init(plugin, info) {
 	if (info.attributes) plugin.attributes = info.attributes;
 
 	if (info.images) plugin.images = info.images;
+	plugin._cssPreset = info.cssPreset;
 
 	// Информация о зависимостях от модулей
 	if (info.dep) {

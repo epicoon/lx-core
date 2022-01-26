@@ -1,6 +1,5 @@
 #lx:module lx.Slider;
 
-#lx:use lx.MainCssContext;
 #lx:use lx.Box;
 
 class Slider extends lx.Box #lx:namespace lx {
@@ -12,8 +11,8 @@ class Slider extends lx.Box #lx:namespace lx {
 	}
 	
 	static initCssAsset(css) {
-		css.inheritClass('lx-slider-track', lx.MainCssContext.getClass('Button'));
-		css.inheritClass('lx-slider-handle', lx.MainCssContext.getClass('ActiveButton'));
+		css.inheritClass('lx-slider-track', 'Button');
+		css.inheritClass('lx-slider-handle', 'ActiveButton');
 	}
 
 	build(config) {

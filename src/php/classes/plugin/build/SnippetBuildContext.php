@@ -186,10 +186,8 @@ class SnippetBuildContext implements ContextTreeInterface
         $core = [
             '-R @core/js/server/app/classes/',
             '-R @core/js/server/tools/',
-        ];
-		$requires = [
             '-R @core/js/common/tools/',
-		];
+        ];
         $modules = $plugin->getModuleDependencies();
 		$pre = "
 			lx.globalContext.App = new lx.Application($appData);
@@ -215,7 +213,6 @@ class SnippetBuildContext implements ContextTreeInterface
             ->setPostCode($post)
             ->setCore($core)
             ->setModules($modules)
-            ->setRequires($requires)
             ->run();
 
 		$app->applyBuildData($res['app']);
@@ -230,7 +227,8 @@ class SnippetBuildContext implements ContextTreeInterface
 		$this->pluginBuildContext->applayDependencies($dependencies);
 
 		// Строится дерево контекстов с собранными сниппетами
-		foreach ($this->nestedContexts as $context) {
+        /** @var SnippetBuildContext $context */
+        foreach ($this->nestedContexts as $context) {
 			$context->runSnippetCode();
 		}
 	}

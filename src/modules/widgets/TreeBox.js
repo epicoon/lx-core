@@ -1,7 +1,5 @@
 #lx:module lx.TreeBox;
 
-#lx:use lx.MainCssContext;
-#lx:use lx.CssColorSchema;
 #lx:use lx.Box;
 #lx:use lx.Input;
 
@@ -34,14 +32,13 @@ class TreeBox extends lx.Box #lx:namespace lx {
 	}
 
 	static initCssAsset(css) {
-		css.useContext(lx.MainCssContext.instance);
 		css.addClass('lx-TreeBox', {
-			backgroundColor: lx.CssColorSchema.altBodyBackgroundColor,
+			backgroundColor: css.preset.altBodyBackgroundColor,
 			borderRadius: '10px'
 		});
 		css.inheritAbstractClass('lx-TW-Button', 'ActiveButton', {
-			color: lx.CssColorSchema.widgetIconColor,
-			backgroundColor: lx.CssColorSchema.checkedMainColor
+			color: css.preset.widgetIconColor,
+			backgroundColor: css.preset.checkedMainColor
 		});
 		css.inheritClasses({
 			'lx-TW-Button-closed':
@@ -54,15 +51,15 @@ class TreeBox extends lx.Box #lx:namespace lx {
 				{ '@icon': ['\\002D', {fontSize:12, paddingBottom:'3px', fontWeight: 700}] }
 		}, 'lx-TW-Button');
 		css.inheritClass('lx-TW-Button-empty', 'Button', {
-			backgroundColor: lx.CssColorSchema.checkedMainColor,
+			backgroundColor: css.preset.checkedMainColor,
 			cursor: 'default'
 		});
 		css.addClass('lx-TW-Label', {
 			overflow: 'hidden',
 			whiteSpace: 'nowrap',
 			textOverflow: 'ellipsis',
-			backgroundColor: lx.CssColorSchema.textBackgroundColor,
-			borderRadius: lx.MainCssContext.borderRadius
+			backgroundColor: css.preset.textBackgroundColor,
+			borderRadius: css.preset.borderRadius
 		});
 	}
 

@@ -60,7 +60,7 @@ class HttpApplication extends BaseApplication
         }
 	}
 
-	public function getCommonJs(): array
+    public function getCommonJs(): array
 	{
 		$compiler = new JsCompiler();
 

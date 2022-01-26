@@ -1,7 +1,5 @@
 #lx:module lx.Input;
 
-#lx:use lx.MainCssContext;
-#lx:use lx.CssColorSchema;
 #lx:use lx.Rect;
 
 class Input extends lx.Rect #lx:namespace lx {
@@ -10,9 +8,9 @@ class Input extends lx.Rect #lx:namespace lx {
 	}
 	
 	static initCssAsset(css) {
-		css.inheritClass('lx-Input', lx.MainCssContext.getClass('Input'), {
+		css.inheritClass('lx-Input', 'Input', {
 		}, {
-			focus: 'border: 1px solid ' + lx.CssColorSchema.checkedMainColor,
+			focus: 'border: 1px solid ' + css.preset.checkedMainColor,
 			disabled: 'opacity: 0.5'
 		});
 	}

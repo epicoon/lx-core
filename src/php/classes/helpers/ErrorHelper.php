@@ -16,8 +16,12 @@ class ErrorHelper
         $trace = [];
         foreach ($exception->getTrace() as $i => $item) {
             if (array_key_exists('class', $item)) {
-                $trace[] = '  #' . $i . ' ' . $item['file'] . '(' . $item['line'] . '): '
-                    . $item['class'] . $item['type'] . $item['function'];
+                if (array_key_exists('file', $item)) {
+                    $trace[] = '  #' . $i . ' ' . $item['file'] . '(' . $item['line'] . '): '
+                        . $item['class'] . $item['type'] . $item['function'];
+                } else {
+                    $trace[] = '  #' . $i . ' ' . $item['class'] . $item['type'] . $item['function'];
+                }
             } else {
                 $trace[] = '  #' . $i . ' ' . $item['file'] . '(' . $item['line'] . ')';
             }

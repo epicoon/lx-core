@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 /**
- * This script creates directory 'lx' to the project root directory. This is a heart of the platform
+ * This script creates directory 'lx' in the project root directory. This is a heart of the platform
  * The directory contains:
  * 1. Directory 'config' - configuration for the platform
  * 2. File 'lx' for launch platform CLI

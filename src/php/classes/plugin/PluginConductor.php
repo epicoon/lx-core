@@ -201,8 +201,7 @@ class PluginConductor implements ConductorInterface
 	public function getCssAssets(): array
 	{
         lx::$app->events->trigger(Plugin::EVENT_BEFORE_GET_CSS_ASSETS, $this->getPlugin());
-		$plugin = $this->getPlugin();
-		$css = $plugin->getConfig('css');
+		$css = $this->getPlugin()->getConfig('css');
 		if (!$css) {
 			return [];
 		}
@@ -210,7 +209,7 @@ class PluginConductor implements ConductorInterface
 		$css = (array)$css;
 		$result = [];
 		foreach ($css as $value) {
-			$path = $plugin->conductor->getFullPath($value);
+			$path = $this->getFullPath($value);
 			$d = new Directory($path);
 			if (!$d->exists()) {
 				return [];

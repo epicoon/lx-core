@@ -354,7 +354,7 @@ class JsCompiler
 		return $code;
 	}
 
-    private function checkModuleDependencies(string $modulePath, &$modulesForBuild, &$filePathes): void
+    private function checkModuleDependencies(string $modulePath, array &$modulesForBuild, array &$filePathes): void
     {
         $pattern = '/(?<!\/ )(?<!\/)#lx:use\s+[\'"]?([^;]+?)[\'"]?;/';
         $code = file_get_contents($modulePath);
@@ -368,23 +368,38 @@ class JsCompiler
         }
     }
 
-    private function checkModule(string $moduleName, &$modulesForBuild, &$filePathes): void
+    private function checkModule(string $moduleName, array &$modulesForBuild, array &$filePathes): void
     {
         $moduleName = $this->assetManager->resolveModuleName($moduleName);
         $moduleMap = $this->getModuleMap();
+        if (in_array($moduleName, $this->ignoreModules) || in_array($moduleName, $modulesForBuild)) {
+            return;
+        }
 
-        if (in_array($moduleName, $this->ignoreModules)
-            || in_array($moduleName, $modulesForBuild)
-            || !$moduleMap->moduleExists($moduleName)
-        ) {
-            //TODO зафиксировать проблему если модуль не существует
+        if (!$moduleMap->moduleExists($moduleName)) {
+            \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+                'msg' => "Module '$moduleName' doesn't exist",
+            ]);
             return;
         }
         $path = $moduleMap->getModulePath($moduleName);
-        if (!$path || in_array($path, $filePathes)) {
-            //TODO зафиксировать проблему
+        if (!$path) {
+            \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+                'msg' => "File path for '$moduleName' can not be found",
+            ]);
             return;
         }
+        if (!file_exists($path)) {
+            \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+                'msg' => "Module '$moduleName' has path '$path', but this file doesn't exist",
+            ]);
+            return;
+        }
+
+        if (in_array($path, $filePathes)) {
+            return;
+        }
+
         $filePathes[] = $path;
 
         $data = $moduleMap->getModuleData($moduleName);

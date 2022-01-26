@@ -44,26 +44,26 @@ class WebCli extends lx.Module #lx:namespace lx {
             backgroundColor: '#272822',
             color: '#F8F8F2'
         });
-        css.addClass('.lxWC-loc', {
+        css.addAbsoluteClass('.lxWC-loc', {
             fontWeight: 'bold',
             color: '#FFCF00'
         });
-        css.addClass('.lxWC-command', {
+        css.addAbsoluteClass('.lxWC-command', {
             color: '#FF9900'
         });
-        css.addClass('.lxWC-msg_', {
+        css.addAbsoluteClass('.lxWC-msg_', {
         });
-        css.addClass('.lxWC-msg_b', {
+        css.addAbsoluteClass('.lxWC-msg_b', {
             fontWeight: 'bold'
         });
-        css.addClass('.lxWC-msg_u', {
+        css.addAbsoluteClass('.lxWC-msg_u', {
             textDecoration: 'underline'
         });
-        css.addClass('.lxWC-msg_bu', {
+        css.addAbsoluteClass('.lxWC-msg_bu', {
             fontWeight: 'bold',
             textDecoration: 'underline'
         });
-        css.addClass('.lxWC-selected', {
+        css.addAbsoluteClass('.lxWC-selected', {
             fontWeight: 'bold',
             textDecoration: 'underline'
         });
@@ -160,7 +160,7 @@ class WebCli extends lx.Module #lx:namespace lx {
      ******************************************************************************************************************/
 
     handleCommand(command) {
-    ^self::handleCommand(command, this.inputString, this.processParams, this.service, this.plugin).then(result=>{
+        ^self::handleCommand(command, this.inputString, this.processParams, this.service, this.plugin).then(result=>{
             if (!result.success) {
                 Console.outln(result.data);
                 Console.outCache();

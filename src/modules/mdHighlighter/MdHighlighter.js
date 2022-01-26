@@ -1,7 +1,5 @@
 #lx:module lx.MdHighlighter;
 
-#lx:use lx.CssColorSchema;
-
 class MdHighlighter extends lx.Module #lx:namespace lx {
     static initCssAsset(css) {
         css.addClass('md-container', {
@@ -16,28 +14,27 @@ class MdHighlighter extends lx.Module #lx:namespace lx {
             marginTop: '20px',
             marginBottom: '20px',
             padding: '20px',
-            backgroundColor: lx.CssColorSchema.bodyBackgroundColor
+            backgroundColor: css.preset.bodyBackgroundColor
         });
         css.addClass('md-blockquote', {
             margin: 0,
             marginTop: '20px',
             marginBottom: '20px',
             paddingLeft: '20px',
-            backgroundColor: lx.CssColorSchema.bodyBackgroundColor,
-            borderLeft: 'solid 2px' + lx.CssColorSchema.coldSoftColor
+            backgroundColor: css.preset.bodyBackgroundColor,
+            borderLeft: 'solid 2px' + css.preset.coldSoftColor
         });
         css.addClass('md-table', {
             marginTop: '20px',
             marginBottom: '20px',
-            border: 'solid 1px ' + lx.CssColorSchema.widgetBorderColor,
+            border: 'solid 1px ' + css.preset.widgetBorderColor,
             borderCollapse: 'collapse'
         });
         css.addClass('md-table-header', {
             padding: '10px',
-            border: 'solid 1px ' + lx.CssColorSchema.widgetBorderColor,
+            border: 'solid 1px ' + css.preset.widgetBorderColor,
         });
         css.inheritClass('md-table-cell', 'md-table-header');
-
     }
 
     static highlight(tag) {

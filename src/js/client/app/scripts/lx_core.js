@@ -8,6 +8,10 @@ lx.off = function(eventName, func) {
 	this.Event.remove( document, eventName, func );
 };
 
+lx.log = function(...args) {
+	console.log.apply(null, args);
+};
+
 function getEnvInfo() {
 	var ua = navigator.userAgent;
 

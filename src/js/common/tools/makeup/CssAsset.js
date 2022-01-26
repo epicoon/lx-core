@@ -1,4 +1,4 @@
-class CssContext #lx:namespace lx {
+class CssAsset #lx:namespace lx {
     constructor() {
         this.sequens = [];
 
@@ -6,12 +6,31 @@ class CssContext #lx:namespace lx {
         this.abstractClasses = {};
         this.classes = {};
         this.mixins = {};
-        
-        this.proxyContexts = [];
+
+        this.preset = null;
+        this.proxyAssets = [];
     }
 
-    useContext(context) {
-        this.proxyContexts.lxPushUnique(context);
+    init(cssPreset) {
+        // pass
+    }
+    
+    usePreset(preset) {
+        this.preset = preset;
+        this.useAssets(preset.proxyAssets);
+    }
+
+    useAsset(asset) {
+        this.proxyAssets.lxPushUnique(asset);
+    }
+
+    useAssets(assets) {
+        for (let i in assets)
+            this.useAsset(assets[i]);
+    }
+
+    get cssPreset() {
+        return this.preset;
     }
 
     addStyle(name, content = {}) {
@@ -45,6 +64,24 @@ class CssContext #lx:namespace lx {
     addAbstractClass(name, content = {}, pseudoclasses = {}) {
         var processed = __processContent(this, content, pseudoclasses);
         this.abstractClasses[name] = {
+            name,
+            content: processed.content,
+            pseudoclasses: processed.pseudoclasses
+        };
+    }
+
+    /**
+     * Add class out of preset
+     */
+    addAbsoluteClass(name, content = {}, pseudoclasses = {}) {
+        this.sequens.push({
+            name,
+            type: 'classes'
+        });
+
+        var processed = __processContent(this, content, pseudoclasses);
+        this.classes[name] = {
+            isAbsolute: true,
             name,
             content: processed.content,
             pseudoclasses: processed.pseudoclasses
@@ -138,8 +175,8 @@ function __getMixin(self, name) {
     if (mixinName in self.mixins)
         return self.mixins[mixinName];
 
-    for (let i in self.proxyContexts) {
-        let mixin = __getMixin(self.proxyContexts[i], name);
+    for (let i in self.proxyAssets) {
+        let mixin = __getMixin(self.proxyAssets[i], name);
         if (mixin) return mixin;
     }
 
@@ -153,8 +190,8 @@ function __getClass(self, name) {
     if (name in self.classes)
         return self.classes[name];
 
-    for (let i in self.proxyContexts) {
-        let c = __getClass(self.proxyContexts[i], name);
+    for (let i in self.proxyAssets) {
+        let c = __getClass(self.proxyAssets[i], name);
         if (c) return c;
     }
 
@@ -195,6 +232,9 @@ function __processContent(self, content, pseudoclasses) {
 }
 
 function __renderRule(self, rule) {
+    if (rule.name[0] == '@')
+        return __renderDirective(self, self.styles[rule.name]);
+
     switch (rule.type) {
         case 'styles': return __renderStyle(self, self.styles[rule.name]);
         case 'classes': return __renderClass(self, self.classes[rule.name]);
@@ -202,15 +242,42 @@ function __renderRule(self, rule) {
 }
 
 function __renderStyle(self, styleData) {
-    var text = styleData.name + '{';
-    var contentString = __getContentString(styleData.content);
-    return text + contentString + '}';
+    let name = styleData.name,
+        list = [...name.matchAll(/\.\b([\w\d_-]+)\b/g)];
+    for (let i in list) {
+        let classDef = null;
+        if (list[i][0] in self.classes) classDef = self.classes[list[i][0]];
+        else if (list[i][1] in self.classes) classDef = self.classes[list[i][1]];
+        if (classDef === null) continue;
+        if (!classDef.isAbsolute) {
+            let reg = new RegExp('\\.' + list[i][1] + '($|[^\w\d_-])');
+            name = name.replace(reg, list[i][0] + '-' + self.preset.name + '$1');
+        }
+    }
+
+    return name + '{' + __getContentString(styleData.content) + '}';
+}
+
+function __renderDirective(self, data) {
+    if (/^@keyframes/.test(data.name)) {
+        let content = [];
+        for (let key in data.content) {
+            let row = __getContentString(data.content[key]);
+            content.push(key + '{' + row + '}');
+        }
+        return  data.name + '{' + content.join('') + '}';
+    }
+
+    return __renderStyle(self, data);
 }
 
 function __renderClass(self, classData) {
     var className = classData.name[0] == '.'
         ? classData.name
         : '.' + classData.name;
+
+    if (!classData.isAbsolute && self.preset)
+        className += '-' + self.preset.name;
 
     var text = className + '{';
 
@@ -221,12 +288,10 @@ function __renderClass(self, classData) {
 
     var pseudoclasses = __getPropertyWithParent(self, classData, 'pseudoclasses');
     if (pseudoclasses) for (var pseudoName in pseudoclasses) {
-        var data;
-        if (pseudoName == 'disabled') {
-            data = {name: className + '[' + pseudoName + ']'};
-        } else {
-            data = {name: className + ':' + pseudoName};
-        }
+        let data = {isAbsolute: true};
+        data.name = (pseudoName == 'disabled')
+            ? className + '[' + pseudoName + ']'
+            : className + ':' + pseudoName;
 
         var pseudoContent = pseudoclasses[pseudoName];
         if (pseudoContent.lxParent) {
@@ -234,7 +299,6 @@ function __renderClass(self, classData) {
             delete pseudoContent.lxParent;
         }
         data.content = pseudoContent;
-
         text += __renderClass(self, data);
     }
 
@@ -267,7 +331,12 @@ function __getPropertyWithParent(self, classData, property) {
 }
 
 function __getContentString(content) {
-    var result = __prepareContentString(content);
+    let str = __prepareContentString(content);
+    return __postProcessContentString(str);
+}
+
+function __postProcessContentString(str) {
+    let result = str;
     result = result.replace(/(,|:) /g, '$1');
     result = result.replace(/ !important/g, '!important');
     result = result.replace(/([^\d])0(px|%)/g, '$10');
@@ -284,17 +353,22 @@ function __prepareContentString(content) {
     if (lx.isString(content)) return content;
 
     if (lx.isObject(content)) {
-        var arr = [];
-        for (var prop in content) {
+        let arr = [];
+        for (let prop in content) {
             if (prop == '__str__') {
                 if (content.__str__.len) arr.push(content.__str__.join(';'));
                 continue;
             }
 
-            var propName = prop.replace(/([A-Z])/g, function(x){return "-" + x.toLowerCase()});
-            var propVal = lx.isString(content[prop])
-                ? content[prop]
-                : (content[prop].toString ? content[prop].toString() : '');
+            let propName = prop.replace(/([A-Z])/g, function(x){return "-" + x.toLowerCase()});
+
+            let propVal = null;
+            if (lx.isString(content[prop]) || lx.isNumber(content[prop]))
+                propVal = content[prop]
+            else if (lx.isObject(content[prop]) && lx.isFunction(content[prop].toCssString))
+                propVal = content[prop].toCssString();
+            if (propVal === null) continue;
+
             arr.push(propName + ':' + propVal);
         }
         return arr.join(';');
