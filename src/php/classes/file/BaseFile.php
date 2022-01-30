@@ -152,7 +152,7 @@ abstract class BaseFile implements CommonFileInterface
 		return preg_replace('/^' . $path . '\//', '', $selfPath);
 	}
 
-	public function createdAt(): int
+	public function updatedAt(): int
 	{
 		if (!$this->exists()) {
 			return INF;
@@ -163,12 +163,12 @@ abstract class BaseFile implements CommonFileInterface
 
 	public function isNewer(CommonFileInterface $file): bool
 	{
-		return $this->createdAt() > $file->createdAt();
+		return $this->updatedAt() > $file->updatedAt();
 	}
 
 	public function isOlder(CommonFileInterface $file): bool
 	{
-		return $this->createdAt() < $file->createdAt();
+		return $this->updatedAt() < $file->updatedAt();
 	}
 
 	public function isDirectory(): bool

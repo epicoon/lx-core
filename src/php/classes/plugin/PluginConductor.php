@@ -96,7 +96,7 @@ class PluginConductor implements ConductorInterface
 
 	public function getSnippetsCachePath(): string
 	{
-		return $this->getLocalSystemPath() . '/snippet_cache';
+		return $this->getLocalSystemPath('snippet_cache');
 	}
 
 	public function pluginContains(string $path): bool
@@ -200,13 +200,12 @@ class PluginConductor implements ConductorInterface
      */
 	public function getCssAssets(): array
 	{
-        lx::$app->events->trigger(Plugin::EVENT_BEFORE_GET_CSS_ASSETS, $this->getPlugin());
-		$css = $this->getPlugin()->getConfig('css');
-		if (!$css) {
-			return [];
-		}
+        if (lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_NONE)) {
+            return [];
+        }
 
-		$css = (array)$css;
+		$css = (array)($this->getPlugin()->getConfig('css') ?? []);
+        $css[]  = $this->getLocalSystemPath('css');
 		$result = [];
 		foreach ($css as $value) {
 			$path = $this->getFullPath($value);

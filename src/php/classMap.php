@@ -28,10 +28,7 @@ return [
     'DevApplicationLifeCycleHandler' => 'classes/system/lifeCycle',
 
     'AssetCompiler' => 'classes/system/asset',
-    'AbstractAssetManager' => 'classes/system/asset',
-    'ApplicationAssetManager' => 'classes/system/asset',
-    'ServiceAssetManager' => 'classes/system/asset',
-    'PluginAssetManager' => 'classes/system/asset',
+    'PresetManager' => 'classes/system/asset',
 
 	'Dialog' => 'classes/system/dialog',
 	'Cookie' => 'classes/system/dialog',
@@ -105,11 +102,16 @@ return [
 	'PluginBuildContext' => 'classes/plugin/build',
 	'SnippetBuildContext' => 'classes/plugin/build',
 	'SnippetCacheData' => 'classes/plugin/build',
+    'CssAssetCompiler' => 'classes/plugin/build',
 	'JsScriptAsset' => 'classes/plugin',
 
-	'JsModuleMapBuilder' => 'classes/module',
-	'JsModuleMap' => 'classes/module',
-	'JsModuleProvider' => 'classes/module',
+    'JsModuleProvider' => 'classes/module',
+	'JsModuleMapBuilder' => 'classes/module/map',
+	'JsModuleMap' => 'classes/module/map',
+    'AbstractJsModuleInjector' => 'classes/module/inject',
+    'ApplicationJsModuleInjector' => 'classes/module/inject',
+    'ServiceJsModuleInjector' => 'classes/module/inject',
+    'PluginJsModuleInjector' => 'classes/module/inject',
 
 	'DataObject' => 'classes/dataClasses',
 
@@ -218,7 +220,8 @@ return [
 	'ResourceVoterInterface' => 'interfaces',
 	'ResourceAccessDataInterface' => 'interfaces',
     'JsCompilerExtensionInterafce' => 'interfaces',
-    'AssetManagerInterface' => 'interfaces',
+    'JsModuleInjectorInterface' => 'interfaces',
+    'PresetManagerInterface' => 'interfaces',
     'ApplicationLifeCycleInterface' => 'interfaces',
 
     'DbConnectorInterface' => 'interfaces/db',

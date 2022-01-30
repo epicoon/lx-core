@@ -21,7 +21,7 @@ interface CommonFileInterface
      * @param string|DirectoryInterface $parent
      */
     public function getRelativePath($parent): ?string;
-    public function createdAt(): int;
+    public function updatedAt(): int;
     public function isNewer(CommonFileInterface $file): bool;
     public function isOlder(CommonFileInterface $file): bool;
     public function isDirectory(): bool;

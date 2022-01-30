@@ -23,7 +23,8 @@ use lx;
  * @property-read CorsProcessor|null $corsProcessor
  * @property-read Language|null $language
  * @property-read ApplicationI18nMap|null $i18nMap
- * @property-read AssetManagerInterface $assetManager
+ * @property-read PresetManagerInterface $presetManager
+ * @property-read JsModuleInjectorInterface $moduleInjector
  * @property-read LoggerInterface $logger
  */
 abstract class AbstractApplication implements FusionInterface
@@ -111,7 +112,8 @@ abstract class AbstractApplication implements FusionInterface
             'corsProcessor' => CorsProcessor::class,
             'language' => Language::class,
             'i18nMap' => ApplicationI18nMap::class,
-            'assetManager' => AssetManagerInterface::class,
+            'presetManager' => PresetManagerInterface::class,
+            'moduleInjector' => JsModuleInjectorInterface::class,
             'logger' => LoggerInterface::class,
         ];
     }
@@ -119,7 +121,8 @@ abstract class AbstractApplication implements FusionInterface
     public function getDefaultFusionComponents(): array
     {
         return [
-            'assetManager' => ApplicationAssetManager::class,
+            'presetManager' => PresetManager::class,
+            'moduleInjector' => ApplicationJsModuleInjector::class,
             'logger' => ApplicationLogger::class,
         ];
     }

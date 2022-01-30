@@ -24,7 +24,7 @@ class HtmlBody
             . 'lx.getTostsElement=()=>{return document.querySelector("[lxid^=\'' . self::LXID_TOSTS . '\']");};'
             . 'lx.getAlertsElement=()=>{return document.querySelector("[lxid^=\'' . self::LXID_ALERTS . '\']");};';
 
-        $cssClass = 'lxbody-' . \lx::$app->assetManager->getDefaultCssPreset();
+        $cssClass = 'lxbody-' . \lx::$app->presetManager->getDefaultCssPreset();
 		return
             '<script>' . $script . '</script>'.
 			$this->renderBeginScripts() .

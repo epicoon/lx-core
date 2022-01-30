@@ -6,5 +6,4 @@ Object.defineProperty(lx, "globalContext", {
     }
 });
 
-#lx:require commonCore;
 #lx:require server/app/scripts/lx_core;

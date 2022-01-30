@@ -9,7 +9,7 @@ class PluginFrontendJsCompiler extends JsCompiler
 
     public function __construct(Plugin $plugin)
     {
-        parent::__construct($plugin->conductor, $plugin->assetManager);
+        parent::__construct($plugin->conductor, $plugin->moduleInjector);
         $this->plugin = $plugin;
         $this->compiledSnippets = [];
     }

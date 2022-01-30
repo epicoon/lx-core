@@ -184,9 +184,10 @@ class SnippetBuildContext implements ContextTreeInterface
 		$snippetData = CodeConverterHelper::arrayToJsCode($snippet->getBuildData());
 
         $core = [
+            '-R @core/js/commonCore',
+            '-R @core/js/common/tools/',
             '-R @core/js/server/app/classes/',
             '-R @core/js/server/tools/',
-            '-R @core/js/common/tools/',
         ];
         $modules = $plugin->getModuleDependencies();
 		$pre = "
@@ -204,7 +205,7 @@ class SnippetBuildContext implements ContextTreeInterface
 				.lxMerge(Snippet.getDependencies())
 		};';
 
-		$compiler = new JsCompiler($plugin->conductor, $plugin->assetManager);
+		$compiler = new JsCompiler($plugin->conductor, $plugin->moduleInjector);
 		$compiler->setBuildModules(true);
 		$executor = new NodeJsExecutor($compiler);
 		$res = $executor

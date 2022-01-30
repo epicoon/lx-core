@@ -10,24 +10,24 @@ function initCssAsset(css) {
 		backgroundColor: css.preset.mainBackgroundColor
 	});
 
-	css.addAbsoluteClass('lx-abspos', {
+	css.addClass('lx-abspos', {
 		position: 'absolute'
 	});
 
-	css.addAbsoluteClass('lxps-grid-v', {
+	css.addClass('lxps-grid-v', {
 		display: 'grid',
 		gridAutoFlow: 'row',
 		gridTemplateColumns: '1fr',
 		gridAutoRows: 'auto'
 	});
-	css.addAbsoluteClass('lxps-grid-h', {
+	css.addClass('lxps-grid-h', {
 		display: 'grid',
 		gridAutoFlow: 'column',
 		gridTemplateRows: '1fr',
 		gridAutoColumns: 'auto'
 	});
 
-	css.addAbsoluteClass('lx-ellipsis', {
+	css.addClass('lx-ellipsis', {
 		overflow: 'hidden',
 		whiteSpace: 'nowrap',
 		textOverflow: 'ellipsis'

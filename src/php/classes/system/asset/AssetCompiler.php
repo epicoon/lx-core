@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class AssetCompiler
 {
     public static function getLinksMap(array $map): array
@@ -68,7 +70,7 @@ class AssetCompiler
 
     public function createLinks(array $originalPathes, array $linkPathes): void
     {
-        $sitePath = \lx::$conductor->sitePath;
+        $sitePath = lx::$conductor->sitePath;
         foreach ($linkPathes as $key => $path) {
             $origin = $originalPathes[$key];
             if ($origin == $path || !file_exists($sitePath . $origin)) {
@@ -88,74 +90,27 @@ class AssetCompiler
 
     public function copyLxCss(): void
     {
-        $coreCssPath = \lx::$conductor->core . '/css';
+        $coreCssPath = lx::$conductor->core . '/css';
         $dir = new \lx\Directory($coreCssPath);
 
-        $webCssPath = \lx::$conductor->webCss;
+        $webCssPath = lx::$conductor->webCss;
         $dir->clone($webCssPath);
-    }
-
-    public function compileCssInDirectory(Plugin $plugin, string $directoryPath): void
-    {
-        $d = new Directory($directoryPath);
-        if (!$d->exists()) {
-            return;
-        }
-
-        $files = $d->getFiles('*.(css|css.js)');
-        $pares = [];
-        $files->each(function ($file) use (&$pares) {
-            $ext = $file->getExtension();
-            $key = ($ext == 'css')
-                ? $file->getName()
-                : $file->getCleanName();
-            if (!array_key_exists($key, $pares)) {
-                $pares[$key] = [
-                    'js' => null,
-                    'css' => null,
-                ];
-            }
-            if ($ext == 'css') {
-                $pares[$key]['css'] = $file;
-            } else {
-                $pares[$key]['js'] = $file;
-            }
-        });
-
-        foreach ($pares as $key => $pare) {
-            if ($pare['js']
-                && (!$pare['css'] || $pare['js']->isNewer($pare['css']))
-            ) {
-                if (!$pare['css']) {
-                    $pare['css'] = $d->makeFile($key);
-                }
-
-                $compiler = new JsCompiler($plugin->conductor, $plugin->assetManager);
-                $compiler->setBuildModules(true);
-                $exec = new NodeJsExecutor($compiler);
-                $cssCode = $exec
-                    ->setCore([
-                        '-R @core/js/server/app/classes/',
-                        '-R @core/js/server/tools/',
-                        '-R @core/js/common/tools/',
-                    ])
-                    ->setFile($pare['js'])
-                    ->run();
-                $pare['css']->put($cssCode);
-            }
-        }
     }
 
     public function compileLxCss(): void
     {
-        $path = \lx::$conductor->webCss;
+        $path = lx::$conductor->webCss;
         $cssJsFile = new File($path . '/main.css.js');
         if (!$cssJsFile->exists()) {
             $this->copyLxCss();
         }
 
-        $presets = \lx::$app->assetManager->getCssPresets();
+        $presets = lx::$app->presetManager->getCssPresets();
         $need = [];
+        $cssFile = new File($path . "/main.css");
+        if (!$cssFile->exists() || $cssJsFile->isNewer($cssFile)) {
+            $need[$name] = $cssFile;
+        }
         foreach ($presets as $name => $module) {
             $cssFile = new File($path . "/main-{$name}.css");
             if (!$cssFile->exists() || $cssJsFile->isNewer($cssFile)) {
@@ -169,9 +124,9 @@ class AssetCompiler
         $code = $cssJsFile->get();
         $names = [];
         $modules = [];
-        foreach ($need as $name => $file) {
-            $code .= '#lx:use ' . \lx::$app->assetManager->getCssPresetModule($name) . ';';
-            $names[] = "'{$name}'";
+        foreach (lx::$app->presetManager->getCssPresets() as $type => $preset) {
+            $code .= '#lx:use ' . lx::$app->presetManager->getCssPresetModule($type) . ';';
+            $names[] = "'{$type}'";
         }
         $code .= "
             const list = [" . implode(',', $names) . "];
@@ -190,21 +145,66 @@ class AssetCompiler
         $compiler->setBuildModules(true);
         $exec = new NodeJsExecutor($compiler);
         $map = $exec->setCore([
+            '-R @core/js/commonCore',
+            '-R @core/js/common/tools/',
             '-R @core/js/server/app/classes/',
             '-R @core/js/server/tools/',
-            '-R @core/js/common/tools/',
         ])->setPath($cssJsFile->getPath())
             ->setCode($code)
             ->run();
 
         foreach ($need as $name => $file) {
-            $file->put($map[$name]);
+            if ($file->getName() == 'main.css') {
+                $file->put(self::getCommonCss($map));
+            } else {
+                $file->put($map[$name]);
+            }
         }
+    }
+    
+    public static function getCommonCss(array $cssList, ?Plugin $context = null): string
+    {
+        $map = [];
+        foreach ($cssList as $type => $code) {
+            if ($code == '') {
+                continue;
+            }
+
+            preg_match_all('/([^}]+?)(?P<therec>{((?>[^{}]+)|(?P>therec))*})/', $code, $matches);
+            $map[$type] = [];
+            foreach ($matches[1] as $i => $key) {
+                $map[$type][$key] = $matches['therec'][$i];
+            }
+        }
+        if (empty($map)) {
+            return '';
+        }
+
+        $common = [];
+        foreach ($map as $type => $list) {
+            foreach ($list as $rule => $values) {
+                if (array_key_exists($rule, $common) && $common[$rule] != $values) {
+                    \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+                        '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+                        'msg' => 'Css compiling mismatch' . ($context ? " for plugin {$context->name}" : ''),
+                    ]);
+                    continue;
+                }
+
+                $common[$rule] = $values;
+            }
+        }
+
+        $commonCssCode = '';
+        foreach ($common as $rule => $values) {
+            $commonCssCode .= $rule . $values;
+        }
+        return $commonCssCode;
     }
 
     public function compileJsCore(): string
     {
-        $path = \lx::$conductor->jsClientCore;
+        $path = lx::$conductor->jsClientCore;
         $code = file_get_contents($path);
 
         $jsCompiler = new JsCompiler();
@@ -220,8 +220,8 @@ class AssetCompiler
             $code .= $modulesProvider->getModulesCode($modules);
         }
 
-        if (\lx::$app->language) {
-            $code .= 'lx.lang=' . CodeConverterHelper::arrayToJsCode(\lx::$app->language->getCurrentData()) . ';';
+        if (lx::$app->language) {
+            $code .= 'lx.lang=' . CodeConverterHelper::arrayToJsCode(lx::$app->language->getCurrentData()) . ';';
         }
 
         return $code;

@@ -24,20 +24,15 @@ class DevApplicationLifeCycleHandler extends AbstractApplicationLifeCycleHandler
 
     public function beforeGetPluginCssAssets(Plugin $plugin): void
     {
-        $css = $plugin->getConfig('css');
-        if (!$css) {
+        if (lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_NONE)) {
             return;
         }
 
-        $css = (array)$css;
-        $cssCompiler = new AssetCompiler();
-        foreach ($css as $value) {
-            $path = $plugin->conductor->getFullPath($value);
-            $cssCompiler->compileCssInDirectory($plugin, $path);
-        }
+        $cssCompiler = new CssAssetCompiler($plugin);
+        $cssCompiler->compile();;
     }
 
-    public function beforeReturnAutoLinkPathes(array $originalPathes, array $linkPathes): void
+    public function beforeGetAutoLinkPathes(array $originalPathes, array $linkPathes): void
     {
         $compiler = new AssetCompiler();
         $compiler->createLinks($originalPathes, $linkPathes);

@@ -7,5 +7,5 @@ interface ApplicationLifeCycleInterface
     public function beforeApplicationRun(): void;
     public function afterApplicationRun(): void;
     public function beforeGetPluginCssAssets(Plugin $plugin): void;
-    public function beforeReturnAutoLinkPathes(array $originalPathes, array $linkPathes): void;
+    public function beforeGetAutoLinkPathes(array $originalPathes, array $linkPathes): void;
 }

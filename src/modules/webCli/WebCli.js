@@ -44,26 +44,26 @@ class WebCli extends lx.Module #lx:namespace lx {
             backgroundColor: '#272822',
             color: '#F8F8F2'
         });
-        css.addAbsoluteClass('.lxWC-loc', {
+        css.addClass('.lxWC-loc', {
             fontWeight: 'bold',
             color: '#FFCF00'
         });
-        css.addAbsoluteClass('.lxWC-command', {
+        css.addClass('.lxWC-command', {
             color: '#FF9900'
         });
-        css.addAbsoluteClass('.lxWC-msg_', {
+        css.addClass('.lxWC-msg_', {
         });
-        css.addAbsoluteClass('.lxWC-msg_b', {
+        css.addClass('.lxWC-msg_b', {
             fontWeight: 'bold'
         });
-        css.addAbsoluteClass('.lxWC-msg_u', {
+        css.addClass('.lxWC-msg_u', {
             textDecoration: 'underline'
         });
-        css.addAbsoluteClass('.lxWC-msg_bu', {
+        css.addClass('.lxWC-msg_bu', {
             fontWeight: 'bold',
             textDecoration: 'underline'
         });
-        css.addAbsoluteClass('.lxWC-selected', {
+        css.addClass('.lxWC-selected', {
             fontWeight: 'bold',
             textDecoration: 'underline'
         });

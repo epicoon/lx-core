@@ -20,15 +20,15 @@ class JsCompiler
     private array $compiledModules;
 	private SyntaxExtender $syntaxExtender;
 	private ConductorInterface $conductor;
-    private AssetManagerInterface $assetManager;
+    private JsModuleInjectorInterface $moduleInjector;
 	private ?JsCompileDependencies $dependencies;
     private ?JsModuleMap $moduleMap;
     private array $waitingForModules;
 
-	public function __construct(?ConductorInterface $conductor = null, ?AssetManagerInterface $assetManager = null)
+	public function __construct(?ConductorInterface $conductor = null, ?JsModuleInjectorInterface $moduleInjector = null)
 	{
 		$this->conductor = $conductor ?? lx::$app->conductor;
-        $this->assetManager = $assetManager ?? lx::$app->assetManager;
+        $this->moduleInjector = $moduleInjector ?? lx::$app->moduleInjector;
 		$this->syntaxExtender = new SyntaxExtender($this);
 
 		$this->context = self::CONTEXT_CLIENT;
@@ -370,7 +370,7 @@ class JsCompiler
 
     private function checkModule(string $moduleName, array &$modulesForBuild, array &$filePathes): void
     {
-        $moduleName = $this->assetManager->resolveModuleName($moduleName);
+        $moduleName = $this->moduleInjector->resolveModuleName($moduleName);
         $moduleMap = $this->getModuleMap();
         if (in_array($moduleName, $this->ignoreModules) || in_array($moduleName, $modulesForBuild)) {
             return;

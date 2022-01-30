@@ -48,6 +48,19 @@ lx.isInstance = function (value, constructor) {
     return value instanceof constructor;
 };
 
+lx.implementsInterface = function(value, _interface) {
+    if (value === undefined || value === null)
+        return false;
+
+    for (let i in _interface.methods) {
+        let method = _interface.methods[i];
+        if (!value[method] || !this.isFunction(value[method]))
+            return false;
+    }
+
+    return true;
+};
+
 lx.isNumber = function (value) {
     if (value === undefined || value === null) return false;
     if ( value.push !== undefined ) return false;
@@ -77,6 +90,15 @@ lx.isObject = function (value) {
 lx.isFunction = function (value) {
     if (value === undefined || value === null) return false;
     return value.constructor === Function;
+};
+
+lx.clone = function (value) {
+    if (value === undefined) return undefined;
+    if (value === null) return null;
+    if (lx.isString(value) || lx.isNumber(value) || lx.isBoolean(value))
+        return value;
+    
+    return value.lxClone();
 };
 
 lx.createNamespace = function (namespace, props) {

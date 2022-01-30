@@ -419,17 +419,7 @@ class Rect extends lx.Module #lx:namespace lx {
     addClass(...args) {
         if (lx.isArray(args[0])) args = args[0];
 
-        args.forEach(name=>{
-            if (name == '') return;
-            name = __defineCssClassName(this, name);
-            this.domElem.addClass(name);
-        });
-        return this;
-    }
-
-    addAbsoluteClass(...args) {
-        if (lx.isArray(args[0])) args = args[0];
-
+        args = __defineCssClassNames(this, args);
         args.forEach(name=>{
             if (name == '') return;
             this.domElem.addClass(name);
@@ -445,17 +435,7 @@ class Rect extends lx.Module #lx:namespace lx {
     removeClass(...args) {
         if (lx.isArray(args[0])) args = args[0];
 
-        args.forEach(name=>{
-            if (name == '') return;
-            name = __defineCssClassName(this, name);
-            this.domElem.removeClass(name);
-        });
-        return this;
-    }
-
-    removeAbsoluteClass(...args) {
-        if (lx.isArray(args[0])) args = args[0];
-
+        args = __defineCssClassNames(this, args);
         args.forEach(name=>{
             if (name == '') return;
             this.domElem.removeClass(name);
@@ -1895,16 +1875,26 @@ function __setGeomPriorityV(self, val, val2) {
     return self;
 }
 
-function __defineCssClassName(self, name) {
-    if (lx.isCssClassAbsolute(name)) return name;
+function __defineCssClassNames(self, names) {
+    let result = [];
+    names.forEach(name=>{
+        if (name == '') return;
 
-    const cssPreset = self.getCssPreset();
-    if (cssPreset) return name + '-' + cssPreset.name;
+        result.push(name);
+        if (lx.isCssClassAbsolute(name)) return;
 
-    #lx:server { return name + '-#lx:preset:lx#'; }
+        const cssPreset = self.getCssPreset();
+        if (cssPreset) {
+            result.push(name + '-' + cssPreset.name);
+            return;
+        }
 
-    #lx:client {
-        let plugin = self.getPlugin();
-        return name + '-' + (plugin ? plugin.cssPreset.name : lx.getSetting('cssPreset'));
-    }
+        #lx:server { result.push(name + '-#lx:preset:lx#'); }
+        #lx:client {
+            let plugin = self.getPlugin();
+            result.push(name + '-' + (plugin ? plugin.cssPreset.name : lx.getSetting('cssPreset')));
+        }
+    });
+
+    return result;
 }

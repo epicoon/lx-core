@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class HtmlHead
 {
 	private string $title = 'lx';
@@ -43,8 +45,10 @@ class HtmlHead
 
 	private function getLxCss(): string
 	{
-		return '<link href="'
-			. ($this->getCssPath() . '/main-' . \lx::$app->assetManager->getDefaultCssPreset() . '.css')
+        $mainCss = lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_SEGREGATED)
+            ? 'main-' . lx::$app->presetManager->getDefaultCssPreset() . '.css'
+            : 'main.css';
+		return '<link href="' . ($this->getCssPath() . '/' . $mainCss)
 			. '" name="base_css" type="text/css" rel="stylesheet">';
 	}
 
@@ -95,11 +99,11 @@ class HtmlHead
 
     private function getCssPath(): string
     {
-        return '/' . \lx::$app->conductor->getRelativePath(\lx::$conductor->webCss);
+        return '/' . lx::$app->conductor->getRelativePath(lx::$conductor->webCss);
     }
 
 	private function getJsPath(): string
 	{
-		return '/' . \lx::$app->conductor->getRelativePath(\lx::$conductor->webJs);
+		return '/' . lx::$app->conductor->getRelativePath(lx::$conductor->webJs);
 	}
 }

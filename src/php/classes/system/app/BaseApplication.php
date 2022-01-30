@@ -28,8 +28,9 @@ abstract class BaseApplication extends AbstractApplication
     public function getSettings(): array
     {
         if (!array_key_exists('cssPreset', $this->settings)) {
-            $this->settings['cssPreset'] = $this->assetManager->getDefaultCssPreset();
+            $this->settings['cssPreset'] = $this->presetManager->getDefaultCssPreset();
         }
+
         return $this->settings;
     }
 

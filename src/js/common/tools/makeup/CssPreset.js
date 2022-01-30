@@ -39,7 +39,7 @@ function __init(self) {
     for (let name in map) {
         Object.defineProperty(self, name, {
             get: function() {
-                return map[name];
+                return new lx.CssValue(self, name, map[name]);
             }
         });
     }
@@ -49,5 +49,32 @@ function __init(self) {
         let asset = assets[i];
         asset.init(self);
         self._proxyAssets.push(asset);
+    }
+}
+
+class CssValue #lx:namespace lx {
+    constructor(preset, name, value) {
+        this.preset = preset;
+        this.name = name;
+        this.value = value;
+    }
+
+    toCssString() {
+        if (lx.isString(this.value) || lx.isNumber(this.value))
+            return this.value;
+
+        if (lx.implementsInterface(this.value, {methods:['toCssString']}))
+            return this.value.toCssString();
+
+        return this.value;
+    }
+
+    [Symbol.toPrimitive](hint) {
+        switch (hint) {
+            case 'number':
+            case 'string':
+            default:
+                return this.toCssString();
+        }
     }
 }

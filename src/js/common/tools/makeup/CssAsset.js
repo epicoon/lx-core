@@ -36,15 +36,72 @@ class CssAsset #lx:namespace lx {
     addStyle(name, content = {}) {
         if (lx.isArray(name)) name = name.join(',');
 
-        this.sequens.push({
-            name,
-            type: 'styles'
-        });
+        this.sequens.push({name, type: 'styles'});
 
-        this.styles[name] = {
+        let constructor = (name[0] == '@') ? CssDirective : CssStyle;
+        this.styles[name] = new constructor({
+            asset: this,
             name,
             content
-        };
+        });
+    }
+
+    addClass(name, content = {}, pseudoclasses = {}) {
+        if (name[0] != '.') name = '.' + name;
+
+        this.sequens.push({name, type: 'classes'});
+
+        var processed = __processContent(this, content, pseudoclasses);
+        this.classes[name] = new CssClass({
+            asset: this,
+            name,
+            content: processed.content,
+            pseudoclasses: processed.pseudoclasses
+        });
+    }
+
+    inheritClass(name, parent, content = {}, pseudoclasses = {}) {
+        if (name[0] != '.') name = '.' + name;
+        if (parent[0] != '.') parent = '.' + parent;
+
+        this.sequens.push({name, type: 'classes'});
+
+        var processed = __processContent(this, content, pseudoclasses);
+        this.classes[name] = new CssClass({
+            asset: this,
+            parent,
+            name,
+            content: processed.content,
+            pseudoclasses: processed.pseudoclasses
+        });
+    }
+
+    addAbstractClass(name, content = {}, pseudoclasses = {}) {
+        if (name[0] != '.') name = '.' + name;
+
+        var processed = __processContent(this, content, pseudoclasses);
+        this.abstractClasses[name] = new CssClass({
+            asset: this,
+            isAbstract: true,
+            name,
+            content: processed.content,
+            pseudoclasses: processed.pseudoclasses
+        });
+    }
+
+    inheritAbstractClass(name, parent, content = {}, pseudoclasses = {}) {
+        if (name[0] != '.') name = '.' + name;
+        if (parent[0] != '.') parent = '.' + parent;
+
+        var processed = __processContent(this, content, pseudoclasses);
+        this.abstractClasses[name] = new CssClass({
+            asset: this,
+            isAbstract: true,
+            parent,
+            name,
+            content: processed.content,
+            pseudoclasses: processed.pseudoclasses
+        });
     }
 
     addStyleGroup(name, list) {
@@ -61,80 +118,12 @@ class CssAsset #lx:namespace lx {
         }
     }
 
-    addAbstractClass(name, content = {}, pseudoclasses = {}) {
-        var processed = __processContent(this, content, pseudoclasses);
-        this.abstractClasses[name] = {
-            name,
-            content: processed.content,
-            pseudoclasses: processed.pseudoclasses
-        };
-    }
-
-    /**
-     * Add class out of preset
-     */
-    addAbsoluteClass(name, content = {}, pseudoclasses = {}) {
-        this.sequens.push({
-            name,
-            type: 'classes'
-        });
-
-        var processed = __processContent(this, content, pseudoclasses);
-        this.classes[name] = {
-            isAbsolute: true,
-            name,
-            content: processed.content,
-            pseudoclasses: processed.pseudoclasses
-        };
-    }
-
-    addClass(name, content = {}, pseudoclasses = {}) {
-        this.sequens.push({
-            name,
-            type: 'classes'
-        });
-
-        var processed = __processContent(this, content, pseudoclasses);
-        this.classes[name] = {
-            name,
-            content: processed.content,
-            pseudoclasses: processed.pseudoclasses
-        };
-    }
-
     addClasses(list) {
         for (let name in list) {
             let content = list[name];
             if (lx.isArray(content)) this.addClass(name, content[0], content[1]);
             else this.addClass(name, content);
         }
-    }
-
-    inheritClass(name, parent, content = {}, pseudoclasses = {}) {
-        this.sequens.push({
-            name,
-            type: 'classes'
-        });
-
-        var processed = __processContent(this, content, pseudoclasses);
-        this.classes[name] = {
-            name,
-            parent,
-            context: this,
-            content: processed.content,
-            pseudoclasses: processed.pseudoclasses
-        };
-    }
-
-    inheritAbstractClass(name, parent, content = {}, pseudoclasses = {}) {
-        var processed = __processContent(this, content, pseudoclasses);
-        this.abstractClasses[name] = {
-            name,
-            parent,
-            context: this,
-            content: processed.content,
-            pseudoclasses: processed.pseudoclasses
-        };
     }
 
     inheritClasses(list, parent) {
@@ -150,6 +139,8 @@ class CssAsset #lx:namespace lx {
     }
     
     getClass(name) {
+        if (name[0] != '.') name = '.' + name;
+
         if (name in this.abstractClasses)
             return this.abstractClasses[name];
         if (name in this.classes)
@@ -160,7 +151,8 @@ class CssAsset #lx:namespace lx {
     toString() {
         var result = '';
         for (var i=0, l=this.sequens.length; i<l; i++) {
-            result += __renderRule(this, this.sequens[i]);
+            const rule = this[this.sequens[i].type][this.sequens[i].name];
+            result += rule.render();
         }
 
         return result;
@@ -168,35 +160,178 @@ class CssAsset #lx:namespace lx {
 }
 
 /***********************************************************************************************************************
- * PRIVATE
+ * CssRule
  **********************************************************************************************************************/
-function __getMixin(self, name) {
-    let mixinName = (name[0] == '@') ? name.replace(/^@/, '') : name;
-    if (mixinName in self.mixins)
-        return self.mixins[mixinName];
 
-    for (let i in self.proxyAssets) {
-        let mixin = __getMixin(self.proxyAssets[i], name);
-        if (mixin) return mixin;
-    }
+class CssRule {
 
-    return null;
 }
 
-function __getClass(self, name) {
-    if (name in self.abstractClasses)
-        return self.abstractClasses[name];
 
-    if (name in self.classes)
-        return self.classes[name];
+/***********************************************************************************************************************
+ * CssClass
+ **********************************************************************************************************************/
 
-    for (let i in self.proxyAssets) {
-        let c = __getClass(self.proxyAssets[i], name);
+class CssClass {
+    constructor(config) {
+        this.asset = config.asset;
+        this.basicName = config.name;
+        this.isAbstract = lx.getFirstDefined(config.isAbstract, false);
+        this.parent = lx.getFirstDefined(config.parent, null);
+
+        this.selfContent = config.content;
+        this.selfPseudoclasses = config.pseudoclasses;
+        this.content = null;
+        this.pseudoclasses = null;
+        this._isPreseted = false;
+        this.refresh();
+    }
+
+    isPreseted() {
+        return this._isPreseted;
+    }
+
+    refresh() {
+        this.content = lx.clone(this.selfContent);
+        this.pseudoclasses = lx.clone(this.selfPseudoclasses);
+        if (this.parent) __applyClassParent(this);
+        this._isPreseted = __defineClassPreseted(this);
+    }
+
+    render() {
+        const className = (this.isPreseted() && this.asset.preset)
+            ? this.basicName + '-' + this.asset.preset.name
+            : this.basicName;
+
+        let text = className + '{' + __getContentString(this.content) + '}';
+
+        for (let pseudoclassName in this.pseudoclasses) {
+            let pseudoclass = this.pseudoclasses[pseudoclassName];
+            pseudoclassName = (pseudoclassName == 'disabled')
+                ? className + '[' + pseudoclassName + ']'
+                : className + ':' + pseudoclassName;
+
+            text += pseudoclassName + '{' + __getContentString(pseudoclass) + '}';
+        }
+
+        return text;
+    }
+}
+
+function __defineClassPreseted(self) {
+    for (let i in self.content) {
+        let attr = self.content[i];
+        if (lx.isInstance(attr, lx.CssValue)) return true;
+    }
+
+    for (let i in self.pseudoclasses) {
+        for (let j in self.pseudoclasses[i]) {
+            let attr = self.pseudoclasses[i][j];
+            if (lx.isInstance(attr, lx.CssValue)) return true;
+        }
+    }
+
+    return false;
+}
+
+function __applyClassParent(self) {
+    self.content = __getClassPropertyWithParent(self, 'content');
+    self.pseudoclasses = __getClassPropertyWithParent(self, 'pseudoclasses');
+}
+
+function __getClassPropertyWithParent(cssClass, property) {
+    if (!cssClass.parent) return cssClass[property];
+
+    let parentClass = null;
+    if (lx.isObject(cssClass.parent))
+        parentClass = cssClass.parent;
+    if (!parentClass) parentClass = __getCssClass(cssClass.asset, cssClass.parent);
+    if (!parentClass) return cssClass[property];
+
+    let pProperty = __getClassPropertyWithParent(parentClass, property) || {};
+    if (lx.isString(pProperty)) pProperty = {__str__:[pProperty]};
+
+    let result = pProperty.lxClone();
+    if (!result.__str__) result.__str__ = [];
+
+    if (lx.isObject(cssClass[property]))
+        result = result.lxMerge(cssClass[property], true)
+    else if (lx.isString(cssClass[property]))
+        result.__str__.push(cssClass[property]);
+
+    if (!result.__str__.len) delete result.__str__;
+    if (result.lxEmpty()) return null;
+    return result;
+}
+
+function __getCssClass(asset, name) {
+    if (name in asset.abstractClasses)
+        return asset.abstractClasses[name];
+
+    if (name in asset.classes)
+        return asset.classes[name];
+
+    for (let i in asset.proxyAssets) {
+        let c = __getCssClass(asset.proxyAssets[i], name);
         if (c) return c;
     }
 
     return null;
 }
+
+
+/***********************************************************************************************************************
+ * CssStyle
+ **********************************************************************************************************************/
+
+class CssStyle {
+    constructor(config) {
+        this.asset = config.asset;
+        this.selector = config.name;
+        this.content = config.content;
+    }
+
+    render() {
+        let selector = this.selector,
+            list = [...selector.matchAll(/\.\b[\w\d_-]+\b/g)];
+        for (let i in list) {
+            let cssClassName = list[i][0],
+                cssClass = this.asset.getClass(cssClassName);
+            if (!cssClass) continue;
+            if (cssClass.isPreseted()) {
+                let reg = new RegExp(cssClassName + '($|[^\w\d_-])');
+                selector = selector.replace(reg, cssClassName + '-' + cssClass.asset.preset.name + '$1');
+            }
+        }
+
+        return selector + '{' + __getContentString(this.content) + '}';
+    }
+}
+
+
+/***********************************************************************************************************************
+ * CssDirective
+ **********************************************************************************************************************/
+
+class CssDirective extends CssStyle {
+    render() {
+        if (/^@keyframes/.test(this.selector)) {
+            let content = [];
+            for (let key in this.content) {
+                let row = __getContentString(this.content[key]);
+                content.push(key + '{' + row + '}');
+            }
+            return this.selector + '{' + content.join('') + '}';
+        }
+
+        return super.render();
+    }
+}
+
+
+/***********************************************************************************************************************
+ * PRIVATE
+ **********************************************************************************************************************/
 
 function __processContent(self, content, pseudoclasses) {
     if (lx.isString(content)) {
@@ -231,103 +366,17 @@ function __processContent(self, content, pseudoclasses) {
     };
 }
 
-function __renderRule(self, rule) {
-    if (rule.name[0] == '@')
-        return __renderDirective(self, self.styles[rule.name]);
+function __getMixin(self, name) {
+    let mixinName = (name[0] == '@') ? name.replace(/^@/, '') : name;
+    if (mixinName in self.mixins)
+        return self.mixins[mixinName];
 
-    switch (rule.type) {
-        case 'styles': return __renderStyle(self, self.styles[rule.name]);
-        case 'classes': return __renderClass(self, self.classes[rule.name]);
-    }
-}
-
-function __renderStyle(self, styleData) {
-    let name = styleData.name,
-        list = [...name.matchAll(/\.\b([\w\d_-]+)\b/g)];
-    for (let i in list) {
-        let classDef = null;
-        if (list[i][0] in self.classes) classDef = self.classes[list[i][0]];
-        else if (list[i][1] in self.classes) classDef = self.classes[list[i][1]];
-        if (classDef === null) continue;
-        if (!classDef.isAbsolute) {
-            let reg = new RegExp('\\.' + list[i][1] + '($|[^\w\d_-])');
-            name = name.replace(reg, list[i][0] + '-' + self.preset.name + '$1');
-        }
+    for (let i in self.proxyAssets) {
+        let mixin = __getMixin(self.proxyAssets[i], name);
+        if (mixin) return mixin;
     }
 
-    return name + '{' + __getContentString(styleData.content) + '}';
-}
-
-function __renderDirective(self, data) {
-    if (/^@keyframes/.test(data.name)) {
-        let content = [];
-        for (let key in data.content) {
-            let row = __getContentString(data.content[key]);
-            content.push(key + '{' + row + '}');
-        }
-        return  data.name + '{' + content.join('') + '}';
-    }
-
-    return __renderStyle(self, data);
-}
-
-function __renderClass(self, classData) {
-    var className = classData.name[0] == '.'
-        ? classData.name
-        : '.' + classData.name;
-
-    if (!classData.isAbsolute && self.preset)
-        className += '-' + self.preset.name;
-
-    var text = className + '{';
-
-    var content = __getPropertyWithParent(self, classData, 'content');
-    var contentString = __getContentString(content);
-
-    text += contentString + '}';
-
-    var pseudoclasses = __getPropertyWithParent(self, classData, 'pseudoclasses');
-    if (pseudoclasses) for (var pseudoName in pseudoclasses) {
-        let data = {isAbsolute: true};
-        data.name = (pseudoName == 'disabled')
-            ? className + '[' + pseudoName + ']'
-            : className + ':' + pseudoName;
-
-        var pseudoContent = pseudoclasses[pseudoName];
-        if (pseudoContent.lxParent) {
-            data.parent = pseudoContent.lxParent;
-            delete pseudoContent.lxParent;
-        }
-        data.content = pseudoContent;
-        text += __renderClass(self, data);
-    }
-
-    return text;
-}
-
-function __getPropertyWithParent(self, classData, property) {
-    if (!classData.parent) return classData[property];
-    var parentClass = null;
-    if (lx.isObject(classData.parent))
-        parentClass = classData.parent;
-    if (!parentClass) parentClass = __getClass(self, classData.parent);
-    if (!parentClass) return classData[property];
-
-    var pProperty = parentClass.parent
-        ? __getPropertyWithParent(parentClass.context, parentClass, property)
-        : parentClass[property];
-    if (!pProperty) pProperty = {};
-    if (lx.isString(pProperty)) pProperty = {__str__:[pProperty]};
-    var result = pProperty.lxClone();
-    if (!result.__str__) result.__str__ = [];
-
-    if (lx.isObject(classData[property]))
-        result = result.lxMerge(classData[property], true)
-    else if (lx.isString(classData[property]))
-        result.__str__.push(classData[property]);
-    if (!result.__str__.len) delete result.__str__;
-    if (result.lxEmpty()) return null;
-    return result;
+    return null;
 }
 
 function __getContentString(content) {
@@ -365,7 +414,7 @@ function __prepareContentString(content) {
             let propVal = null;
             if (lx.isString(content[prop]) || lx.isNumber(content[prop]))
                 propVal = content[prop]
-            else if (lx.isObject(content[prop]) && lx.isFunction(content[prop].toCssString))
+            else if (lx.implementsInterface(content[prop], {methods:['toCssString']}))
                 propVal = content[prop].toCssString();
             if (propVal === null) continue;
 

@@ -1067,7 +1067,7 @@ class CliProcessor
 		$plugin = $editor->createPlugin($name, $path);
 		if ($plugin) {
 			$dir = $plugin->directory;
-			$this->out('New plugin created in: ');
+			$this->out('New plugin was created in: ');
 			$this->outln($dir->getPath(), ['decor' => 'u']);
 		} else {
 			$this->outln('Plugin was not created');

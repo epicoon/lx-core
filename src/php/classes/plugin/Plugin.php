@@ -11,7 +11,7 @@ use lx;
  * @property-read PluginDirectory $directory
  * @property-read PluginConductor $conductor
  * @property-read PluginI18nMap $i18nMap
- * @property-read AssetManagerInterface $assetManager
+ * @property-read JsModuleInjectorInterface $moduleInjector
  */
 class Plugin extends Resource implements FusionInterface
 {
@@ -45,6 +45,7 @@ class Plugin extends Resource implements FusionInterface
 	private array $beforeRunCallbacks = [];
 	private array $scripts = [];
 	private array $css = [];
+    private ?array $_imagePathes = null;
 
 	public function __construct(iterable $config = [])
 	{
@@ -145,7 +146,7 @@ class Plugin extends Resource implements FusionInterface
     {
         return [
             'i18nMap' => PluginI18nMap::class,
-            'assetManager' => AssetManagerInterface::class,
+            'moduleInjector' => JsModuleInjectorInterface::class,
         ];
     }
 
@@ -153,7 +154,7 @@ class Plugin extends Resource implements FusionInterface
 	{
 		return [
 			'i18nMap' => PluginI18nMap::class,
-            'assetManager' => PluginAssetManager::class,
+            'moduleInjector' => PluginJsModuleInjector::class,
 		];
 	}
     
@@ -291,7 +292,7 @@ class Plugin extends Resource implements FusionInterface
 
     public function resetCssPreset(): void
     {
-        $this->cssPreset = $this->assetManager->getDefaultCssPreset();
+        $this->cssPreset = lx::$app->presetManager->getDefaultCssPreset();
     }
 
     public function setCssPreset($cssPreset): void
@@ -508,8 +509,7 @@ class Plugin extends Resource implements FusionInterface
 			'serviceName' => $this->service->name,
 			'name' => $this->_name,
 			'path' => $this->getPath(),
-			'images' => $this->conductor->getImagePathesInSite(),
-
+            'images' => $this->getImagePathes(),
 			'title' => $this->title,
 			'icon' => $this->icon,
 		];
@@ -667,7 +667,26 @@ class Plugin extends Resource implements FusionInterface
 
 	public function getCss(): array
 	{
-		$list = $this->getOriginCss();
+        if (lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_NONE)) {
+            return [];
+        }
+
+        lx::$app->events->trigger(self::EVENT_BEFORE_GET_CSS_ASSETS, $this);
+
+		$originCss = $this->getOriginCss();
+        $list = [];
+        foreach ($originCss as $path) {
+            if (lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_SEGREGATED)) {
+                if (basename($path) == 'asset.css') {
+                    continue;
+                }
+            } elseif (lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_ALL_TOGETHER)) {
+                if (basename($path) != 'asset.css') {
+                    continue;
+                }
+            }
+            $list[] = $path;
+        }
 		$linksMap = AssetCompiler::getLinksMap($list);
         lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
             $linksMap['origins'],
@@ -679,14 +698,17 @@ class Plugin extends Resource implements FusionInterface
 
 	public function getImagePathes(): array
 	{
-		$list = $this->getOriginImagePathes();
-		$linksMap = AssetCompiler::getLinksMap($list);
-        lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
-            $linksMap['origins'],
-            $linksMap['links']
-        ]);
+        if ($this->_imagePathes === null) {
+            $list = $this->getOriginImagePathes();
+            $linksMap = AssetCompiler::getLinksMap($list);
+            lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
+                $linksMap['origins'],
+                $linksMap['links']
+            ]);
+            $this->_imagePathes = $linksMap['names'];
+        }
 
-		return $linksMap['names'];
+		return $this->_imagePathes;
 	}
 
 
