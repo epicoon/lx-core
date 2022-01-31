@@ -4,6 +4,7 @@ class Plugin #lx:namespace lx {
         this.name = data.name;
         this.path = data.path;
         this.images = data.images;
+        this._cssPreset = data.cssPreset;
         this.widgetBasicCss = data.widgetBasicCss || {};
 
         this._title = data.title;
@@ -35,6 +36,10 @@ class Plugin #lx:namespace lx {
     set icon(value) {
         this._icon = value;
         this._changes.icon = value;
+    }
+
+    get cssPreset() {
+        return lx.CssPresetsList.getCssPreset(this._cssPreset);
     }
 
     getImage(name) {

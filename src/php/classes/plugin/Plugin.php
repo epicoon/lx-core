@@ -510,6 +510,7 @@ class Plugin extends Resource implements FusionInterface
 			'name' => $this->_name,
 			'path' => $this->getPath(),
             'images' => $this->getImagePathes(),
+            'cssPreset' => $this->cssPreset,
 			'title' => $this->title,
 			'icon' => $this->icon,
 		];
