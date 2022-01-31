@@ -95,6 +95,9 @@ class CssAssetCompiler
         $pluginCode = $pluginFile->get();
         $reg = '/(initCssAsset\([^\)]+?\))\s*(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
         preg_match_all($reg, $pluginCode, $matches);
+        if (empty($matches['therec'])) {
+            return '';
+        }
         $cssAsset = trim($matches['therec'][0], '{} ');
         $cssAsset = preg_replace('(^\s+|\s+$)', '', $cssAsset);
         if ($cssAsset == '') {
@@ -105,9 +108,9 @@ class CssAssetCompiler
         foreach (lx::$app->presetManager->getCssPresets() as $type => $preset) {
             $code .= '#lx:use ' . lx::$app->presetManager->getCssPresetModule($type) . ';';
         }
-        $code .= 'const __plugin__ = (()=>{class Plugin{';
+        $code .= 'const __plugin__ = (()=>{class Plugin extends lx.Plugin{';
         $code .= $matches[1][0] . '{' . $cssAsset . '}';
-        $code .= '}return new Plugin();})();';
+        $code .= '}return new Plugin(' . CodeConverterHelper::arrayToJsCode($plugin->getBuildData()) . ');})();';
 
         $code .= 'const result = {};';
         foreach (lx::$app->presetManager->getCssPresets() as $type => $preset) {

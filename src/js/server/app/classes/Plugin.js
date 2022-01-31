@@ -6,7 +6,6 @@ class Plugin #lx:namespace lx {
         this.images = data.images;
         this._cssPreset = data.cssPreset;
         this.widgetBasicCss = data.widgetBasicCss || {};
-
         this._title = data.title;
         this._icon = data.icon;
         this._changes = {
