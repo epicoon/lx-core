@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use Exception;
+
 class MysqlConnection extends DbConnection
 {
     public function connect(): bool
@@ -16,11 +18,11 @@ class MysqlConnection extends DbConnection
             $connection = mysqli_connect($settings['hostname'], $settings['username'], $settings['password']);
             mysqli_select_db($connection, $settings['dbName']);
             mysqli_set_charset($connection, 'utf8');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if ($connection) {
                 mysqli_close($connection);
             }
-            
+
             $this->addFlightRecord($e->getMessage());
             return false;
         }
@@ -37,7 +39,7 @@ class MysqlConnection extends DbConnection
 
         $result = mysqli_close($this->connection);
         if (!$result) {
-            $this->addFlightRecord(pg_last_error($this->connection));
+            $this->addFlightRecord(mysqli_error($this->connection));
             return false;
         }
 
@@ -45,270 +47,146 @@ class MysqlConnection extends DbConnection
         return true;
     }
 
-
-
-    //TODO дальше надо смотреть
-
-    
-    public function __construct(array $settings)
+    /**
+     * @return mixed
+     */
+    public function query($query)
     {
-        throw new \Exception('Not implemented');
+        if (preg_match('/^\s*SELECT/', $query)) {
+            return $this->select($query);
+        }
+
+        $res = mysqli_query($this->connection, $query);
+        if ($res === false) {
+            $this->addFlightRecord(mysqli_error($this->connection));
+            return false;
+        }
+
+        if (preg_match('/^\s*INSERT/', $query)) {
+            $lastId = mysqli_query($this->connection, 'SELECT LAST_INSERT_ID();');
+            $result = mysqli_fetch_array($lastId)[0];
+        } else {
+            $result = 'done';
+        }
+
+        return $result;
     }
 
     /**
-	 * Имя таблицы с учетом схемы
-	 * */
-	public function tableName($name) {
-		return str_replace('.', '__', $name);
-	}
+     * Проверяет существование таблицы
+     * */
+    public function tableExists(string $name): bool
+    {
+        $name = $this->getTableName($name);
+        $res = $this->select("SHOW TABLES FROM {$this->settings['dbName']} LIKE '$name'");
+        return !empty($res);
+    }
 
-    public function getCreateTableQuery($schema) {
-	    //TODO - раньше были аргументы ($name, $columns)
+    public function renameTable($oldName, $newName): bool
+    {
+        return $this->query("RENAME TABLE $oldName TO $newName;");
+    }
 
-		$query = '';
-		if (preg_match('/\./', $name)) {
-			$name = $this->getTableName($name);
-		}
+    public function getTableSchema(string $tableName): ?DbTableSchema
+    {
+        //todo доделать метод
+        return null;
+    }
 
-		//mysql> create table myfriends(id serial primary key,frnd_name varchar(50) not null);
-        //mysql> create table myfriends(id int primary key auto_increment,frnd_name varchar(50) not null);
-        // SERIAL-это псевдоним для BIGINT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE
+    public function getContrForeignKeysInfo(string $tableName, ?array $fields = null): array
+    {
+        $realTableName = $this->getTableName($tableName);
+        $schemaName = $this->settings['dbName'];
 
-		$query .= "CREATE TABLE $name (";
-		$cols = [];
-		foreach ($columns as $colName => $definition) {
-			if (is_array($definition)) {
-				$definition = new DbColumnDefinition($definition);
-			}
+        $query = "
+            SELECT 
+                REFERENCED_COLUMN_NAME as rel_field_name,
+                REPLACE(TABLE_NAME, '__', '.') as table_name,
+                COLUMN_NAME as field_name,
+                CONSTRAINT_NAME as fk_name,
+            FROM 
+              KEY_COLUMN_USAGE
+            WHERE 
+              TABLE_SCHEMA = '$schemaName' 
+            AND TABLE_NAME = '$realTableName' 
+            AND REFERENCED_COLUMN_NAME is not NULL
+        ";
 
-			$str = $this->definitionToString($definition);
-			$str = str_replace('#key#', $colName, $str);
-			$cols[] = "$colName $str";
-		}
-		$cols = implode(', ', $cols);
-		$cols = str_replace('#pkey#', $name, $cols);
-		$query .= "$cols);CHARACTER SET utf8 COLLATE utf8_general_ci;";
-		return $query;
-	}
+        if ($fields) {
+            foreach ($fields as &$field) {
+                $field = $this->getQueryBuilder()->convertValueForQuery($field);
+            }
+            unset($field);
+            $fields = implode(',', $fields);
+            $query .= " AND REFERENCED_COLUMN_NAME in ($fields)";
+        }
 
-	/**
-	 * Запрос строкой с SQL-кодом
-	 * @param $query
-	 * */
-	public function query($query) {
-		$this->error = null;
+        $constraints = $this->select($query);
 
-		if (preg_match('/^\s*SELECT/', $query)) {
-			return $this->select($query);
-		}
+        $fks = [];
+        foreach ($constraints as $constraint) {
+            $fks[$constraint['fk_name']][] = [
+                'field' => $constraint['field_name'],
+                'table' => $constraint['table_name'],
+                'relTable' => $tableName,
+                'relField' => $constraint['rel_field_name'],
+            ];
+        }
 
-		$result;
-		$res = mysqli_query($this->connection, $query);
-		if ($res === false) {
-			$this->error = mysqli_error($this->connection);
-			return false;
-		}
+        $result = [];
+        foreach ($fks as $fkName => $fk) {
+            $fields = [];
+            $relFields = [];
+            $table = $fk[0]['table'];
+            $relTable = $fk[0]['relTable'];
+            foreach ($fk as $data) {
+                if (!in_array($data['field'], $fields)) {
+                    $fields[] = $data['field'];
+                }
+                if (!in_array($data['relField'], $relFields)) {
+                    $relFields[] = $data['relField'];
+                }
+            }
+            $result[] = [
+                'name' => $fkName,
+                'table' => $table,
+                'fields' => $fields,
+                'relatedTable' => $relTable,
+                'relatedFields' => $relFields,
+            ];
+        }
 
-		if (preg_match('/^\s*INSERT/', $query)) {
-			$lastId = mysqli_query($this->connection, 'SELECT LAST_INSERT_ID();');
-			$result = mysqli_fetch_array($lastId)[0];
-		} else {
-			$result = 'done';
-		}
+        return $result;
+    }
 
-		return $result;
-	}
+    public function getTableName(string $name): string
+    {
+        return str_replace('.', '__', $name);
+    }
 
-	/**
-	 * SELECT-запрос
-	 * @param $query
-	 * */
-	public function select($query, $selectType = DbConnection::SELECT_TYPE_ASSOC) {
-		$this->error = null;
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    * PRIVATE
+    * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-		$res = mysqli_query($this->connection, $query);
-		if ($res === false) {
-			$this->error = mysqli_error($this->connection);
-			return false;
-		}
+    /**
+     * @param $query
+     * @return array|false
+     */
+    private function select($query)
+    {
+        $res = mysqli_query($this->connection, $query);
+        if ($res === false) {
+            $this->addFlightRecord(mysqli_error($this->connection));
+            return false;
+        }
 
-		//TODO
         $mode = MYSQLI_ASSOC;
-		
-		$arr = [];
-		while ($row = mysqli_fetch_array($res, $mode)) {
-			$arr[] = $row;
-		}
 
-		return $arr;
-	}
+        $arr = [];
+        while ($row = mysqli_fetch_array($res, $mode)) {
+            $arr[] = $row;
+        }
 
-	/**
-	 * Обязательно INSERT-запрос
-	 * */
-	public function insert($query, $returnId=true) {
-		$this->error = null;
-
-		$res = mysqli_query($this->connection, $query);
-		if (!$returnId) return $res;
-
-		if ($res === false) {
-			$this->error = mysqli_error($this->connection);
-			return false;
-		}
-
-		$lastId = mysqli_query($this->connection, 'SELECT LAST_INSERT_ID();');
-		return mysqli_fetch_array($lastId)[0];
-	}
-
-	/**
-	 * Массовый апдейт
-	 * */
-	public function massUpdate($tableName, $rows) {
-		//todo
-
-		/*
-		Пример чтобы сделать массовый апдейт для mysql
-		UPDATE `table` SET `uid` = CASE
-		    WHEN id = 1 THEN 2952
-		    WHEN id = 2 THEN 4925
-		    WHEN id = 3 THEN 1592
-		    ELSE `uid`
-		    END
-		WHERE id  in (1,2,3)
-		*/
-	}
-
-	/**
-	 * Проверяет существование таблицы
-	 * */
-	public function tableExists($name) {
-		$name = $this->getTableName($name);
-		$res = $this->select("SHOW TABLES FROM {$this->settings['dbName']} LIKE '$name'");
-		return !empty($res);
-	}
-
-	/**
-     * @deprecated переделать в метод getTableSchema
-	 * Схема таблицы
-	 */
-	public function tableSchema($name, $fields=null) {
-		$name = $this->getTableName($name);
-		$fieldsString = $fields;
-		if ($fields == self::SHORT_SCHEMA) $fieldsString = 'column_name,column_default,is_nullable,data_type,character_maximum_length,column_key';
-		else if (is_array($fields)) $fieldsString = implode(',', $fields);
-		else if ($fields === null) $fieldsString = '*';
-
-		$res = $this->select("SELECT $fieldsString FROM information_schema.columns WHERE table_name='$name'");
-		if ($fields != self::SHORT_SCHEMA) return $res;
-
-		/*
-		Для короткой схемы вернёт данные в формате:
-		[
-			[
-				'name' - всегда
-				'type' - всегда
-				'notNull' - всегда, булево значение
-				'default' - если есть
-				'size' - если есть
-			],
-			...
-		]
-		*/
-		$result = [];
-		foreach ($res as $item) {
-			$data = [];
-			$name = $item['column_name'];
-
-			if (isset($item['column_default'])) $data['default'] = $item['column_default'];
-
-			if ($item['column_key'] == 'PRI') {
-				$data['type'] = 'pk';
-			}
-
-			$data['notNull'] = $item['is_nullable'] == 'NO';
-
-			if (!isset($data['type'])) {
-				if (preg_match('/^varchar/', $item['data_type'])) $data['type'] = 'string';
-				else if ($item['data_type'] == 'int') $data['type'] = 'integer';//TODO PhpTypeEnum::
-				else $data['type'] = $item['data_type'];
-			}
-
-			if (isset($item['character_maximum_length'])) {
-				$data['size'] = $item['character_maximum_length'];
-			}
-
-			$result[$name] = $data;
-		}
-		return $result;
-	}
-
-	public function renameTable($oldName, $newName) {
-
-	}
-
-    public function getAddColumnQuery($schema, $fieldName) {
-	    //TODO
-		/*
-		Для внешнего ключа
-
-		ALTER TABLE users ADD grade_id SMALLINT UNSIGNED NOT NULL DEFAULT 0;
-		ALTER TABLE users ADD CONSTRAINT fk_grade_id FOREIGN KEY (grade_id) REFERENCES grades(id);
-
-		ALTER TABLE my_table DROP FOREIGN KEY fk_name;
-		ALTER TABLE my_table DROP COLUMN my_column;
-
-		
-		Вроде как про "по поводу посмотреть есть ли внешний ключ":
-		
-		1) Попроще (показывает CONSTRAINT_NAME, REFERENCED_TABLE_NAME и REFERENCED_COLUMN_NAME для полей таблицы, если они есть):
-		use INFORMATION_SCHEMA;
-		select 
-		  TABLE_NAME,COLUMN_NAME,CONSTRAINT_NAME,REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME 
-		from 
-		  KEY_COLUMN_USAGE
-		where 
-		  TABLE_SCHEMA = "ИМЯ_БАЗЫ" 
-		and 
-		  TABLE_NAME = "ИМЯ_ТАБЛИЦЫ" 
-		and 
-		  REFERENCED_COLUMN_NAME is not NULL;
-
-		2) Понавороченней, показывает ВСЁ:
-		use INFORMATION_SCHEMA;
-		SELECT 
-		  cols.TABLE_NAME, cols.COLUMN_NAME, cols.ORDINAL_POSITION,
-		  cols.COLUMN_DEFAULT, cols.IS_NULLABLE, cols.DATA_TYPE,
-		  cols.CHARACTER_MAXIMUM_LENGTH, cols.CHARACTER_OCTET_LENGTH,
-		  cols.NUMERIC_PRECISION, cols.NUMERIC_SCALE,
-		  cols.COLUMN_TYPE, cols.COLUMN_KEY, cols.EXTRA,
-		  cols.COLUMN_COMMENT, refs.REFERENCED_TABLE_NAME,
-		  refs.REFERENCED_COLUMN_NAME,
-		  cRefs.UPDATE_RULE, cRefs.DELETE_RULE,
-		  links.TABLE_NAME, links.COLUMN_NAME,
-		  cLinks.UPDATE_RULE, cLinks.DELETE_RULE
-		FROM 
-		  `COLUMNS` as cols
-		LEFT JOIN `KEY_COLUMN_USAGE` AS refs ON 
-		  refs.TABLE_SCHEMA=cols.TABLE_SCHEMA
-		  AND refs.REFERENCED_TABLE_SCHEMA=cols.TABLE_SCHEMA
-		  AND refs.TABLE_NAME=cols.TABLE_NAME
-		  AND refs.COLUMN_NAME=cols.COLUMN_NAME
-		LEFT JOIN REFERENTIAL_CONSTRAINTS AS cRefs ON 
-		  cRefs.CONSTRAINT_SCHEMA=cols.TABLE_SCHEMA
-		  AND cRefs.CONSTRAINT_NAME=refs.CONSTRAINT_NAME
-		LEFT JOIN `KEY_COLUMN_USAGE` AS links ON 
-		  links.TABLE_SCHEMA=cols.TABLE_SCHEMA
-		  AND links.REFERENCED_TABLE_SCHEMA=cols.TABLE_SCHEMA
-		  AND links.REFERENCED_TABLE_NAME=cols.TABLE_NAME
-		  AND links.REFERENCED_COLUMN_NAME=cols.COLUMN_NAME
-		LEFT JOIN REFERENTIAL_CONSTRAINTS AS cLinks ON 
-		  cLinks.CONSTRAINT_SCHEMA=cols.TABLE_SCHEMA
-		  AND cLinks.CONSTRAINT_NAME=links.CONSTRAINT_NAME
-		WHERE 
-		  cols.TABLE_SCHEMA="ИМЯ_БАЗЫ"
-		AND 
-		  cols.TABLE_NAME="ИМЯ_ТАБЛИЦЫ";
-		*/
-	}
+        return $arr;
+    }
 }

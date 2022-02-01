@@ -13,7 +13,7 @@ abstract class DbConnection implements DbConnectionInterface
 	const SELECT_TYPE_NUM = 3;
 
 	protected array $settings;
-	/** @var resource|null */
+	/** @var mixed|null */
     protected $connection;
 
     public function __construct(array $settings)
