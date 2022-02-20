@@ -105,26 +105,38 @@ class Paginator extends lx.Box #lx:namespace lx {
 
         static toPrevPage(e) {
             var p = this.parent;
+            e = e || p.newEvent();
+            e.previousPage = p.activePage;
             p.selectPage(p.activePage - 1);
-            p.trigger('change', e, p.activePage);
+            e.currentPage = p.activePage;
+            p.trigger('change', e);
         }
 
         static toNextPage(e) {
             var p = this.parent;
+            e = e || p.newEvent();
+            e.previousPage = p.activePage;
             p.selectPage(p.activePage + 1);
-            p.trigger('change', e, p.activePage);
+            e.currentPage = p.activePage;
+            p.trigger('change', e);
         }
 
         static toFirstPage(e) {
             var p = this.parent;
+            e = e || p.newEvent();
+            e.previousPage = p.activePage;
             p.selectPage(0);
-            p.trigger('change', e, p.activePage);
+            e.currentPage = p.activePage;
+            p.trigger('change', e);
         }
 
         static toLastPage(e) {
             var p = this.parent;
+            e = e || p.newEvent();
+            e.previousPage = p.activePage;
             p.selectPage(p.pagesCount - 1);
-            p.trigger('change', e, p.activePage);
+            e.currentPage = p.activePage;
+            p.trigger('change', e);
         }
     }
 

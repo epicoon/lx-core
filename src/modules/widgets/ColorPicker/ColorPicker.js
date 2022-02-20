@@ -12,7 +12,6 @@
  * Special events:
  * - colorSelect({lx.Color} color)
  * - colorChange({lx.Color} color)
- * - colorReset({lx.Color} previousColor, {lx.Color} currentColor)
  * - colorReject({lx.Color} color)
  */
 
@@ -77,6 +76,8 @@ class ColorPicker extends lx.Box #lx:namespace lx {
             return Math.round(value);
         });
         this.colorModel.afterSet(function(fieldName, value) {
+            let e = _t.newEvent();
+            e.oldColor = _t.color.clone();
             switch (fieldName) {
                 case 'R': _t.color.R = this.R; __actualizeColorModel(_t); break;
                 case 'G': _t.color.G = this.G; __actualizeColorModel(_t); break;
@@ -86,7 +87,8 @@ class ColorPicker extends lx.Box #lx:namespace lx {
                 case 'S': _t.color.setSaturation(this.S); __actualizeColorModel(_t); break;
                 case 'L': _t.color.setLightness(this.L); __actualizeColorModel(_t); break;
             }
-            _t.trigger('colorChange', _t.color.clone());
+            e.newColor = _t.color.clone();
+            _t.trigger('colorChange', e);
             __onColorChange(_t);
         });
 
@@ -94,7 +96,7 @@ class ColorPicker extends lx.Box #lx:namespace lx {
         this.addStructure(lx.Scroll, {type: lx.VERTICAL});
         this.addStructure(lx.Scroll, {type: lx.HORIZONTAL});
         this.gridProportional({indent: '10px', cols: 18});
-        this.on('resize', (e, w, h)=>__actualizeHandlers(this, w, h));
+        this.on('resize', ()=>__actualizeHandlers(this));
 
         __renderHueScale(this);
         __renderMainScale(this);
@@ -117,15 +119,18 @@ class ColorPicker extends lx.Box #lx:namespace lx {
         this.add(lx.Button, {
             geom: [0, 7, 6, 1],
             text: #lx:i18n(Select),
-            click: ()=>this.trigger('colorSelect', this.color.clone())
+            click: ()=>this.trigger('colorSelect', this.newEvent({color: this.color.clone()}))
         });
         this.add(lx.Button, {
             geom: [6, 7, 6, 1],
             text: #lx:i18n(Reset),
             click: ()=>{
-                this.trigger('colorReset', this.color.clone(), this.colorSave.clone());
+                let oldColor = this.color.clone();
                 this.color.copy(this.colorSave);
-                this.trigger('colorChange', this.color.clone());
+                this.trigger('colorChange', this.newEvent({
+                    oldColor,
+                    newColor: this.color.clone()
+                }));
                 __actualizeColorModel(this);
                 __onColorChange(this);
             }
@@ -133,7 +138,7 @@ class ColorPicker extends lx.Box #lx:namespace lx {
         this.add(lx.Button, {
             geom: [12, 7, 6, 1],
             text: #lx:i18n(Reject),
-            click: ()=>this.trigger('colorReject', this.color.clone())
+            click: ()=>this.trigger('colorReject', this.newEvent({color: this.color.clone()}))
         });
 
         this.bind(this.colorModel);
@@ -170,8 +175,8 @@ class ColorPicker extends lx.Box #lx:namespace lx {
         const mainScale = self.add(lx.Box, {key: 'mainScale', geom: [0, 1, 9, 6]});
         const vLine = mainScale.add(lx.Rect, {key: 'vLine', geom: [10, 0, '3px', 100], css: 'lx-ColorPicker-line'});
         const hLine = mainScale.add(lx.Rect, {key: 'hLine', geom: [0, 10, 100, '3px'], css: 'lx-ColorPicker-line'});
-        mainScale.on('resize', (e, oldW, oldH)=>{
-            let p = __getScalePoint(self, oldW, oldH);
+        mainScale.on('resize', e=>{
+            let p = __getScalePoint(self, e.oldWidth, e.oldHeight);
             __actualizeMainScalePoint(self, p.x ,p.y);
         });
 
@@ -354,7 +359,7 @@ class ColorPicker extends lx.Box #lx:namespace lx {
         self->>colorExample.fill(self.color);
     }
 
-    function __actualizeHandlers(self, oldW, oldH) {
+    function __actualizeHandlers(self) {
         __actualizeHueScale(self);
         __actualizeGrHandler(self->>pickR, 'R', self.colorModel.R);
         __actualizeGrHandler(self->>pickG, 'G', self.colorModel.G);

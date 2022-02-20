@@ -1,4 +1,6 @@
-#lx:require IndentData;
+#lx:module lx.PositioningStrategy;
+
+#lx:use lx.IndentData;
 
 class PositioningStrategy #lx:namespace lx {
 	constructor(owner) {
@@ -6,7 +8,10 @@ class PositioningStrategy #lx:namespace lx {
 		this.autoActualize = true;
 	}
 
-	init(config) {
+	/**
+	 * @param {Object} [config = {}]
+	 */
+	init(config = {}) {
 		// abstract
 	}
 

@@ -13,9 +13,8 @@ let __activeTable = null;
 let __activeCell = null;
 
 /* Таблица начинает генерировать события:
- * selectionChange (event, oldCell, newCell)
- * rowAdded (event)
- * cellChange (event, cell)
+ * selectionChange
+ * rowAdded
  */
 class TableManager extends lx.Module #lx:namespace lx {
     static initCssAsset(css) {
@@ -86,7 +85,10 @@ class TableManager extends lx.Module #lx:namespace lx {
     static unselect() {
         if (!__activeTable) return;
 
-        __activeTable.trigger('selectionChange', event, __activeCell, null);
+        __activeTable.trigger('selectionChange', __activeTable.newEvent({
+            newCell: null,
+            oldCell: __activeCell
+        }));
 
         __removeClasses(__activeTable, __activeCell);
         __activeCell = null;
@@ -159,7 +161,9 @@ function __handlerClick(event) {
         newTab.__interactiveInfo.col = coords[1];
     }
 
-    newTab.trigger('selectionChange', event, lastCell, newCell);
+    event.newCell = newCell;
+    event.oldCell = lastCell;
+    newTab.trigger('selectionChange', event);
 }
 
 function __handlerOutclick(event) {
@@ -236,12 +240,17 @@ function __toUp(event) {
         rT = newRow.getDomElem().offsetTop;
     if ( rT < scr ) tab.getDomElem().scrollTop = rT;
 
-    tab.trigger('selectionChange', event, cell, newCell);
+    event = event || tab.newEvent();
+    event.newCell = newCell;
+    event.oldCell = cell;
+    tab.trigger('selectionChange', event);
 }
 
 function __toDown(event) {
     var cell = __activeCell;
     if ( cell.contains('input') ) return;
+
+    event = event || __activeTable.newEvent();
 
     var tab = __activeTable,
         coords = cell.indexes(),
@@ -270,7 +279,9 @@ function __toDown(event) {
         rH = newRow.getDomElem().offsetHeight;
     if ( rT + rH > scr + h ) tab.getDomElem().scrollTop = rT + rH - h;
 
-    tab.trigger('selectionChange', event, cell, newCell);
+    event.newCell = newCell;
+    event.oldCell = cell;
+    tab.trigger('selectionChange', event);
 }
 
 function __toLeft(event) {
@@ -296,7 +307,10 @@ function __toLeft(event) {
         rL = newCell.getDomElem().offsetLeft;
     if ( rL < scr ) tab.getDomElem().scrollLeft = rL;
 
-    tab.trigger('selectionChange', event, cell, newCell);
+    event = event || tab.newEvent();
+    event.newCell = newCell;
+    event.oldCell = cell;
+    tab.trigger('selectionChange', event);
 }
 
 function __toRight(event) {
@@ -324,5 +338,8 @@ function __toRight(event) {
         rW = newCell.getDomElem().offsetWidth;
     if ( rL + rW > scr + w ) tab.getDomElem().scrollLeft = rL + rW - w;
 
-    tab.trigger('selectionChange', event, cell, newCell);
+    event = event || tab.newEvent();
+    event.newCell = newCell;
+    event.oldCell = cell;
+    tab.trigger('selectionChange', event);
 }

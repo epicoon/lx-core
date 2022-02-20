@@ -1,13 +1,37 @@
+#lx:module lx.StreamPositioningStrategy;
+
+#lx:use lx.IndentData;
+#lx:use lx.PositioningStrategy;
+
 class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 	#lx:const
 		TYPE_SIMPLE = 1,
 		TYPE_PROPORTIONAL = 2,
 
-		ROW_DEFAULT_HEIGHT = '40px',
 		COLUMN_DEFAULT_WIDTH = '40px',
-		ROW_MIN_HEIGHT = '40px',
-		COLUMN_MIN_WIDTH = '40px';
+		ROW_DEFAULT_HEIGHT = '40px',
+		COLUMN_MIN_WIDTH = '40px',
+		ROW_MIN_HEIGHT = '40px';
 
+	/**
+	 * @param [config = {}] {Object: {
+	 *     {Number&Enum(
+	 *         lx.StreamPositioningStrategy.TYPE_SIMPLE,
+	 *         lx.StreamPositioningStrategy.TYPE_PROPORTIONAL
+	 *     )} [type = lx.StreamPositioningStrategy.TYPE_SIMPLE],
+	 *     {Number&Enum(
+	 *         lx.HORIZONTAL,
+	 *         lx.VERTICAL
+	 *     )} [direction = lx.VERTICAL],
+	 *     {String} [width = lx.StreamPositioningStrategy.COLUMN_DEFAULT_WIDTH],
+	 *     {String} [height = lx.StreamPositioningStrategy.ROW_DEFAULT_HEIGHT],
+	 *     {String} [minWidth = lx.StreamPositioningStrategy.COLUMN_MIN_WIDTH],
+	 *     {String} [minHeight = lx.StreamPositioningStrategy.ROW_MIN_HEIGHT],
+	 *     {String} [maxWidth]
+	 *     {String} [maxHeight]
+	 *     #merge(lx.IndentData::constructor::config)
+	 * }}
+	 */
 	init(config={}) {
 		this.type = config.type || self::TYPE_SIMPLE;
 		this.sequense = Sequense.create(this);
@@ -18,7 +42,7 @@ class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx 
 				: lx.VERTICAL;
 		this.direction = config.direction;
 
-		if (config.height !== undefined) this.rowDefaultHeight = config.rowDefaultHeight;
+		if (config.height !== undefined) this.rowDefaultHeight = config.height;
 		if (config.width !== undefined) this.columnDefaultWidth = config.width;
 
 		this.owner.addClass(this.direction == lx.VERTICAL ? 'lxps-grid-v' : 'lxps-grid-h');
@@ -29,12 +53,14 @@ class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx 
 			} else {
 				if (this.owner.left() !== null && this.owner.right() !== null) this.owner.right(null);
 				this.owner.width('auto');
+				this.owner.style('display', 'inline-grid');
 			}
 		}
 
-		if (config.minWidth !== undefined) this.minWidth  = config.minWidth;
-		if (config.minHeight !== undefined) this.minHeight = config.minHeight;
-
+		this.minWidth = lx.getFirstDefined(config.minWidth, null);
+		this.minHeight = lx.getFirstDefined(config.minHeight, null);
+		this.maxWidth = lx.getFirstDefined(config.maxWidth, null);
+		this.maxHeight = lx.getFirstDefined(config.maxHeight, null);
 		this.setIndents(config);
 	}
 
@@ -44,10 +70,14 @@ class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx 
 			str += ';rdh:' + this.rowDefaultHeight;
 		if (this.columnDefaultWidth)
 			str += ';rdc:' + this.columnDefaultWidth;
-		if (this.minWidth)
+		if (this.minWidth !== null)
 			str += ';mw:' + this.minWidth;
-		if (this.minHeight)
+		if (this.minHeight !== null)
 			str += ';mh:' + this.minHeight;
+		if (this.maxWidth !== null)
+			str += ';maw:' + this.maxWidth;
+		if (this.maxHeight !== null)
+			str += ';mah:' + this.maxHeight;
 		return str;
 	}
 
@@ -58,6 +88,8 @@ class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx 
 		if (config.rdc) this.columnDefaultWidth = config.rdc;
 		if (config.mw !== undefined) this.minWidth = config.mw;
 		if (config.mh !== undefined) this.minHeight = config.mh;
+		if (config.maw !== undefined) this.maxWidth = config.maw;
+		if (config.mah !== undefined) this.maxHeight = config.mah;
 		this.sequense = Sequense.create(this);
 	}
 
@@ -75,13 +107,17 @@ class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx 
 		if (this.direction == lx.VERTICAL) {
 			var minHeight = config.minHeight !== undefined
 				? config.minHeight
-				: (this.minHeight !== undefined ? this.minHeight : self::ROW_MIN_HEIGHT);
+				: (this.minHeight !== null ? this.minHeight : self::ROW_MIN_HEIGHT);
 			elem.style('min-height', minHeight);
+			if (this.maxHeight !== null)
+				elem.style('max-height', this.maxHeight);
 		} else {
 			var minWidth = config.minWidth !== undefined
 				? config.minWidth
-				: (this.minWidth !== undefined ? this.minWidth : self::COLUMN_MIN_WIDTH);
+				: (this.minWidth !== null ? this.minWidth : self::COLUMN_MIN_WIDTH);
 			elem.style('min-width', minWidth);
+			if (this.maxWidth !== null)
+				elem.style('max-width', this.maxWidth);
 		}
 
 		var geom = this.geomFromConfig(config, elem);

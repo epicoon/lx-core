@@ -43,8 +43,8 @@ lx.isInstance = function (value, constructor) {
     if (constructor === Number) return this.isNumber(value);
     if (constructor === String) return this.isString(value);
     if (this.isString(constructor)) constructor = this.getNamespace(constructor);
-    if (value.constructor)
-        return value.constructor === constructor;
+    if (value.constructor && value.constructor === constructor)
+        return true;
     return value instanceof constructor;
 };
 

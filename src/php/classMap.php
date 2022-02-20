@@ -112,6 +112,7 @@ return [
     'ApplicationJsModuleInjector' => 'classes/module/inject',
     'ServiceJsModuleInjector' => 'classes/module/inject',
     'PluginJsModuleInjector' => 'classes/module/inject',
+    'ModuleDocParser' => 'classes/module/docParser',
 
 	'DataObject' => 'classes/dataClasses',
 

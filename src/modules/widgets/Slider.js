@@ -111,7 +111,10 @@ class Slider extends lx.Box #lx:namespace lx {
 		static stop(event) {
 			var oldVal = this.parent._oldValue;
 			if (this.parent._value == oldVal) return;
-			this.parent.trigger('change', event, oldVal);
+			event = event || this.newEvent();
+			event.oldValue = oldVal;
+			event.newValue = this.parent.value();
+			this.parent.trigger('change', event);
 		}
 
 		static trackClick(event) {
@@ -130,8 +133,12 @@ class Slider extends lx.Box #lx:namespace lx {
 			handle.returnToParentScreen();
 			var oldVal = slider.value();
 			slider.setValueByHandle(handle);
-			if (slider.value() != oldVal)
-				slider.trigger('change', event, oldVal);
+			if (slider.value() != oldVal) {
+				event = event || this.newEvent();
+				event.oldValue = oldVal;
+				event.newValue = slider.value();
+				slider.trigger('change', event);
+			}
 		}
 
 		setValueByHandle(handle, event) {

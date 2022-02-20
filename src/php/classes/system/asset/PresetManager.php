@@ -32,6 +32,11 @@ class PresetManager implements PresetManagerInterface, FusionComponentInterface
         return $this->defaultCssPreset;
     }
 
+    public function getBuildType(): string
+    {
+        return $this->buildType;
+    }
+
     public function isBuildType(string $type): bool
     {
         return $this->buildType == $type;

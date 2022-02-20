@@ -137,8 +137,7 @@ class PluginBuildContext implements ContextTreeInterface
         $this->compileMainJs();
 
         $dependencies = $this->jsCompiler->getDependencies() ?? new JsCompileDependencies();
-        $cssPreset = $plugin->getCssPreset();
-        $cssPresetModule = lx::$app->presetManager->getCssPresetModule($cssPreset);
+        $cssPresetModule = lx::$app->presetManager->getCssPresetModule($plugin->getCssPreset());
         if ($cssPresetModule) {
             $dependencies->addModule($cssPresetModule);
         }

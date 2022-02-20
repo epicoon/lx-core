@@ -267,7 +267,8 @@ class SelectionRange {
             offset = _t.anchorOffset;
         _t.selection.removeAllRanges();
 
-        lx.Textarea({style: {opacity: 0}})
+        (new lx.Textarea())
+            .opacity(0)
             .focus()
             .addEventListener('keyup', function() {
                 _t.setCaret(span, offset);

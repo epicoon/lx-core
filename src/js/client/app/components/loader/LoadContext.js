@@ -161,22 +161,24 @@ class LoadContext {
 		// Run js-code before plugin render
 		plugin.beforeRender();
 
-		//TODO if css as file. Context???
-		const cssPreset = plugin.cssPreset;
-		if (plugin.initCssAsset && !lx._f.isEmptyFunction(plugin.initCssAsset)) {
-			let cssName = plugin.name + '-' + cssPreset.name;
-			if (!lx.Css.exists(cssName)) {
-				const css = new lx.Css(cssName);
-				const asset = css.getAsset();
-				asset.usePreset(cssPreset);
-				plugin.initCssAsset(asset);
-				css.commit();
+		if (lx.getSetting('assetBuildType') == 'none') {
+			//TODO if css as file. Context???
+			const cssPreset = plugin.cssPreset;
+			if (plugin.initCssAsset && !lx._f.isEmptyFunction(plugin.initCssAsset)) {
+				let cssName = plugin.name + '-' + cssPreset.name;
+				if (!lx.Css.exists(cssName)) {
+					const css = new lx.Css(cssName);
+					const asset = css.getAsset();
+					asset.usePreset(cssPreset);
+					plugin.initCssAsset(asset);
+					css.commit();
+				}
 			}
+			// Actualize all modules
+			lx.actualizeModuleAssets({
+				presets: [cssPreset]
+			});
 		}
-		// Actualize all modules
-		lx.actualizeModuleAssets({
-			presets: [cssPreset]
-		});
 
 		// Render snippets
 		this.snippetsInfo[plugin.key] = pluginInfo.snippets;

@@ -224,9 +224,9 @@ class Calendar extends lx.Input #lx:namespace lx {
             key: 'calendarMenu',
             geom: true,
             size: ['320px', '320px'],
-            depthCluster: lx.DepthClusterMap.CLUSTER_FRONT,
-            style: { overflow: 'visible' }
+            depthCluster: lx.DepthClusterMap.CLUSTER_FRONT
         });
+        calendarMenu.overflow('visible');
 
         let tableContainer = calendarMenu.add(lx.Box, { geom: true, css: __active.basicCss.daysTable });
         let monthContainer = calendarMenu.add(lx.Box,

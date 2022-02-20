@@ -1,5 +1,29 @@
+#lx:module lx.AlignPositioningStrategy;
+
+#lx:use lx.IndentData;
+#lx:use lx.PositioningStrategy;
+
 class AlignPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
-	init(config) {
+	/**
+	 * @param [config = {}] {Object: {
+	 *     {Number&Enum(
+	 *         lx.HORIZONTAL,
+	 *         lx.VERTICAL
+	 *     )} [direction = lx.HORIZONTAL],
+	 *     {Number&Enum(
+	 *         lx.LEFT,
+	 *         lx.CENTER,
+	 *         lx.RIGHT
+	 *     )} [horizontal = lx.CENTER],
+	 *     {Number&Enum(
+	 *         lx.TOP,
+	 *         lx.MIDDLE,
+	 *         lx.BOTTOM
+	 *     )} [vertical = lx.MIDDLE],
+	 *     #merge(lx.IndentData::constructor::config)
+	 * }}
+	 */
+	init(config = {}) {
 		this.direction = config.direction || lx.HORIZONTAL;
 		this.horizontal = config.horizontal || lx.CENTER;
 		this.vertical = config.vertical || lx.MIDDLE;

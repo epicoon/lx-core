@@ -17,6 +17,29 @@ class Plugin #lx:namespace lx {
 		this._onUnfocus = null;
 
 		__init(this, info);
+
+		this.guiNodes = {};
+		this.init();
+	}
+
+	init() {
+		// pass
+	}
+
+	initGuiNodes(map) {
+		for (let name in map) {
+			let className = map[name];
+			if (lx.isString(className) && !lx.classExists(className)) continue;
+			let box = this.findOne(name);
+			if (box === null) continue;
+			this.guiNodes[name] = (lx.isString(className))
+				? lx.createObject(className, [this, box])
+				: new className(this, box);
+		}
+	}
+
+	getGuiNode(name) {
+		return this.guiNodes[name];
 	}
 
 	set title(val) {
@@ -245,15 +268,19 @@ class Plugin #lx:namespace lx {
 	}
 
 	getImage(name) {
+		return self::resolveImage(this.images, name);
+	}
+	
+	static resolveImage(map, name) {
 		if (name[0] != '@') {
-			if (!this.images['default']) return name;
-			return this.images['default'] + '/' + name;
+			if (!map['default']) return name;
+			return map['default'] + '/' + name;
 		}
 
 		var arr = name.match(/^@([^\/]+?)(\/.+)$/);
-		if (!arr || !this.images[arr[1]]) return '';
+		if (!arr || !map[arr[1]]) return '';
 
-		return this.images[arr[1]] + arr[2];
+		return map[arr[1]] + arr[2];
 	}
 
 	get cssPreset() {

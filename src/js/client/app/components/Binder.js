@@ -98,11 +98,8 @@ function __bind(obj, widget, type=lx.Binder.BIND_TYPE_FULL) {
 			if (widget._bindType == lx.Binder.BIND_TYPE_WRITE || widget._bindType == lx.Binder.BIND_TYPE_FULL) writeWidgets.add(widget);
 		});
 
-		//todo - сделать инкапсулированным методом и в widget.off('blur'); отключать именно его
-		function actualize(a) {
-			obj[a._field] = a.lxHasMethod('value')
-				? a.value()
-				: a.text();
+		function actualize(a, val) {
+			obj[a._field] = val;
 		};
 		if (!readWidgets.isEmpty) {
 			__bindProcess(obj, _field, readWidgets);
@@ -113,10 +110,9 @@ function __bind(obj, widget, type=lx.Binder.BIND_TYPE_FULL) {
 			todo
 			по коду закоменчены - потому что надо иметь стандарт - если виджет используется для связывания, то он должен иметь
 			событие change, и только с его помощью будем отслеживать изменения в виджете.
-			Так же бы в топку метод .text() у виджетов - тоже надо чтобы был стандарт - только метод .value()
 			*/
 			// a.on('blur', function() { actualize(this); });
-			a.on('change', function() { actualize(this); });
+			a.on('change', function(e) { actualize(this, e.newValue); });
 		});
 	}
 }
@@ -263,10 +259,7 @@ function __bindAgregation(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 				if (widget._bindType == lx.Binder.BIND_TYPE_READ || widget._bindType == lx.Binder.BIND_TYPE_FULL) readWidgets.add(widget);
 				if (widget._bindType == lx.Binder.BIND_TYPE_WRITE || widget._bindType == lx.Binder.BIND_TYPE_FULL) writeWidgets.add(widget);
 			});
-			function actualize(a) {
-				let val = a.lxHasMethod('value')
-					? a.value()
-					: a.text();
+			function actualize(a, val) {
 				c.forEach(el=>el[_field] = val);
 			}
 			if (!readWidgets.isEmpty) {
@@ -275,7 +268,7 @@ function __bindAgregation(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 			}
 			writeWidgets.forEach(a=>{
 				// a.on('blur', function() { actualize(this); });
-				a.on('change', function() { actualize(this); });
+				a.on('change', function(e) { actualize(this, e.newValue); });
 			});
 		}
 	}

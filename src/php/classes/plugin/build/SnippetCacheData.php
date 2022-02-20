@@ -7,7 +7,6 @@ use lx;
 class SnippetCacheData
 {
 	private SnippetBuildContext $snippetBuildContext;
-	private string $buildType;
 	private ?Directory $dir = null;
 	private ?File $mainFile = null;
 	private ?File $mapFile = null;
@@ -21,11 +20,6 @@ class SnippetCacheData
 	public function getPlugin(): Plugin
 	{
 		return $this->snippetBuildContext->getPlugin();
-	}
-
-	public function initBuildType(string $buildType): void
-	{
-		$this->buildType = $buildType;
 	}
 
 	public function isEmpty(): bool

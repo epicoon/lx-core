@@ -52,7 +52,7 @@ class Math
 	 */
 	public static function decChangeNotation(int $n, int $basis): string
 	{
-	    $basis = self::intToRange($basis, 2, 62);
+	    $basis = self::intApplyLimits($basis, 2, 62);
 	    
 		$str = '';
 		$q = floor($n / $basis);
@@ -71,7 +71,7 @@ class Math
 		return $str;
 	}
 	
-	public static function intToRange(int $value, int $min, int $max): int
+	public static function intApplyLimits(int $value, int $min, int $max): int
     {
         if ($value > $max) {
             return $max;

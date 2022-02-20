@@ -31,6 +31,10 @@ abstract class BaseApplication extends AbstractApplication
             $this->settings['cssPreset'] = $this->presetManager->getDefaultCssPreset();
         }
 
+        if (!array_key_exists('assetBuildType', $this->settings)) {
+            $this->settings['assetBuildType'] = $this->presetManager->getBuildType();
+        }
+
         return $this->settings;
     }
 

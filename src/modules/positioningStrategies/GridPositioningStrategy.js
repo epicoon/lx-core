@@ -1,3 +1,7 @@
+#lx:module lx.GridPositioningStrategy;
+
+#lx:use lx.IndentData;
+#lx:use lx.PositioningStrategy;
 #lx:use lx.BitMap;
 
 /*
@@ -61,11 +65,29 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 		TYPE_PROPORTIONAL = 2,
 		TYPE_STREAM = 3,
 		TYPE_ADAPTIVE = 4,
-		DEAULT_COLUMNS_AMOUNT = 12,
 
+		DEAULT_COLUMNS_AMOUNT = 12,
 		COLUMN_MIN_WIDTH = '40px',
 		ROW_MIN_HEIGHT = '40px';
 
+	/**
+	 * @param [config = {}] {Object: {
+	 *     {Number&Enum(
+	 *         lx.GridPositioningStrategy.TYPE_SIMPLE,
+	 *         lx.GridPositioningStrategy.TYPE_PROPORTIONAL,
+	 *         lx.GridPositioningStrategy.TYPE_STREAM,
+	 *         lx.GridPositioningStrategy.TYPE_ADAPTIVE
+	 *     )} [type = lx.GridPositioningStrategy.TYPE_SIMPLE],
+	 *     {Number} [cols = lx.GridPositioningStrategy.DEAULT_COLUMNS_AMOUNT],
+	 *     {String} [minHeight],
+	 *     {String} [minWidth],
+	 *     {String} [maxHeight],
+	 *     {String} [maxWidth],
+	 *     {String} [height],
+	 *     {String} [width],
+	 *     #merge(lx.IndentData::constructor::config)
+	 * }}
+	 */
 	init(config={}) {
 		//TODO direction?
 		this.type = config.type || self::TYPE_SIMPLE;
@@ -82,7 +104,7 @@ class GridPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 			this.minHeight = config.height;
 			this.maxHeight = config.height;
 		}
-		if (config.width) {
+		if (config.width !== undefined) {
 			this.minWidth = config.width;
 			this.maxWidth = config.width;
 		}

@@ -171,21 +171,6 @@ class PluginConductor implements ConductorInterface
 		return $respondent;
 	}
 
-	public function getJsMain(): ?File
-	{
-		$jsMain = $this->getPlugin()->getConfig('jsMain');
-		if (!$jsMain) {
-			return null;
-		}
-
-		$result = $this->getFile($jsMain);
-		if ($result instanceof File) {
-			return $result;
-		}
-
-		return null;
-	}
-
 	public function getAssetPath(string $name): string
 	{
 		if (preg_match('/^http/', $name) || preg_match('/^\//', $name)) {
@@ -205,7 +190,7 @@ class PluginConductor implements ConductorInterface
         }
 
 		$css = (array)($this->getPlugin()->getConfig('css') ?? []);
-        $css[]  = $this->getLocalSystemPath('css');
+        $css[] = $this->getLocalSystemPath('css');
 		$result = [];
 		foreach ($css as $value) {
 			$path = $this->getFullPath($value);

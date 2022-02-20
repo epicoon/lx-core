@@ -36,7 +36,6 @@ class SnippetBuildContext implements ContextTreeInterface
 		}
 
 		$buildType = $this->pluginBuildContext->getCacheType();
-		$this->cacheData->initBuildType($buildType);
 		switch ($buildType) {
 			case Plugin::CACHE_BUILD:
 				return $this->buildProcess(true);

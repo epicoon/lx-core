@@ -40,7 +40,6 @@ abstract class AbstractApplication implements FusionInterface
     const EVENT_BEFORE_RUN = 'beforeApplicationRun';
     const EVENT_AFTER_RUN = 'afterApplicationRun';
 
-    private string $id;
     private int $pid;
     private string $_sitePath;
     private array $_config;
@@ -58,7 +57,6 @@ abstract class AbstractApplication implements FusionInterface
         $constructFlags = DataObject::create($config[self::CONFIG_KEY_CONSTRUCT_FLAGS] ?? []);
         unset($config[self::CONFIG_KEY_CONSTRUCT_FLAGS]);
 
-        $this->id = Math::randHash();
         $this->pid = getmypid();
         $this->_sitePath = lx::$conductor->sitePath;
 
@@ -82,6 +80,7 @@ abstract class AbstractApplication implements FusionInterface
 
         if (!$constructFlags->ignoreConfig) {
             $this->loadConfig();
+            $this->_conductor->setAliases($this->getConfig('aliases') ?? []);
         }
 
         $this->_events = $this->diProcessor->build()
@@ -89,8 +88,6 @@ abstract class AbstractApplication implements FusionInterface
             ->setDefaultClass(EventManager::class)
             ->setContextClass(static::class)
             ->getInstance();
-
-        $this->_conductor->setAliases($this->getConfig('aliases') ?? []);
 
         $this->initFusionComponents($this->getConfig('components') ?? []);
         $this->init();
@@ -159,11 +156,6 @@ abstract class AbstractApplication implements FusionInterface
         return $this->pid;
     }
 
-	public function getFullPath(string $alias): string
-	{
-		return $this->conductor->getFullPath($alias);
-	}
-
 	public function setLogMode(bool $value)
     {
         $this->logMode = $value;
@@ -177,11 +169,6 @@ abstract class AbstractApplication implements FusionInterface
 	    if ($this->logMode) {
             $this->logger->log($data, $locationInfo);
         }
-	}
-
-	public function getId(): string
-	{
-		return $this->id;
 	}
 
 	/**

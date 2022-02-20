@@ -27,10 +27,11 @@ class TextBox extends lx.Rect #lx:namespace lx {
 			padding: '0px 5px',
 			width: 'auto',
 			height: 'auto',
-			fontFamily: 'MainFont',
-			fontSize: 'calc(10px + 1.0vh)',
 
+			fontFamily: 'inherit',
+			fontSize: 'inherit',
 			color: 'inherit',
+
 			cursor: 'inherit',
 			overflow: 'inherit',
 			whiteSpace: 'inherit',

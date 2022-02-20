@@ -249,18 +249,22 @@ function __defineMarksConfig(self, config, template) {
 
 			if (oldActive !== null) p.unselect(oldActive);
 			p.select(this.index);
-			p.trigger('sheetOpened', event, this.index);
-			p.trigger('sheetClosed', event, oldActive);
-			p.trigger('selectionChange', event, this.index, oldActive);
+			event.oldSheet = oldActive;
+			event.newSheet = this.index;
+			p.trigger('sheetOpened', event);
+			p.trigger('sheetClosed', event);
+			p.trigger('selectionChange', event);
 			return;
 		}
 
 		if (this.checked) {
+			event.oldSheet = this.index;
 			p.unselect(this.index);
-			p.trigger('sheetClosed', event, this.index);
+			p.trigger('sheetClosed', event);
 		} else {
+			event.newSheet = this.index;
 			p.select(this.index);
-			p.trigger('sheetOpened', event, this.index);
+			p.trigger('sheetOpened', event);
 		}
 	}
 

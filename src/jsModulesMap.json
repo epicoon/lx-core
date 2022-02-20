@@ -31,13 +31,37 @@
         "name": "lx.CssPresetWhite",
         "path": "modules\/cssPresets\/CssPresetWhite.js"
     },
-    "lx.MainCssAsset": {
-        "name": "lx.MainCssAsset",
-        "path": "modules\/cssPresets\/MainCssAsset.js"
-    },
     "lx.MdHighlighter": {
         "name": "lx.MdHighlighter",
         "path": "modules\/mdHighlighter\/MdHighlighter.js"
+    },
+    "lx.AlignPositioningStrategy": {
+        "name": "lx.AlignPositioningStrategy",
+        "path": "modules\/positioningStrategies\/AlignPositioningStrategy.js"
+    },
+    "lx.GridPositioningStrategy": {
+        "name": "lx.GridPositioningStrategy",
+        "path": "modules\/positioningStrategies\/GridPositioningStrategy.js"
+    },
+    "lx.IndentData": {
+        "name": "lx.IndentData",
+        "path": "modules\/positioningStrategies\/IndentData.js"
+    },
+    "lx.MapPositioningStrategy": {
+        "name": "lx.MapPositioningStrategy",
+        "path": "modules\/positioningStrategies\/MapPositioningStrategy.js"
+    },
+    "lx.PositioningStrategy": {
+        "name": "lx.PositioningStrategy",
+        "path": "modules\/positioningStrategies\/PositioningStrategy.js"
+    },
+    "lx.SlotPositioningStrategy": {
+        "name": "lx.SlotPositioningStrategy",
+        "path": "modules\/positioningStrategies\/SlotPositioningStrategy.js"
+    },
+    "lx.StreamPositioningStrategy": {
+        "name": "lx.StreamPositioningStrategy",
+        "path": "modules\/positioningStrategies\/StreamPositioningStrategy.js"
     },
     "lx.WebCli": {
         "name": "lx.WebCli",

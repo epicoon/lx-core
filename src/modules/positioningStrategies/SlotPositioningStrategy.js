@@ -1,3 +1,8 @@
+#lx:module lx.SlotPositioningStrategy;
+
+#lx:use lx.IndentData;
+#lx:use lx.PositioningStrategy;
+
 /*
 количество элементов определяется заданным числом строк и колонок, либо общим числом элементов
 размеры всех элементов одинаковые	
@@ -20,17 +25,24 @@ class SlotPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 	}
 
 	/**
-	 * config = {
-	 *	k
-	 *	rows
-	 *	cols
-	 *	count
-	 *	align
-	 *	type
-	 *	// конфиг для indents
-	 * }
-	 * */
-	init(config={}) {
+	 * @param [config = {}] {Object: {
+	 *     {Number} [k = 1],
+	 *     {Number} [cols = 1],
+	 *     {Number} [rows],
+	 *     {Number} [count],
+	 *     {Number&Enum(
+	 *         lx.LEFT,
+	 *         lx.CENTER,
+	 *         lx.RIGHT,
+	 *         lx.TOP,
+	 *         lx.MIDDLE,
+	 *         lx.BOTTOM
+	 *     )} [align],
+	 *     {Class(lx.Rect)} [type = lx.Box],
+	 *     #merge(lx.IndentData::constructor::config)
+	 * }}
+	 */
+	init(config = {}) {
 		this.k = config.k || 1;
 		this.cols = config.cols || 1;
 		if (config.align !== undefined) this.align = config.align;

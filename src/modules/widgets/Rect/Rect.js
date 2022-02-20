@@ -7,9 +7,91 @@
 let __autoParentStack = [];
 
 /**
- * @group {i18n:widgets}
- * */
+ * @widget lx.Rect
+ *
+ * @events [
+ *     click,
+ *     contextmenu,
+ *     mousedown,
+ *     mouseup,
+ *     mousemove,
+ *     mouseover,
+ *     mouseout,
+ *     transitionend,
+ *     beforeDestruct,
+ *     afterDestruct,
+ *     resize,
+ *     change,
+ *     displayout,
+ *     displayin,
+ *     display
+ * ]
+ */
 class Rect extends lx.Module #lx:namespace lx {
+    /**
+     * @widget-init
+     *
+     * @param [config = {}] {Object: {
+     *     {String} [tag = 'div'],
+     *     {String} [key],
+     *     {String} [field],
+     *     {lx.Box} [parent],
+     *     {lx.Rect} [before],
+     *     {lx.Rect} [after],
+     *     {Boolean|Array: [
+     *         (:left position:) {String|Number|null},
+     *         (:top position:) {String|Number|null},
+     *         (:widget width:) {String|Number|null},
+     *         (:widget height:) {String|Number|null},
+     *         (:right position:) {String|Number|null|undefined},
+     *         (:bottom position:) {String|Number|null|undefined}
+     *     ]} [geom],
+     *     {String|Number} [margin],
+     *     {Array: [
+     *         (:left position:) {String|Number},
+     *         (:top position:) {String|Number}
+     *     ]} [coords],
+     *     {Array: [
+     *         (:widget width:) {String|Number},
+     *         (:widget height:) {String|Number}
+     *     ]} [size],
+     *     {String|Number} [left],
+     *     {String|Number} [right],
+     *     {String|Number} [top],
+     *     {String|Number} [bottom],
+     *     {String|Number} [width],
+     *     {String|Number} [height],
+     *     {String} [html],
+     *     {String|lx.CssPreset} [cssPreset],
+     *     {String|String[]} [css],
+     *     {Number&Enum(
+     *         lx.DepthClusterMap.CLUSTER_DEEP,
+     *         lx.DepthClusterMap.CLUSTER_PRE_MIDDLE,
+     *         lx.DepthClusterMap.CLUSTER_MIDDLE,
+     *         lx.DepthClusterMap.CLUSTER_PRE_FRONT,
+     *         lx.DepthClusterMap.CLUSTER_FRONT,
+     *         lx.DepthClusterMap.CLUSTER_PRE_OVER,
+     *         lx.DepthClusterMap.CLUSTER_OVER,
+     *         lx.DepthClusterMap.CLUSTER_URGENT
+     *     )} [depthCluster],
+     *     {String} [picture],
+     *     {Object: {{String}: {String|Number}, ...}} [style],
+     *     {Function} [click],
+     *     {Function} [blur],
+     *     {Boolean|Object: {
+     *         {Boolean} [parentMove = false],
+     *         {Boolean} [parentResize = false],
+     *         {Boolean} [xMove = true],
+     *         {Boolean} [yMove = true],
+     *         {Boolean} [xLimit = true],
+     *         {Boolean} [yLimit = true],
+     *         {Number} [moveStep = 1],
+     *         {Boolean} [locked = false]
+     *     }} [move],
+     *     {Boolean} [parentResize],
+     *     {Boolean} [parentMove]
+     * }}
+     */
     constructor(config = {}) {
         super();
         this.__construct();
@@ -69,13 +151,13 @@ class Rect extends lx.Module #lx:namespace lx {
 
     /**
      * Строительство элемента и на клиенте и на сервере
-     * */
+     */
     build(config={}) {
     }
 
     /**
      * Непосредственно создание DOM-элемента, выстраивание связи с родителем
-     * */
+     */
     defineDomElement(config) {
         if (this.getDomElem()) {
             this.log('already exists');
@@ -110,14 +192,8 @@ class Rect extends lx.Module #lx:namespace lx {
         if (config.css !== undefined) this.addClass(config.css);
 
         if (config.style) {
-            for (var i in config.style) {
-                if (i == 'fill') {  //TODO list of available methods (roundCorners, rotate, picture)
-                    if (lx.isArray(config.style[i]))
-                        this[i].apply(this, config.style[i]);
-                    else
-                        this[i].call(this, config.style[i]);
-                } else this.domElem.style(i, config.style[i]);
-            }
+            for (var i in config.style)
+                this.domElem.style(i, config.style[i]);
         }
 
         if (config.picture) this.picture(config.picture);
@@ -197,8 +273,12 @@ class Rect extends lx.Module #lx:namespace lx {
                 oldH = this.__sizeHolder.height,
                 res = this.__sizeHolder.refresh(this.width('px'), this.height('px'));
             if (res) {
+                e = e || this.newEvent({
+                    oldWidth: oldW,
+                    oldHeight: oldH
+                });
                 if (this.parent) this.parent.checkContentResize(e);
-                this.trigger('resize', e, oldW, oldH);
+                this.trigger('resize', e);
             }
             return res;
         }
@@ -271,14 +351,32 @@ class Rect extends lx.Module #lx:namespace lx {
         return this._index;
     }
 
+    setImagesMap(map) {
+        this.imagesMap = map;
+    }
+
     /**
      * Путь для запроса изображений (идея единого хранилища изображений в рамках модуля)
      * */
     imagePath(name) {
         if (name[0] == '/') return name;
 
-        var plugin = this.getPlugin();
-        return plugin.getImage(name);
+        #lx:server {
+            var plugin = this.getPlugin();
+            return plugin.getImage(name);
+        }
+
+        #lx:client {
+            let temp = this;
+            while (true) {
+                if (temp.imagesMap) return lx.Plugin.resolveImage(temp.imagesMap, name);
+                if (temp.plugin) return temp.plugin.getImage(name);
+                if (!temp.parent) break;
+                temp = temp.parent;
+            }
+
+            return name;
+        }
     }
 
     /**
@@ -1203,7 +1301,10 @@ class Rect extends lx.Module #lx:namespace lx {
                 if (lx.Comparator.deepCompare(val, oldVal)) return;
                 this.innerValue(val);
                 func.call(this, val, oldVal);
-                this.trigger('change', val, oldVal);
+                this.trigger('change', this.newEvent({
+                    oldValue: oldVal,
+                    newValue: val
+                }));
             };
         }
 
@@ -1466,13 +1567,14 @@ class Rect extends lx.Module #lx:namespace lx {
         return this;
     }
 
-    trigger(eventName, ...args) {
+    trigger(eventName, event) {
         #lx:client{
-            function runEventHandlers(context, handlersList, args) {
+            function runEventHandlers(context, handlersList, event) {
+                event = event || context.newEvent();
                 var res = [];
                 for (var i in handlersList) {
                     var func = handlersList[i];
-                    res.push(func.apply(context, args));
+                    res.push(func.call(context, event));
                 }
                 if (lx.isArray(res) && res.length == 1) res = res[0];
                 return res;
@@ -1481,14 +1583,14 @@ class Rect extends lx.Module #lx:namespace lx {
             if (this.getCommonEventNames().includes(eventName)) {
                 var events = this.elem ? this.elem.events : this.domElem.events;
                 if (!events || !(eventName in events)) return;
-                return runEventHandlers(this, events[eventName], args);
+                return runEventHandlers(this, events[eventName], event);
             }
 
             var elem = this.getDomElem();
             if (!elem) return;
             if (this.disabled() || !elem.events || !(eventName in elem.events)) return;
 
-            return runEventHandlers(this, elem.events[eventName], args);
+            return runEventHandlers(this, elem.events[eventName], event);
         }
     }
 

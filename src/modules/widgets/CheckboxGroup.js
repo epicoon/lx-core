@@ -64,6 +64,10 @@ class CheckboxGroup extends lx.LabeledGroup #lx:namespace lx {
 #lx:client {
 	function _handler_onChange(e) {
 		var group = this.parent.parent;
-		group.trigger('change', e, this.parent.index, this.value());
+		e = e || group.newEvent();
+		e.changedIndex = this.parent.index;
+		e.currentValue = this.value();
+		e.currentValues = this.ancestor({is:lx.CheckboxGroup}).value();
+		group.trigger('change', e);
 	}
 }

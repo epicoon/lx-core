@@ -7,11 +7,11 @@ use lx;
 /**
  * @property-read string $name
  * @property-read string $relativePath
- * @property-read string $prototype
+ * @property-read string|null $prototype
  * @property-read PluginDirectory $directory
  * @property-read PluginConductor $conductor
  * @property-read PluginI18nMap $i18nMap
- * @property-read JsModuleInjectorInterface $moduleInjector
+ * @property-read JsModuleInjectorInterface|null $moduleInjector
  */
 class Plugin extends Resource implements FusionInterface
 {

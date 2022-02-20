@@ -3,7 +3,14 @@
 #lx:use lx.Rect;
 #lx:use lx.TextBox;
 
-#lx:require positioningStrategiesJs/;
+#lx:use lx.IndentData;
+#lx:use lx.PositioningStrategy;
+#lx:use lx.StreamPositioningStrategy;
+#lx:use lx.GridPositioningStrategy;
+#lx:use lx.AlignPositioningStrategy;
+#lx:use lx.SlotPositioningStrategy;
+#lx:use lx.MapPositioningStrategy;
+
 #lx:require tools;
 
 /* * 1. Constructor
@@ -80,12 +87,66 @@
  */
 
 /**
- * @group {i18n:widgets}
- * */
+ * @widget lx.Box
+ *
+ * @events [
+ *     contentResize,
+ *     beforeAddChild,
+ *     afterAddChild,
+ *     xScrollBarOn,
+ *     xScrollBarOff,
+ *     xScrollBarChange,
+ *     yScrollBarOn,
+ *     yScrollBarOff,
+ *     yScrollBarChange,
+ *     scrollBarChange,
+ *     scroll,
+ *     blur
+ * ]
+ */
 class Box extends lx.Rect #lx:namespace lx {
 
     //==================================================================================================================
     /* 1. Constructor */
+
+    /**
+     * @widget-init
+     *
+     * @param config {Object: {
+     *     {String} [text],
+     *     {lx.PositioningStrategy} [positioning],
+     *     {Object: #schema(lx.StreamPositioningStrategy::init::config)} [stream],
+     *     {Object: #schema(lx.StreamPositioningStrategy::init::config)} [streamProportional],
+     *     {Object: #schema(lx.GridPositioningStrategy::init::config)} [grid],
+     *     {Object: #schema(lx.GridPositioningStrategy::init::config)} [gridProportional],
+     *     {Object: #schema(lx.GridPositioningStrategy::init::config)} [gridStream],
+     *     {Object: #schema(lx.GridPositioningStrategy::init::config)} [gridAdaptive],
+     *     {Object: #schema(lx.SlotPositioningStrategy::init::config)} [slot]
+     * }}
+     */
+    build(config) {
+        super.build(config);
+
+        if ( config.text ) this.text( config.text );
+
+        if (config.positioning)
+            this.setPositioning(config.positioning, config);
+        else if (config.stream)
+            this.stream(lx.isObject(config.stream) ? config.stream : {});
+        else if (config.streamProportional)
+            this.streamProportional(lx.isObject(config.streamProportional) ? config.streamProportional : {});
+        else if (config.grid)
+            this.grid(lx.isObject(config.grid) ? config.grid : {});
+        else if (config.gridProportional)
+            this.gridProportional(lx.isObject(config.gridProportional) ? config.gridProportional : {});
+        else if (config.gridStream)
+            this.gridStream(lx.isObject(config.gridStream) ? config.gridStream : {});
+        else if (config.gridAdaptive)
+            this.gridAdaptive(lx.isObject(config.gridAdaptive) ? config.gridAdaptive : {});
+        else if (config.slot)
+            this.slot(lx.isObject(config.slot) ? config.slot : {});
+    }
+
     #lx:client {
         __construct() {
             super.__construct();
@@ -167,37 +228,6 @@ class Box extends lx.Rect #lx:namespace lx {
             }
             if (this._container) this._container = this._container.renderIndex;
         }
-    }
-
-    /**
-     * config = {
-     *	// стандартные для Rect,
-     *
-     *	positioning: PositioningStrategy
-     *	text: string
-     * }
-     * */
-    build(config) {
-        super.build(config);
-
-        if ( config.text ) this.text( config.text );
-
-        if (config.positioning)
-            this.setPositioning(config.positioning, config);
-        else if (config.stream)
-            this.stream(lx.isObject(config.stream) ? config.stream : {});
-        else if (config.streamProportional)
-            this.streamProportional(lx.isObject(config.streamProportional) ? config.streamProportional : {});
-        else if (config.grid)
-            this.grid(lx.isObject(config.grid) ? config.grid : {});
-        else if (config.gridProportional)
-            this.gridProportional(lx.isObject(config.gridProportional) ? config.gridProportional : {});
-        else if (config.gridStream)
-            this.gridStream(lx.isObject(config.gridStream) ? config.gridStream : {});
-        else if (config.gridAdaptive)
-            this.gridAdaptive(lx.isObject(config.gridAdaptive) ? config.gridAdaptive : {});
-        else if (config.slot)
-            this.slot(lx.isObject(config.slot) ? config.slot : {});
     }
 
     getCommonEventNames() {
@@ -386,9 +416,12 @@ class Box extends lx.Rect #lx:namespace lx {
 
     /**
      * Метод, используемый новым виджетом для регистрации в родителе
-     * */
+     */
     addChild(widget, config = {}) {
-        this.trigger('beforeAddChild', widget);
+        #lx:client {
+            this.trigger('beforeAddChild', this.newEvent({child: widget}));
+        }
+
         widget.parent = this;
         config = this.modifyNewChildConfig(config);
         var container = __getContainer(this);
@@ -443,8 +476,9 @@ class Box extends lx.Rect #lx:namespace lx {
                 this.checkContentResize();
                 widget.trigger('displayin');
             }
+
+            this.trigger('afterAddChild', this.newEvent({child: widget}));
         }
-        this.trigger('afterAddChild', widget);
     }
 
     /**
@@ -477,7 +511,7 @@ class Box extends lx.Rect #lx:namespace lx {
 
     /**
      * Предобработка конфига добавляемого элемента
-     * */
+     */
     modifyNewChildConfig(config) {
         return config;
     }
@@ -490,7 +524,7 @@ class Box extends lx.Rect #lx:namespace lx {
      *        [lx.Box, config1],
      *        [lx.Box, 5, config2, configurator]
      *    ]);
-     * */
+     */
     add(type, count=1, config={}, configurator={}) {
         var conf = (lx.isObject(count)) ? count : config;
         if (conf.buildMode)
@@ -535,7 +569,7 @@ class Box extends lx.Rect #lx:namespace lx {
 
     /**
      * Удаляет всех потомков
-     * */
+     */
     clear() {
         var container = __getContainer(this);
         #lx:client{ if (container.domElem.html() == '') return; }
@@ -557,7 +591,7 @@ class Box extends lx.Rect #lx:namespace lx {
         #lx:client{ this.checkContentResize(); }
     }
 
-    /*
+    /**
      * Удаление элементов в вариантах:
      * 1. Без аргументов - удаление элемента, на котором метод вызван
      * 2. Аргумент el - элемент - если такой есть в элементе, на котом вызван метод, он будет удален
@@ -566,7 +600,7 @@ class Box extends lx.Rect #lx:namespace lx {
      * 4. Аргументы el (ключ) + index - имеет смысл, если по ключу - массив, удаляется из массива
      * элемент с индексом index в массиве
      * 5. Аргументы el (ключ) + index + count - как 4, но удаляется count элементов начиная с index
-     * */
+     */
     del(el, index, count) {
         // ситуация 1 - элемент не передан, надо удалить тот, на котором вызван метод
         if (el === undefined) return super.del();
@@ -575,7 +609,7 @@ class Box extends lx.Rect #lx:namespace lx {
         c.forEach(a=>a.destructProcess());
     }
 
-    /*
+    /**
      * Извлечение элементов в вариантах:
      * 1. Аргумент el - элемент - если такой есть в элементе, на котом вызван метод, он будет удален
      * 2. Аргумент el - ключ (единственный аргумент) - удаляется элемент по ключу, если по ключу - массив,
@@ -583,7 +617,7 @@ class Box extends lx.Rect #lx:namespace lx {
      * 3. Аргументы el (ключ) + index - имеет смысл, если по ключу - массив, удаляется из массива
      * элемент с индексом index в массиве
      * 4. Аргументы el (ключ) + index + count - как 4, но удаляется count элементов начиная с index
-     * */
+     */
     remove(el, index, count) {
         const container = __getContainer(this);
 
@@ -820,7 +854,7 @@ class Box extends lx.Rect #lx:namespace lx {
 
     /**
      * Возвращает всегда коллекцию потомков
-     * */
+     */
     getAll(path) {
         return new lx.Collection(this.get(path));
     }
@@ -938,7 +972,7 @@ class Box extends lx.Rect #lx:namespace lx {
      * 6. getChildren({hasProperties:[], all:true})
      * 7. getChildren({callback:(a)=>{...}})  - см. 3.
      * 8. getChildren({callback:(a)=>{...}, all:true})  - см. 4.
-     * */
+     */
     getChildren(info={}, all=false) {
         if (info === true) info = {all:true};
         if (lx.isFunction(info)) info = {callback: info, all};
@@ -948,7 +982,7 @@ class Box extends lx.Rect #lx:namespace lx {
 
     /**
      * Проход по всем потомкам без построения промежуточных структур - самый производительный метод для этой цели
-     * */
+     */
     eachChild(func, all=false) {
         function re(elem) {
             if (!elem.child) return;
@@ -1111,7 +1145,7 @@ class Box extends lx.Rect #lx:namespace lx {
     /* 5. Load */
     /**
      * Загружает уже полученные данные о модуле в элемент
-     * */
+     */
     setPlugin(info, attributes = {}, func = null) {
         this.dropPlugin();
         if (!attributes.lxEmpty()) {
@@ -1123,7 +1157,7 @@ class Box extends lx.Rect #lx:namespace lx {
 
     /**
      * Удаляет плагин из элемента, из реестра плагинов и всё, что связано с плагином
-     * */
+     */
     dropPlugin() {
         if (this.plugin) {
             this.plugin.del();
@@ -1150,7 +1184,7 @@ class Box extends lx.Rect #lx:namespace lx {
      * - lx.Collection
      * - Function  - itemRender
      * - Function  - afterBind
-     * */
+     */
     matrix(...args) {
         let config;
         if (args.len == 1 && lx.isObject(args[0])) config = args[0];

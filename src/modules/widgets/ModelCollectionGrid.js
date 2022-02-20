@@ -244,7 +244,8 @@ class ModelCollectionGrid extends lx.Box #lx:namespace lx {
                 }
 
                 row.click(function (e) {
-                    _t.trigger('rowClick', e, this.index);
+                    e.rowIndex = this.index;
+                    _t.trigger('rowClick', e);
                 });
             }
         });
@@ -282,7 +283,8 @@ class ModelCollectionGrid extends lx.Box #lx:namespace lx {
                 }
 
                 row.click(function (e) {
-                    _t.trigger('rowClick', e, this.index);
+                    e.rowIndex = this.index;
+                    _t.trigger('rowClick', e);
                 });
             }
         });

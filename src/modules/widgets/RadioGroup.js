@@ -79,6 +79,9 @@ class RadioGroup extends lx.LabeledGroup #lx:namespace lx {
 			if (item.value()) old = item.parent.index;
 			item.value(false);
 		});
-		group.trigger('change', e, index, old);
+		e = e || p.newEvent();
+		e.oldValue = old;
+		e.newValue = index;
+		group.trigger('change', e);
 	}
 }

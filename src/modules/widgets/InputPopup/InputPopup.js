@@ -93,11 +93,9 @@ class InputPopup extends lx.Box #lx:namespace lx {
 				parent: lx.body,
 				geom: ['0%', '0%', '100%', '100%'],
 				depthCluster: lx.DepthClusterMap.CLUSTER_OVER,
-				style: {
-		        	position: 'fixed',
-		        	overflow: 'auto'
-				}
+				style: { position: 'fixed' }
 			});
+			instance.overflow('auto');
 	    	instance.useRenderCache();
 	    	instance.begin();
 	    	__renderContent(instance);
@@ -110,7 +108,7 @@ class InputPopup extends lx.Box #lx:namespace lx {
 	}
 
 	function __renderContent(self) {
-		new lx.Rect({geom:true, style: {fill:'black', opacity:0.5}});
+		(new lx.Rect({geom:true})).fill('black').opacity(0.5);
 
 		var inputPopupStream = new lx.Box({key:'stream', geom:['30%', '40%', '40%', '0%']});
 		inputPopupStream.fill('white');

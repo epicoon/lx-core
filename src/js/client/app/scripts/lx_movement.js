@@ -130,17 +130,29 @@ function __limitPosition(el, newPos, info) {
 	if (info.xMove) {
 		if (info.moveStep > 1) newPos.x = Math.floor( newPos.x / info.moveStep ) * info.moveStep;
 		if (info.xLimit) {
-			if (newPos.x + el.width('px') > el.parent.width('px'))
-				newPos.x = el.parent.width('px') - el.width('px');
-			if (newPos.x < 0) newPos.x = 0;
+			let w = el.width('px'),
+				pW = el.parent.width('px');
+			if (w <= pW) {
+				if (newPos.x + w > pW) newPos.x = pW - w;
+				if (newPos.x < 0) newPos.x = 0;
+			} else {
+				if (newPos.x > 0) newPos.x = 0;
+				if (newPos.x + w < pW) newPos.x = pW - w;
+			}
 		}
 	} else newPos.x = el.left('px');
 	if (info.yMove) {
 		if (info.moveStep > 1) newPos.y = Math.floor( newPos.y / info.moveStep ) * info.moveStep;
 		if (info.yLimit) {
-			if (newPos.y + el.height('px') > el.parent.height('px'))
-				newPos.y = el.parent.height('px') - el.height('px');
-			if (newPos.y < 0) newPos.y = 0;
+			let h = el.height('px'),
+				pH = el.parent.height('px');
+			if (h <= pH) {
+				if (newPos.y + h > pH) newPos.y = pH - h;
+				if (newPos.y < 0) newPos.y = 0;
+			} else {
+				if (newPos.y > 0) newPos.y = 0;
+				if (newPos.y + h < pH) newPos.y = pH - h;
+			}
 		}
 	} else newPos.y = el.top('px');
 	return newPos;

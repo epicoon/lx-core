@@ -46,7 +46,7 @@ class EggMenu extends lx.Box #lx:namespace lx {
 	}
 
 	getDefaultDepthCluster() {
-		return lx.DepthClusterMap.CLUSTER_MIDDLE;
+		return lx.DepthClusterMap.CLUSTER_FRONT;
 	}
 
 	build(config) {

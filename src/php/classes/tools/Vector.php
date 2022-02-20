@@ -110,21 +110,4 @@ class Vector implements ArrayInterface
 			$func($this->arrayValue[$i], $i, $this);
 		}
 	}
-
-	/**
-	 * @return mixed
-	 */
-	public function maxOnRange(int $i0 = 0, ?int $i1 = null)
-	{
-		if ($i1 === null || $i1 >= $this->count()) {
-			$i1 = $this->count() - 1;
-		}
-
-		$max = $this->arrayValue[$i0];
-		for ($i = $i0 + 1; $i <= $i1; $i++) {
-			if ($this->arrayValue[$i] > $max) $max = $this->arrayValue[$i];
-		}
-
-		return $max;
-	}
 }

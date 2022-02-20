@@ -1,10 +1,23 @@
+#lx:module lx.MapPositioningStrategy;
+
+#lx:use lx.IndentData;
+#lx:use lx.PositioningStrategy;
+
 class MapPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
 	#lx:const
 		FORMAT_PERCENT = 1,
 		FORMAT_PX = 2,
 		FORMAT_FREE = 3;
 
-	init(config={}) {
+	/**
+	 * @param [config = {}] {
+	 *     String&Enum('%', 'px')
+	 *     |Object: {
+	 *         {String&Enum('%', 'px')} format
+	 *     }
+	 * }
+	 */
+	init(config = {}) {
 		if (!lx.isObject(config))
 			config = {format: config};
 		if (config.format == '%') config.format = self::FORMAT_PERCENT;

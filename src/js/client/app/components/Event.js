@@ -116,9 +116,10 @@ function commonHandle(e) {
     var handlers = this.events[e.type];
     for (var g in handlers) {
         var handler = handlers[g],
-            context = handler.context ? handler.context : (el ? el : this),
-            ret = handler.call(context, e);
-        if (ret === false) {
+            context = handler.context ? handler.context : (el ? el : this);
+        if (lx.isInstance(el, lx.Rect) && e.targetWidget === undefined)
+            e.targetWidget = el;
+        if (handler.call(context, e) === false) {
             e.preventDefault();
             e.stopPropagation();
         }

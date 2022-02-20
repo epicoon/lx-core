@@ -13,4 +13,8 @@ class Module #lx:namespace lx {
     static initCssAsset(css) {
         // pass
     }
+
+    newEvent(params = {}) {
+        return new lx.ModuleEvent(this, params);
+    }
 }

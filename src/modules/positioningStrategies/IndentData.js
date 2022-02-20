@@ -1,5 +1,22 @@
+#lx:module lx.IndentData;
+
 class IndentData #lx:namespace lx
 {
+	/**
+	 * @param [config = {}] {Object: {
+	 *     {Number|String} [indent = 0],
+	 *     {Number|String} [step = 0],
+	 *     {Number|String} [stepX = 0],
+	 *     {Number|String} [stepY = 0],
+	 *     {Number|String} [padding = 0],
+	 *     {Number|String} [paddingX = 0],
+	 *     {Number|String} [paddingY = 0],
+	 *     {Number|String} [paddingLeft = 0],
+	 *     {Number|String} [paddingRight = 0],
+	 *     {Number|String} [paddingTop = 0],
+	 *     {Number|String} [paddingBottom = 0]
+	 * }}
+	 */
 	constructor(config = {}) {
 		this.set(config);
 	}
@@ -23,7 +40,6 @@ class IndentData #lx:namespace lx
 		}
 	}
 
-	//todo отптимизировать упаковку-распаковку
 	#lx:client {
 		static unpackOrNull(info) {
 			var config = info.split(',');

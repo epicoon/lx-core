@@ -18,6 +18,14 @@ function __init(self, cssPreset) {
         };
     });
 
+    self.registerMixin('ellipsis', ()=>{
+        return {
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis'
+        }
+    });
+
     self.registerMixin('icon', (iconCode, config = null) => {
         var iconFlex = {
             display: 'flex',

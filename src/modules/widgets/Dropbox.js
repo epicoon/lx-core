@@ -188,7 +188,10 @@ class Dropbox extends lx.Box #lx:namespace lx {
 			num = this.rowIndex();
 		dropbox.select(num);
 		dropbox.close();
-		dropbox.trigger('change', event, oldVal, dropbox.value());
+		event = event || dropbox.newEvent();
+		event.oldValue = oldVal;
+		event.newValue = dropbox.value();
+		dropbox.trigger('change', event);
 	}
 
 	function _handler_checkOutclick(event) {
