@@ -215,7 +215,7 @@ abstract class AbstractApplication implements FusionInterface
 
 	public function getMode(): string
 	{
-		return $this->getConfig('mode');
+		return $this->getConfig('mode') ?? lx::MODE_PROD;
 	}
 
 	/**

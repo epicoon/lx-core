@@ -4,6 +4,8 @@ $configMainCode = <<<EOT
 <?php
 
 return [
+    // 'localConfig' => '@site/config/main.php',
+
 	// Directories for packages
 	'packagesMap' => [
 		'vendor',
@@ -14,6 +16,9 @@ return [
 	'aliases' => [
 		'services' => '@site/services',
 	],
+
+    'serviceConfig' => require_once(__DIR__ . '/service.php'),
+    'pluginConfig' => require_once(__DIR__ . '/plugin.php'),
 
 	// Application components
 	'components' => [
