@@ -3,7 +3,8 @@
 #lx:use lx.Checkbox;
 #lx:use lx.LabeledGroup;
 
-class CheckboxGroup extends lx.LabeledGroup #lx:namespace lx {
+#lx:namespace lx;
+class CheckboxGroup extends lx.LabeledGroup {
 	build(config) {
 		config.widgetSize = '30px';
 		config.labelSide = lx.RIGHT;
@@ -12,6 +13,10 @@ class CheckboxGroup extends lx.LabeledGroup #lx:namespace lx {
 		this.widgets().forEach(w=>{
 			let checkbox = w.add(lx.Checkbox, {key: 'checkbox'});
 			w.align(lx.CENTER, lx.MIDDLE);
+			if (w._field) {
+				checkbox._field = w._field;
+				delete w._field;
+			}
 		});
 		if (config.defaultValue !== undefined) this.value(config.defaultValue);
 	}

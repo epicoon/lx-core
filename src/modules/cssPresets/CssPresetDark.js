@@ -2,7 +2,8 @@
 
 #lx:use lx.BasicCssAsset;
 
-class CssPresetDark extends lx.CssPreset #lx:namespace lx {
+#lx:namespace lx;
+class CssPresetDark extends lx.CssPreset {
     static getName() {
         return 'dark';
     }

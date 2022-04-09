@@ -6,7 +6,8 @@
 #lx:use lx.Checkbox;
 #lx:use lx.Scroll;
 
-class ModelCollectionGrid extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class ModelCollectionGrid extends lx.Box {
     #lx:const
         DEFAULT_COLUMN_WIDTH = '200px';
 

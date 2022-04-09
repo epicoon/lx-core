@@ -1,4 +1,5 @@
-class Behavior #lx:namespace lx {
+#lx:namespace lx;
+class Behavior {
 	onAfterConstruct(supportedObject) {}
 
 	static injectInto(supportedEssence, config=null) {

@@ -3,7 +3,8 @@
 #lx:use lx.IndentData;
 #lx:use lx.PositioningStrategy;
 
-class AlignPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
+#lx:namespace lx;
+class AlignPositioningStrategy extends lx.PositioningStrategy {
 	/**
 	 * @param [config = {}] {Object: {
 	 *     {Number&Enum(

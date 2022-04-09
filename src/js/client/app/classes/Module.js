@@ -1,4 +1,5 @@
-class Module #lx:namespace lx {
+#lx:namespace lx;
+class Module {
     /**
      * @param {String} key - ключ вызываемого метода
      * @param {Array} params - параметры, с которыми нужно вызвать метод

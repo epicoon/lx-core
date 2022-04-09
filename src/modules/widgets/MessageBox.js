@@ -2,7 +2,8 @@
 
 #lx:use lx.Box;
 
-class MessageBox extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class MessageBox extends lx.Box {
 	build(config) {
 		super.build(config);
 

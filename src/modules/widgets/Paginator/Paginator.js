@@ -5,7 +5,8 @@
 
 #lx:use lx.Box;
 
-class Paginator extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class Paginator extends lx.Box {
 	#lx:const
 		DEFAULT_SLOTS_COUNT = 7,
 		DEFAULT_ELEMENTS_PER_PAGE = 10;

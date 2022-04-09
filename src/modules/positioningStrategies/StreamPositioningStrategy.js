@@ -3,7 +3,8 @@
 #lx:use lx.IndentData;
 #lx:use lx.PositioningStrategy;
 
-class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
+#lx:namespace lx;
+class StreamPositioningStrategy extends lx.PositioningStrategy {
 	#lx:const
 		TYPE_SIMPLE = 1,
 		TYPE_PROPORTIONAL = 2,
@@ -42,8 +43,14 @@ class StreamPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx 
 				: lx.VERTICAL;
 		this.direction = config.direction;
 
-		if (config.height !== undefined) this.rowDefaultHeight = config.height;
-		if (config.width !== undefined) this.columnDefaultWidth = config.width;
+		if (config.height !== undefined) {
+			this.rowDefaultHeight = config.height;
+			if (config.minHeight === undefined) config.minHeight = config.height;
+		}
+		if (config.width !== undefined) {
+			this.columnDefaultWidth = config.width;
+			if (config.minWidth === undefined) config.minWidth = config.width;
+		}
 
 		this.owner.addClass(this.direction == lx.VERTICAL ? 'lxps-grid-v' : 'lxps-grid-h');
 		if (this.type == self::TYPE_SIMPLE) {

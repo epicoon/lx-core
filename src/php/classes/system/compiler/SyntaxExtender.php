@@ -178,7 +178,7 @@ class SyntaxExtender
 	private function applyExtendedSyntaxForClasses(string $code, ?string $path): string
     {
 		// Работа со всеми классами
-		$reg = '/class\s+\b(.+?)\b([^{]*)(?P<re>{((?>[^{}]+)|(?P>re))*})/';
+		$reg = '/(#lx:namespace\s+[\w_][\w\d_.]*;)?\s*class\s+\b(.+?)\b([^{]*)(?P<re>{((?>[^{}]+)|(?P>re))*})/';
 		preg_match_all($reg, $code, $matches);
 
 		if (!empty($matches[0])) {
@@ -190,13 +190,16 @@ class SyntaxExtender
                     $implementTemp = $implement;
                 }
 
-				$class = $matches[1][$i];
-				preg_match('/#lx:namespace\s+([_\w\d.]+?)[\s{]/', $matches[2][$i], $namespace);
-				$namespace = $namespace[1] ?? null;
-
-				$implementResult = preg_replace(
-				    '/#lx:namespace\s+[_\w\d.]+?(\s|{)/',
-                    '$1',
+				$class = $matches[2][$i];
+                if ($matches[1][$i] == '') {
+                    $namespace = null;
+                } else {
+    				preg_match('/#lx:namespace\s+([_\w\d.]+?)\s*;/', $matches[1][$i], $namespace);
+    				$namespace = $namespace[1] ?? null;
+                }
+                $implementResult = preg_replace(
+                    '/#lx:namespace\s+'.$namespace.'\s*;\s*/',
+                    '',
                     $implementTemp
                 );
 

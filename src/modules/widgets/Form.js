@@ -3,7 +3,8 @@
 #lx:use lx.Box;
 #lx:use lx.Button;
 
-class Form extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class Form extends lx.Box {
 	/**
 	 * list - хэш-таблица, записи - {name, info} - преобразуются в аргументы для метода .field(className, fieldName, config)
 	 *	name - имя, которое станет значением ключа нового элемента и значением поля field

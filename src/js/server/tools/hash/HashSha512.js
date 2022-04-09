@@ -1,4 +1,5 @@
-class HashSha512 #lx:namespace lx {
+#lx:namespace lx;
+class HashSha512 {
 	static hex(s) {
 		if (!lx.isString(s)) s = JSON.stringify(s);
 		return rstr2hex(rstr_sha512(str2rstr_utf8(s)));

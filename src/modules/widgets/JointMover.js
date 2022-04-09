@@ -3,7 +3,8 @@
 #lx:use lx.Rect;
 
 //TODO не тестировался при создании на сервере
-class JointMover extends lx.Rect #lx:namespace lx {
+#lx:namespace lx;
+class JointMover extends lx.Rect {
     #lx:const DEFAULT_SIZE = '6px';
 
     modifyConfigBeforeApply(config) {

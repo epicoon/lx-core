@@ -1,4 +1,5 @@
-class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
+#lx:namespace lx;
+class SetterListenerBehavior extends lx.Behavior {
 
 	/**
 	 *
@@ -29,7 +30,6 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 		for (var i=0, l=fields.len; i<l; i++) {
 			let name = fields[i];
 			let key = '_' + name;
-
 			Object.defineProperty(prototype, name, {
 				//todo - надо чтобы можно было аккуратно снять бихевиор
 				configurable: true,
@@ -42,10 +42,10 @@ class SetterListenerBehavior extends lx.Behavior #lx:namespace lx {
 			});
 		}
 
-		/**
+		/*
 		 * Может ассоциировать ключ с любым полем, в т.ч. находящимся в используемых объектах
 		 * Может ассоциировать ключ с методом, который может принимать значение, а если не принимает, то возвращает
-		 * */
+		 */
 		for (let name in extraFields) {
 			fields.push(name);
 			var definition = extraFields[name],

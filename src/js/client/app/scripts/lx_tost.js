@@ -62,6 +62,7 @@ lx.Tost = function(config, typeArg) {
 	el.roundCorners('8px');
 	el.border({color: borderColor});
 	el.fill(color);
+	el.style('color', 'black');
 
 	el.width(lx.Tost.widthLimit);
 	el.width( el->text.width('px') + 20 + 'px' );

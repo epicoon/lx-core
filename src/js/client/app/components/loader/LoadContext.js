@@ -90,6 +90,9 @@ class LoadContext {
 			modulesRequest.onLoad(function(result) {
 				if (result) {
 					lx._f.createAndCallFunction('', result.data.code);
+					lx.actualizeModuleAssets({
+						modules: result.data.compiledModules
+					});
 				}
 			});
 			synchronizer.register(modulesRequest);

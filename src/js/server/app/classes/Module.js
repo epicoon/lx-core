@@ -1,3 +1,4 @@
-class Module #lx:namespace lx {
+#lx:namespace lx;
+class Module {
 
 }

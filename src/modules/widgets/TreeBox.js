@@ -12,7 +12,8 @@
  * - beforeDel
  * - afterDel
  */
-class TreeBox extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class TreeBox extends lx.Box {
 	#lx:const
 		FORBIDDEN_ADDING = 0,
 		ALLOWED_ADDING = 1,
@@ -86,7 +87,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		this.leafHeight = config.leafHeight || 25;
 		this.labelWidth = config.labelWidth || 250;
 		this.addMode = config.add || self::FORBIDDEN_ADDING;
-		this.rootAdding = config.rootAdding === undefined
+		this.rootAdding = (config.rootAdding === undefined)
 			? !!this.addMode
 			: config.rootAdding;
 
@@ -198,8 +199,8 @@ class TreeBox extends lx.Box #lx:namespace lx {
 			}
 		}
 
-		renew() {
-			if (!this.isDisplay()) return;
+		renew(forse = false) {
+			if (!forse && !this.isDisplay()) return;
 
 			var scrollTop = this.domElem.param('scrollTop');
 			var opened = [];
@@ -245,6 +246,7 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		prepareRoot() {
 			this.createLeafs(this.data);
 			var work = this->work;
+
 			//todo с условием стало напутано - подменю не обязано быть логически связанным с кнопкой добавления. Подумать нужно ли оно вообще
 			if (this.addMode && this.rootAdding && !work.contains('submenu')) {
 				var menu = new lx.Box({parent: work, key: 'submenu', height: this.leafHeight+'px'});
@@ -371,7 +373,6 @@ class TreeBox extends lx.Box #lx:namespace lx {
 		 */
 		add(parentNode, newNodeAttributes) {
 			if (parentNode.root) this.leafByNode(parentNode)->open.opened = true;
-
 			var key = newNodeAttributes.key || parentNode.genKey(),
 				node = parentNode.add(key);
 			for (var f in newNodeAttributes)

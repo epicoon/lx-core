@@ -1,4 +1,5 @@
-class HashMd5 #lx:namespace lx {
+#lx:namespace lx;
+class HashMd5 {
 	static hex(s) {
 		if (!lx.isString(s)) s = JSON.stringify(s);
 		return rstr2hex(rstr_md5(str2rstr_utf8(s)));

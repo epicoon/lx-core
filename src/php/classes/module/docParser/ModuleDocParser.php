@@ -114,15 +114,16 @@ class ModuleDocParser
 
     private function process(string $code): array
     {
-        $reg = '/(\/\*\*[\w\W]*?\*\/)?\s*class (\b.+?\b)([^{]*)(?P<code>{((?>[^{}]+)|(?P>code))*})/';
+        $reg = '/(\/\*\*[\w\W]*?\*\/)?\s*(#lx:namespace\s+[\w_][\w\d_.]*;)?\s*class (\b.+?\b)([^{]*)(?P<code>{((?>[^{}]+)|(?P>code))*})/';
         preg_match_all($reg, $code, $matches);
 
         $classes = [];
-        foreach ($matches[2] as $i => $className) {
+        foreach ($matches[3] as $i => $className) {
             $classCode = $matches['code'][$i];
             $classDoc = $matches[1][$i];
-            $classExtends = $matches[3][$i];
-            $classData = $this->prepareClassData($className, $classExtends, $classDoc, $classCode);
+            $classNamespace = $matches[2][$i];
+            $classExtends = $matches[4][$i];
+            $classData = $this->prepareClassData($className, $classNamespace, $classExtends, $classDoc, $classCode);
             $classes[$classData['fullName']] = $classData;
         }
 
@@ -131,12 +132,14 @@ class ModuleDocParser
 
     private function prepareClassData(
         string $className,
+        string $classNamespace,
         string $classExtends,
         string $classDocString,
         string $classCode
     ): array
     {
-        list($extends, $namespace) = $this->analiseExtends($classExtends);
+        $namespace = $this->analiseNamespace($classNamespace);
+        $extends = $this->analiseExtends($classExtends);
         $classDoc = $this->parseDoc($classDocString);
         $codeMap = $this->analiseCode($classCode);
         return [
@@ -167,17 +170,20 @@ class ModuleDocParser
         $splitter = new ModuleDocParser\DocSplitter($this->moduleName, $docString);
         return $splitter->split();
     }
+    
+    private function analiseNamespace(string $classNamespace): ?string
+    {
+        if ($classNamespace == '') {
+            return null;
+        }
+        
+        return preg_replace('/(^\s*#lx:namespace\s+|\s*;\s*$)/', '', $classNamespace);
+    }
 
-    private function analiseExtends(string $classExtends): array
+    private function analiseExtends(string $classExtends): ?string
     {
         $reg = '/extends\s+(\S+)/';
         preg_match($reg, $classExtends, $matches);
-        $result[] = $matches[1] ?? null;
-
-        $reg = '/#lx:namespace\s+(\S+)/';
-        preg_match($reg, $classExtends, $matches);
-        $result[] = $matches[1] ?? null;
-
-        return $result;
+        return $matches[1] ?? null;
     }
 }

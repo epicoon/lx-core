@@ -2,7 +2,8 @@
 
 #lx:use lx.Box;
 
-class Slider extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class Slider extends lx.Box {
 	getBasicCss() {
 		return {
 			track: 'lx-slider-track',

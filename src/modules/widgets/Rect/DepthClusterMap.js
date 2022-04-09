@@ -1,6 +1,7 @@
 let _map = {};
 
-class DepthClusterMap #lx:namespace lx {
+#lx:namespace lx;
+class DepthClusterMap {
 	#lx:const
 		CLUSTER_DEEP = 0,
 		CLUSTER_PRE_MIDDLE = 1,

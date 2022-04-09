@@ -26,18 +26,33 @@
 		};
 }
 
-class InputPopup extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class InputPopup extends lx.Box {
     modifyConfigBeforeApply(config) {
     	config.key = config.key || 'inputPopup';
     	config.style = {display: 'none'};
         return config;
     }
 
+	getBasicCss() {
+		return {
+			back: 'lx-InputPopup-back',
+		}
+	}
+
+	static initCssAsset(css) {
+		css.addClass('lx-InputPopup-back', {
+			backgroundColor: css.preset.bodyBackgroundColor,
+			borderRadius: css.preset.borderRadius,
+			border: 'solid 1px ' + css.preset.widgetBorderColor,
+		});
+	}
+
     #lx:client {
 	    open(captions, defaults = {}) {
 			if (!lx.isArray(captions)) captions = [captions];
 
-			var popup = __getInstance();
+			var popup = __getInstance(this);
 			var buttons = popup->stream->buttons;
 
 			popup->stream.del('r');
@@ -87,7 +102,7 @@ class InputPopup extends lx.Box #lx:namespace lx {
 }
 
 #lx:client {
-	function __getInstance() {
+	function __getInstance(self = null) {
 		if (instance === null) {
 			instance = new lx.Box({
 				parent: lx.body,
@@ -98,7 +113,7 @@ class InputPopup extends lx.Box #lx:namespace lx {
 			instance.overflow('auto');
 	    	instance.useRenderCache();
 	    	instance.begin();
-	    	__renderContent(instance);
+	    	__renderContent(self);
 	    	instance.end();
 	    	instance.applyRenderCache();
 	    	instance.hide();
@@ -110,10 +125,7 @@ class InputPopup extends lx.Box #lx:namespace lx {
 	function __renderContent(self) {
 		(new lx.Rect({geom:true})).fill('black').opacity(0.5);
 
-		var inputPopupStream = new lx.Box({key:'stream', geom:['30%', '40%', '40%', '0%']});
-		inputPopupStream.fill('white');
-		inputPopupStream.border();
-		inputPopupStream.roundCorners('8px');
+		var inputPopupStream = new lx.Box({key:'stream', geom:['30%', '40%', '40%', '0%'], css:self.basicCss.back});
 		inputPopupStream.stream({indent:'10px'});
 
 		inputPopupStream.begin();

@@ -1,4 +1,5 @@
-class TagRenderer #lx:namespace lx {
+#lx:namespace lx;
+class TagRenderer {
     constructor(config) {
         this.tag = config.tag || 'div';
         this.attributes = config.attributes || {};

@@ -1,6 +1,7 @@
 #lx:require plugin/;
 
-class Plugin #lx:namespace lx {
+#lx:namespace lx;
+class Plugin {
 	constructor(info, snippetBox) {
 		this.name = info.name;
 		this.attributes =  {};
@@ -19,6 +20,7 @@ class Plugin #lx:namespace lx {
 		__init(this, info);
 
 		this.guiNodes = {};
+		this.root.click(__onClick);
 		this.init();
 	}
 
@@ -133,6 +135,7 @@ class Plugin #lx:namespace lx {
 	 */
 	del() {
 		lx.unfocusPlugin(this);
+		this.root.off('click', __onClick);
 
 		// Удаление вложенных плагинов
 		var childPlugins = this.childPlugins(true);
@@ -271,6 +274,11 @@ class Plugin #lx:namespace lx {
 		return self::resolveImage(this.images, name);
 	}
 	
+	getImagesPath(key = 'default') {
+		if (key in this.images) return this.images[key] + '/';
+		return null;
+	}
+	
 	static resolveImage(map, name) {
 		if (name[0] != '@') {
 			if (!map['default']) return name;
@@ -340,4 +348,8 @@ function __init(plugin, info) {
 	}
 
 	plugin.root.plugin = plugin;
+}
+
+function __onClick() {
+	this.plugin.focus();
 }

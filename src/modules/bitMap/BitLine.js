@@ -1,4 +1,5 @@
-class BitLine #lx:namespace lx {
+#lx:namespace lx;
+class BitLine {
 	#lx:const
 		BASIS = 32,
 		BIT = [

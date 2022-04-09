@@ -1,8 +1,66 @@
 #lx:module lx.Color;
 
-class Color #lx:namespace lx {
+#lx:namespace lx;
+class Color {
 	constructor(color) {
 		this.init(color);
+	}
+
+	/**
+	 * Попытка привести переданное значение к цвету в формате числа
+	 */
+	static castToNumber(color, max= 255) {
+		if (lx.isArray(color)) return this.castRgbToNumber(color, max);
+		if (lx.isNumber(color)) return color;
+		return false;
+	}
+
+	/**
+	 * Попытка привести переданное значение к цвету в формате RGB массива
+	 */
+	static castToRgb(color, max= 255) {
+		if (lx.isArray(color)) return color;
+		if (lx.isNumber(color)) return this.castNumberToRgb(color, max);
+		return false;
+	}
+
+	/**
+	 * Форматы для max == 1 и max == 255
+	 * [1, 1, 1] => 0xffffff (для max==1)
+	 */
+	static castRgbToNumber(color, max = 255) {
+		var r, g, b;
+		if (max == 1) {
+			r = Math.floor( color[0] * 255 );
+			g = Math.floor( color[1] * 255 );
+			b = Math.floor( color[2] * 255 );
+		} else {
+			r = color[0]; g = color[1]; b = color[2];
+		}
+		var sR = r.toString(16),
+			sG = g.toString(16),
+			sB = b.toString(16);
+		if (sR.length < 2) sR = '0' + sR;
+		if (sG.length < 2) sG = '0' + sG;
+		if (sB.length < 2) sB = '0' + sB;
+		return +('0x' + sR + sG + sB);
+	}
+
+	/**
+	 * Форматы для max == 1 и max == 255
+	 * 0xffffff => [1, 1, 1] (для max==1)
+	 */
+	static castNumberToRgb(color, max = 255) {
+		var str = color.toString(16),
+			r = +('0x'+str.substr(0, 2)),
+			g = +('0x'+str.substr(2, 2)),
+			b = +('0x'+str.substr(4, 2));
+		if (max == 1) {
+			r /= 255;
+			g /= 255;
+			b /= 255;
+		}
+		return [r, g, b];
 	}
 
 	init(color) {

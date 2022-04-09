@@ -2,7 +2,8 @@
 
 #lx:use lx.Box;
 
-class ActiveBox extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class ActiveBox extends lx.Box {
 	//TODO - тут подразумеваются пиксели. Бардак с единицами измерения продолжается...
 	#lx:const
 		HEADER_HEIGHT = 40,

@@ -2,7 +2,8 @@
 
 #lx:use lx.IndentData;
 
-class PositioningStrategy #lx:namespace lx {
+#lx:namespace lx;
+class PositioningStrategy {
 	constructor(owner) {
 		this.owner = owner;
 		this.autoActualize = true;

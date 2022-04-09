@@ -215,6 +215,13 @@ class SnippetBuildContext implements ContextTreeInterface
             ->setModules($modules)
             ->run();
 
+        if (!$res) {
+            throw new \Exception(
+                $executor->getFirstFlightRecord()
+                . PHP_EOL . 'Snippet file: ' . $snippet->getFile()->getPath() . PHP_EOL
+            );
+        }
+        
 		$app->applyBuildData($res['app']);
 		$snippet->setPluginModifications($res['plugin']);
 		$snippet->applyBuildData($res['snippet']);

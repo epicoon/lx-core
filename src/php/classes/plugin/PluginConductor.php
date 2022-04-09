@@ -35,7 +35,7 @@ class PluginConductor implements ConductorInterface
 			$relativePath = $this->getPath();
 		}
 
-		return lx::$app->conductor->getFullPath($fileName, $relativePath);
+		return $this->getPlugin()->getService()->conductor->getFullPath($fileName, $relativePath);
 	}
 
 	public function getRelativePath(string $path, ?string $defaultLocation = null): string

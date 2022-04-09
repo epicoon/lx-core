@@ -1,4 +1,5 @@
-class ModuleEvent #lx:namespace lx {
+#lx:namespace lx;
+class ModuleEvent {
     constructor(target, params = {}) {
         this.target = target;
         for (let i in params)

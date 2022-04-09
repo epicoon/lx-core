@@ -1,6 +1,7 @@
 #lx:module lx.MdHighlighter;
 
-class MdHighlighter extends lx.Module #lx:namespace lx {
+#lx:namespace lx;
+class MdHighlighter extends lx.Module {
     static initCssAsset(css) {
         css.addClass('md-container', {
             padding: '20px'

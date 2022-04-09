@@ -2,7 +2,8 @@
 
 #lx:use lx.Box;
 
-class Scroll extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class Scroll extends lx.Box {
     #lx:const
         DEFAULT_SIZE = '15px';
 

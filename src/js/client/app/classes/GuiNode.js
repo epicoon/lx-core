@@ -1,4 +1,5 @@
-class GuiNode #lx:namespace lx {
+#lx:namespace lx;
+class GuiNode {
     constructor(plugin, box) {
         this._plugin = plugin;
         this._box = box;

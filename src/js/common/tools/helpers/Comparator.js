@@ -1,4 +1,5 @@
-class Comparator #lx:namespace lx {
+#lx:namespace lx;
+class Comparator {
     /**
      *
      * */

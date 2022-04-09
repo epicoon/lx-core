@@ -3,7 +3,8 @@
 #lx:use lx.Radio;
 #lx:use lx.LabeledGroup;
 
-class RadioGroup extends lx.LabeledGroup #lx:namespace lx {
+#lx:namespace lx;
+class RadioGroup extends lx.LabeledGroup {
 	build(config) {
 		config.widgetSize = '30px';
 		config.labelSide = lx.RIGHT;
@@ -43,7 +44,7 @@ class RadioGroup extends lx.LabeledGroup #lx:namespace lx {
 			var result = null;
 			this.radios().forEach(function(a) {
 				if (a.value()) {
-					result = a.index;
+					result = a.parent.index;
 					this.stop();
 				}
 			});
@@ -72,16 +73,8 @@ class RadioGroup extends lx.LabeledGroup #lx:namespace lx {
 		}
 
 		var group = this.parent.parent,
-			index = this.parent.index,
-			old = null;
-		group.radios().forEach(item=>{
-			if (item == this) return;
-			if (item.value()) old = item.parent.index;
-			item.value(false);
-		});
-		e = e || p.newEvent();
-		e.oldValue = old;
-		e.newValue = index;
-		group.trigger('change', e);
+			index = this.parent.index;
+		this.value(false);
+		group.value(index);
 	}
 }

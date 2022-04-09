@@ -49,8 +49,8 @@ class BindManager {
 		return __bindMatrix(c, widget, type);
 	}
 
-	bindAgregation(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
-		return __bindAgregation(c, widget, type);
+	bindAggregation(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
+		return __bindAggregation(c, widget, type);
 	}
 
 	getBind(id) {
@@ -105,14 +105,14 @@ function __bind(obj, widget, type=lx.Binder.BIND_TYPE_FULL) {
 			__bindProcess(obj, _field, readWidgets);
 			__action(obj, _field, obj[_field]);
 		}
+
 		writeWidgets.forEach(a=>{
-			/*
-			todo
-			по коду закоменчены - потому что надо иметь стандарт - если виджет используется для связывания, то он должен иметь
-			событие change, и только с его помощью будем отслеживать изменения в виджете.
-			*/
-			// a.on('blur', function() { actualize(this); });
-			a.on('change', function(e) { actualize(this, e.newValue); });
+			a.on('change', function(e) {
+				let val = (e.newValue !== undefined)
+					? e.newValue
+					: a.value()
+				actualize(this, val);
+			});
 		});
 	}
 }
@@ -150,6 +150,11 @@ function __refresh(obj, fieldName = null) {
 		var fields = setterEvents.fields;
 		for (let i=0, l=fields.len; i<l; i++) {
 			let field = fields[i];
+			__action(obj, field, obj[field]);
+		}
+	} else if (lx.isArray(fieldName)) {
+		for (let i=0, l=fieldName.len; i<l; i++) {
+			let field = fieldName[i];
 			__action(obj, field, obj[field]);
 		}
 	} else {
@@ -217,7 +222,7 @@ function __unbindMatrix(widget) {
 	}
 }
 
-function __bindAgregation(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
+function __bindAggregation(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 	var first = c.first();
 
 	c.forEach(a=> a.lxBindC = c);
@@ -267,8 +272,12 @@ function __bindAgregation(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 				__action(obj, _field, obj[_field]);
 			}
 			writeWidgets.forEach(a=>{
-				// a.on('blur', function() { actualize(this); });
-				a.on('change', function(e) { actualize(this, e.newValue); });
+				a.on('change', function(e) {
+					let val = (e.newValue !== undefined)
+						? e.newValue
+						: a.value()
+					actualize(this, val);
+				});
 			});
 		}
 	}
@@ -292,9 +301,22 @@ function __bindAgregation(c, widget, type=lx.Binder.BIND_TYPE_FULL) {
 
 	// обработчики событий-методов
 	c.addBehavior(lx.MethodListenerBehavior);
-	c.beforeMethod('removeAt', (i)=> delete c.at(i).lxBindC);
-	c.afterMethod('removeAt', (i)=> {
-		if (i == 0 && !c.isEmpty) bindFirst(c.first());
+	c.beforeMethod('remove', elem=>{
+		delete elem.lxBindC;
+		if (c.len == 1 && c.at(0) === elem) unbindAll();
+	});
+	c.afterMethod('remove', elem=>{
+		if (c.isEmpty) return;
+		bindFirst(c.first());
+		disableDifferent();
+	});
+	c.beforeMethod('removeAt', i=>{
+		delete c.at(i).lxBindC;
+		if (!c.len) unbindAll();
+	});
+	c.afterMethod('removeAt', i=>{
+		if (c.isEmpty) return;
+		if (i == 0) bindFirst(c.first());
 		disableDifferent();
 	});
 	c.beforeMethod('add', (obj)=>checkNewObj(obj));
@@ -344,8 +366,9 @@ function __collectionDifferent(c) {
 }
 function __collectionAction(obj, _field) {
 	if (!obj.lxBindC.lxBindWidget) return;
-	var diff = __collectionDifferent(obj.lxBindC);
-	obj.lxBindC.lxBindWidget.getChildren({hasProperties:{_field}, all:true}).at(0).disabled(_field in diff);
+	const widgets = obj.lxBindC.lxBindWidget.getChildren({hasProperties:{_field}, all:true});
+	const diff = __collectionDifferent(obj.lxBindC);
+	widgets.forEach(w=>w.disabled(w._field in diff));
 }
 
 // Метод актуализации виджетов, связанных с полем `name` модели `obj`

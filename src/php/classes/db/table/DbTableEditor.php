@@ -98,7 +98,7 @@ class DbTableEditor
         $db->transactionBegin();
 
         foreach ($this->schema->getForeignKeysInfo() as $fk) {
-            $query = $db->getDropForeignKeyQuery(
+            $query = $db->getQueryBuilder()->getDropForeignKeyQuery(
                 $fk->getTableName(),
                 $fk->getFieldNames(),
                 $fk->getName()
@@ -162,7 +162,7 @@ class DbTableEditor
         $field = $this->schema->getField($fieldName);
         if ($field->isFk()) {
             $fk = $field->getForeignKeyInfo();
-            $query = $db->getDropForeignKeyQuery(
+            $query = $db->getQueryBuilder()->getDropForeignKeyQuery(
                 $fk->getTableName(),
                 $fk->getFieldNames(),
                 $fk->getName()

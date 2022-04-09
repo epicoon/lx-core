@@ -16,7 +16,8 @@ let __activeCell = null;
  * selectionChange
  * rowAdded
  */
-class TableManager extends lx.Module #lx:namespace lx {
+#lx:namespace lx;
+class TableManager extends lx.Module {
     static initCssAsset(css) {
         css.addClasses({
             'lx-TM-table': 'border: ' + css.preset.checkedDarkColor + ' solid 2px !important',

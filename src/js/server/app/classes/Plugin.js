@@ -1,4 +1,5 @@
-class Plugin #lx:namespace lx {
+#lx:namespace lx;
+class Plugin {
     constructor(data = {}) {
         this.serviceName = data.serviceName;
         this.name = data.name;

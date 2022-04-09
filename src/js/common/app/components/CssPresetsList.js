@@ -1,6 +1,7 @@
 const __list = {};
 
-class CssPresetsList #lx:namespace lx {
+#lx:namespace lx;
+class CssPresetsList {
     static registerPreset(name, preset) {
         __list[name] = preset;
     }

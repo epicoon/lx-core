@@ -27,7 +27,8 @@ let __autoParentStack = [];
  *     display
  * ]
  */
-class Rect extends lx.Module #lx:namespace lx {
+#lx:namespace lx;
+class Rect extends lx.Module {
     /**
      * @widget-init
      *
@@ -834,12 +835,24 @@ class Rect extends lx.Module #lx:namespace lx {
     }
 
     setGeom(geom) {
+        let priorityH = [],
+            priorityV = [];
+        if (geom[0] !== null && geom[0] !== undefined) priorityH.push(lx.LEFT);
+        if (geom[1] !== null && geom[1] !== undefined) priorityV.push(lx.TOP);
+        if (geom[2] !== null && geom[2] !== undefined) priorityH.push(lx.WIDTH);
+        if (geom[3] !== null && geom[3] !== undefined) priorityV.push(lx.HEIGHT);
+        if (geom[4] !== null && geom[4] !== undefined) priorityH.push(lx.RIGHT);
+        if (geom[5] !== null && geom[5] !== undefined) priorityV.push(lx.BOTTOM);
+        if (priorityH.len < 3) __setGeomPriorityH(this, priorityH[0], priorityH[1]);
+        if (priorityV.len < 3) __setGeomPriorityV(this, priorityV[0], priorityV[1]);
+
         if (geom[0] !== null && geom[0] !== undefined) this.left(geom[0]);
         if (geom[1] !== null && geom[1] !== undefined) this.top(geom[1]);
         if (geom[2] !== null && geom[2] !== undefined) this.width(geom[2]);
         if (geom[3] !== null && geom[3] !== undefined) this.height(geom[3]);
         if (geom[4] !== null && geom[4] !== undefined) this.right(geom[4]);
         if (geom[5] !== null && geom[5] !== undefined) this.bottom(geom[5]);
+
         #lx:client{ this.checkResize(); }
     }
 
@@ -981,13 +994,14 @@ class Rect extends lx.Module #lx:namespace lx {
         var elem = this.getDomElem();
         if (!elem) return {};
         var rect = elem.getBoundingClientRect();
+
         return {
             top: rect.top,
             left: rect.left,
             width: rect.width,
             height: rect.height,
-            bottom: window.screen.availHeight - rect.bottom,
-            right: window.screen.availWidth - rect.right
+            bottom: document.documentElement.scrollHeight - rect.bottom,
+            right: document.documentElement.scrollWidth - rect.right
         };
     }
 

@@ -2,7 +2,8 @@
 
 #lx:use lx.Box;
 
-class Button extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class Button extends lx.Box {
 	#lx:client clientBuild(config) {
 		super.clientBuild(config);
 		this.align(lx.CENTER, lx.MIDDLE);

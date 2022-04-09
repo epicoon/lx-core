@@ -1,4 +1,5 @@
-class HttpRequest extends lx.Request #lx:namespace lx {
+#lx:namespace lx;
+class HttpRequest extends lx.Request {
 	constructor(url = '', params = {}) {
 		super();
 

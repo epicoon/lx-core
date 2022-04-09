@@ -27,7 +27,8 @@
     ];
 }
 
-class Calendar extends lx.Input #lx:namespace lx {
+#lx:namespace lx;
+class Calendar extends lx.Input {
     getBasicCss() {
         return {
             main: 'lx-Calendar',

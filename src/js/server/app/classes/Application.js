@@ -2,7 +2,8 @@ let __settings = {};
 let prefix = null;
 let idCounter = 1;
 
-class Application #lx:namespace lx {
+#lx:namespace lx;
+class Application {
     constructor(data = {}) {
         if (data.settings) __settings = data.settings;
         this.i18nArray = {};

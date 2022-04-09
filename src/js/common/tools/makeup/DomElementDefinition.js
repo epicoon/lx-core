@@ -1,4 +1,5 @@
-class DomElementDefinition #lx:namespace lx {
+#lx:namespace lx;
+class DomElementDefinition {
 	constructor(owner, tag) {
 		this.owner = owner;
 		this.elem = null;

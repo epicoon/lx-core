@@ -6,7 +6,8 @@
 #lx:use lx.ActiveBox;
 #lx:require -R classes/;
 
-class WebCli extends lx.Module #lx:namespace lx {
+#lx:namespace lx;
+class WebCli extends lx.Module {
     constructor(box) {
         super();
 

@@ -1,4 +1,5 @@
-class CollectionSelector #lx:namespace lx {
+#lx:namespace lx;
+class CollectionSelector {
 	constructor() {
 		this.collection = null;
 		this.propertyExistance = new lx.Collection();

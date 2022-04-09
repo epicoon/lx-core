@@ -1,4 +1,5 @@
-class BindableModel extends lx.Model #lx:namespace lx {
+#lx:namespace lx;
+class BindableModel extends lx.Model {
 	/**
 	 * Связать модель с виджетами
 	 * */

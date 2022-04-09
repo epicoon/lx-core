@@ -2,7 +2,8 @@
 
 #lx:use lx.Rect;
 
-class Input extends lx.Rect #lx:namespace lx {
+#lx:namespace lx;
+class Input extends lx.Rect {
 	getBasicCss() {
 		return 'lx-Input';
 	}

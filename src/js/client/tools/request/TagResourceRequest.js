@@ -1,4 +1,5 @@
-class TagResourceRequest extends lx.Request #lx:namespace lx {
+#lx:namespace lx;
+class TagResourceRequest extends lx.Request {
 	constructor(url = '', attributes = {}) {
 		super();
 

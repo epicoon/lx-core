@@ -53,7 +53,8 @@
 	}
 }
 
-class ConfirmPopup extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class ConfirmPopup extends lx.Box {
 	#lx:const COLS_FOR_EXTRA_BUTTONS = 1;
 
     modifyConfigBeforeApply(config) {
@@ -62,13 +63,27 @@ class ConfirmPopup extends lx.Box #lx:namespace lx {
         return config;
     }
 
+	getBasicCss() {
+		return {
+			back: 'lx-ConfirmPopup-back',
+		}
+	}
+
+	static initCssAsset(css) {
+		css.addClass('lx-ConfirmPopup-back', {
+			backgroundColor: css.preset.bodyBackgroundColor,
+			borderRadius: css.preset.borderRadius,
+			border: 'solid 1px ' + css.preset.widgetBorderColor,
+		});
+	}
+
     build(config) {
     	this.extraCols = config.extraCols || self::COLS_FOR_EXTRA_BUTTONS;
     }
 
     #lx:client {
 	    open(message, extraButtons = {}) {
-	    	let popup = __getInstance();
+	    	let popup = __getInstance(this);
 			popup->stream->message.text(message);
 			popup->stream->message.height(
 				popup->stream->message->text.height('px') + 10 + 'px'
@@ -93,7 +108,7 @@ class ConfirmPopup extends lx.Box #lx:namespace lx {
 }
 
 #lx:client {
-	function __getInstance() {
+	function __getInstance(self = null) {
 		if (instance === null) {
 			instance = new lx.Box({
 				parent: lx.body,
@@ -104,7 +119,7 @@ class ConfirmPopup extends lx.Box #lx:namespace lx {
 			instance.overflow('auto');
 	    	instance.useRenderCache();
 	    	instance.begin();
-	    	__renderContent(instance);
+	    	__renderContent(self);
 	    	instance.end();
 	    	instance.applyRenderCache();
 	    	instance.hide();
@@ -116,10 +131,7 @@ class ConfirmPopup extends lx.Box #lx:namespace lx {
 	function __renderContent(self) {
 		(new lx.Rect({geom:true})).fill('black').opacity(0.5);
 
-		var inputPopupStream = new lx.Box({key:'stream', geom:['30%', '40%', '40%', '0%']});
-		inputPopupStream.fill('white');
-		inputPopupStream.border();
-		inputPopupStream.roundCorners('8px');
+		var inputPopupStream = new lx.Box({key:'stream', geom:['30%', '40%', '40%', '0%'], css:self.basicCss.back});
 		inputPopupStream.stream({indent:'10px'});
 
 		inputPopupStream.begin();

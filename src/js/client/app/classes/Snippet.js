@@ -1,4 +1,5 @@
-class Snippet #lx:namespace lx {
+#lx:namespace lx;
+class Snippet {
     constructor(widget, info) {
         this.widget = widget;
         widget.snippet = this;

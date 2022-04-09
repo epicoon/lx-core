@@ -201,8 +201,21 @@ class ApplicationConductor implements ConductorInterface
 				return null;
 			}
 
-			return $service->getFilePath($relativePath);
+            return $service->getFilePath($relativePath);
 		}
+
+        if ($key == 'service.local') {
+            $service = lx::$app->getService($name);
+            if (!$service) {
+                lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+                    '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+                    'msg' => "Service '$name' is not found for '$path'",
+                ]);
+                return null;
+            }
+
+            return $service->conductor->getLocalSystemPath() . '/' . $relativePath;
+        }
 
 		if ($key == 'plugin') {
 			$plugin = lx::$app->getPlugin($name);

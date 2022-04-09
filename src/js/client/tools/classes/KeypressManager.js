@@ -9,7 +9,8 @@
  *	- 'key_test' - имя метода, ключ 'test'
  *	- keys() { return {test: [13, 'a']}; } - метод будет срабатывать при нажатии 'enter' или клавиши 'a'
  */
-class KeypressManager #lx:namespace lx {
+#lx:namespace lx;
+class KeypressManager {
 	#lx:const
 		ENTER = 13;
 

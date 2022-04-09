@@ -94,8 +94,10 @@ abstract class RequestHandler
     {
         if ($this->resourceContext) {
             $resource = $this->resourceContext->getResource();
-            $resource->beforeAction();
-            $resource->beforeSuccessfulAction();
+            if ($resource) {
+                $resource->beforeAction();
+                $resource->beforeSuccessfulAction();
+            }
         }
     }
 
@@ -103,8 +105,10 @@ abstract class RequestHandler
     {
         if ($this->resourceContext) {
             $resource = $this->resourceContext->getResource();
-            $resource->beforeAction();
-            $resource->beforeFailedAction();
+            if ($resource) {
+                $resource->beforeAction();
+                $resource->beforeFailedAction();
+            }
         }
     }
 
@@ -112,8 +116,10 @@ abstract class RequestHandler
     {
         if ($this->resourceContext) {
             $resource = $this->resourceContext->getResource();
-            $resource->afterSuccessfulAction();
-            $resource->afterAction();
+            if ($resource) {
+                $resource->afterSuccessfulAction();
+                $resource->afterAction();
+            }
         }
     }
 
@@ -121,8 +127,10 @@ abstract class RequestHandler
     {
         if ($this->resourceContext) {
             $resource = $this->resourceContext->getResource();
-            $resource->afterFailedAction();
-            $resource->afterAction();
+            if ($resource) {
+                $resource->afterFailedAction();
+                $resource->afterAction();
+            }
         }
     }
 }

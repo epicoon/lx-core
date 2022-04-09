@@ -1,4 +1,5 @@
-class ModelTypeEnum #lx:namespace lx {
+#lx:namespace lx;
+class ModelTypeEnum {
     #lx:const
         INTEGER = 'int',
         STRING = 'string',

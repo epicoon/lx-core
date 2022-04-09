@@ -1,6 +1,7 @@
 #lx:module lx.Date;
 
-class Date extends lx.Object #lx:namespace lx {
+#lx:namespace lx;
+class Date extends lx.Object {
 	constructor(...args) {
 		super();
 		this.reset(...args);

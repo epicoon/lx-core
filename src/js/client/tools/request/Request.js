@@ -1,4 +1,5 @@
-class Request #lx:namespace lx {
+#lx:namespace lx;
+class Request {
 	constructor() {
 		this._success = null;
 		this._wait = null;

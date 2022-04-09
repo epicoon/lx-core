@@ -94,6 +94,7 @@ class ResourceContext
         }
         
         if (!isset($this->resource)) {
+            $this->resource = null;
             $object = null;
             if (isset($this->data['object'])) {
                 $object = $this->data['object'];

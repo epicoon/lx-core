@@ -2,7 +2,8 @@
 
 #lx:use lx.Box;
 
-class LabeledGroup extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class LabeledGroup extends lx.Box {
 	getBasicCss() {
 		return {
 			main: 'lx-LabeledGroup',
@@ -15,8 +16,7 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 		css.addClass('lx-LabeledGroup', {
 			display: 'grid',
 			gridAutoFlow: 'row',
-			gridGap: '.8em',
-			padding: '1.2em'
+			gridGap: '.8em'
 		});
 		css.addClass('lx-LabeledGroup-item', {
 			position: 'relative',
@@ -31,11 +31,13 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 	 *	// стандартные для Box,
 	 *	
 	 *	cols: int
+	 *  step: int
 	 *	widget: class
 	 *	widgetSize: string
 	 *	labelSide: lx.LEFT | lx.RIGHT
 	 *	labels: []
-	 *	map: {}
+	 *	list: []
+	 *  fields: {}
 	 * }
 	 * */
 	build(config) {
@@ -53,48 +55,65 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 				template += '[controls'+i+']'+widgetSize+'[labels'+i+']auto';
 		}
 		this.style('grid-template-columns', template);
+		if (config.step) {
+			this.style('grid-gap', config.step);
+		}
 
-		var widget = config.widget || lx.Box;
-		var map = {};
-		for (var i in config) {
-			if (i == 'labels') {
-				for (var j=0, l=config[i].len; j<l; j++) map[config[i][j]] = widget;
-			} else if (i == 'map') {
-				for (var label in config[i]) map[label] = config[i][label];
+		let defaultWidget = config.widget || lx.Box;
+		let units = [];
+		if (config.list) {
+			for (let i=0, l=config.list.len; i<l; i++) {
+				let unitConfig = config.list[i];
+				let unitWidget = unitConfig.widget || defaultWidget;
+				delete unitConfig.widget;
+				let labelConfig = {};
+				labelConfig.text = unitConfig.label || '-';
+				delete unitConfig.label;
+				units.push({widget: unitWidget, config: unitConfig, labelConfig});
 			}
+		} else if (config.fields) {
+			for (let field in config.fields) {
+				let unitConfig = config.fields[field];
+				let unitWidget = unitConfig.widget || defaultWidget;
+				delete unitConfig.widget;
+				let labelConfig = {};
+				labelConfig.text = unitConfig.label || '-';
+				delete unitConfig.label;
+				unitConfig.field = field;
+				units.push({widget: unitWidget, config: unitConfig, labelConfig});
+			}
+		} else if (config.labels) {
+			for (let i=0, l=config.labels.len; i<l; i++)
+				units.push({
+					widget: defaultWidget,
+					config: {},
+					labelConfig: {text: config.labels[i]}
+				});
 		}
 
 		var counter = 0;
-		for (var label in map) {
-			var l, w;
+		for (let i=0, l=units.len; i<l; i++) {
+			let unit = units[i];
+			let widget = unit.widget;
+			let widgetConfig = unit.config.lxMerge({
+				parent: this,
+				key: 'widget',
+				css: [this.basicCss.item],
+				style: {'grid-column': 'controls' + counter}
+			});
+			let labelConfig = unit.labelConfig.lxMerge({
+				parent: this,
+				key: 'label',
+				css: [this.basicCss.item, this.basicCss.label],
+				style: {'grid-column': 'labels' + counter}
+			});
 			if (labelSide == lx.LEFT) {
-				l = new lx.Box({
-					parent: this,
-					key: 'label',
-					css: [this.basicCss.item, this.basicCss.label],
-					style: {'grid-column': 'labels' + counter}
-				});
-				w = new map[label]({
-					parent: this,
-					key: 'widget',
-					css: [this.basicCss.item],
-					style: {'grid-column': 'controls' + counter}
-				});
+				(new lx.Box(labelConfig)).align(lx.CENTER, lx.MIDDLE);
+				new widget(widgetConfig);
 			} else {
-				w = new map[label]({
-					parent: this,
-					key: 'widget',
-					css: [this.basicCss.item],
-					style: {'grid-column': 'controls' + counter}
-				});
-				l = new lx.Box({
-					parent: this,
-					key: 'label',
-					css: [this.basicCss.item, this.basicCss.label],
-					style: {'grid-column': 'labels' + counter}
-				});
+				new widget(widgetConfig);
+				(new lx.Box(labelConfig)).align(lx.CENTER, lx.MIDDLE);
 			}
-			l.text(label);
 			counter++;
 			if (counter >= cols) counter = 0;
 		}
@@ -103,7 +122,7 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 	#lx:client clientBuild(config) {
 		super.clientBuild(config);
 		if (!this->label) return;
-		this->label.forEach(l=>{
+		this.getAll('label').forEach(l=>{
 			l.on('click', function() {
 				this.parent.widget(this.index).trigger('click');
 			});
@@ -129,11 +148,11 @@ class LabeledGroup extends lx.Box #lx:namespace lx {
 
 	widget(num) {
 		if (!this->widget) return null;
-		return this->widget[num];
+		return this.getAll('widget').at(num);
 	}
 
 	label(num) {
 		if (!this->label) return null;
-		return this->label[num];
+		return this.getAll('label').at(num);
 	}
 }

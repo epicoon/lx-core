@@ -1,4 +1,5 @@
-class BaseFile #lx:namespace lx {
+#lx:namespace lx;
+class BaseFile {
     #lx:const
         WRONG = 0,
         DIR = 1,

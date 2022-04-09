@@ -3,7 +3,8 @@
 #lx:use lx.BoxSlider;
 #lx:use lx.Image;
 
-class ImageSlider extends lx.BoxSlider #lx:namespace lx {
+#lx:namespace lx;
+class ImageSlider extends lx.BoxSlider {
 	build(config) {
 		super.build(config);
 

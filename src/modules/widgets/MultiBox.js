@@ -2,7 +2,8 @@
 
 #lx:use lx.Box;
 
-class MultiBox extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class MultiBox extends lx.Box {
 	#lx:const
 		MODE_UNI_SHEET = 1,
 		MODE_MULTI_SHEET = 2,
@@ -134,6 +135,17 @@ class MultiBox extends lx.Box #lx:namespace lx {
 		return this.sheets.at(num);
 	}
 
+	getActiveIndex() {
+		let index = null;
+		this.marks.forEach(function (mark) {
+			if (mark.checked) {
+				index = mark.index;
+				this.stop();
+			}
+		});
+		return index;
+	}
+
 	select(num) {
 		var mark = this.mark(num);
 		mark.checked = true;
@@ -146,7 +158,8 @@ class MultiBox extends lx.Box #lx:namespace lx {
 		} else sheet.show();
 	}
 
-	unselect(num) {
+	unselect(num = null) {
+		if (num === null) num = this.getActiveIndex();
 		var mark = this.mark(num);
 		mark.checked = false;
 		mark.removeClass(this.basicCss.active);

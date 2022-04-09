@@ -1,4 +1,5 @@
-class BackupedModelBehavior extends lx.Behavior #lx:namespace lx {
+#lx:namespace lx;
+class BackupedModelBehavior extends lx.Behavior {
 	/**
 	 *
 	 * */

@@ -1,4 +1,5 @@
-class CssAsset #lx:namespace lx {
+#lx:namespace lx;
+class CssAsset {
     constructor() {
         this.sequens = [];
 

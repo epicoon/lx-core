@@ -1,4 +1,5 @@
-class HashSha256 #lx:namespace lx {
+#lx:namespace lx;
+class HashSha256 {
 	static hex(s) {
 		if (!lx.isString(s)) s = JSON.stringify(s);
 		return rstr2hex(rstr_sha256(str2rstr_utf8(s)));

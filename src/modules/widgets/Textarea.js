@@ -2,7 +2,8 @@
 
 #lx:use lx.Input;
 
-class Textarea extends lx.Input #lx:namespace lx {
+#lx:namespace lx;
+class Textarea extends lx.Input {
 	static getStaticTag() {
 		return 'textarea';
 	}

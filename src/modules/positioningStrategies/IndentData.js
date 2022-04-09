@@ -1,6 +1,7 @@
 #lx:module lx.IndentData;
 
-class IndentData #lx:namespace lx
+#lx:namespace lx;
+class IndentData
 {
 	/**
 	 * @param [config = {}] {Object: {

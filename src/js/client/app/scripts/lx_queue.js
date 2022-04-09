@@ -10,7 +10,8 @@ lx.Queues = {
 	}
 };
 
-class Task #lx:namespace lx {
+#lx:namespace lx;
+class Task {
 	#lx:const
 		STATUS_NEW = 1,
 		STATUS_PENDING = 2,

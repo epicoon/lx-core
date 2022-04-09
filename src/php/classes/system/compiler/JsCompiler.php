@@ -181,6 +181,10 @@ class JsCompiler
             $code = $extension->beforeCutComments($code, $path);
         }
 
+        //TODO для dev-режима было бы логично оставлять комментарии. Вырезать только при минимизации.
+        // Но это ломает логику работы некоторых регулярок, н-р обработка классов
+        // т.к. в коментах не гарантируется корректное соответствие { и },
+        // а парсинг кода класса использует рекурсивную подмаску по фигурным скобкам
         $code = Minimizer::cutComments($code);
 
         foreach ($extensions as $extension) {
@@ -439,13 +443,13 @@ class JsCompiler
             preg_match_all('/#lx:require [\'"]?(.+)\b/', $originalCode, $requiredFiles);
             $required = array_merge($required, $requiredFiles[1]);
             // Находим классы, которые в файле объявлены
-            $reg = '/class\s+(.+?)\b\s+(?:extends\s+([\w\d_.]+?)(?:\s|{))?\s*(?:#lx:namespace\s+([\w\d_.]+?)(?:\s|{))?/';
+            $reg = '/(?:#lx:namespace\s+([\w\d_.]+?)\s*;\s*)?class\s+(.+?)\b\s+(?:extends\s+([\w\d_.]+?)(?:\s|{))?/';
             preg_match_all($reg, $originalCode, $matches);
 
             $code = $this->compileCodeInnerDirectives($originalCode, $fileName);
 
-			$classes = $matches[1];
-			$namespaces = $matches[3];
+            $namespaces = $matches[1];
+			$classes = $matches[2];
 			// Формируем карту по именам классов
 			foreach ($classes as $i => $class) {
 			    $className = ($namespaces[$i] == '') ? $class : $namespaces[$i] . '.' . $class;
@@ -469,7 +473,7 @@ class JsCompiler
 			}
 
 			// Находим случаи наследования
-            $dependsOf = array_diff($matches[2], ['', $fileName]);
+            $dependsOf = array_diff($matches[3], ['', $fileName]);
 
             // Находим использование модулей
             $pattern = '/(?<!\/ )(?<!\/)#lx:use\s+[\'"]?([^;]+?)[\'"]?;/';

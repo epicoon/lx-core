@@ -1,4 +1,5 @@
-class Model extends lx.Object #lx:namespace lx {
+#lx:namespace lx;
+class Model extends lx.Object {
 	constructor(data) {
 		super();
 

@@ -5,7 +5,8 @@
 /**
  * Переключатель языка на основе lx.Dropbox, который хранит настройку языка в куках
  */
-class LanguageSwitcher extends lx.Dropbox #lx:namespace lx {
+#lx:namespace lx;
+class LanguageSwitcher extends lx.Dropbox {
 	build(config) {
 		super.build(config);
 		this.options(#lx:php(\lx::$app->language->list));

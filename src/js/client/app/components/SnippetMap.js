@@ -1,6 +1,7 @@
 const map = {};
 
-class SnippetMap #lx:namespace lx {
+#lx:namespace lx;
+class SnippetMap {
 	static registerSnippetMaker(name, func) {
 		map[name] = func;
 	}

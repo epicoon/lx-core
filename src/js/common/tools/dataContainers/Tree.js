@@ -1,4 +1,5 @@
-class Tree #lx:namespace lx {
+#lx:namespace lx;
+class Tree {
 	#lx:const SEPARATOR = '/';
 	
 	constructor(...args) {
@@ -98,6 +99,7 @@ class Tree #lx:namespace lx {
 		for (var i=0, l=this.keys.len; i<l; i++) {
 			let node = this.getNth(i);
 			func(node, i);
+			node.eachNode(func);
 		}
 	}
 
@@ -127,6 +129,32 @@ class Tree #lx:namespace lx {
 		if (index == 0) return null;
 
 		return root.getNth(index - 1);
+	}
+
+	up(condition = null) {
+		if (condition === null) return this.root;
+
+		let temp = this;
+		let root = temp.root;
+		while(temp && !condition(temp)) {
+			temp = root;
+			root = temp.root;
+		}
+		return temp;
+	}
+	
+	getIndexes(rootCondition = null) {
+		if (rootCondition === null) rootCondition = root => !root;
+
+		let path = [];
+		let temp = this;
+		let root = temp.root;
+		while (root && rootCondition(root) !== true) {
+			path.push(root.keys.indexOf(temp.key));
+			temp = root;
+			root = temp.root;
+		}
+		return path.reverse();
 	}
 
 	path() {

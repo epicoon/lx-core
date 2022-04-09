@@ -1,4 +1,5 @@
-class DomSelector #lx:namespace lx {
+#lx:namespace lx;
+class DomSelector {
 	static getElementByAttrs(attrs, parent = null) {
 		var selector = '';
 		for (var name in attrs)

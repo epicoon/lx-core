@@ -1,4 +1,5 @@
-class Object #lx:namespace lx {
+#lx:namespace lx;
+class Object {
 
 	/**
 	 *

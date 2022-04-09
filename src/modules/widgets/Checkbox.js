@@ -1,8 +1,9 @@
 #lx:module lx.Checkbox;
 
-#lx:use lx.Rect;
+#lx:use lx.Box;
 
-class Checkbox extends lx.Rect #lx:namespace lx {
+#lx:namespace lx;
+class Checkbox extends lx.Box {
 	getBasicCss() {
 		return {
 			checked: 'lx-Checkbox-1',
@@ -36,6 +37,11 @@ class Checkbox extends lx.Rect #lx:namespace lx {
 	 * */
 	build(config) {
 		super.build(config);
+		this.add(lx.Box, {
+			key: 'check',
+			geom: [0, 0, '24px', '24px']
+		});
+		this.align(lx.CENTER, lx.MIDDLE);
 		this.value(config.value || false);
 	}
 
@@ -56,16 +62,20 @@ class Checkbox extends lx.Rect #lx:namespace lx {
 		if (val === undefined) return this.state;
 
 		this.state = !!val;
-		this.removeClass(this.basicCss.checked);
-		this.removeClass(this.basicCss.unchecked);
-		if (this.state) this.addClass(this.basicCss.checked);
-		else this.addClass(this.basicCss.unchecked);
+		this->check.removeClass(this.basicCss.checked);
+		this->check.removeClass(this.basicCss.unchecked);
+		if (this.state) this->check.addClass(this.basicCss.checked);
+		else this->check.addClass(this.basicCss.unchecked);
 
 		return this;
 	}
 
 	todgle() {
 		this.value(!this.value());
+		this.trigger('change', this.newEvent({
+			oldValue: !this.value(),
+			newValue: this.value()
+		}));
 		return this;
 	}
 }

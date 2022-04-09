@@ -1,4 +1,5 @@
-class ModelSchema #lx:namespace lx {
+#lx:namespace lx;
+class ModelSchema {
 	constructor(config = null) {
 		this.fields = {};
 		if (config) this.set(config);

@@ -1,4 +1,5 @@
-class Dict #lx:namespace lx {
+#lx:namespace lx;
+class Dict {
 	constructor(data = {}) {
 		for (var key in data) this[key] = data[key];
 	}

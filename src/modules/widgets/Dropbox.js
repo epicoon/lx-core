@@ -9,7 +9,8 @@
 	var __options = null;
 }
 
-class Dropbox extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class Dropbox extends lx.Box {
 	getBasicCss() {
 		return {
 			main: 'lx-Dropbox',

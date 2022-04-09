@@ -13,7 +13,8 @@
 * */
 
 
-class CodeEditor extends lx.Module #lx:namespace lx {
+#lx:namespace lx;
+class CodeEditor extends lx.Module {
     static initCssAsset(css) {
         css.addClass('lxCR-back', {
             fontFamily: 'Courier',

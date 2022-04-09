@@ -2,7 +2,8 @@
 
 #lx:use lx.Rect;
 
-class TextBox extends lx.Rect #lx:namespace lx {
+#lx:namespace lx;
+class TextBox extends lx.Rect {
 	modifyConfigBeforeApply(config='') {
 		if (lx.isString(config)) config = {text: config};
 

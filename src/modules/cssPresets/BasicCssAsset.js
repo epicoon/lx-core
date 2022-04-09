@@ -1,6 +1,7 @@
 #lx:module lx.BasicCssAsset;
 
-class BasicCssAsset extends lx.CssAsset #lx:namespace lx {
+#lx:namespace lx;
+class BasicCssAsset extends lx.CssAsset {
     init(cssPreset) {
         __init(this, cssPreset)
     }

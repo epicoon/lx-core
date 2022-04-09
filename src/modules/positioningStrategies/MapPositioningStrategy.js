@@ -3,7 +3,8 @@
 #lx:use lx.IndentData;
 #lx:use lx.PositioningStrategy;
 
-class MapPositioningStrategy extends lx.PositioningStrategy #lx:namespace lx {
+#lx:namespace lx;
+class MapPositioningStrategy extends lx.PositioningStrategy {
 	#lx:const
 		FORMAT_PERCENT = 1,
 		FORMAT_PX = 2,

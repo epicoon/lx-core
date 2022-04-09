@@ -2,7 +2,8 @@
 
 #lx:use lx.Rect;
 
-class Image extends lx.Rect #lx:namespace lx {
+#lx:namespace lx;
+class Image extends lx.Rect {
 	modifyConfigBeforeApply(config) {
 		if (lx.isString(config)) config = {filename: config};
 		if (!config.key) config.key = 'image';
@@ -14,7 +15,7 @@ class Image extends lx.Rect #lx:namespace lx {
 	 *	// стандартные для Rect,
 	 *	
 	 *	src: string  // путь от корня сайта
-	 *	filename: string  // путь относительно настроек текущего модуля
+	 *	filename: string  // путь относительно настроек текущего плагина
 	 * }
 	 */
 	build(config) {

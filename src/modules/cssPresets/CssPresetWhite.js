@@ -2,7 +2,8 @@
 
 #lx:use lx.BasicCssAsset;
 
-class CssPresetWhite extends lx.CssPreset #lx:namespace lx {
+#lx:namespace lx;
+class CssPresetWhite extends lx.CssPreset {
     static getName() {
         return 'white';
     }

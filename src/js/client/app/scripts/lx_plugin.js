@@ -12,6 +12,7 @@ lx.getFocusedPlugin = function() {
 };
 
 lx.focusPlugin = function(plugin) {
+	if (_plugin === plugin) return;
 	this.unfocusPlugin();
 	_plugin = plugin;
 	_plugin.trigger('focus');

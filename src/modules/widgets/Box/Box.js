@@ -104,7 +104,8 @@
  *     blur
  * ]
  */
-class Box extends lx.Rect #lx:namespace lx {
+#lx:namespace lx;
+class Box extends lx.Rect {
 
     //==================================================================================================================
     /* 1. Constructor */
@@ -912,7 +913,9 @@ class Box extends lx.Rect #lx:namespace lx {
 
     child(num) {
         var container = __getContainer(this);
-        return container.children.get(num);
+        if (lx.isNumber(num)) return container.children.get(num);
+        if (lx.isFunction(num)) return container.children.getByCondition(num);
+        return null;
     }
 
     lastChild() {
@@ -921,30 +924,33 @@ class Box extends lx.Rect #lx:namespace lx {
     }
 
     divideChildren(info) {
-        var all = info.all !== undefined ? info.all : false;
+        const all = (info.all !== undefined) ? info.all : false;
         if (info.hasProperty) info.hasProperties = [info.hasProperty];
-        var match = info.notMatch === true
-            ? null
-            : new lx.Collection(),
-            notMatch = info.match === true
-            ? null
-            : new lx.Collection();
+        const match = (info.notMatch === true) ? null : new lx.Collection();
+        const notMatch = info.match === true ? null : new lx.Collection();
         function rec(el) {
             if (el === null || !el.childrenCount) return;
-            for (var i=0; i<el.childrenCount(); i++) {
-                var child = el.child(i),
-                    matched = true;
+            for (let i=0; i<el.childrenCount(); i++) {
+                const child = el.child(i);
                 if (!child) continue;
 
+                let matched = true;
                 if (info.callback) matched = info.callback(child);
 
                 if (matched && info.hasProperties) {
-                    var prop = info.hasProperties;
+                    let prop = info.hasProperties;
                     if (lx.isObject(prop)) {
-                        for (var j in prop)
-                            if (!(j in child) || child[j] != prop[j]) { matched = false; break; }
+                        for (let j in prop) {
+                            if (!(j in child)) { matched = false; break; }
+                            let val = prop[j];
+                            if (lx.isArray(val)) {
+                                if (!val.includes(child[j])) { matched = false; break; }
+                            } else {
+                                if (child[j] != val) { matched = false; break; }
+                            }
+                        }
                     } else if (lx.isArray(prop)) {
-                        for (var j=0, l=prop.len; j<l; j++)
+                        for (let j=0, l=prop.len; j<l; j++)
                             if (!(prop[j] in child)) { matched = false; break; }
                     }
                 }
@@ -1208,7 +1214,7 @@ class Box extends lx.Rect #lx:namespace lx {
     }
 
     agregator(c, type=lx.Binder.BIND_TYPE_FULL) {
-        lx.Binder.bindAgregation(c, this, type);
+        lx.Binder.bindAggregation(c, this, type);
     }
     /* 6. Client-features */
     //==================================================================================================================

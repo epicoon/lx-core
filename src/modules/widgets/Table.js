@@ -2,7 +2,8 @@
 
 #lx:use lx.Box;
 
-class Table extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class Table extends lx.Box  {
 	getBasicCss() {
 		return {
 			main: 'lx-Table',
@@ -281,7 +282,8 @@ class Table extends lx.Box #lx:namespace lx {
 
 
 //======================================================================================================================
-class TableRow extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class TableRow extends lx.Box {
 	build(config) {
 		var colConfig = {direction: lx.HORIZONTAL},
 			table = this.parent,
@@ -335,7 +337,8 @@ class TableRow extends lx.Box #lx:namespace lx {
 
 
 //======================================================================================================================
-class TableCell extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class TableCell extends lx.Box {
 	table() {
 		return this.parent.parent;
 	}

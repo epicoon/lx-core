@@ -1,4 +1,5 @@
-class Css #lx:namespace lx {
+#lx:namespace lx;
+class Css {
 	#lx:const
 		POSITION_TOP = 'top',
 		POSITION_BOTTOM = 'bottom';

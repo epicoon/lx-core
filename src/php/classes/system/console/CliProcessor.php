@@ -222,12 +222,13 @@ class CliProcessor
         try {
             $this->invokeCommand($commandName);
         } catch (\Throwable $exception) {
+            $msg = $exception->getFile() . '::' . $exception->getLine() . ' - ' . $exception->getMessage();
             lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
                 '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-                'msg' => $exception->getMessage(),
+                'msg' => $msg,
             ]);
             $this->resetData();
-            $this->outln($exception->getMessage());
+            $this->outln($msg);
         }
 		return $this->getResult();
 	}

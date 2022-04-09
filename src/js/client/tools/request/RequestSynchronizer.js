@@ -1,4 +1,5 @@
-class RequestSynchronizer #lx:namespace lx {
+#lx:namespace lx;
+class RequestSynchronizer {
 	constructor(callback) {
 		this.keyCounter = 0;
 		this.waitingList = [];

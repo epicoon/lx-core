@@ -1,4 +1,5 @@
-class ModelCollection extends lx.Collection #lx:namespace lx {
+#lx:namespace lx;
+class ModelCollection extends lx.Collection {
 	setModelClass(modelClass) {
 		this.modelClass = modelClass;
 	}

@@ -1,4 +1,5 @@
-class TreeConverter #lx:namespace lx {
+#lx:namespace lx;
+class TreeConverter {
 	treeToJson(tree) {
 		var arr = [];
 		for (var i=0, l=tree.keys.len; i<l; i++) {

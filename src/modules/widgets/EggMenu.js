@@ -2,7 +2,8 @@
 
 #lx:use lx.Box;
 
-class EggMenu extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class EggMenu extends lx.Box {
 	_getContainer() {
 		return this->menuBox._getContainer();
 	}

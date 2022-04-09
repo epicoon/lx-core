@@ -1,7 +1,12 @@
-class CssPreset #lx:namespace lx {
+#lx:namespace lx;
+class CssPreset {
     constructor() {
         this._proxyAssets = [];
         __init(this);
+    }
+
+    createProperty(...args) {
+        return new lx.CssValue(this, '', args.join(' '));
     }
 
     getSettings() {
@@ -52,7 +57,8 @@ function __init(self) {
     }
 }
 
-class CssValue #lx:namespace lx {
+#lx:namespace lx;
+class CssValue {
     constructor(preset, name, value) {
         this.preset = preset;
         this.name = name;

@@ -1,4 +1,5 @@
-class EventDispatcher #lx:namespace lx {
+#lx:namespace lx;
+class EventDispatcher {
 	constructor() {
 		this.listeners = {};
 	}

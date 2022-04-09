@@ -1,5 +1,6 @@
 //TODO не все методы, что есть на PHP, реализованы тут. Надо доделать
-class Directory extends lx.BaseFile #lx:namespace lx {
+#lx:namespace lx;
+class Directory extends lx.BaseFile {
     #lx:const
         FIND_NAME = 1,
         FIND_OBJECT = 2;

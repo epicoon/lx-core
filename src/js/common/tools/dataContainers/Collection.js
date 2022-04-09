@@ -29,7 +29,8 @@
 
 ***************************************************************/
 
-class Collection extends lx.Object #lx:namespace lx {
+#lx:namespace lx;
+class Collection extends lx.Object {
 	constructor(...args) {
 		super();
 

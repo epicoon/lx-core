@@ -1,4 +1,5 @@
-class BehaviorMap #lx:namespace lx {
+#lx:namespace lx;
+class BehaviorMap {
 	constructor(supportedEssence) {
 		this.supportedEssence = supportedEssence;
 	}

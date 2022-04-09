@@ -2,7 +2,8 @@
 let guid = 0;
 let appointEvent = Function("var a=arguments;a[0].handle=function(e){return a[1].call(a[0],e);}");
 
-class Event #lx:namespace lx {
+#lx:namespace lx;
+class Event {
     static appoint(el, events = {}) {
         if (el.events === undefined) {
             el.events = events;

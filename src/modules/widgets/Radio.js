@@ -2,7 +2,8 @@
 
 #lx:use lx.Checkbox;
 
-class Radio extends lx.Checkbox #lx:namespace lx {
+#lx:namespace lx;
+class Radio extends lx.Checkbox {
 	getBasicCss() {
 		return {
 			checked: 'lx-Radio-1',

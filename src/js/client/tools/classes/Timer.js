@@ -1,4 +1,5 @@
-class Timer #lx:namespace lx {
+#lx:namespace lx;
+class Timer {
 	constructor(config=0) {
 		if (lx.isNumber(config) || lx.isArray(config)) config = {period: config};
 

@@ -1,4 +1,5 @@
-class Snippet #lx:namespace lx {
+#lx:namespace lx;
+class Snippet {
     constructor(data = {}) {
         this.filePath = data.filePath || '';
         this.attributes = __extractAttributes(data.attributes);

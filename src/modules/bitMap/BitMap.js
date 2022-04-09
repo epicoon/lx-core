@@ -2,7 +2,8 @@
 
 #lx:require BitLine;
 
-class BitMap #lx:namespace lx {
+#lx:namespace lx;
+class BitMap {
 	constructor(x = 0, y = 0) {
 		this.x = x;
 		this.y = y;

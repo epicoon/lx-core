@@ -32,7 +32,8 @@ const __lims = {
     L: [1, 100]
 };
 
-class ColorPicker extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class ColorPicker extends lx.Box {
     getBasicCss() {
         return 'lx-ColorPicker';
     }

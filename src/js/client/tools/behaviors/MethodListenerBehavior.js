@@ -1,7 +1,8 @@
 /**
  *
  * */
-class MethodListenerBehavior extends lx.Behavior #lx:namespace lx {
+#lx:namespace lx;
+class MethodListenerBehavior extends lx.Behavior {
 
 	/**
 	 *

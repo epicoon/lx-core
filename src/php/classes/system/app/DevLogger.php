@@ -109,6 +109,9 @@ class DevLogger implements LoggerInterface
 					} elseif (is_array($arg)) {
 						$arg = 'array';
 					} elseif (is_string($arg)) {
+                        if (strlen($arg) > 100) {
+                            $arg = substr($arg, 0, 100) . '...';
+                        }
 						$arg = "'$arg'";
 					} elseif ($arg === null) {
 						$arg = 'null';

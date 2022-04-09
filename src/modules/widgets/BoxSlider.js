@@ -2,7 +2,8 @@
 
 #lx:use lx.Box;
 
-class BoxSlider extends lx.Box #lx:namespace lx {
+#lx:namespace lx;
+class BoxSlider extends lx.Box {
 	#lx:const
 		TYPE_SLIDER = 1,
 		TYPE_OPACITY = 2;
