@@ -1140,13 +1140,13 @@ class Rect extends lx.Module {
         if (!this.visibility()) return false;
 
         var r = this.getGlobalRect(),
-            w = window.screen.availWidth,
-            h = window.screen.availHeight;
+            w = document.documentElement.scrollWidth,
+            h = document.documentElement.scrollHeight;
 
         if (r.top > h) return false;
-        if (r.bottom < 0) return false;
+        if (r.bottom > h) return false;
         if (r.left > w) return false;
-        if (r.right < 0) return false;
+        if (r.right > w) return false;
         return true;
     }
 
@@ -1561,6 +1561,30 @@ class Rect extends lx.Module {
                 this.trigger('displayin', event);
             } else this.trigger('display', event);
         }
+    }
+
+    mouseover(handler) {
+        this.on('mouseover', e=>{
+            if (
+                e.target && e.relatedTarget
+                && e.target.__lx && e.relatedTarget.__lx
+                && (e.target.__lx === this || e.target.__lx.hasAncestor(this))
+                && (e.relatedTarget.__lx === this || e.relatedTarget.__lx.hasAncestor(this))
+            ) return;
+            handler(e);
+        });
+    }
+
+    mouseout(handler) {
+        this.on('mouseout', e=>{
+            if (
+                e.target && e.relatedTarget
+                && e.target.__lx && e.relatedTarget.__lx
+                && (e.target.__lx === this || e.target.__lx.hasAncestor(this))
+                && (e.relatedTarget.__lx === this || e.relatedTarget.__lx.hasAncestor(this))
+            ) return;
+            handler(e);
+        });
     }
 
     copyEvents(el) {

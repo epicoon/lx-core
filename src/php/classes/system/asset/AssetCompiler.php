@@ -109,7 +109,7 @@ class AssetCompiler
         $need = [];
         $cssFile = new File($path . "/main.css");
         if (!$cssFile->exists() || $cssJsFile->isNewer($cssFile)) {
-            $need[$name] = $cssFile;
+            $need['__main__'] = $cssFile;
         }
         foreach ($presets as $name => $module) {
             $cssFile = new File($path . "/main-{$name}.css");

@@ -169,9 +169,9 @@ class TreeBox extends lx.Box {
 			this.leafConstructor = func;
 		}
 
-		setData(data) {
+		setData(data, forse = false) {
 			this.data = data;
-			this.renew();
+			this.renew(forse);
 			return this;
 		}
 
@@ -208,7 +208,6 @@ class TreeBox extends lx.Box {
 				if (a->open.opened)
 					opened.push(a.node);
 			});
-
 
 			this->work.clear();
 			this.prepareRoot();

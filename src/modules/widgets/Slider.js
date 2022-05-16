@@ -103,6 +103,7 @@ class Slider extends lx.Box {
 	#lx:client {
 		static start(event) {
 			this.parent._oldValue = this.parent._value;
+			this.parent.trigger('started', event);
 		}
 
 		static move(event) {
@@ -116,6 +117,7 @@ class Slider extends lx.Box {
 			event.oldValue = oldVal;
 			event.newValue = this.parent.value();
 			this.parent.trigger('change', event);
+			this.parent.trigger('stopped', event);
 		}
 
 		static trackClick(event) {

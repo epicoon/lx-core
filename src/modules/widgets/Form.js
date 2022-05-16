@@ -53,6 +53,21 @@ class Form extends lx.Box {
 		return obj;
 	}
 
+	getFields(types = null) {
+		if (types === null)
+			return this.getChildren({ hasProperty: '_field', all: true });
+
+		types = lx.isArray(types) ? types : [types];
+		return this.getChildren(child=>{
+			if (!('_field' in child)) return false;
+			let match = false;
+			types.forEach(type => {
+				if (lx.isInstance(child, type)) match = true;
+			});
+			return match;
+		}, true);
+	}
+
 	/**
 	 * Добавление кнопки полезная и частая операция в форме - этот метод для более короткого кода создания кнопки
 	 * */

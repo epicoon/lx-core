@@ -811,7 +811,7 @@ class CliProcessor
 			$this->setParam('name', $name);
 		}
 		$name = $this->getParam('name');
-		if (!preg_match('/^[a-zA-Z_][\w-]*?(?:\/[a-zA-Z_])?[\w-]*$/', $name)) {
+		if (!preg_match('/^[a-zA-Z0-9][a-zA-Z0-9-]*?(?:\/[a-zA-Z-])?[a-zA-Z0-9-]*$/', $name)) {
 			$this->in(
 				'name',
 				'Entered service name is incorrect, enter correct name: ',

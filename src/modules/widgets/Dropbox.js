@@ -115,6 +115,7 @@ class Dropbox extends lx.Box {
 			__options.hide();
 			lx.off('click', _handler_checkOutclick);
 			__opened = null;
+			this.trigger('closed');
 		}
 
 		option(index) {
@@ -168,6 +169,7 @@ class Dropbox extends lx.Box {
 
 		__opened = this;
 		__initOptions(this).show();
+		this.trigger('opened', event);
 
 		lx.on('click', _handler_checkOutclick);
 	}
@@ -188,11 +190,11 @@ class Dropbox extends lx.Box {
 			oldVal = dropbox.value(),
 			num = this.rowIndex();
 		dropbox.select(num);
-		dropbox.close();
 		event = event || dropbox.newEvent();
 		event.oldValue = oldVal;
 		event.newValue = dropbox.value();
 		dropbox.trigger('change', event);
+		dropbox.close();
 	}
 
 	function _handler_checkOutclick(event) {

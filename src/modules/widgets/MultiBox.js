@@ -156,6 +156,10 @@ class MultiBox extends lx.Box {
 			var timer = __initTimerOnOpen(this);
 			timer.on(sheet);
 		} else sheet.show();
+
+		#lx:client {
+			this.trigger('selected', this.newEvent({mark, sheet}));
+		}
 	}
 
 	unselect(num = null) {
@@ -169,6 +173,10 @@ class MultiBox extends lx.Box {
 			var timer = __initTimerOnClose(this);
 			timer.on(sheet);
 		} else sheet.hide();
+
+		#lx:client {
+			this.trigger('unselected', this.newEvent({mark, sheet}));
+		}
 	}
 
 	setCondition(num, func) {

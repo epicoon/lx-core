@@ -3,6 +3,7 @@ class GuiNode {
     constructor(plugin, box) {
         this._plugin = plugin;
         this._box = box;
+        this._box.guiNode = this;
         this.init();
         this.initHandlers();
         this.subscribeEvents();

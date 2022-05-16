@@ -129,19 +129,19 @@ class SyntaxExtender
 		//==============================================================================================================
 		//==============================================================================================================
 
-        // #lx:model <ModelName>;
+        // #lx:model <ModelName>
         // =>
-        // (function(){ class _am_ extends lx.BindableModel { #lx:schema <ModelName>; } return new _am_; })();
+        // (function(){ class _am_ extends lx.BindableModel { #lx:schema <ModelName>; } return new _am_; })()
 
-        // #lx:model { a, b };
+        // #lx:model { a, b }
         // =>
-        // (function(){ class _am_ extends lx.BindableModel { #lx:schema a, b; } return new _am_; })();
+        // (function(){ class _am_ extends lx.BindableModel { #lx:schema a, b; } return new _am_; })()
 
-        $regexp = '/#lx:model\s*(<(?:[\w\d_])+?>|(?P<therec>{((?>[^{}]+)|(?P>therec))*}));/';
+        $regexp = '/#lx:model\s*(<(?:[\w\d_])+?>|(?P<therec>{((?>[^{}]+)|(?P>therec))*}))/';
         $code = preg_replace_callback($regexp, function ($matches) {
             $schema = $matches[1];
             $schema = preg_replace('/(^\{|\}$)/', '', $schema);
-            return "(function(){ class _am_ extends lx.BindableModel { #lx:schema $schema; } return new _am_; })();";
+            return "(function(){ class _am_ extends lx.BindableModel { #lx:schema $schema; } return new _am_; })()";
         }, $code);
 
 		//=====================================================================================================================

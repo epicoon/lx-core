@@ -83,7 +83,7 @@ lx.Math = {
         return result;
     },
 
-    parsToCalculate: function(str) {
+    parseToCalculate: function(str) {
         function calc(op0, op1, opr) {
             switch (opr) {
                 case '+': return op0 + op1;
