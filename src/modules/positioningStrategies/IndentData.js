@@ -69,7 +69,7 @@ class IndentData
 		if (config.paddingBottom !== undefined) this.paddingBottom = config.paddingBottom;
 	}
 
-	get(elem, format='px') {
+	get(elem = null, format='px') {
 		function part(param, dir) {
 			if (elem) return elem.geomPart(param, format, dir);
 			return param;

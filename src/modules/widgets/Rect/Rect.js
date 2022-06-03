@@ -973,13 +973,15 @@ class Rect extends lx.Module {
     }
     
     getRectInPlugin() {
-        var globalRect = this.getGlobalRect();
-        
-        var plugin = this.getPlugin();
-        if (!plugin) return globalRect;
-        
-        var pGlobalRect = plugin.root.getGlobalRect();
+        let plugin = this.getPlugin();
+        return plugin
+            ? this.getRelativeRect(plugin.root)
+            : this.getGlobalRect();
+    }
 
+    getRelativeRect(elem) {
+        let globalRect = this.getGlobalRect(),
+            pGlobalRect = elem.getGlobalRect();
         return {
             top: globalRect.top - pGlobalRect.top,
             left: globalRect.left - pGlobalRect.left,

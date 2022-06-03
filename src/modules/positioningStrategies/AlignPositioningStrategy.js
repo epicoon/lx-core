@@ -86,8 +86,7 @@ class AlignPositioningStrategy extends lx.PositioningStrategy {
 
 	setIndents(config) {
 		super.setIndents(config);
-		//TODO false - рефакторинговый костыль. Использование этого флага в перспективе должно быть упразднено
-		var indents = this.getIndents(false);
+		var indents = this.getIndents();
 
 		//TODO - актуально и для грида
 		if (indents.paddingTop) this.owner.style('padding-top', indents.paddingTop);
@@ -99,8 +98,7 @@ class AlignPositioningStrategy extends lx.PositioningStrategy {
 	}
 
 	actualizeIndents(indents) {
-		//TODO false - рефакторинговый костыль. Использование этого флага в перспективе должно быть упразднено
-		if (!indents) indents = this.getIndents(false);
+		if (!indents) indents = this.getIndents();
 
 		if (this.direction == lx.HORIZONTAL && indents.stepX) {
 			var lastIndex = this.owner.childrenCount() - 1;

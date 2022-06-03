@@ -66,24 +66,24 @@ class Router implements FusionComponentInterface
 			];
 		}
 
-		if (isset($routeData['service-controller'])) {
-			preg_match_all('/^([^:]*?):(.*?)$/', $routeData['service-controller'], $matches);
+		if (isset($routeData['controller'])) {
+			preg_match_all('/^([^:]*?):(.*?)$/', $routeData['controller'], $matches);
 			return [
 				'service' => $matches[1][0],
 				'controller' => $matches[2][0],
 			];
 		}
 
-		if (isset($routeData['service-action'])) {
-			preg_match_all('/^([^:]*?):(.*?)$/', $routeData['service-action'], $matches);
+		if (isset($routeData['action'])) {
+			preg_match_all('/^([^:]*?):(.*?)$/', $routeData['action'], $matches);
 			return [
 				'service' => $matches[1][0],
 				'action' => $matches[2][0],
 			];
 		}
 
-		if (isset($routeData['service-plugin'])) {
-			preg_match_all('/^([^:]*?):(.*?)$/', $routeData['service-plugin'], $matches);
+		if (isset($routeData['plugin'])) {
+			preg_match_all('/^([^:]*?):(.*?)$/', $routeData['plugin'], $matches);
 			$result = [
 				'service' => $matches[1][0],
 				'plugin' => $matches[2][0],

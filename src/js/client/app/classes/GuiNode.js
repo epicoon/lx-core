@@ -16,6 +16,10 @@ class GuiNode {
     getPlugin() {
         return this._plugin;
     }
+    
+    getCore() {
+        return this._plugin.core;
+    }
 
     getGuiNode(name) {
         return this.getPlugin().getGuiNode(name);

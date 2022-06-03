@@ -132,6 +132,17 @@ class GridPositioningStrategy extends lx.PositioningStrategy {
 		if (this.map) this.map.setX(cols);
 		this.owner.style('grid-template-columns', 'repeat(' + this.cols + ',1fr)');
 	}
+
+	getCols() {
+		if (this.cols === undefined) return null;
+		return this.cols;
+	}
+
+	getRows() {
+		if (this.type == self::TYPE_SIMPLE || this.type == self::TYPE_PROPORTIONAL)
+			return this.map.y;
+		return null;
+	}
 	
 	#lx:server packProcess() {
 		var str = ';t:' + this.type;
@@ -184,8 +195,7 @@ class GridPositioningStrategy extends lx.PositioningStrategy {
 
 	setIndents(config) {
 		super.setIndents(config);
-		//TODO false - рефакторинговый костыль. Использование этого флага в перспективе должно быть упразднено
-		var indents = this.getIndents(false);
+		var indents = this.getIndents();
 
 		//TODO - абзац повторяется в разных стратегиях
 		if (indents.paddingTop) this.owner.style('padding-top', indents.paddingTop);

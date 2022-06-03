@@ -63,22 +63,39 @@ class LabeledGroup extends lx.Box {
 		let units = [];
 		if (config.list) {
 			for (let i=0, l=config.list.len; i<l; i++) {
-				let unitConfig = config.list[i];
-				let unitWidget = unitConfig.widget || defaultWidget;
-				delete unitConfig.widget;
-				let labelConfig = {};
-				labelConfig.text = unitConfig.label || '-';
-				delete unitConfig.label;
+				let unitConfig = {},
+					unitWidget,
+					labelConfig = {},
+					iConfig = config.list[i];
+				if (lx.isString(iConfig)) {
+					unitWidget = defaultWidget;
+					labelConfig.text = iConfig;
+				} else {
+					unitConfig = iConfig;
+					unitWidget = unitConfig.widget || defaultWidget;
+					delete unitConfig.widget;
+					labelConfig.text = unitConfig.label || '-';
+					delete unitConfig.label;
+				}
 				units.push({widget: unitWidget, config: unitConfig, labelConfig});
 			}
 		} else if (config.fields) {
 			for (let field in config.fields) {
-				let unitConfig = config.fields[field];
-				let unitWidget = unitConfig.widget || defaultWidget;
-				delete unitConfig.widget;
-				let labelConfig = {};
-				labelConfig.text = unitConfig.label || '-';
-				delete unitConfig.label;
+				let unitConfig = {},
+					unitWidget,
+					labelConfig = {},
+					iConfig = config.fields[field];
+				if (lx.isString(iConfig)) {
+					unitWidget = defaultWidget;
+					labelConfig.text = iConfig;
+				} else {
+					unitConfig = iConfig;
+					unitWidget = unitConfig.widget || defaultWidget;
+					delete unitConfig.widget;
+					labelConfig = {};
+					labelConfig.text = unitConfig.label || '-';
+					delete unitConfig.label;
+				}
 				unitConfig.field = field;
 				units.push({widget: unitWidget, config: unitConfig, labelConfig});
 			}

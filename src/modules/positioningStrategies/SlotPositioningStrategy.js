@@ -102,7 +102,7 @@ class SlotPositioningStrategy extends lx.PositioningStrategy {
 				rows = this.rows(),
 				amt = [this.cols, rows],
 				k = this.k,
-				r = this.getIndents(),
+				r = this.getIndents('px'),
 				align = this.align || null,
 				step = [r.stepX, r.stepY],
 				marg = [[r.paddingLeft, r.paddingRight], [r.paddingTop, r.paddingBottom]],

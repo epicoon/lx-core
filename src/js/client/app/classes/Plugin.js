@@ -3,6 +3,7 @@
 #lx:namespace lx;
 class Plugin {
 	constructor(info, snippetBox) {
+		this.core = null;
 		this.name = info.name;
 		this.attributes =  {};
 		this.root = snippetBox;

@@ -290,6 +290,13 @@ class Tree {
 	}
 
 	getNth(num) {
+		if (lx.isArray(num)) {
+			let temp = this;
+			for (let i=0, l=num.len; i<l; i++)
+				temp = temp.getNth(num[i]);
+			return temp;
+		}
+
 		if (num >= this.keys.len || num < 0) return null;
 		return this.nodes[ this.keys[num] ];
 	}

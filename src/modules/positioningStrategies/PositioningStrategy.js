@@ -162,12 +162,13 @@ class PositioningStrategy {
 	/**
 	 * Если настройки для отступов не заданы, будет возвращен полноценный объект настроек, заполненный нулями
 	 */
-	getIndents(owner = true) {
+	getIndents(format = null) {
 		if (!this.indents) {
 			if (this.owner.getIndents) return this.owner.getIndents();
 			return lx.IndentData.getZero();
 		}
-		return this.indents.get(owner ? this.owner : undefined);
+		if (format === null) return this.indents.get();
+		return this.indents.get(this.owner, format);
 	}
 
 	/**

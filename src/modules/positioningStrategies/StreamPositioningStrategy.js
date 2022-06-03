@@ -150,8 +150,7 @@ class StreamPositioningStrategy extends lx.PositioningStrategy {
 
 	setIndents(config) {
 		super.setIndents(config);
-		//TODO false - рефакторинговый костыль. Использование этого флага в перспективе должно быть упразднено
-		var indents = this.getIndents(false);
+		var indents = this.getIndents();
 
 		//TODO - будет актуально и для грида
 		if (indents.paddingTop) this.owner.style('padding-top', indents.paddingTop);
