@@ -194,7 +194,7 @@ class SnippetBuildContext implements ContextTreeInterface
 			lx.globalContext.Plugin = new lx.Plugin($pluginData);
 			lx.globalContext.Snippet = new lx.Snippet($snippetData);
 		";
-		$post = 'return {
+		$post = PHP_EOL . 'return {
 			app: App.getResult(),
 			plugin: Plugin.getResult(),
 			snippet: Snippet.getResult(),

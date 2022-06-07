@@ -150,8 +150,8 @@ class TreeBox extends lx.Box {
 		}
 
 		leaf(i) {
-			if (!(i in this->work->leaf)) return null;
-			return this->work->leaf[i];
+			const c = this->work.getAll('leaf');
+			return c.at(i);
 		}
 
 		leafByNode(node) {
@@ -238,7 +238,8 @@ class TreeBox extends lx.Box {
 		 * */
 		useOpenedInfo(info) {
 			for (var i=0, l=info.len; i<l; i++) {
-				this.openBranch(this.leaf(info[i]));
+				let leaf = this.leaf(info[i]);
+				if (leaf) this.openBranch(leaf);
 			}
 		}
 
