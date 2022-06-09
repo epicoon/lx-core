@@ -8,6 +8,7 @@ let __autoParentStack = [];
 
 /**
  * @widget lx.Rect
+ * @content-disallowed
  *
  * @events [
  *     click,

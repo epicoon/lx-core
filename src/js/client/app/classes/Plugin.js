@@ -41,6 +41,10 @@ class Plugin {
 		}
 	}
 
+	getCore() {
+		return this.core;
+	}
+
 	getGuiNode(name) {
 		return this.guiNodes[name];
 	}

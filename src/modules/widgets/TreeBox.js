@@ -120,7 +120,7 @@ class TreeBox extends lx.Box {
 		clientBuild(config) {
 			super.clientBuild(config);
 
-			var work = this->work,
+			let work = this->work,
 				move = this->move;
 			work.stream({
 				padding: this.indent+'px',
@@ -451,6 +451,14 @@ class TreeBox extends lx.Box {
 
 	setLeafConstructor(leafConstructor) {
 		this.leafConstructor = leafConstructor;
+	}
+
+	setLeafsRight(val) {
+		let work = this->work,
+			move = this->move,
+			w = this.width('px') - val;
+		work.width(w + 'px');
+		move.left(w + 'px');
 	}
 }
 
