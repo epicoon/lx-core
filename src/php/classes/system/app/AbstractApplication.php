@@ -24,6 +24,7 @@ use lx;
  * @property-read Language|null $language
  * @property-read ApplicationI18nMap|null $i18nMap
  * @property-read PresetManagerInterface $presetManager
+ * @property-read JsModulesComponent $jsModules
  * @property-read JsModuleInjectorInterface $moduleInjector
  * @property-read LoggerInterface $logger
  */
@@ -119,6 +120,7 @@ abstract class AbstractApplication implements FusionInterface
     {
         return [
             'presetManager' => PresetManager::class,
+            'jsModules' => JsModulesComponent::class,
             'moduleInjector' => ApplicationJsModuleInjector::class,
             'logger' => ApplicationLogger::class,
         ];

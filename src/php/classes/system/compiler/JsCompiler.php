@@ -22,7 +22,6 @@ class JsCompiler
 	private ConductorInterface $conductor;
     private JsModuleInjectorInterface $moduleInjector;
 	private ?JsCompileDependencies $dependencies;
-    private ?JsModuleMap $moduleMap;
     private array $waitingForModules;
 
 	public function __construct(?ConductorInterface $conductor = null, ?JsModuleInjectorInterface $moduleInjector = null)
@@ -39,7 +38,6 @@ class JsCompiler
         $this->compiledModules = [];
 		$this->dependencies = null;
 
-        $this->moduleMap = null;
         $this->waitingForModules = [];
 	}
 
@@ -56,14 +54,6 @@ class JsCompiler
 	{
 		return $this->context;
 	}
-
-    public function getModuleMap(): JsModuleMap
-    {
-        if ($this->moduleMap === null) {
-            $this->moduleMap = new JsModuleMap();
-        }
-        return $this->moduleMap;
-    }
 
 	public function setBuildModules(bool $value): void
 	{
@@ -375,18 +365,18 @@ class JsCompiler
     private function checkModule(string $moduleName, array &$modulesForBuild, array &$filePathes): void
     {
         $moduleName = $this->moduleInjector->resolveModuleName($moduleName);
-        $moduleMap = $this->getModuleMap();
         if (in_array($moduleName, $this->ignoreModules) || in_array($moduleName, $modulesForBuild)) {
             return;
         }
 
-        if (!$moduleMap->moduleExists($moduleName)) {
+        $moduleInfo = lx::$app->jsModules->getModuleInfo($moduleName);
+        if (!$moduleInfo) {
             \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
                 'msg' => "Module '$moduleName' doesn't exist",
             ]);
             return;
         }
-        $path = $moduleMap->getModulePath($moduleName);
+        $path = $moduleInfo->getPath();
         if (!$path) {
             \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
                 'msg' => "File path for '$moduleName' can not be found",
@@ -405,23 +395,20 @@ class JsCompiler
         }
 
         $filePathes[] = $path;
-
-        $data = $moduleMap->getModuleData($moduleName);
-        if (!empty($data)) {
-            $this->applyModuleData($data, $path);
+        if ($moduleInfo->hasMetaData()) {
+            $this->applyModuleMetaData($moduleInfo);
         }
         $modulesForBuild[] = $moduleName;
         $this->checkModuleDependencies($path, $modulesForBuild, $filePathes);
     }
 
-	private function applyModuleData(array $moduleData, string $modulePath): void
+	private function applyModuleMetaData(JsModuleInfo $moduleInfo): void
 	{
-		$parentDir = dirname($modulePath);
-		if (isset($moduleData['i18n'])) {
-			$path = $moduleData['i18n'];
+		if ($moduleInfo->hasMetaData('i18n')) {
+			$path = $moduleInfo->getMetaData('i18n');
+            $parentDir = dirname($moduleInfo->getPath());
 			$fullPath = $this->conductor->getFullPath($path, $parentDir);
 			$this->dependencies->addI18n($fullPath);
-
 			lx::$app->useI18n($fullPath);
 		}
 	}

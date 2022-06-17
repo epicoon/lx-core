@@ -14,11 +14,6 @@
  */
 #lx:namespace lx;
 class TreeBox extends lx.Box {
-	#lx:const
-		FORBIDDEN_ADDING = 0,
-		ALLOWED_ADDING = 1,
-		ALLOWED_ADDING_BY_TEXT = 2;
-
 	getBasicCss() {
 		return {
 			main: 'lx-TreeBox',
@@ -43,13 +38,13 @@ class TreeBox extends lx.Box {
 		});
 		css.inheritClasses({
 			'lx-TW-Button-closed':
-				{ '@icon': ['\\25BA', {fontSize:10, paddingBottom:'3px', paddingLeft:'2px'}] },
+				{ '@icon': ['\\25BA', {fontSize:10, paddingBottom:'4px', paddingLeft:'2px'}] },
 			'lx-TW-Button-opened':
 				{ '@icon': ['\\25BC', {fontSize:10, paddingBottom:'2px'}] },
 			'lx-TW-Button-add'   :
-				{ '@icon': ['\\002B', {fontSize:12, paddingBottom:'3px', fontWeight: 700}] },
+				{ '@icon': ['\\271A', {fontSize:10, paddingBottom:'0px'}] },
 			'lx-TW-Button-del'   :
-				{ '@icon': ['\\002D', {fontSize:12, paddingBottom:'3px', fontWeight: 700}] }
+				{ '@icon': ['\\2716', {fontSize:10, paddingBottom:'0px'}] },
 		}, 'lx-TW-Button');
 		css.inheritClass('lx-TW-Button-empty', 'Button', {
 			backgroundColor: css.preset.checkedMainColor,
@@ -72,8 +67,10 @@ class TreeBox extends lx.Box {
 	 *	step: 5,
 	 *	leafHeight: 18,
 	 *	labelWidth: 250,
-	 *	add: 0|1|2,  // 0 - без возможности добавления, 1 - простое добавление с автоключом, 2 - добавление, требующее введения ключа
+	 *	addAllowed: 0|1|2,  // 0 - без возможности добавления, 1 - простое добавление с автоключом, 2 - добавление, требующее введения ключа
+	 *  rootAddAllowed,  // кнопка добавления в корень
 	 *	leaf: function(TreeLeaf)  // описывает поведение листа при его создании - как и что в нем дополнительно отображать
+	 *  befroeAddLeaf: function(node)  // вызывается до создания узла
 	 * }
 	 * */
 	build(config) {
@@ -86,13 +83,15 @@ class TreeBox extends lx.Box {
 		this.step   = config.step   || 5;
 		this.leafHeight = config.leafHeight || 25;
 		this.labelWidth = config.labelWidth || 250;
-		this.addMode = config.add || self::FORBIDDEN_ADDING;
-		this.rootAdding = (config.rootAdding === undefined)
-			? !!this.addMode
-			: config.rootAdding;
+		this.addAllowed = config.addAllowed || false;
+		this.rootAddAllowed = (config.rootAddAllowed === undefined)
+			? this.addAllowed
+			: config.rootAddAllowed;
 
-		if (config.leaf) this.leafConstructor = config.leaf;
+		this.beforeAddLeafHandler = config.befroeAddLeaf || null;
+		this.leafRenderer = config.leaf || null;
 		this.data = config.data || new lx.Tree();
+		this.onAddHold = false;
 
 		var w = this.step * 2 + this.leafHeight + this.labelWidth;
 		var el = new lx.Box({
@@ -112,8 +111,8 @@ class TreeBox extends lx.Box {
 
 	#lx:server beforePack() {
 		if (this.data) this.data = (new lx.TreeConverter).treeToJson(this.data);
-		if (this.leafConstructor)
-			this.leafConstructor = this.packFunction(this.leafConstructor);
+		if (this.leafRenderer)
+			this.leafRenderer = this.packFunction(this.leafRenderer);
 	}
 
 	#lx:client {
@@ -140,8 +139,8 @@ class TreeBox extends lx.Box {
 			if (this.data && lx.isString(this.data))
 				this.data = (new lx.TreeConverter).jsonToTree(this.data);
 
-			if (this.leafConstructor && lx.isString(this.leafConstructor))
-				this.leafConstructor = this.unpackFunction(this.leafConstructor);
+			if (this.leafRenderer && lx.isString(this.leafRenderer))
+				this.leafRenderer = this.unpackFunction(this.leafRenderer);
 		}
 
 		leafs() {
@@ -163,10 +162,6 @@ class TreeBox extends lx.Box {
 				}
 			});
 			return match;
-		}
-
-		setLeaf(func) {
-			this.leafConstructor = func;
 		}
 
 		setData(data, forse = false) {
@@ -247,8 +242,7 @@ class TreeBox extends lx.Box {
 			this.createLeafs(this.data);
 			var work = this->work;
 
-			//todo с условием стало напутано - подменю не обязано быть логически связанным с кнопкой добавления. Подумать нужно ли оно вообще
-			if (this.addMode && this.rootAdding && !work.contains('submenu')) {
+			if (this.rootAddAllowed && !work.contains('submenu')) {
 				var menu = new lx.Box({parent: work, key: 'submenu', height: this.leafHeight+'px'});
 				new lx.Rect({
 					key: 'add',
@@ -256,7 +250,7 @@ class TreeBox extends lx.Box {
 					width: this.leafHeight+'px',
 					height: '100%',
 					css: this.basicCss.buttonAdd,
-					click: self::addNode
+					click: __handlerAddNode
 				});
 			}
 		}
@@ -282,14 +276,6 @@ class TreeBox extends lx.Box {
 			});
 
 			return result;
-		}
-
-
-		static toggleOpened(event) {
-			var tw = this.ancestor({is: lx.TreeBox}),
-				l = this.parent;
-			if (this.opened) tw.closeBranch(l, event);
-			else tw.openBranch(l, event);
 		}
 
 		openBranch(leaf, event) {
@@ -337,34 +323,33 @@ class TreeBox extends lx.Box {
 			this.trigger('leafClose', event);
 		}
 
+		holdAdding() {
+			this.onAddHold = true;
+		}
 
-		static addNode() {
-			var tw = this.ancestor({is: lx.TreeBox}),
-				node = (this.key == 'add') ? tw.data : this.parent.node;
-			tw.addMode == lx.TreeBox.ALLOWED_ADDING
-				? tw.addProcess(node)
-				: tw.createInput(this);
+		breakAdding() {
+			this.onAddHold = false;
+		}
+
+		resumeAdding(data = {}) {
+			const node = this.onAddHold;
+			this.onAddHold = false;
+			return this.addProcess(node, data);
 		}
 
 		/*
 		 * Непосредственно создание нового узла
-		 *
-		 * text получает только когда в конфигурациях add==2 - принудительное введение текста при добавлении узла,
-		 * text - этот введенный текст, может быть обработан событием beforeAdd,
-		 * без явного кода как этот текст использовать, он никуда не пойдет
 		 */
-		addProcess(parentNode, text = '') {
+		addProcess(parentNode, data = {}) {
 			// поля, которые будут добавлены новому узлу
-			const newNodeAttributes = {};
-			const e = this.newEvent({
-				parentNode,
-				newNodeAttributes,
-				newNodeLabelText: {text}
-			});
-			if ( this.trigger('beforeAdd', e) === false ) return;
-			const newNode = this.add(parentNode, newNodeAttributes);
+			if (!data.newNodeAttributes) data.newNodeAttributes = {};
+			data.parentNode = parentNode;
+			const e = this.newEvent(data);
+			if ( this.trigger('beforeAdd', e) === false ) return null;
+			const newNode = this.add(parentNode, data.newNodeAttributes);
 			e.newNode = newNode;
 			this.trigger('afterAdd', e);
+			return newNode;
 		}
 
 		/**
@@ -381,76 +366,14 @@ class TreeBox extends lx.Box {
 			this.renew();
 			return node;
 		}
-
-		createInput(but) {
-			this.deleteInput();
-
-			var inp = new lx.Input({
-				parent: this,
-				key: 'inp',
-				geom: [
-					this.step * 2 + this.leafHeight + 'px',
-					but.parent.top('px') + 'px',
-					// (but.key=='add' ? but.top('px') : but.parent.top('px')) + 'px',
-					this.labelWidth+'px',
-					this.leafHeight+'px'
-				]
-			}).focus();
-
-			but.off('click');
-			but.click(self::applyAddNode);
-			this.click(self::watchForInput);
-			inp.but = but;
-		}
-
-		deleteInput() {
-			if (!this.contains('inp')) return;
-
-			var inp = this->inp;
-			inp.but.off('click');
-			inp.but.click(self::addNode);
-
-			this.del(inp);
-			this.off('click', self::watchForInput);
-		}
-
-		/*
-		 * Подтверждение создания узла при дополнительном вводе текста
-		 * */
-		static applyAddNode(event) {
-			var tw = this.ancestor({is: lx.TreeBox}),
-				node = (this.key == 'add') ? tw.data : this.parent.node,
-				text = tw->inp.value();
-
-			tw.deleteInput();
-
-			if (text != '') tw.addProcess(node, text);
-		}
-
-		static watchForInput(e) {
-			var widget = e.target.__lx;
-			if (!widget.hasTrigger('click', lx.TreeBox.applyAddNode))
-				this.deleteInput();
-		}
-
-		/*
-		 * Для кнопки, удаляющей узел
-		 * */
-		static delNode() {
-			var leaf = this.parent,
-				node = leaf.node,
-				tw = leaf.box;
-
-			if (tw.trigger('beforeDel', tw.newEvent({leaf, node})) === false) return;
-
-			node.del();
-			tw.trigger('afterDel');
-			tw.renew();
-		};
 	}
 
-	setLeafConstructor(leafConstructor) {
-		this.leafConstructor = leafConstructor;
+	beforeAddLeaf(func) {
+		this.beforeAddLeafHandler = func;
+	}
+
+	setLeafRenderer(func) {
+		this.leafRenderer = func;
 	}
 
 	setLeafsRight(val) {
@@ -461,6 +384,11 @@ class TreeBox extends lx.Box {
 		move.left(w + 'px');
 	}
 }
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * PRIVATE
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #lx:client {
 	class TreeLeaf extends lx.Box {
@@ -477,7 +405,7 @@ class TreeBox extends lx.Box {
 					parent: this,
 					key: 'open',
 					geom: [0, 0, tw.leafHeight+'px', tw.leafHeight+'px'],
-					click: lx.TreeBox.toggleOpened
+					click: __handlerToggleOpened
 				}).addClass(
 					(this.node.keys.length || (this.node.fill !== undefined && this.node.fill))
 						? tw.basicCss.buttonClosed : tw.basicCss.buttonEmpty
@@ -491,7 +419,7 @@ class TreeBox extends lx.Box {
 				css: tw.basicCss.label
 			});
 
-			if ( tw.leafConstructor ) tw.leafConstructor(this);
+			if ( tw.leafRenderer ) tw.leafRenderer(this);
 		}
 
 		createChild(config={}) {
@@ -517,16 +445,52 @@ class TreeBox extends lx.Box {
 
 		createAddButton(config) {
 			var b = this.createButton(config);
-			b.click(lx.TreeBox.addNode);
+			b.click(__handlerAddNode);
 			b.addClass(this.box.basicCss.buttonAdd);
 			return b;
 		}
 
 		createDelButton(config) {
 			var b = this.createButton(config);
-			b.click(lx.TreeBox.delNode);
+			b.click(__handlerDelNode);
 			b.addClass(this.box.basicCss.buttonDel);
 			return b;
 		}
 	}
+}
+
+
+function __handlerToggleOpened(event) {
+	var tw = this.ancestor({is: lx.TreeBox}),
+		l = this.parent;
+	if (this.opened) tw.closeBranch(l, event);
+	else tw.openBranch(l, event);
+}
+
+function __handlerAddNode() {
+	const tw = this.ancestor({is: lx.TreeBox}),
+		isRootAdding = (this.key == 'add'),
+		pNode = isRootAdding ? tw.data : this.parent.node;
+
+	let obj = null;
+	if (tw.beforeAddLeafHandler)
+		obj = tw.beforeAddLeafHandler(pNode);
+	if (tw.onAddHold) {
+		tw.onAddHold = pNode;
+		return;
+	}
+
+	tw.addProcess(node, obj || {});
+}
+
+function __handlerDelNode() {
+	var leaf = this.parent,
+		node = leaf.node,
+		tw = leaf.box;
+
+	if (tw.trigger('beforeDel', tw.newEvent({leaf, node})) === false) return;
+
+	node.del();
+	tw.trigger('afterDel');
+	tw.renew();
 }

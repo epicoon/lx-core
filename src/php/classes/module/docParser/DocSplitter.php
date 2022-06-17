@@ -152,7 +152,11 @@ class DocSplitter
             $result['comment'] = $comment;
         }
         if ($definition !== null) {
-            $result = array_merge($result, $definition);
+            if (array_key_exists('type', $definition)) {
+                $result = array_merge($result, $definition);
+            } else {
+                $result['type'] = $definition;
+            }
         }
         return $result;
     }
@@ -170,7 +174,7 @@ class DocSplitter
         }
 
         $paramStr = str_replace($match[0], '', $paramStr);
-        $definition = preg_replace('/(^{|}$)/', '', $match['tp']);
+        $definition = preg_replace('/(^\s*{\s*|\s*}\s*$)/', '', $match['tp']);
         return $this->parseParamDefinition($definition);
     }
 
@@ -228,25 +232,38 @@ class DocSplitter
 
     private function parseParamDefinition(string $definition): array
     {
-        $definitionArr = StringHelper::smartSplit($definition, [
-            'delimiter' => ':',
+        $typeAlternatives = StringHelper::smartSplit($definition, [
+            'delimiter' => '|',
             'save' => ['[]', '{}', '()'],
         ]);
-        //TODO если count < 1 || count > 2
+        $result = [];
+        foreach ($typeAlternatives as $alternative) {
+            $definitionArr = StringHelper::smartSplit($alternative, [
+                'delimiter' => ':',
+                'save' => ['[]', '{}', '()'],
+            ]);
 
-        if (count($definitionArr) == 1) {
-            return $this->parseParamType($definitionArr[0]);
+            if (count($definitionArr) == 1) {
+                $result[] = $this->parseParamType($definitionArr[0]);
+                continue;
+            }
+
+            $map = $this->parseParamType($definitionArr[0]);
+            $type = (array)$map['type'];
+            switch (true) {
+                case (in_array('Object', $type)):
+                    $map['fields'] = $this->parseObjectDefinition($definitionArr[1]);
+                    break;
+                case (in_array('Array', $type)):
+                    $map['elems'] = $this->parseArrayDefinition($definitionArr[1]);
+                    break;
+            }
+
+            $result[] = $map;
         }
 
-        $result = $this->parseParamType($definitionArr[0]);
-        $type = (array)$result['type'];
-        switch (true) {
-            case (in_array('Object', $type)):
-                $result['fields'] = $this->parseObjectDefinition($definitionArr[1]);
-                break;
-            case (in_array('Array', $type)):
-                $result['elems'] = $this->parseArrayDefinition($definitionArr[1]);
-                break;
+        if (count($result) == 1) {
+            return $result[0];
         }
 
         return $result;
@@ -261,7 +278,8 @@ class DocSplitter
         $enumReg = '/\s*&\s*Enum\s*\(([^)]+?)\)/';
         if (preg_match($enumReg, $type, $match)) {
             $type = str_replace($match[0], '', $type);
-            $details['enum'] = preg_split('/\s*,\s*/', $match[1]);
+            $enumString = preg_replace('/^\s*|\s*$/', '', $match[1]);
+            $details['enum'] = preg_split('/\s*,\s*/', $enumString);
             foreach ($details['enum'] as &$item) {
                 $item = $this->normalizeValue($item);
             }
@@ -296,9 +314,8 @@ class DocSplitter
     private function parseObjectDefinition(string $definition): array
     {
         if (preg_match('/^#schema/', $definition)) {
-            return [
-                '#schema' => $this->parseLink($definition, 'schema'),
-            ];
+            $schema = $this->parseLink($definition, 'schema');
+            return $schema ? ['#schema' => $schema] : [];
         }
 
         $definition = preg_replace('/(^{\s*|\s*}$)/', '', $definition);
@@ -309,7 +326,10 @@ class DocSplitter
         $result = [];
         foreach ($definitionMap as $param) {
             if (preg_match('/^#merge/', $param)) {
-                $result['#merge'][] = $this->parseLink($param, 'merge');
+                $merge = $this->parseLink($param, 'merge');
+                if ($merge) {
+                    $result['#merge'][] = $merge;
+                }
                 continue;
             }
 
@@ -322,15 +342,27 @@ class DocSplitter
         return $result;
     }
 
-    private function parseLink(string $link, string $key): array
+    private function parseLink(string $link, string $key): ?array
     {
         $path = trim(preg_replace('/^#' . $key . '/', '', $link), '()');
         $pathArr = explode('::', $path);
-        return [
-            'class' => $pathArr[0],
-            'method' => $pathArr[1],
-            'param' => $pathArr[2],
-        ];
+        if (count($pathArr) == 3) {
+            return [
+                'module' => $pathArr[0],
+                'class' => $pathArr[0],
+                'method' => $pathArr[1],
+                'param' => $pathArr[2],
+            ];
+        }
+        if (count($pathArr) == 4) {
+            return [
+                'module' => $pathArr[0],
+                'class' => $pathArr[1],
+                'method' => $pathArr[2],
+                'param' => $pathArr[3],
+            ];
+        }
+        return null;
     }
 
     /**

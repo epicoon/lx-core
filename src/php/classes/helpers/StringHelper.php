@@ -46,7 +46,7 @@ class StringHelper
 
 	public static function smartSplit(string $string, array $rules): array
 	{
-		$delimiter = $rules['delimiter'];
+		$delimiter = addcslashes($rules['delimiter'], '|/\\');
 		$save = $rules['save'];
 		if ( ! is_array($save)) {
 			$save = [$save];

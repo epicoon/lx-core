@@ -3,6 +3,9 @@
 #lx:use lx.IndentData;
 #lx:use lx.PositioningStrategy;
 
+/**
+ * @positioningStrategy lx.StreamPositioningStrategy
+ */
 #lx:namespace lx;
 class StreamPositioningStrategy extends lx.PositioningStrategy {
 	#lx:const
@@ -28,8 +31,8 @@ class StreamPositioningStrategy extends lx.PositioningStrategy {
 	 *     {String} [height = lx.StreamPositioningStrategy.ROW_DEFAULT_HEIGHT],
 	 *     {String} [minWidth = lx.StreamPositioningStrategy.COLUMN_MIN_WIDTH],
 	 *     {String} [minHeight = lx.StreamPositioningStrategy.ROW_MIN_HEIGHT],
-	 *     {String} [maxWidth]
-	 *     {String} [maxHeight]
+	 *     {String} [maxWidth],
+	 *     {String} [maxHeight],
 	 *     #merge(lx.IndentData::constructor::config)
 	 * }}
 	 */

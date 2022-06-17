@@ -11,7 +11,7 @@
 use lx\AutoloadMapBuilder;
 use lx\Directory;
 use lx\AssetCompiler;
-use lx\JsModuleMapBuilder;
+use lx\JsModuleMapActualizer;
 
 // fcgi doesn't have STDIN and STDOUT defined by default
 defined('STDIN') or define('STDIN', fopen('php://stdin', 'r'));
@@ -139,7 +139,7 @@ function refreshMaps(): void
 {
     (new AutoloadMapBuilder())->createCommonAutoloadMap();
     lx::$autoloader->map->reset();
-    (new JsModuleMapBuilder())->renewHead();
+    (new JsModuleMapActualizer())->renewHead();
 
     $cssCompiler = new AssetCompiler();
     $cssCompiler->copyLxCss();

@@ -660,17 +660,17 @@ class CliProcessor
 	    switch ($this->args->get('mode')) {
             case 'core':
                 $this->outln('Creating core map...');
-                (new JsModuleMapBuilder())->renewCore();
+                (new JsModuleMapActualizer())->renewCore();
                 $this->outln('Done');
                 return;
             case 'head':
                 $this->outln('Updating modules list...');
-                (new JsModuleMapBuilder())->renewHead();
+                (new JsModuleMapActualizer())->renewHead();
                 $this->outln('Done');
                 return;
             case 'all':
                 $this->outln('Updating modules list...');
-                (new JsModuleMapBuilder())->renewAllServices();
+                (new JsModuleMapActualizer())->renewAllServices();
                 $this->outln('Done');
                 return;
         }
@@ -695,7 +695,7 @@ class CliProcessor
         }
 
 		$this->outln('Creating map for service "' . $service->name . '"...');
-		(new JsModuleMapBuilder())->renewService($service);
+		(new JsModuleMapActualizer())->renewService($service);
 		$this->outln('Done');
 	}
 

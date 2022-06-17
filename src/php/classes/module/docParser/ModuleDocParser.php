@@ -2,7 +2,7 @@
 
 namespace lx;
 
-use lx\ModuleDocParser\DocSplitter;
+use lx;
 
 require_once(__DIR__ . '/DocSplitter.php');
 
@@ -37,7 +37,7 @@ class ModuleDocParser
         }
 
         if ($this->moduleName) {
-            $map = (new JsModuleMap())->getMap();
+            $map = lx::$app->jsModules->getMap();
             if (!array_key_exists($this->moduleName, $map)) {
                 return null;
             }
@@ -73,44 +73,10 @@ class ModuleDocParser
         return $this->process($code);
     }
 
-    public static function parseAll(): array
-    {
-        $map = (new JsModuleMap())->getMap();
-        $result = [];
-        foreach ($map as $moduleName => $moduleData) {
-            $moduleData = self::parseByData($moduleData);
-            $result[$moduleName] = $moduleData;
-        }
-        return $result;
-    }
 
-    public static function parseModules(array $modules): array
-    {
-        $map = (new JsModuleMap())->getMap();
-        $result = [];
-        foreach ($modules as $moduleName) {
-            if (!array_key_exists($moduleName, $map)) {
-                \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
-                    '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-                    'msg' => "Module $moduleName not found",
-                ]);
-                continue;
-            }
-
-            $moduleData = self::parseByData($map[$moduleName]);
-            $result[$moduleName] = $moduleData;
-        }
-        return $result;
-    }
-
-    private static function parseByData($moduleData): array
-    {
-        $file = new File($moduleData['path']);
-        $parser = new ModuleDocParser();
-        $parser->setName($moduleData['name'])
-            ->setFile($file);
-        return $parser->parse();
-    }
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * PRIVATE
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
     private function process(string $code): array
     {
@@ -159,7 +125,12 @@ class ModuleDocParser
 
         $methods = [];
         foreach ($matches[2] as $i => $methodName) {
-            $methods[$methodName] = $this->parseDoc($matches[1][$i]);
+            $doc = $this->parseDoc($matches[1][$i]);
+            if (preg_match('/^static\s+/', $methodName)) {
+                $methodName = preg_replace('/^static\s+/', '', $methodName);
+                $doc['static'] = true;
+            }
+            $methods[$methodName] = $doc;
         }
 
         return $methods;

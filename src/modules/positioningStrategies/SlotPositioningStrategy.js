@@ -14,6 +14,10 @@
 добавление новых элементов пересчитывает размеры уже имеющимся, не влияя на размер самой коробки
 todo - можно добавить фиксированную высоту, чтобы высота коробки менялась + автоопределение числа колонок
 */
+
+/**
+ * @positioningStrategy lx.SlotPositioningStrategy
+ */
 #lx:namespace lx;
 class SlotPositioningStrategy extends lx.PositioningStrategy {
 	constructor(owner, config) {

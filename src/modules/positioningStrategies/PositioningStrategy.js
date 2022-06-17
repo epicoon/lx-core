@@ -2,6 +2,9 @@
 
 #lx:use lx.IndentData;
 
+/**
+ * @positioningStrategy lx.PositioningStrategy
+ */
 #lx:namespace lx;
 class PositioningStrategy {
 	constructor(owner) {

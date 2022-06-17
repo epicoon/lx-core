@@ -114,6 +114,7 @@ class Box extends lx.Rect {
      * @widget-init
      *
      * @param config {Object: {
+     *     #merge(lx.Rect::constructor::config),
      *     {String} [text],
      *     {lx.PositioningStrategy} [positioning],
      *     {Object: #schema(lx.StreamPositioningStrategy::init::config)} [stream],
@@ -1045,6 +1046,11 @@ class Box extends lx.Rect {
         return container.positioningStrategy;
     }
 
+    /**
+     * @positioning lx.AlignPositioningStrategy
+     * @param horizontal {Number&Enum(lx.LEFT, lx.CENTER, lx.RIGHT)}
+     * @param vertical {Number&Enum(lx.TOP, lx.MIDDLE, lx.BOTTOM)}
+     */
     align(horizontal, vertical) {
         var pos = this.preparePositioningStrategy(lx.AlignPositioningStrategy);
         if (!pos) return this;
@@ -1054,18 +1060,30 @@ class Box extends lx.Rect {
         return this;
     }
 
+    /**
+     * @positioning lx.MapPositioningStrategy
+     * @param [config] {Object: #schema(lx.MapPositioningStrategy::init::config)}
+     */
     map(config) {
         var pos = this.preparePositioningStrategy(lx.MapPositioningStrategy);
         if (pos) pos.init(config);
         return this;
     }
 
+    /**
+     * @positioning lx.StreamPositioningStrategy[.TYPE_SIMPLE]
+     * @param [config] {Object: #schema(lx.StreamPositioningStrategy::init::config)}
+     */
     stream(config) {
         var pos = this.preparePositioningStrategy(lx.StreamPositioningStrategy);
         if (pos) pos.init(config);
         return this;
     }
 
+    /**
+     * @positioning lx.StreamPositioningStrategy[.TYPE_PROPORTIONAL]
+     * @param [config] {Object: #schema(lx.StreamPositioningStrategy::init::config)}
+     */
     streamProportional(config={}) {
         config.type = lx.StreamPositioningStrategy.TYPE_PROPORTIONAL;
         return this.stream(config);
@@ -1073,31 +1091,51 @@ class Box extends lx.Rect {
 
     getStreamDirection() {
         if (!this.positioningStrategy || this.positioningStrategy.lxClassName() != 'StreamPositioningStrategy')
-            return false;
+            return null;
         return this.positioningStrategy.direction;
     }
 
+    /**
+     * @positioning lx.GridPositioningStrategy[.TYPE_SIMPLE]
+     * @param [config] {Object: #schema(lx.GridPositioningStrategy::init::config)}
+     */
     grid(config) {
         var pos = this.preparePositioningStrategy(lx.GridPositioningStrategy);
         if (pos) pos.init(config);
         return this;
     }
 
+    /**
+     * @positioning lx.GridPositioningStrategy[.TYPE_PROPORTIONAL]
+     * @param [config] {Object: #schema(lx.GridPositioningStrategy::init::config)}
+     */
     gridProportional(config={}) {
         config.type = lx.GridPositioningStrategy.TYPE_PROPORTIONAL;
         return this.grid(config);
     }
 
+    /**
+     * @positioning lx.GridPositioningStrategy[.TYPE_STREAM]
+     * @param [config] {Object: #schema(lx.GridPositioningStrategy::init::config)}
+     */
     gridStream(config={}) {
         config.type = lx.GridPositioningStrategy.TYPE_STREAM;
         return this.grid(config);
     }
 
+    /**
+     * @positioning lx.GridPositioningStrategy[.TYPE_ADAPTIVE]
+     * @param [config] {Object: #schema(lx.GridPositioningStrategy::init::config)}
+     */
     gridAdaptive(config={}) {
         config.type = lx.GridPositioningStrategy.TYPE_ADAPTIVE;
         return this.grid(config);        
     }
 
+    /**
+     * @positioning lx.SlotPositioningStrategy
+     * @param [config] {Object: #schema(lx.SlotPositioningStrategy::init::config)}
+     */
     slot(config) {
         var pos = this.preparePositioningStrategy(lx.SlotPositioningStrategy);
         if (pos) pos.init(config);

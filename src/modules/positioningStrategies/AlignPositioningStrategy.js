@@ -3,6 +3,9 @@
 #lx:use lx.IndentData;
 #lx:use lx.PositioningStrategy;
 
+/**
+ * @positioningStrategy lx.AlignPositioningStrategy
+ */
 #lx:namespace lx;
 class AlignPositioningStrategy extends lx.PositioningStrategy {
 	/**

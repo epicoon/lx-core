@@ -3,6 +3,9 @@
 #lx:use lx.IndentData;
 #lx:use lx.PositioningStrategy;
 
+/**
+ * @positioningStrategy lx.MapPositioningStrategy
+ */
 #lx:namespace lx;
 class MapPositioningStrategy extends lx.PositioningStrategy {
 	#lx:const
@@ -15,6 +18,13 @@ class MapPositioningStrategy extends lx.PositioningStrategy {
 	 *     String&Enum('%', 'px')
 	 *     |Object: {
 	 *         {String&Enum('%', 'px')} format
+	 *     }
+	 *     |Object: {
+	 *         {Number&Enum(
+	 *             lx.MapPositioningStrategy.FORMAT_PERCENT,
+	 *             lx.MapPositioningStrategy.FORMAT_PX,
+	 *             lx.MapPositioningStrategy.FORMAT_FREE
+	 *         )} format
 	 *     }
 	 * }
 	 */

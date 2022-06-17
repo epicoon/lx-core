@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class JsModuleMapBuilder
+class JsModuleMapActualizer
 {
     /**
      * Renew application list of services which has modules
