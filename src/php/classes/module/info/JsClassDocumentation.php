@@ -10,6 +10,7 @@ class JsClassDocumentation
     private string $cleanClassName;
     private string $extends;
     private array $doc;
+    /** @var array<JsMethodDocumentation> */
     private array $methods;
     
     public function __construct(string $moduleName, array $info)
@@ -37,6 +38,19 @@ class JsClassDocumentation
         return array_key_exists($marker, $this->doc);
     }
 
+    /**
+     * @return array<JsMethodDocumentation>
+     */
+    public function getMethods(): array
+    {
+        return $this->methods;
+    }
+
+    public function getMethod(string $name): ?JsMethodDocumentation
+    {
+        return $this->methods[$name] ?? null;
+    }
+
     public function toArray(): array
     {
         $result = [
@@ -48,7 +62,6 @@ class JsClassDocumentation
             'methods' => [],
         ];
         
-        /** @var JsMethodDocumentation $method */
         foreach ($this->methods as $methodName => $method) {
             $result['methods'][$methodName] = $method->toArray();
         }

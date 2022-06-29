@@ -129,13 +129,13 @@ class DocSplitter
             $paramStr = $param;
         }
 
-        $definition = null;
+        $type = null;
         $comment = null;
         $name = null;
         $attempts = 0;
         while ($attempts < 3) {
             if ($paramStr[0] == '{') {
-                $definition = $this->extractParamDefinition($paramStr);
+                $type = $this->extractParamType($paramStr);
             } elseif (preg_match('/^\(:/', $paramStr)) {
                 $comment = $this->extractParamComment($paramStr);
             } elseif (preg_match('/^[\[_\w]/', $paramStr)) {
@@ -151,47 +151,10 @@ class DocSplitter
         if ($comment !== null) {
             $result['comment'] = $comment;
         }
-        if ($definition !== null) {
-            if (array_key_exists('type', $definition)) {
-                $result = array_merge($result, $definition);
-            } else {
-                $result['type'] = $definition;
-            }
+        if ($type !== null) {
+            $result = array_merge($result, $type);
         }
         return $result;
-    }
-
-    private function extractParamDefinition(&$paramStr): ?array
-    {
-        if ($paramStr[0] != '{') {
-            return null;
-        }
-
-        $typeReg = '/^(?P<tp>{((?>[^{}]+)|(?P>tp))*})\s*/';
-        preg_match($typeReg, $paramStr, $match);
-        if (empty($match)) {
-            return null;
-        }
-
-        $paramStr = str_replace($match[0], '', $paramStr);
-        $definition = preg_replace('/(^\s*{\s*|\s*}\s*$)/', '', $match['tp']);
-        return $this->parseParamDefinition($definition);
-    }
-
-    private function extractParamComment(&$paramStr): ?string
-    {
-        if (!preg_match('/^\(:/', $paramStr)) {
-            return null;
-        }
-
-        $commentReg = '/^\(:\s*(.+?)\s*:\)\s*/';
-        preg_match($commentReg, $paramStr, $match);
-        if (empty($match)) {
-            return null;
-        }
-
-        $paramStr = str_replace($match[0], '', $paramStr);
-        return $match[1];
     }
 
     private function extractParamName(&$paramStr): ?array
@@ -230,32 +193,69 @@ class DocSplitter
         return $result;
     }
 
+    private function extractParamComment(&$paramStr): ?string
+    {
+        if (!preg_match('/^\(:/', $paramStr)) {
+            return null;
+        }
+
+        $commentReg = '/^\(:\s*(.+?)\s*:\)\s*/';
+        preg_match($commentReg, $paramStr, $match);
+        if (empty($match)) {
+            return null;
+        }
+
+        $paramStr = str_replace($match[0], '', $paramStr);
+        return $match[1];
+    }
+
+    private function extractParamType(&$paramStr): ?array
+    {
+        if ($paramStr[0] != '{') {
+            return null;
+        }
+
+        $typeReg = '/^(?P<tp>{((?>[^{}]+)|(?P>tp))*})\s*/';
+        preg_match($typeReg, $paramStr, $match);
+        if (empty($match)) {
+            return null;
+        }
+
+        $paramStr = str_replace($match[0], '', $paramStr);
+        $definition = preg_replace('/(^\s*{\s*|\s*}\s*$)/', '', $match['tp']);
+        return $this->parseParamDefinition($definition);
+    }
+
     private function parseParamDefinition(string $definition): array
     {
         $typeAlternatives = StringHelper::smartSplit($definition, [
             'delimiter' => '|',
-            'save' => ['[]', '{}', '()'],
+            'save' => ['[]', '{}', '()', '<>'],
         ]);
         $result = [];
         foreach ($typeAlternatives as $alternative) {
-            $definitionArr = StringHelper::smartSplit($alternative, [
-                'delimiter' => ':',
-                'save' => ['[]', '{}', '()'],
-            ]);
-
-            if (count($definitionArr) == 1) {
-                $result[] = $this->parseParamType($definitionArr[0]);
+            $alternative = preg_replace('/^\s*|\s*$/', '', $alternative);
+            preg_match('/^(Object|Array|Tuple|Dict)\s*:?\s*([\w\W]*)/', $alternative, $matches);
+            if (empty($matches)) {
+                $result[] = $this->parseParamType($alternative);
                 continue;
             }
 
-            $map = $this->parseParamType($definitionArr[0]);
-            $type = (array)$map['type'];
-            switch (true) {
-                case (in_array('Object', $type)):
-                    $map['fields'] = $this->parseObjectDefinition($definitionArr[1]);
+            $type = $matches[1];
+            $typeDefinition = $matches[2];
+            $map = [
+                'type' => $type,
+            ];
+            switch ($type) {
+                case 'Object':
+                    $map['items'] = $this->parseObjectDefinition($typeDefinition);
                     break;
-                case (in_array('Array', $type)):
-                    $map['elems'] = $this->parseArrayDefinition($definitionArr[1]);
+                case 'Tuple':
+                    $map['items'] = $this->parseTupleDefinition($typeDefinition);
+                    break;
+                case 'Array':
+                case 'Dict':
+                    $map['items'] = $this->parseArrayDefinition($typeDefinition);
                     break;
             }
 
@@ -266,12 +266,20 @@ class DocSplitter
             return $result[0];
         }
 
-        return $result;
+        return ['typeAlternatives' => $result];
     }
 
     private function parseParamType(string $typeString): array
     {
         $type = $typeString;
+
+        if (preg_match('/\[\]$/', $type)) {
+            $type = preg_replace('/\[\]$/', '', $type);
+            return [
+                'type' => 'Array',
+                'elems' => ['type' => $type],
+            ];
+        }
 
         $details = [];
 
@@ -286,28 +294,10 @@ class DocSplitter
             unset($item);
         }
 
-        $types = preg_split('/\s*\|\s*/', $type);
-        $result = (count($types) == 1)
-            ? ['type' => $types[0]]
-            : ['type' => $types];
+        $result = ['type' => $type];
         if (!empty($details)) {
             $result = array_merge($result, $details);
         }
-        return $result;
-    }
-
-    private function parseArrayDefinition(string $definition): array
-    {
-        $definition = preg_replace('/(^\[\s*|\s*]$)/', '', $definition);
-        $definitionMap = StringHelper::smartSplit($definition, [
-            'delimiter' => ',',
-            'save' => ['[]', '{}', '()'],
-        ]);
-        $result = [];
-        foreach ($definitionMap as $elem) {
-            $result[] = $this->extractParam($elem);
-        }
-
         return $result;
     }
 
@@ -321,7 +311,7 @@ class DocSplitter
         $definition = preg_replace('/(^{\s*|\s*}$)/', '', $definition);
         $definitionMap = StringHelper::smartSplit($definition, [
             'delimiter' => ',',
-            'save' => ['[]', '{}', '()'],
+            'save' => ['[]', '{}', '()', '<>'],
         ]);
         $result = [];
         foreach ($definitionMap as $param) {
@@ -340,6 +330,27 @@ class DocSplitter
         }
 
         return $result;
+    }
+
+    private function parseTupleDefinition(string $definition): array
+    {
+        $definition = preg_replace('/(^\[\s*|\s*]$)/', '', $definition);
+        $definitionMap = StringHelper::smartSplit($definition, [
+            'delimiter' => ',',
+            'save' => ['[]', '{}', '()', '<>'],
+        ]);
+        $result = [];
+        foreach ($definitionMap as $elem) {
+            $result[] = $this->extractParam($elem);
+        }
+
+        return $result;
+    }
+
+    private function parseArrayDefinition(string $definition): array
+    {
+        $definition = preg_replace('/(^\s*\<\s*|\s*\>\s*$)/', '', $definition);
+        return $this->parseParamDefinition($definition);
     }
 
     private function parseLink(string $link, string $key): ?array

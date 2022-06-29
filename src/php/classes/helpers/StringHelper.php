@@ -80,9 +80,20 @@ class StringHelper
 			$str = preg_replace($regexp, '№№[]№№', $str);
 			$arrayIndex = 0;
 		}
+        if (array_search('<>', $save) !== false) {
+            $regexp = '/(?P<re>\<((?>[^\<\>]+)|(?P>re))*\>)/';
+            preg_match_all($regexp, $str, $tags);
+            $str = preg_replace($regexp, '№№<>№№', $str);
+            $tagIndex = 0;
+        }
 
 		$arr = preg_split('/\s*' . $delimiter . '\s*/', $str);
 		foreach ($arr as &$item) {
+            if (isset($tagIndex)) {
+                $item = preg_replace_callback('/№№\<\>№№/', function($matches) use ($tags, &$tagIndex) {
+                    return $tags[0][$tagIndex++];
+                }, $item);
+            }
 			if (isset($arrayIndex)) {
 				$item = preg_replace_callback('/№№\[\]№№/', function($matches) use ($arrays, &$arrayIndex) {
 					return $arrays[0][$arrayIndex++];

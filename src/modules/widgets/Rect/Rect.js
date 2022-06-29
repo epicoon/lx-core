@@ -34,39 +34,39 @@ class Rect extends lx.Module {
      * @widget-init
      *
      * @param [config = {}] {Object: {
-     *     {String} [tag = 'div'],
-     *     {String} [key],
-     *     {String} [field],
-     *     {lx.Box} [parent],
-     *     {lx.Rect} [before],
-     *     {lx.Rect} [after],
-     *     {Boolean|Array: [
+     *     [tag = 'div'] {String},
+     *     [key] {String},
+     *     [field] {String},
+     *     [parent] {lx.Box},
+     *     [before] {lx.Rect},
+     *     [after] {lx.Rect},
+     *     [geom] {Boolean|Tuple: [
      *         (:left position:) {String|Number|null},
      *         (:top position:) {String|Number|null},
      *         (:widget width:) {String|Number|null},
      *         (:widget height:) {String|Number|null},
      *         (:right position:) {String|Number|null|undefined},
      *         (:bottom position:) {String|Number|null|undefined}
-     *     ]} [geom],
-     *     {String|Number} [margin],
-     *     {Array: [
+     *     ]},
+     *     [margin] {String|Number},
+     *     [coords] {Tuple: [
      *         (:left position:) {String|Number},
      *         (:top position:) {String|Number}
-     *     ]} [coords],
-     *     {Array: [
+     *     ]},
+     *     [size] {Tuple: [
      *         (:widget width:) {String|Number},
      *         (:widget height:) {String|Number}
-     *     ]} [size],
-     *     {String|Number} [left],
-     *     {String|Number} [right],
-     *     {String|Number} [top],
-     *     {String|Number} [bottom],
-     *     {String|Number} [width],
-     *     {String|Number} [height],
-     *     {String} [html],
-     *     {String|lx.CssPreset} [cssPreset],
-     *     {String|String[]} [css],
-     *     {Number&Enum(
+     *     ]},
+     *     [left] {String|Number},
+     *     [right] {String|Number},
+     *     [top] {String|Number},
+     *     [bottom] {String|Number},
+     *     [width] {String|Number},
+     *     [height] {String|Number},
+     *     [html] {String},
+     *     [cssPreset] {String|lx.CssPreset},
+     *     [css] {String|Array<String>},
+     *     [depthCluster] {String|Number&Enum(
      *         lx.DepthClusterMap.CLUSTER_DEEP,
      *         lx.DepthClusterMap.CLUSTER_PRE_MIDDLE,
      *         lx.DepthClusterMap.CLUSTER_MIDDLE,
@@ -75,23 +75,23 @@ class Rect extends lx.Module {
      *         lx.DepthClusterMap.CLUSTER_PRE_OVER,
      *         lx.DepthClusterMap.CLUSTER_OVER,
      *         lx.DepthClusterMap.CLUSTER_URGENT
-     *     )} [depthCluster],
-     *     {String} [picture],
-     *     {Object: {{String}: {String|Number}, ...}} [style],
-     *     {Function} [click],
-     *     {Function} [blur],
-     *     {Boolean|Object: {
-     *         {Boolean} [parentMove = false],
-     *         {Boolean} [parentResize = false],
-     *         {Boolean} [xMove = true],
-     *         {Boolean} [yMove = true],
-     *         {Boolean} [xLimit = true],
-     *         {Boolean} [yLimit = true],
-     *         {Number} [moveStep = 1],
-     *         {Boolean} [locked = false]
-     *     }} [move],
-     *     {Boolean} [parentResize],
-     *     {Boolean} [parentMove]
+     *     )},
+     *     [picture] {String},
+     *     [style] {Dict<String|Number>},
+     *     [click] {Function},
+     *     [blur] {Function},
+     *     [move] {Boolean|Object: {
+     *         [parentMove = false] {Boolean},
+     *         [parentResize = false] {Boolean},
+     *         [xMove = true] {Boolean},
+     *         [yMove = true] {Boolean},
+     *         [xLimit = true] {Boolean},
+     *         [yLimit = true] {Boolean},
+     *         [moveStep = 1] {Number},
+     *         [locked = false] {Boolean}
+     *     }},
+     *     [parentResize] {Boolean},
+     *     [parentMove] {Boolean}
      * }}
      */
     constructor(config = {}) {

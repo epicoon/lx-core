@@ -6,6 +6,7 @@ class JsMethodDocumentation
 {
     private bool $isStatic = false;
     private array $doc = [];
+    /** @var array<JsParamDocumentation> */
     private array $params = [];
     
     public function __construct(array $info)
@@ -17,22 +18,35 @@ class JsMethodDocumentation
             }
 
             if ($key == 'params') {
-                foreach ($item as $paramName => $paramInfo) {
-                    $this->params[$paramName] = new JsParamDocumentation($paramName, $paramInfo);
+                foreach ($item as $paramKey => $paramInfo) {
+                    $this->params[$paramKey] = new JsParamDocumentation($paramKey, $paramInfo);
                 }
-                
-                $this->params = $item;
                 continue;
             }
             
             $this->doc[$key] = $item;
         }
     }
+    
+    public function hasMarker(string $marker): bool
+    {
+        return array_key_exists($marker, $this->doc);
+    }
+
+    public function getParam(string $key): ?JsParamDocumentation
+    {
+        return $this->params[$key] ?? null;
+    }
 
     public function toArray(): array
     {
+        $params = [];
+        foreach ($this->params as $key => $param) {
+            $params[$key] = $param->toArray();
+        }
         return array_merge($this->doc, [
-            'params' => $this->params,
+            'static' => $this->isStatic,
+            'params' => $params,
         ]);
     }
 }

@@ -112,6 +112,8 @@ return [
     'JsClassDocumentation' => 'classes/module/info',
     'JsMethodDocumentation' => 'classes/module/info',
     'JsParamDocumentation' => 'classes/module/info',
+    'JsTypeDocumentation' => 'classes/module/info',
+    'JsLinkDocumentation' => 'classes/module/info',
     'AbstractJsModuleInjector' => 'classes/module/inject',
     'ApplicationJsModuleInjector' => 'classes/module/inject',
     'ServiceJsModuleInjector' => 'classes/module/inject',

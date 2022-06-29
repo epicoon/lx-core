@@ -61,7 +61,6 @@
  * align(hor, vert, els)
  * stream(config)
  * streamProportional(config={})
- * streamAutoSize(config={})
  * getStreamDirection()
  * grid(config)
  * gridProportional(config={})
@@ -115,15 +114,15 @@ class Box extends lx.Rect {
      *
      * @param config {Object: {
      *     #merge(lx.Rect::constructor::config),
-     *     {String} [text],
-     *     {lx.PositioningStrategy} [positioning],
-     *     {Object: #schema(lx.StreamPositioningStrategy::init::config)} [stream],
-     *     {Object: #schema(lx.StreamPositioningStrategy::init::config)} [streamProportional],
-     *     {Object: #schema(lx.GridPositioningStrategy::init::config)} [grid],
-     *     {Object: #schema(lx.GridPositioningStrategy::init::config)} [gridProportional],
-     *     {Object: #schema(lx.GridPositioningStrategy::init::config)} [gridStream],
-     *     {Object: #schema(lx.GridPositioningStrategy::init::config)} [gridAdaptive],
-     *     {Object: #schema(lx.SlotPositioningStrategy::init::config)} [slot]
+     *     [text] {String},
+     *     [positioning] {lx.PositioningStrategy},
+     *     [stream]             {Object: #schema(lx.StreamPositioningStrategy::init::config)},
+     *     [streamProportional] {Object: #schema(lx.StreamPositioningStrategy::init::config)},
+     *     [grid]             {Object: #schema(lx.GridPositioningStrategy::init::config)},
+     *     [gridProportional] {Object: #schema(lx.GridPositioningStrategy::init::config)},
+     *     [gridStream]       {Object: #schema(lx.GridPositioningStrategy::init::config)},
+     *     [gridAdaptive]     {Object: #schema(lx.GridPositioningStrategy::init::config)},
+     *     [slot]             {Object: #schema(lx.SlotPositioningStrategy::init::config)}
      * }}
      */
     build(config) {
