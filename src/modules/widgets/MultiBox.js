@@ -2,6 +2,18 @@
 
 #lx:use lx.Box;
 
+/**
+ * @widget lx.MultiBox
+ * @content-disallowed
+ * 
+ * @events [
+ *     selected,
+ *     unselected,
+ *     sheetOpened,
+ *     sheetClosed,
+ *     selectionChange
+ * ]
+ */
 #lx:namespace lx;
 class MultiBox extends lx.Box {
 	#lx:const
@@ -29,19 +41,35 @@ class MultiBox extends lx.Box {
 	}
 
 	/**
-	 * config = {
-	 *	// стандартные для Box,
-	 *	
-	 *  mode: self::MODE_UNI_SHEET | self::MODE_MULTI_SHEET
-	 *  markWidth: int
-	 *  markHeight: int
-	 *  indent: int
-	 *	marks: lx.Collection | array,
-	 *	template: object,
-	 *	sheets: lx.Collection | array | lx.Box | 'auto'
-	 *  animation: bool | int
-	 * }
-	 * */
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.Rect::constructor::config),
+	 *     [mode = lx.MultiBox.MODE_UNI_SHEET] {Number&Enum(
+	 *         lx.MultiBox.MODE_UNI_SHEET,
+	 *         lx.MultiBox.MODE_MULTI_SHEET
+	 *     )}
+	 *     [markWidth = lx.MultiBox.MARK_WIDTH] {Number},
+	 *     [markHeight = lx.MultiBox.MARK_HEIGHT] {Number},
+	 *     [indent = lx.MultiBox.INDENT] {Number},
+	 *     [marks] {Array<lx.Box>|lx.Collection},
+	 *     [template] {Object: {
+	 *         [position = lx.TOP] {Number&Enum(
+	 *             lx.TOP,
+	 *             lx.BOTTOM,
+	 *             lx.LEFT,
+	 *             lx.RIGHT
+	 *         )},
+	 *         [rows = 1] {Number},
+	 *         [cols] {Number}
+	 *     }},
+	 *     [sheets] {lx.Rect, lx.Collection} (:
+	 *         if lx.Rect is the parent for the sheets,
+	 *         if lx.Collection is the sheets
+	 *     :),
+	 *     [animation = false] {Boolean|Number} (: if Number is milliseconds :)
+	 * }}
+	 */
 	build(config) {
 		this.mode = config.mode || self::MODE_UNI_SHEET;
 

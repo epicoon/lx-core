@@ -9,6 +9,15 @@
 	var __options = null;
 }
 
+/**
+ * @widget lx.Dropbox
+ * @content-disallowed
+ * 
+ * @events [
+ *     opened,
+ *     closed
+ * ]
+ */
 #lx:namespace lx;
 class Dropbox extends lx.Box {
 	getBasicCss() {
@@ -54,16 +63,17 @@ class Dropbox extends lx.Box {
 		});
 	}
 
-	/* params = {
-	 *	// стандартные для Box,
-	 *	
-	 *	options: [],        // список значений 
-	 *	table: params,      // конфигурации таблицы раскрывающегося списка - можно менять
-	 *	value : int,        // индекс(!) активного значения из списка при инициализации
-	 *	optionsCount: int,  // количество строк в таблице раскрывающегося списка
-	 *	button: bool,       // будет ли отображаться кнопка "раскрыть список"
-	 * }
-	 * */
+	/**
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.Rect::constructor::config),
+	 *     [placeholder] {String},
+	 *     [options] {Array<String|Number>|Dict<String|Number>},
+	 *     [value = null] {Number|String} (: active value key :),
+	 *     [button] {Boolean} (: Flag for rendering open-close button :)
+	 * }}
+	 */
 	build(config) {
 		super.build(config);
 
@@ -74,26 +84,15 @@ class Dropbox extends lx.Box {
 		});
 		if (config.placeholder) this->input.placeholder(placeholder);
 
-		new lx.Rect({
-			parent: this,
-			key: 'button',
-			css: this.basicCss.button,
-		});
+		let button = (config.button === undefined) ? true : config.button;
+		if (button)
+			new lx.Rect({
+				parent: this,
+				key: 'button',
+				css: this.basicCss.button,
+			});
 
 		this.data = config.options || [];
-
-		//TODO - есть встроенная возможность. По функционалу примерно то же, что сделано руками. Но и не больше.
-		// if (this.data.len) {
-		// 	var list = new lx.Box({tag:'datalist', parent:this});
-		// 	list.setAttribute('id', 'wewe');
-		// 	lx.Box.construct(this.data.len, {tag:'option', parent:list}, {
-		// 		postBuild: (el, i)=>{
-		// 			el.html(this.data[i]);
-		// 		}
-		// 	});
-		// 	this->input.setAttribute('list', 'wewe');
-		// }
-
 		this.value(config.value !== undefined ? config.value : null);
 	}
 
@@ -102,7 +101,8 @@ class Dropbox extends lx.Box {
 			super.clientBuild(config);
 			this.data = lx.Dict.create(this.data);
 			this.click(_handler_open);
-			this->button.click(_handler_toggle);
+			if (this.contains('button'))
+				this->button.click(_handler_toggle);
 		}
 
 		postUnpack(config) {

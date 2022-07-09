@@ -2,6 +2,10 @@
 
 #lx:use lx.Rect;
 
+/**
+ * @widget lx.Input
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class Input extends lx.Rect {
 	getBasicCss() {
@@ -21,13 +25,14 @@ class Input extends lx.Rect {
 	}
 
 	/**
-	 * config = {
-	 *	// стандартные для Rect,
-	 *	
-	 *	placeholder: string
-	 *	value: string
-	 * }
-	 * */
+	 * @widget-init
+	 * 
+	 * @param [config] {Object: {
+	 *     #merge(lx.Rect::constructor::config),
+	 *     [placeholder] {String},
+	 *     [value] {String}
+	 * }}
+	 */
 	build(config) {
 		super.build(config);
 

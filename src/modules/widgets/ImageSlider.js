@@ -3,11 +3,22 @@
 #lx:use lx.BoxSlider;
 #lx:use lx.Image;
 
+/**
+ * @widget lx.ImageSlider
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class ImageSlider extends lx.BoxSlider {
+	/**
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.BoxSlider::build::config),
+	 *     [images] {Array<String>}
+	 * }}
+	 */
 	build(config) {
 		super.build(config);
-
 		this.setImages(config.images || []);
 	}
 

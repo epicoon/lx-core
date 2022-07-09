@@ -6,6 +6,14 @@
 #lx:use lx.Checkbox;
 #lx:use lx.Scroll;
 
+/**
+ * @widget lx.ModelCollectionGrid
+ * @content-disallowed
+ * 
+ * @events [
+ *     rowClick
+ * ]
+ */
 #lx:namespace lx;
 class ModelCollectionGrid extends lx.Box {
     #lx:const
@@ -34,6 +42,16 @@ class ModelCollectionGrid extends lx.Box {
         });
     }
 
+    /**
+     * @widget-init
+     *
+     * @param [config] {Object: {
+     *     #merge(lx.Rect::constructor::config),
+     *     [header = false] {Boolean},
+     *     [footer = false] {Boolean},
+     *     [paginator = true] {Boolean}
+     * }}
+     */
     build(config) {
         this.totalCount = null;
         this.collection = null;
@@ -48,7 +66,7 @@ class ModelCollectionGrid extends lx.Box {
 
         //TODO
         if (config.header) this.add(lx.Box, {key: 'header'});
-        __buildWrapper(this, config);
+        __buildWrapper(this);
         if (config.paginator) this.add(lx.Paginator, {key: 'paginator', height: '40px'});
         //TODO
         if (config.footer) this.add(lx.Box, {key: 'footer'});
@@ -294,7 +312,7 @@ class ModelCollectionGrid extends lx.Box {
     }
 }
 
-function __buildWrapper(self, wrapper, config) {
+function __buildWrapper(self) {
     const gridWrapper = self.add(lx.Box, {key: 'wrapper'});
     gridWrapper.streamProportional({direction: lx.HORIZONTAL});
     gridWrapper.begin();

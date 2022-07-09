@@ -3,8 +3,20 @@
 #lx:use lx.Radio;
 #lx:use lx.LabeledGroup;
 
+/**
+ * @widget lx.RadioGroup
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class RadioGroup extends lx.LabeledGroup {
+	/**
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.Rect::constructor::config),
+	 *     [defaultValue = 0] {Number}
+	 * }}
+	 */
 	build(config) {
 		config.widgetSize = '30px';
 		config.labelSide = lx.RIGHT;

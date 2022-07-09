@@ -56,14 +56,14 @@ class PageRequestHandler extends RequestHandler
     private function renderPlugin(): ResponseInterface
     {
         $pluginData = $this->response->getData();
-        $pluginInfo = addcslashes($pluginData['pluginInfo'], '\\');
+        $pluginInfo = addcslashes($pluginData['pluginInfo'], '\\`');
 
         $modulesCode = '';
         $moduleNames = '';
         if (!empty($pluginData['modules'])) {
             $moduleProvider = new JsModuleProvider();
             list ($modulesCode, $modules) = $moduleProvider->compile($pluginData['modules']);
-            $modulesCode = addcslashes($modulesCode, '\\');
+            $modulesCode = addcslashes($modulesCode, '\\`');
             $moduleNames = "'" . implode("','", $modules) . "'";
         }
 

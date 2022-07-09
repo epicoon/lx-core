@@ -2,6 +2,10 @@
 
 #lx:use lx.Box;
 
+/**
+ * @widget lx.Table
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class Table extends lx.Box  {
 	getBasicCss() {
@@ -33,13 +37,15 @@ class Table extends lx.Box  {
 	}
 
 	/**
-	 * config = {
-	 * 	rows: int
-	 *	cols: int
-	 *	rowHeight: string | number
-	 *	indents: {}
-	 *	interactive: {} | bool
-	 * }
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.Rect::constructor::config),
+	 *     [rows = 0] {Number},
+	 *     [cols = 0] {Number},
+	 *     [rowHeight] {Number|String},
+	 *     [indents] {Object: #schema(lx.IndentData::constructor::config)}
+	 * }}
 	 */
 	build(config) {
 		super.build(config);

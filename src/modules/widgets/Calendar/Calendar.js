@@ -27,6 +27,10 @@
     ];
 }
 
+/**
+ * @widget lx.Calendar
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class Calendar extends lx.Input {
     getBasicCss() {
@@ -101,6 +105,14 @@ class Calendar extends lx.Input {
         });
     }
 
+    /**
+     * @widget-init
+     *
+     * @param [config] {Object: {
+     *     #merge(lx.Input::build::config),
+     *     [date] {String}
+     * }}
+     */
     build(config) {
         this.date = config.date || (new Date()).toString();
         #lx:client {

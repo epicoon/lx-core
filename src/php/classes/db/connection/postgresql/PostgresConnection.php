@@ -77,13 +77,17 @@ class PostgresConnection extends DbConnection
             } elseif (preg_match('/^timestamp/', $type)) {
                 //TODO use with timezone
                 $type = DbTableField::TYPE_TIMESTAMP;
+            } elseif (preg_match('/^time /', $type)) {
+                $type = DbTableField::TYPE_TIME;
+            } elseif (preg_match('/^date /', $type)) {
+                $type = DbTableField::TYPE_DATE;
             } elseif (preg_match('/^double/', $type)) {
                 $type = DbTableField::TYPE_FLOAT;
             }
             $definition['type'] = $type;
 
             $details = [];
-            // VERCHAR
+            // VARCHAR
             $size = $field['character_maximum_length'] ?? null;
             if ($size !== null) {
                 $details['size'] = (int)$size;
@@ -108,12 +112,15 @@ class PostgresConnection extends DbConnection
                 if (preg_match('/^nextval\(.*seq/', $default)) {
                     $definition['type'] = DbTableField::TYPE_SERIAL;
                 } else {
-                    if (preg_match('/\'(.+?)\'::character/', $default, $matches)) {
+                    if (preg_match('/\'(.+?)\'::[\w]+$/', $default, $matches)) {
                         $default = $matches[1];
                     }
 
+                    //TODO еще типы обрабатывать? Надо парсеры под полиморфизмом
                     if ($type == DbTableField::TYPE_BOOLEAN) {
                         $default = (strtolower($default) === 'false') ? false : true;
+                    } elseif ($type == DbTableField::TYPE_DECIMAL) {
+                        $e = 1;
                     }
 
                     $definition['default'] = $default;

@@ -8,13 +8,6 @@
 #lx:use lx.Button;
 #lx:use lx.Scroll;
 
-/*
- * Special events:
- * - colorSelect({lx.Color} color)
- * - colorChange({lx.Color} color)
- * - colorReject({lx.Color} color)
- */
-
 const __slices = [
     {base: [1, 0, 0], change: 1, direction: +1},
     {base: [1, 1, 0], change: 0, direction: -1},
@@ -32,6 +25,16 @@ const __lims = {
     L: [1, 100]
 };
 
+/**
+ * @widget lx.ColorPicker
+ * @content-disallowed
+ *
+ * @events [
+ *     colorSelect {color: lx.Color},
+ *     colorChange {color: lx.Color},
+ *     colorReject {color: lx.Color}
+ * ]
+ */
 #lx:namespace lx;
 class ColorPicker extends lx.Box {
     getBasicCss() {
@@ -53,6 +56,14 @@ class ColorPicker extends lx.Box {
         });
     }
 
+    /**
+     * @widget-init
+     *
+     * @param [config] {Object: {
+     *     #merge(lx.Rect::constructor::config),
+     *     [color] {lx.Color}
+     * }}
+     */
     #lx:client clientBuild(config) {
         const _t = this;
         this._movingLines = false;

@@ -12,8 +12,11 @@ class DbTableField
     const TYPE_NUMERIC = 'numeric';
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_TIMESTAMP = 'timestamp';
-    
-    const ATTRIBUTE_UNIQUE = 'uniqie';
+    const TYPE_TIME_INTERVAL = 'interval';
+    const TYPE_DATE = 'date';
+    const TYPE_TIME = 'time';
+
+    const ATTRIBUTE_UNIQUE = 'unique';
 
     private DbTableSchema $schema;
     private string $name;

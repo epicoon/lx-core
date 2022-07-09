@@ -88,7 +88,7 @@ class PostgresQueryBuilder extends DbQueryBuilder
             $constraintName = "fk__{$tableKey}__" . implode('__', $fields);
         }
 
-        return"ALTER TABLE $tableName DROP CONSTRAINT $constraintName";
+        return"ALTER TABLE {$tableName} DROP CONSTRAINT {$constraintName}";
     }
 
     public function getAddColumnQuery(string $tableName, DbTableField $field): string
@@ -106,31 +106,39 @@ class PostgresQueryBuilder extends DbQueryBuilder
 
     public function getChangeColumnQuery(string $tableName, DbTableField $field): string
     {
+        $fieldName = $field->getName();
         $type = $field->getTypeDefinition();
         $queries = [
-            "ALTER TABLE $tableName ALTER COLUMN $fieldName TYPE $type;"
+            "ALTER TABLE {$tableName} ALTER COLUMN {$fieldName} TYPE {$type};"
         ];
 
         if ($field->isNullable()) {
-            $queries[] = "ALTER TABLE $tableName ALTER COLUMN $fieldName DROP NOT NULL;";
+            $queries[] = "ALTER TABLE {$tableName} ALTER COLUMN {$fieldName} DROP NOT NULL;";
         } else {
-            $queries[] = "ALTER TABLE $tableName ALTER COLUMN $fieldName SET NOT NULL;";
+            $queries[] = "ALTER TABLE {$tableName} ALTER COLUMN {$fieldName} SET NOT NULL;";
         }
 
         $default = $field->getDefault();
         if ($default === null) {
-            $queries[] = "ALTER TABLE $tableName ALTER COLUMN $fieldName DROP DEFAULT;";
+            $queries[] = "ALTER TABLE {$tableName} ALTER COLUMN {$fieldName} DROP DEFAULT;";
         } else {
             $default = $this->convertValueForQuery($default);
-            $queries[] = "ALTER TABLE $tableName ALTER COLUMN $fieldName SET DEFAULT $default;";
+            $queries[] = "ALTER TABLE {$tableName} ALTER COLUMN {$fieldName} SET DEFAULT {$default};";
         }
 
         $attributes = $field->getAttributes();
-        $key = "unique__$tableName__$fieldName";
+        $tableKey = str_replace('.', '_', $tableName);
+        $key = "unique__{$tableKey}__{$fieldName}";
         if (in_array(DbTableField::ATTRIBUTE_UNIQUE, $attributes)) {
-            $queries[] = "ALTER TABLE $tableName ADD CONSTRAINT $key UNIQUE ($fieldName);";
+            $queries[] = "ALTER TABLE {$tableName} ADD CONSTRAINT {$key} UNIQUE ({$fieldName});";
         } else {
-            $queries[] = "ALTER TABLE $tableName DROP CONSTRAINT $key;";
+            $cons = $this->getConnection()->query("
+                SELECT con.* FROM pg_catalog.pg_constraint con
+                WHERE con.conname = '{$key}'
+            ", DbConnection::SELECT_TYPE_ASSOC, false);
+            if (!empty($cons)) {
+                $queries[] = "ALTER TABLE {$tableName} DROP CONSTRAINT {$key};";
+            }
         }
 
         //TODO if ($field->isFk())

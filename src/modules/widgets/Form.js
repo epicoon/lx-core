@@ -3,6 +3,9 @@
 #lx:use lx.Box;
 #lx:use lx.Button;
 
+/**
+ * @widget lx.Form
+ */
 #lx:namespace lx;
 class Form extends lx.Box {
 	/**

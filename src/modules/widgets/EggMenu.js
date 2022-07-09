@@ -2,6 +2,9 @@
 
 #lx:use lx.Box;
 
+/**
+ * @widget lx.EggMenu
+ */
 #lx:namespace lx;
 class EggMenu extends lx.Box {
 	_getContainer() {
@@ -50,6 +53,16 @@ class EggMenu extends lx.Box {
 		return lx.DepthClusterMap.CLUSTER_FRONT;
 	}
 
+	/**
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.Box::build::config),
+	 *     [menuWidget = lx.Box] {lx.Box}
+	 *     [menuConfig] {Object: {#schema(lx.Box::build::config)}}
+	 *     [menuRenderer] {Function} (: argument - lx.Box :)
+	 * }}
+	 */
 	build(config) {
 		super.build(config);
 

@@ -2,6 +2,10 @@
 
 #lx:use lx.Input;
 
+/**
+ * @widget lx.Textarea
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class Textarea extends lx.Input {
 	static getStaticTag() {

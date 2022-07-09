@@ -2,6 +2,9 @@
 
 #lx:use lx.Box;
 
+/**
+ * @widget lx.ActiveBox
+ */
 #lx:namespace lx;
 class ActiveBox extends lx.Box {
 	//TODO - тут подразумеваются пиксели. Бардак с единицами измерения продолжается...
@@ -83,15 +86,18 @@ class ActiveBox extends lx.Box {
 	}
 
 	/**
-	 * config = {
-	 * 	header: string
-	 * 	headerHeight: 
-	 * 	headerConfig: {}
-	 * 	closeButton	 
-	 * 	move: bool
-	 * 	resize: bool
-	 *	adhesive: bool
-	 * }
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.Box::build::config),
+	 * 	   [header] {String}
+	 * 	   [headerHeight] {String|Number} 
+	 * 	   [headerConfig] {Object: #schema(lx.Box::build::config)}
+	 * 	   [closeButton] {Boolean}
+	 * 	   [move] {Boolean}
+	 * 	   [resize] {Boolean}
+	 *	   [adhesive] {Boolean}
+	 * }}
 	 * */
 	build(config) {
 		this.setBuildMode(true);

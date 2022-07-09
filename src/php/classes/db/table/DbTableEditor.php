@@ -127,7 +127,7 @@ class DbTableEditor
         $db = $this->getDb();
         $db->transactionBegin();
 
-        $query = $db->getAddColumnQuery($this->schema->getName(), $field);
+        $query = $db->getQueryBuilder()->getAddColumnQuery($this->schema->getName(), $field);
         $result = $db->query($query);
         if (!$result) {
             $db->transactionRollback();
@@ -136,7 +136,7 @@ class DbTableEditor
 
         if ($field->isFk()) {
             $fk = $field->getForeignKeyInfo();
-            $query = $db->getAddForeignKeyQuery(
+            $query = $db->getQueryBuilder()->getAddForeignKeyQuery(
                 $fk->getTableName(),
                 $fk->getFieldNames(),
                 $fk->getRelatedTableName(),
@@ -174,7 +174,7 @@ class DbTableEditor
             }
         }
 
-        $query = $db->getDelColumnQuery($this->schema->getName(), $fieldName);
+        $query = $db->getQueryBuilder()->getDelColumnQuery($this->schema->getName(), $fieldName);
         $result = $db->query($query);
         if (!$result) {
             $db->transactionRollback();
@@ -188,7 +188,7 @@ class DbTableEditor
     public function renameField(string $oldFieldName, string $newFieldName): bool
     {
         $db = $this->getDb();
-        $query = $db->getRenameColumnQuery($this->schema->getName(), $oldFieldName, $newFieldName);
+        $query = $db->getQueryBuilder()->getRenameColumnQuery($this->schema->getName(), $oldFieldName, $newFieldName);
         return $db->query($query);
     }
 
@@ -196,7 +196,7 @@ class DbTableEditor
     {
         $field = $this->schema->addField($newDefinition);
         $db = $this->getDb();
-        $query = $db->getChangeColumnQuery($this->schema->getName(), $field);
+        $query = $db->getQueryBuilder()->getChangeColumnQuery($this->schema->getName(), $field);
         return $db->query($query);
     }
 }

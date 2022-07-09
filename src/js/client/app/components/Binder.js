@@ -61,7 +61,7 @@ lx.Binder = new BindManager();
 
 
 // Поля для хранения связей
-let __binds = [],
+let __binds = {},
 	__matrixBinds = [],
 	__bindCounter = 0;
 
@@ -338,9 +338,9 @@ function __getBind(id) {
 }
 
 
-/******************************************************************************************************************************
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * INNER
- *****************************************************************************************************************************/
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // Id связи для модели генерируется один, виджетов с этим id может быть связано много
 // структура правила связавыния: model.id => Binder.binds[id] => bind=fields[] => field=widgets[]
@@ -422,7 +422,7 @@ function __bindWidget(widget, id) {
 	__unbindWidget(widget);
 	widget.lxBindId = id;
 	if (!(id in __binds))
-		__binds[id] = [];
+		__binds[id] = {};
 	if (!(widget._field in __binds[id]))
 		__binds[id][widget._field] = [];
 	__binds[id][widget._field].push(widget);
@@ -433,7 +433,7 @@ function __bindProcess(obj, name, widgets) {
 	if (!obj.lxBindId)
 		obj.lxBindId = __genBindId();
 	if (!(obj.lxBindId in __binds))
-		__binds[obj.lxBindId] = [];
+		__binds[obj.lxBindId] = {};
 	if (!(name in __binds[obj.lxBindId]))
 		__binds[obj.lxBindId][name] = [];
 	widgets.forEach(a=>__bindWidget(a, obj.lxBindId));

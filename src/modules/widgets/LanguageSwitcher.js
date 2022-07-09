@@ -3,7 +3,10 @@
 #lx:use lx.Dropbox;
 
 /**
- * Переключатель языка на основе lx.Dropbox, который хранит настройку языка в куках
+ * Language switcher based on lx.Dropbox, keeps language option in Cookies
+ *
+ * @widget lx.LanguageSwitcher
+ * @content-disallowed
  */
 #lx:namespace lx;
 class LanguageSwitcher extends lx.Dropbox {

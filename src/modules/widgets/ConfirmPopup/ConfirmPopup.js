@@ -53,6 +53,10 @@
 	}
 }
 
+/**
+ * @widget lx.ConfirmPopup
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class ConfirmPopup extends lx.Box {
 	#lx:const COLS_FOR_EXTRA_BUTTONS = 1;
@@ -77,6 +81,14 @@ class ConfirmPopup extends lx.Box {
 		});
 	}
 
+	/**
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.Rect::constructor::config),
+	 *     [extraCols = lx.ConfirmPopup.COLS_FOR_EXTRA_BUTTONS] {Number}
+	 * }}
+	 */
     build(config) {
     	this.extraCols = config.extraCols || self::COLS_FOR_EXTRA_BUTTONS;
     }

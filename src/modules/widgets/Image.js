@@ -2,6 +2,10 @@
 
 #lx:use lx.Rect;
 
+/**
+ * @widget lx.Image
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class Image extends lx.Rect {
 	modifyConfigBeforeApply(config) {
@@ -11,12 +15,13 @@ class Image extends lx.Rect {
 	}
 
 	/**
-	 * config = {
-	 *	// стандартные для Rect,
-	 *	
-	 *	src: string  // путь от корня сайта
-	 *	filename: string  // путь относительно настроек текущего плагина
-	 * }
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.Rect::constructor::config),
+	 *     [src] {String} (: path to image file relative to site root :),
+	 *     [filename] {String} (: path to image file relative to current plugin path :)
+	 * }}
 	 */
 	build(config) {
 		super.build(config);

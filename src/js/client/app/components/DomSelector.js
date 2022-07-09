@@ -15,7 +15,7 @@ class DomSelector {
 		return el.__lx || __getType(type).rise(el);
 	}
 
-	static getWidgetByName(name, type = null) {
+	static getWidgetsByName(name, type = null) {
 		var els = document.getElementsByName(name),
 			c = new lx.Collection();
 		for (var i = 0, l = els.length; i < l; i++) {
@@ -29,7 +29,7 @@ class DomSelector {
 	 * Если присутствует голая верстка, можно вернуть коллекцию суррогатных lx-объектов над элементами,
 	 * имеющими определенный css-класс
 	 */
-	static getWidgetByClass(className, type = null) {
+	static getWidgetsByClass(className, type = null) {
 		var els = document.getElementsByClassName(className),
 			c = new lx.Collection();
 		for (var i = 0, l = els.length; i < l; i++) {

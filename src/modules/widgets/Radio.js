@@ -2,6 +2,10 @@
 
 #lx:use lx.Checkbox;
 
+/**
+ * @widget lx.Radio
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class Radio extends lx.Checkbox {
 	getBasicCss() {

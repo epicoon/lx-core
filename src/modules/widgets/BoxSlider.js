@@ -2,6 +2,10 @@
 
 #lx:use lx.Box;
 
+/**
+ * @widget lx.BoxSlider
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class BoxSlider extends lx.Box {
 	#lx:const
@@ -35,6 +39,20 @@ class BoxSlider extends lx.Box {
 		});
 	}
 
+	/**
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.Rect::constructor::config),
+	 *     [type = lx.BoxSlider.TYPE_OPACITY] {Number&Enum(
+	 *         lx.BoxSlider.TYPE_SLIDER,
+	 *         lx.BoxSlider.TYPE_OPACITY
+	 *     )},
+	 *     [showDuration = 3000] {Number} (: milliseconds :),
+	 *     [slideDuration = 1000] {Number} (: milliseconds :),
+	 *     [auto = true] {Boolean}
+	 * }}
+	 */
 	build(config) {
 		super.build(config);
 

@@ -5,6 +5,10 @@
 
 #lx:use lx.Box;
 
+/**
+ * @widget lx.Paginator
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class Paginator extends lx.Box {
 	#lx:const
@@ -57,15 +61,17 @@ class Paginator extends lx.Box {
         }, 'Paginator-button');
     }
 
-    /* config = {
-     *	// стандартные для Box,
+    /**
+     * @widget-init
      *
-     * slotsCount
-     * elementsPerPage
-     * elementsCount
-     * activePage
-     * }
-     * */
+     * @param [config] {Object: {
+     *     #merge(lx.Rect::constructor::config),
+     *     [slotsCount = lx.Paginator.DEFAULT_SLOTS_COUNT] {Number},
+     *     [elementsPerPage = lx.Paginator.DEFAULT_ELEMENTS_PER_PAGE] {Number},
+     *     [elementsCount = 0] {Number},
+     *     [activePage = 0] {Number}
+     * }}
+     */
 	build(config) {
 		super.build(config);
 

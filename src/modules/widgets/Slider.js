@@ -2,6 +2,16 @@
 
 #lx:use lx.Box;
 
+/**
+ * @widget lx.Slider
+ * @content-disallowed
+ * 
+ * @events [
+ *     started,
+ *     input,
+ *     stopped
+ * ]
+ */
 #lx:namespace lx;
 class Slider extends lx.Box {
 	getBasicCss() {
@@ -16,6 +26,17 @@ class Slider extends lx.Box {
 		css.inheritClass('lx-slider-handle', 'ActiveButton');
 	}
 
+	/**
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.Rect::constructor::config),
+	 *     [min = 0] {Number},
+	 *     [max = 100] {Number},
+	 *     [step = 1] {Number},
+	 *     [value = 0] {Number}
+	 * }}
+	 */
 	build(config) {
 		super.build(config);
 

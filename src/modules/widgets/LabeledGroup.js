@@ -2,6 +2,10 @@
 
 #lx:use lx.Box;
 
+/**
+ * @widget lx.LabeledGroup
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class LabeledGroup extends lx.Box {
 	getBasicCss() {
@@ -27,19 +31,32 @@ class LabeledGroup extends lx.Box {
 	}
 
 	/**
-	 * config = {
-	 *	// стандартные для Box,
-	 *	
-	 *	cols: int
-	 *  step: int
-	 *	widget: class
-	 *	widgetSize: string
-	 *	labelSide: lx.LEFT | lx.RIGHT
-	 *	labels: []
-	 *	list: []
-	 *  fields: {}
-	 * }
-	 * */
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.Rect::constructor::config),
+	 *     [cols = 1] {Number},
+	 *     [step] {Number},
+	 *     [widget = lx.Box] {lx.Rect},
+	 *     [widgetSize = '1fr'] {String},
+	 *     [labelSide = lx.LEFT] {Number&Enum(lx.LEFT, lx.RIGHT)},
+	 *     [labels] {Array<String>},
+	 *     [list] {
+	 *         Array<String|Object:{
+	 *             #merge(lx.Box::build::config),
+	 *             [widget = lx.Box] {lx.Rect},
+	 *             [label] {String}
+	 *     	   }>
+	 *     }
+	 *     [fields] {
+	 *         Dict<String|Object:{
+	 *             #merge(lx.Box::build::config),
+	 *             [widget = lx.Box] {lx.Rect},
+	 *             [label] {String}
+	 *         }>
+	 *     }
+	 * }}
+	 */
 	build(config) {
 		super.build(config);
 

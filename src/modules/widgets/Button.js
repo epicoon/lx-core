@@ -2,6 +2,10 @@
 
 #lx:use lx.Box;
 
+/**
+ * @widget lx.Button
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class Button extends lx.Box {
 	#lx:client clientBuild(config) {

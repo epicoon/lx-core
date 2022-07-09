@@ -3,8 +3,20 @@
 #lx:use lx.Checkbox;
 #lx:use lx.LabeledGroup;
 
+/**
+ * @widget lx.CheckboxGroup
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class CheckboxGroup extends lx.LabeledGroup {
+	/**
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.LabeledGroup::build::config),
+	 *     [defaultValue] {Number|Array<Number>}
+	 * }}
+	 */
 	build(config) {
 		config.widgetSize = '30px';
 		config.labelSide = lx.RIGHT;

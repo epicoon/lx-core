@@ -112,7 +112,7 @@ class Box extends lx.Rect {
     /**
      * @widget-init
      *
-     * @param config {Object: {
+     * @param [config] {Object: {
      *     #merge(lx.Rect::constructor::config),
      *     [text] {String},
      *     [positioning] {lx.PositioningStrategy},

@@ -26,6 +26,10 @@
 		};
 }
 
+/**
+ * @widget lx.InputPopup
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class InputPopup extends lx.Box {
     modifyConfigBeforeApply(config) {

@@ -127,6 +127,10 @@
         "name": "lx.Form",
         "path": "modules\/widgets\/Form.js"
     },
+    "lx.Html": {
+        "name": "lx.Html",
+        "path": "modules\/widgets\/Html.js"
+    },
     "lx.Image": {
         "name": "lx.Image",
         "path": "modules\/widgets\/Image.js"

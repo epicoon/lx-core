@@ -3,14 +3,18 @@
 #lx:use lx.Box;
 #lx:use lx.Input;
 
-/* 
- * Special events:
- * - leafOpen
- * - leafClose
- * - beforeAdd
- * - afterAdd
- * - beforeDel
- * - afterDel
+/**
+ * @widget lx.TreeBox
+ * @content-disallowed
+ * 
+ * @events [
+ *     leafOpen,
+ *     leafClose,
+ *     beforeAdd,
+ *     afterAdd,
+ *     beforeDel,
+ *     afterDel
+ * ]
  */
 #lx:namespace lx;
 class TreeBox extends lx.Box {
@@ -59,20 +63,22 @@ class TreeBox extends lx.Box {
 		});
 	}
 
-	/* config = {
-	 *	// стандартные для Box,
-	 *	
-	 *	data: lx.Tree
-	 *	indent: 10,
-	 *	step: 5,
-	 *	leafHeight: 18,
-	 *	labelWidth: 250,
-	 *	addAllowed: 0|1|2,  // 0 - без возможности добавления, 1 - простое добавление с автоключом, 2 - добавление, требующее введения ключа
-	 *  rootAddAllowed,  // кнопка добавления в корень
-	 *	leaf: function(TreeLeaf)  // описывает поведение листа при его создании - как и что в нем дополнительно отображать
-	 *  befroeAddLeaf: function(node)  // вызывается до создания узла
-	 * }
-	 * */
+	/**
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.Rect::constructor::config),
+	 *     [data] {lx.Tree},
+	 *     [indent = 10] {Number},
+	 *     [step = 5] {Number},
+	 *     [leafHeight = 18] {Number},
+	 *     [labelWidth = 250] {Number},
+	 *     [addAllowed = false] {Boolean},
+	 *     [rootAddAllowed = false] {Boolean},
+	 *     [leaf] {Function} (: argument - leaf {TreeLeaf} :),
+	 *     [befroeAddLeaf] {Function} (: argument - node {lx.Tree} :)
+	 * }}
+	 */
 	build(config) {
 		super.build(config);
 

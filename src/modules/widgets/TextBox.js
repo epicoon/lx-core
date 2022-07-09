@@ -2,6 +2,10 @@
 
 #lx:use lx.Rect;
 
+/**
+ * @widget lx.TextBox
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class TextBox extends lx.Rect {
 	modifyConfigBeforeApply(config='') {

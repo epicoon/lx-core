@@ -2,6 +2,10 @@
 
 #lx:use lx.Box;
 
+/**
+ * @widget lx.Checkbox
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class Checkbox extends lx.Box {
 	getBasicCss() {
@@ -29,12 +33,13 @@ class Checkbox extends lx.Box {
 	}
 
 	/**
-	 * config = {
-	 *	// стандартные для Rect,
-	 *	
-	 *	value: bool
-	 * }
-	 * */
+	 * @widget-init
+	 *
+	 * @param [config] {Object: {
+	 *     #merge(lx.Rect::constructor::config),
+	 *     [value = false] {Boolean}
+	 * }}
+	 */
 	build(config) {
 		super.build(config);
 		this.add(lx.Box, {

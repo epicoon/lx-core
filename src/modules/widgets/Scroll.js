@@ -2,6 +2,10 @@
 
 #lx:use lx.Box;
 
+/**
+ * @widget lx.Scroll
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class Scroll extends lx.Box {
     #lx:const
@@ -64,6 +68,18 @@ class Scroll extends lx.Box {
         return config;
     }
 
+    /**
+     * @widget-init
+     *
+     * @param [config] {Object: {
+     *     #merge(lx.Rect::constructor::config),
+     *     target {lx.Box},
+     *     [type = lx.VERTICAL] {Number&Enum(
+     *         lx.VERTICAL,
+     *         lx.HORIZONTAL
+     *     )}
+     * }}
+     */
     build(config) {
         if (!config.target || config.target === config.target.getContainer())
             throw 'Unavailable target for the Scroll widget';

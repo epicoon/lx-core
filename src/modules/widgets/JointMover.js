@@ -3,6 +3,11 @@
 #lx:use lx.Rect;
 
 //TODO не тестировался при создании на сервере
+
+/**
+ * @widget lx.JointMover
+ * @content-disallowed
+ */
 #lx:namespace lx;
 class JointMover extends lx.Rect {
     #lx:const DEFAULT_SIZE = '6px';
@@ -30,6 +35,15 @@ class JointMover extends lx.Rect {
         return config;
     }
 
+    /**
+     * @widget-init
+     *
+     * @param [config] {Object: {
+     *     #merge(lx.Rect::constructor::config),
+     *     [direction = null] {Number&Enum(lx.VERTICAL, lx.HORIZONTAL)}
+     *     [limit = 20] {Number} (: number of pixels to stop resizing :)
+     * }}
+     */
     build(config) {
         super.build(config);
 
