@@ -24,10 +24,8 @@ class PluginBuildContext implements ContextTreeInterface
 	private array $moduleDependencies = [];
 	private array $commonModuleDependencies = [];
 
-	public function __construct(iterable $config = [])
+	protected function afterObjectConstruct(iterable $config): void
 	{
-	    $this->__objectConstruct($config);
-
 		$this->plugin = $config['plugin'];
 		$this->compiled = false;
 		$this->jsCompiler = new PluginFrontendJsCompiler($this->getPlugin());

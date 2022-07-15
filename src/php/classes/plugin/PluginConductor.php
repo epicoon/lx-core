@@ -120,7 +120,7 @@ class PluginConductor implements ConductorInterface
 
 		foreach ((array)$snippetDirs as $snippetDir) {
 			$path = $this->getFullPath($snippetDir . '/' . $name);
-			$fullPath = Snippet::defineSnippetPath($path);
+			$fullPath = self::defineSnippetPath($path);
 			if ($fullPath) {
 				return $fullPath;
 			}
@@ -237,6 +237,24 @@ class PluginConductor implements ConductorInterface
 
 		return $images;
 	}
+
+    public static function defineSnippetPath(string $path): ?string
+    {
+        if (file_exists($path) && !is_dir($path)) {
+            return $path;
+        }
+
+        if (file_exists("$path.js")) return "$path.js";
+        if (file_exists("$path/_main.js")) return "$path/_main.js";
+        if (file_exists("$path/main.js")) return "$path/main.js";
+
+        $arr = explode('/', $path);
+        $snippetName = end($arr);
+        if (file_exists("$path/_$snippetName.js")) return "$path/_$snippetName.js";
+        if (file_exists("$path/$snippetName.js")) return "$path/$snippetName.js";
+
+        return null;
+    }
 
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

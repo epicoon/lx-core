@@ -10,10 +10,8 @@ class Resource implements ResourceInterface, ObjectInterface
 
 	protected ?ResourceVoterInterface $voter = null;
 
-	public function __construct(iterable $config = [])
+    protected function init(): void
 	{
-	    $this->__objectConstruct($config);
-
 		if ($this->voter) {
 			$this->voter->setResource($this);
 		}

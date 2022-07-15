@@ -41,7 +41,7 @@ class ServiceProvider
         if ($this->fileName) {
             $filePath = lx::$app->conductor->getFullPath($this->fileName);
 
-            $map = Autoloader::getInstance()->map->packages;
+            $map = Autoloader::getInstance()->map->services;
             foreach ($map as $name => $servicePath) {
                 $fullServicePath = addcslashes(lx::$app->sitePath . '/' . $servicePath, '/');
                 if (preg_match('/^' . $fullServicePath . '\//', $filePath)) {

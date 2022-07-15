@@ -6,7 +6,7 @@ namespace lx;
  * @property-read Router $router
  * @property-read Dialog $dialog
  */
-class HttpApplication extends BaseApplication
+class HttpApplication extends AbstractApplication
 {
     public function getDefaultFusionComponents(): array
     {
@@ -60,17 +60,18 @@ class HttpApplication extends BaseApplication
         }
 	}
 
-    public function getCommonJs(): array
-	{
-		$compiler = new JsCompiler();
+    public function getSettings(): array
+    {
+        if (!array_key_exists('cssPreset', $this->settings)) {
+            $this->settings['cssPreset'] = $this->presetManager->getDefaultCssPreset();
+        }
 
-		$jsBootstrap = $this->compileJsBootstrap($compiler);
-		$jsMain = $this->compileJsMain($compiler);
-		$jsBootstrap = addcslashes($jsBootstrap, '\\');
-		$jsMain = addcslashes($jsMain, '\\');
+        if (!array_key_exists('assetBuildType', $this->settings)) {
+            $this->settings['assetBuildType'] = $this->presetManager->getBuildType();
+        }
 
-		return [$jsBootstrap, $jsMain];
-	}
+        return $this->settings;
+    }
 
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -82,47 +83,5 @@ class HttpApplication extends BaseApplication
 		if ($this->user && $this->userManager && $this->authenticationGate) {
 			$this->authenticationGate->authenticateUser();
 		}
-	}
-
-	private function compileJsBootstrap(JsCompiler $compiler): string
-	{
-		$path = $this->getConfig('jsBootstrap');
-		if (!$path) {
-			return '';
-		}
-
-		$path = $this->conductor->getFullPath($path);
-		if (!file_exists($path)) {
-			return '';
-		}
-
-		$code = file_get_contents($path);
-		$code = $compiler->compileCode($code, $path);
-		if (!$code) {
-			return '';
-		}
-
-		return $code;
-	}
-
-	private function compileJsMain(JsCompiler $compiler): string
-	{
-		$path = $this->getConfig('jsMain');
-		if (!$path) {
-			return '';
-		}
-
-		$path = $this->conductor->getFullPath($path);
-		if (!file_exists($path)) {
-			return '';
-		}
-
-		$code = file_get_contents($path);
-		$code = $compiler->compileCode($code, $path);
-		if (!$code) {
-			return '';
-		}
-
-		return $code;
 	}
 }

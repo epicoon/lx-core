@@ -45,7 +45,7 @@ class AssetCompiler
 
     public function makePluginsAssetLinks(): void
     {
-        $services = PackageBrowser::getServicesList();
+        $services = ServiceBrowser::getServicesList();
         foreach ($services as $service) {
             $plugins = $service->getStaticPlugins();
             foreach ($plugins as $plugin) {
@@ -210,7 +210,7 @@ class AssetCompiler
         $jsCompiler = new JsCompiler();
         $code = $jsCompiler->compileCode($code, $path);
 
-        $servicesList = PackageBrowser::getServicesList();
+        $servicesList = ServiceBrowser::getServicesList();
         $modules = [];
         foreach ($servicesList as $service) {
             $modules = array_merge($modules, $service->getJsModules());

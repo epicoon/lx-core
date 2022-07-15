@@ -9,7 +9,7 @@ class JsModuleMapActualizer
      */
     public function renewHead(): void
     {
-        $list = PackageBrowser::getServicePathesList();
+        $list = ServiceBrowser::getServicePathesList();
         $names = [];
         foreach (array_keys($list) as $serviceName) {
             $service = \lx::$app->getService($serviceName);
@@ -34,7 +34,7 @@ class JsModuleMapActualizer
      */
     public function renewAllServices(): void
     {
-        $list = PackageBrowser::getServicePathesList();
+        $list = ServiceBrowser::getServicePathesList();
         $names = [];
         foreach (array_keys($list) as $serviceName) {
             $service = \lx::$app->getService($serviceName);

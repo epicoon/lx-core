@@ -23,15 +23,9 @@ $site = new Directory(lx::$conductor->sitePath);
 $app = new lx\ConsoleApplication(
     $site->contains('lx/config/main.php') ? []
     : [
-        lx\AbstractApplication::CONFIG_KEY_CONSTRUCT_FLAGS => [
-            lx\AbstractApplication::CONSTRUCT_FLAG_IGNORE_CONFIG => true,
-        ],
-        'packagesMap' => [
+        'servicesMap' => [
             'vendor',
             'services',
-        ],
-        'aliases' => [
-            'services' => '@site/services',
         ],
     ]
 );

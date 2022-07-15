@@ -13,8 +13,9 @@ use lx;
  * @property-read PluginI18nMap $i18nMap
  * @property-read JsModuleInjectorInterface|null $moduleInjector
  */
-class Plugin extends Resource implements FusionInterface
+class Plugin extends Resource implements ObjectInterface, FusionInterface
 {
+    use ObjectTrait;
 	use FusionTrait;
 
 	const DEFAULT_RESOURCE_METHOD = 'run';
@@ -47,39 +48,37 @@ class Plugin extends Resource implements FusionInterface
 	private array $css = [];
     private ?array $_imagePathes = null;
 
-	public function __construct(iterable $config = [])
-	{
+    protected function beforeObjectConstruct(iterable $config): void
+    {
         $this->_path = $config['path'];
-	    parent::__construct($config);
+    }
 
-		$this->service = $config['service'];
-		$this->_name = $this->service->getID() . ':' . $config['name'];
-		$this->attributes = new DataObject();
-		$this->anchor = '_root_';
+    protected function afterObjectConstruct(iterable $config): void
+    {
+        $this->service = $config['service'];
+        $this->_name = $this->service->getID() . ':' . $config['name'];
+        $this->attributes = new DataObject();
+        $this->anchor = '_root_';
 
-		if (isset($config['prototype'])) {
-			$this->_prototype = $config['prototype'];
-		}
+        if (isset($config['prototype'])) {
+            $this->_prototype = $config['prototype'];
+        }
 
-		$pluginConfig = $config['config'];
-		$commonConfig = lx::$app->getDefaultPluginConfig();
-		ConfigHelper::preparePluginConfig($commonConfig, $pluginConfig);
-		$injections = lx::$app->getConfig('configInjection') ?? [];
-		ConfigHelper::pluginInject($this->name, $this->prototype, $injections, $pluginConfig);
-		$this->config = $pluginConfig;
+        $pluginConfig = $config['config'];
+        $commonConfig = lx::$app->getDefaultPluginConfig();
+        ConfigHelper::preparePluginConfig($commonConfig, $pluginConfig);
+        $injections = lx::$app->getConfig('configInjection') ?? [];
+        ConfigHelper::pluginInject($this->name, $this->prototype, $injections, $pluginConfig);
+        $this->config = $pluginConfig;
 
-		$this->initFusionComponents($this->getConfig('components') ?? []);
+        $this->initFusionComponents($this->getConfig('components') ?? []);
         $this->resetCssPreset();
-		$this->init();
-	}
-
-    /**
-     * Define in child
-     */
-	protected function init(): void
-	{
-		// pass
-	}
+    }
+    
+    protected function init(): void
+    {
+        parent::init();
+    }
 
 	/**
 	 * Define in child

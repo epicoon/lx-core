@@ -191,6 +191,18 @@ class ArrayHelper
 		return false;
 	}
 
+    public static function shuffleArray(array $array): array
+    {
+        for ($i=0, $l=count($array); $i<$l; $i++) {
+            $rand = Math::rand(0, $l - 1);
+            $temp = $array[$i];
+            $array[$i] = $array[$rand];
+            $array[$rand] = $temp;
+        }
+
+        return $array;
+    }
+
 	/**
 	 * Method recieves array of accosiated arrays with same keys
 	 * Extract keys in the individual field

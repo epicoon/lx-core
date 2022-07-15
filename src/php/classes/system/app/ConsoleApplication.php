@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class ConsoleApplication extends BaseApplication
+class ConsoleApplication extends AbstractApplication
 {
     protected string $command = '';
 	protected array $args = [];
@@ -27,7 +27,7 @@ class ConsoleApplication extends BaseApplication
 
         $argsStr = $this->command . ' ' . implode(' ', $this->args);
         list($command, $args) = CliProcessor::parseInput($argsStr);
-        $showCommandInConsole = $args['v'] ?? false;
+        $showCommandInConsole = $args['w'] ?? false;
         $showCommandInFile = $args['f'] ?? false;
         if ($showCommandInConsole || $showCommandInFile) {
             $this->setParam('showCommand', true);

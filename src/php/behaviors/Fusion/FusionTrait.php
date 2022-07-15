@@ -8,10 +8,11 @@ trait FusionTrait
     
 	protected ?FusionComponentList $fusionComponentList = null;
 
-	public function initFusionComponents(array $list/*, array $defaults = []*/): void
+	public function initFusionComponents(array $list, FusionInterface $fusion = null): void
 	{
-		$this->fusionComponentList = new FusionComponentList($this);
-        $this->fusionComponentList->load($list, $this->getDefaultFusionComponents());
+        $fusion = $fusion ?? $this;
+		$this->fusionComponentList = new FusionComponentList($fusion);
+        $this->fusionComponentList->load($list, $fusion->getDefaultFusionComponents());
 	}
 
 	public function hasFusionComponent(string $name): bool

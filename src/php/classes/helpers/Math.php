@@ -34,18 +34,6 @@ class Math
 		return $rand <= $param;
 	}
 
-	public static function shuffleArray(array $array): array
-    {
-        for ($i=0, $l=count($array); $i<$l; $i++) {
-            $rand = Math::rand(0, $l - 1);
-            $temp = $array[$i];
-            $array[$i] = $array[$rand];
-            $array[$rand] = $temp;
-        }
-
-        return $array;
-    }
-
 	/**
 	 * Change the number system from decimal to custom system
 	 * You can use basis up to 62

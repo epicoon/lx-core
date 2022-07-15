@@ -8,7 +8,7 @@ class ServicesMap
 
 	public function exists(string $serviceName): bool
 	{
-		return array_key_exists($serviceName, Autoloader::getInstance()->map->packages);
+		return array_key_exists($serviceName, Autoloader::getInstance()->map->services);
 	}
 
 	public function has(string $serviceName): bool

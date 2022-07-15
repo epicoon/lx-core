@@ -12,10 +12,8 @@ class SnippetBuildContext implements ContextTreeInterface
 	private Snippet $snippet;
 	private SnippetCacheData $cacheData;
 
-	public function __construct(iterable $config = [])
+	protected function afterObjectConstruct(iterable $config): void
 	{
-	    $this->__objectConstruct($config);
-
 		$this->pluginBuildContext = $config['pluginBuildContext'];
 		if ($this->isHead()) {
 			$this->cacheData = new SnippetCacheData($this);

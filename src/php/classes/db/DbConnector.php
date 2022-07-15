@@ -17,10 +17,8 @@ class DbConnector implements FusionComponentInterface, DbConnectorInterface
     private array $config = [];
     private array $connections = [];
 
-    public function __construct(iterable $config = [])
+    protected function afterObjectConstruct(iterable $config): void
     {
-        $this->__objectConstruct($config);
-
         if (array_key_exists('driver', $config)) {
             $this->config[self::DEFAULT_DB_CONNECTION_KEY] = $config;
         } else {

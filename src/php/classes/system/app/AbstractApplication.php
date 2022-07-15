@@ -30,14 +30,6 @@ use lx;
  */
 abstract class AbstractApplication implements FusionInterface
 {
-    use FusionTrait;
-
-    const CONFIG_KEY_CONSTRUCT_FLAGS = 'constructFlags';
-    const CONSTRUCT_FLAG_BLANK = 'blank';
-    const CONSTRUCT_FLAG_IGNORE_CONFIG = 'ignoreConfig';
-
-    const CONFIG_KEY_DEPENDENCY_PROCESSOR = 'dependencyProcessor';
-
     const EVENT_BEFORE_RUN = 'beforeApplicationRun';
     const EVENT_AFTER_RUN = 'afterApplicationRun';
 
@@ -47,42 +39,34 @@ abstract class AbstractApplication implements FusionInterface
     private array $_params;
     private ?array $defaultServiceConfig = null;
     private ?array $defaultPluginConfig = null;
+    private ApplicationComponents $components;
     private ApplicationConductor $_conductor;
     private ServicesMap $_services;
     private EventManagerInterface $_events;
     private DependencyProcessor $_diProcessor;
     private bool $logMode;
 
+    protected array $settings = [];
+
     public function __construct(iterable $config = [])
     {
-        $constructFlags = DataObject::create($config[self::CONFIG_KEY_CONSTRUCT_FLAGS] ?? []);
-        unset($config[self::CONFIG_KEY_CONSTRUCT_FLAGS]);
-
         $this->pid = getmypid();
         $this->_sitePath = lx::$conductor->sitePath;
 
-        if ($constructFlags->blank) {
-            return;
-        }
-
         lx::$app = $this;
+        $this->components = new ApplicationComponents();
         $this->_conductor = new ApplicationConductor();
         $this->_services = new ServicesMap();
         $this->logMode = true;
 
-        $dependencyProcessor = $config[self::CONFIG_KEY_DEPENDENCY_PROCESSOR] ?? [];
-        unset($config[self::CONFIG_KEY_DEPENDENCY_PROCESSOR]);
+        $dependencyProcessor = $config['dependencyProcessor'] ?? [];
+        unset($config['dependencyProcessor']);
         $diConfig = ClassHelper::prepareConfig($dependencyProcessor, DependencyProcessor::class);
         $this->_diProcessor = new $diConfig['class']($diConfig['params']);
 
         $this->_params = [];
         $this->_config = $config;
-        $this->_conductor->setAliases($this->getConfig('aliases') ?? []);
-
-        if (!$constructFlags->ignoreConfig) {
-            $this->loadConfig();
-            $this->_conductor->setAliases($this->getConfig('aliases') ?? []);
-        }
+        $this->loadConfig();
 
         $this->_events = $this->diProcessor->build()
             ->setInterface(EventManagerInterface::class)
@@ -99,6 +83,26 @@ abstract class AbstractApplication implements FusionInterface
         // pass
     }
 
+    public function initFusionComponents(array $list): void
+    {
+        $this->components->initFusionComponents($list, $this);
+    }
+
+    public function hasFusionComponent(string $name): bool
+    {
+        return $this->components->hasFusionComponent($name);
+    }
+
+    public function setFusionComponent(string $name, array $config): void
+    {
+        $this->components->setFusionComponent($name, $config);
+    }
+
+    public function getFusionComponent(string $name): ?FusionComponentInterface
+    {
+        return $this->components->getFusionComponent($name);
+    }
+    
     public function getFusionComponentTypes(): array
     {
         return [
@@ -119,6 +123,8 @@ abstract class AbstractApplication implements FusionInterface
     public function getDefaultFusionComponents(): array
     {
         return [
+            'language' => Language::class,
+            'i18nMap' => ApplicationI18nMap::class,
             'presetManager' => PresetManager::class,
             'jsModules' => JsModulesComponent::class,
             'moduleInjector' => ApplicationJsModuleInjector::class,
@@ -150,7 +156,7 @@ abstract class AbstractApplication implements FusionInterface
                 return $this->_events;
 		}
 
-		return $this->__objectGet($name);
+		return $this->components->__get($name);
 	}
 
 	public function getPid(): int
@@ -262,11 +268,11 @@ abstract class AbstractApplication implements FusionInterface
 	public function getPackagePath(string $name): ?string
 	{
 		$map = Autoloader::getInstance()->map;
-		if (!array_key_exists($name, $map->packages)) {
+		if (!array_key_exists($name, $map->services)) {
 			return null;
 		}
 
-		$path = $map->packages[$name];
+		$path = $map->services[$name];
 		return $this->conductor->getFullPath($path);
 	}
 
@@ -290,6 +296,84 @@ abstract class AbstractApplication implements FusionInterface
 		return $this->getService($serviceName)->conductor->getPluginPath($pluginName);
 	}
 
+    public function getBuildData(): array
+    {
+        return [
+            'settings' => $this->getSettings(),
+        ];
+    }
+
+    public function applyBuildData(array $data): void
+    {
+    }
+
+    public function getSettings(): array
+    {
+        return $this->settings;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSetting(string $name)
+    {
+        $settings = $this->getSettings();
+        return $settings[$name] ?? null;
+    }
+
+    /**
+     * @param mixed $value
+     */
+    public function addSetting(string $name, $value)
+    {
+        $this->settings[$name] = $value;
+    }
+
+    /**
+     * @param array|string $config
+     */
+    public function useI18n($config): void
+    {
+        $map = [];
+        if (is_array($config)) {
+            if (isset($config['service'])) {
+                if ($this->i18nMap->inUse($config['service'])) {
+                    return;
+                } else {
+                    $this->i18nMap->noteUse($config['service']);
+                }
+
+                $map = $this->getService($config['service'])->i18nMap->getMap();
+            } elseif (isset($config['plugin'])) {
+                if ($this->i18nMap->inUse($config['plugin'])) {
+                    return;
+                } else {
+                    $this->i18nMap->noteUse($config['plugin']);
+                }
+
+                $map = $this->getPlugin($config['plugin'])->i18nMap->getMap();
+            }
+        } elseif (is_string($config)) {
+            $path = $this->conductor->getFullPath($config);
+            if ($this->i18nMap->inUse($path)) {
+                return;
+            }
+
+            $file = $this->diProcessor->createByInterface(DataFileInterface::class, [$path]);
+            if ($file->exists()) {
+                $this->i18nMap->noteUse($path);
+                $data = $file->get();
+                if (is_array($data)) {
+                    $map = $data;
+                }
+            }
+        }
+
+        if (!empty($map)) {
+            $this->i18nMap->add($map, true);
+        }
+    }
+
 	abstract public function run(): void;
 
 	private function loadConfig(): void
@@ -311,6 +395,7 @@ abstract class AbstractApplication implements FusionInterface
 
         $this->diProcessor->addMap($config['diProcessor'] ?? [], true);
         $this->_config = ArrayHelper::mergeRecursiveDistinct($this->_config, $config);
+        $this->_conductor->setAliases($this->getConfig('aliases') ?? []);
 
         $this->loadLocalConfig();
 	}
@@ -336,6 +421,7 @@ abstract class AbstractApplication implements FusionInterface
 
         $this->diProcessor->addMap($config['diProcessor'] ?? [], true);
         $this->_config = ArrayHelper::mergeRecursiveDistinct($this->_config, $config, true);
+        $this->_conductor->setAliases($this->getConfig('aliases') ?? []);
 
         // Validation creates dev-log messages if classes don't due to interfaces.
         // This collisions must be solved during development.

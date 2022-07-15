@@ -17,10 +17,8 @@ class Language implements FusionComponentInterface
 	protected array $_list = [];
 	private string $_current;
 
-	public function __construct(iterable $config = [])
+	protected function init(): void
 	{
-	    $this->__objectConstruct($config);
-
 		$filePath = lx::$conductor->lxData . '/languages';
 		$file = lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$filePath]);
 

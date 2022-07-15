@@ -3,7 +3,7 @@
 namespace lx;
 
 /**
- * @property-read array $packages
+ * @property-read array $services
  * @property-read array $files
  * @property-read array $namespaces
  * @property-read array $classes
@@ -13,7 +13,7 @@ class AutoloadMap
 	private string $sitePath;
 	private string $autoloadMapPath;
 	private string $autoloadMapCachePath;
-	private array $_packages = [];
+	private array $_services = [];
 	private array $_files = [];
 	private array $_namespaces = [];
 	private array $_classes = [];
@@ -31,8 +31,8 @@ class AutoloadMap
 	public function __get(string $name): ?array
 	{
 		switch ($name) {
-			case 'packages'   :
-				return $this->_packages;
+			case 'services'   :
+				return $this->_services;
 			case 'files'     :
 				return $this->_files;
 			case 'namespaces':
@@ -78,7 +78,7 @@ class AutoloadMap
 	private function makeCache(): void
 	{
 		$data = json_encode([
-			'packages' => $this->_packages,
+			'services' => $this->_services,
 			'files' => $this->_files,
 			'namespaces' => $this->_namespaces,
 			'classes' => $this->_classes,
@@ -96,7 +96,7 @@ class AutoloadMap
 		$data = $file->get();
 		$data = json_decode($data, true);
 
-		$this->_packages = $data['packages'];
+		$this->_services = $data['services'];
 		$this->_files = $data['files'];
 		$this->_namespaces = $data['namespaces'];
 		$this->_classes = $data['classes'];
@@ -117,8 +117,8 @@ class AutoloadMap
 
 		$this->parseClasses($data);
 
-		if (isset($data['packages'])) {
-			$this->_packages = $data['packages'];
+		if (isset($data['services'])) {
+			$this->_services = $data['services'];
 		}
 		if (isset($data['files'])) {
 			$this->_files = $data['files'];

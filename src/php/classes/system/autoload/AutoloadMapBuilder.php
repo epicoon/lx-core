@@ -4,7 +4,7 @@ namespace lx;
 
 class AutoloadMapBuilder
 {
-	private array $packagesMap = [];
+	private array $servicesMap = [];
 	private array $bootstrapFiles = [];
 	private array $namespacesMap = [];
 	private array $classes = [];
@@ -12,13 +12,13 @@ class AutoloadMapBuilder
 
 	/**
 	 * Makes file 'autoload.json'
-	 * Crowls all package directories (from application configuration with key 'packagesMap')
-	 * Finds recursively in these directories for packages
+	 * Crowls all service directories (from application configuration with key 'servicesMap')
+	 * Finds recursively in these directories for services
 	 * Package is a directory with special configuration file
 	 */
 	public function createCommonAutoloadMap(): void
 	{
-		$map = \lx::$app->getConfig('packagesMap');
+		$map = \lx::$app->getConfig('servicesMap');
 
 		foreach ($map as $dirPath) {
 			$fullDirPath = \lx::$app->conductor->getFullPath($dirPath);
@@ -40,7 +40,7 @@ class AutoloadMapBuilder
 	private function save(): void
 	{
 		$data = [
-			'packages' => $this->packagesMap,
+			'services' => $this->servicesMap,
 			'files' => $this->bootstrapFiles,
 			'namespaces' => $this->namespacesMap,
 			'classes' => $this->classes,
@@ -69,14 +69,14 @@ class AutoloadMapBuilder
 
 	private function analizePackage(string $packagePath, array $config): void
 	{
-		$packageName = $config['name'] ?? null;
-        if ($packageName === null) {
+		$serviceName = $config['name'] ?? null;
+        if ($serviceName === null) {
             return;
         }
 
 		$relativePackagePath = explode(\lx::$app->sitePath . '/', $packagePath)[1];
 
-		$this->packagesMap[$packageName] = $relativePackagePath;
+		$this->servicesMap[$serviceName] = $relativePackagePath;
 
 		if (!isset($config['autoload'])) {
 			return;
@@ -95,7 +95,7 @@ class AutoloadMapBuilder
 		if (isset($autoload['psr-4'])) {
 			foreach ($autoload['psr-4'] as $namespace => $pathes) {
 				$this->namespacesMap[$namespace] = [
-					'package' => $packageName,
+					'package' => $serviceName,
 					'pathes' => (array)$pathes
 				];
 			}
@@ -103,7 +103,7 @@ class AutoloadMapBuilder
 		if (isset($autoload['psr-0'])) {
 			foreach ($autoload['psr-0'] as $namespace => $pathes) {
 				$this->namespacesMap[$namespace] = [
-					'package' => $packageName,
+					'package' => $serviceName,
 					'pathes' => (array)$pathes
 				];
 			}
@@ -115,12 +115,12 @@ class AutoloadMapBuilder
 				$item = $relativePackagePath . '/' . $item;
 				if (preg_match('/\.php$/', $item)) {
 					$this->classes[] = [
-						'package' => $packageName,
+						'package' => $serviceName,
 						'path' => $item,
 					];
 				} else {
 					$this->directories[] = [
-						'package' => $packageName,
+						'package' => $serviceName,
 						'path' => $item,
 					];
 				}
@@ -130,6 +130,6 @@ class AutoloadMapBuilder
 
 	private function tryGetPackageConfig(string $path): ?DataFileInterface
 	{
-		return (new PackageDirectory($path))->getConfigFile();
+		return (new ServiceDirectory($path))->getConfigFile();
 	}
 }

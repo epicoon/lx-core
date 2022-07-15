@@ -27,10 +27,8 @@ class Dialog implements FusionComponentInterface
 	private ?Cookie $_cookie = null;
 	private ?DataObject $_location = null;
 
-	public function __construct(iterable $config = [])
+	protected function init(): void
 	{
-	    $this->__objectConstruct($config);
-
 		$this->_serverName = lx::$app->getConfig('serverName') ?? $_SERVER['SERVER_NAME'];
 		$this->_serverAddr = lx::$app->getConfig('serverAddr') ?? $_SERVER['SERVER_ADDR'];
 		$this->defineType();

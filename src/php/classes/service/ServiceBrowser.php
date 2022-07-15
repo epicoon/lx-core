@@ -2,13 +2,8 @@
 
 namespace lx;
 
-class PackageBrowser
+class ServiceBrowser
 {
-	public static function getPackagePathesList(): array
-	{
-		return Autoloader::getInstance()->map->packages;
-	}
-
 	public static function getServicePathesList(): array
 	{
 		$list = self::getPackagePathesList();
@@ -41,7 +36,7 @@ class PackageBrowser
 	{
 		$fullPath = \lx::$app->conductor->getFullPath($packagePath);
 
-		$directory = new PackageDirectory($fullPath);
+		$directory = new ServiceDirectory($fullPath);
 		if (!$directory->exists()) {
 			return false;
 		}
@@ -54,7 +49,7 @@ class PackageBrowser
 	{
 		$fullPath = \lx::$app->conductor->getFullPath($packagePath);
 
-		$directory = new PackageDirectory($fullPath);
+		$directory = new ServiceDirectory($fullPath);
 		if (!$directory->exists()) {
 			return false;
 		}
@@ -77,4 +72,9 @@ class PackageBrowser
 
 		return self::checkDirectoryIsService($list[$packageName]);
 	}
+
+    private static function getPackagePathesList(): array
+    {
+        return Autoloader::getInstance()->map->services;
+    }
 }

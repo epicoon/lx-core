@@ -4,7 +4,7 @@ namespace lx;
 
 use lx;
 
-class PackageDirectory extends Directory
+class ServiceDirectory extends Directory
 {
     private ?Service $service = null;
 
@@ -28,7 +28,7 @@ class PackageDirectory extends Directory
 
 	/**
 	 * Any package has to have configuration file
-	 * If it doesn't have that file, this directory is not package
+	 * If it doesn't have that file, this directory is not a package
 	 */
 	public function getConfigFile(): ?DataFileInterface
 	{
@@ -45,23 +45,5 @@ class PackageDirectory extends Directory
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * Method checks directory is lx-package (it has to have special lx-configuration file)
-	 */
-	public function isLx(): bool
-	{
-		$lxConfigPathes = \lx::$conductor->getLxPackageConfigNames();
-		$path = $this->getPath();
-		foreach ($lxConfigPathes as $configPath) {
-			$fullPath = $path . '/' . $configPath;
-			/** @var DataFileInterface $file */
-			$file = \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$fullPath]);
-			if ($file->exists()) {
-				return true;
-			}
-		}
-		return false;
 	}
 }

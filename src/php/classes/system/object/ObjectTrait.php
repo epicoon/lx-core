@@ -28,10 +28,13 @@ trait ObjectTrait
     
     public function __construct(iterable $config = [])
     {
+        $this->beforeObjectConstruct($config);
         $this->__objectConstruct($config);
+        $this->afterObjectConstruct($config);
+        $this->init();
     }
 
-    public static function construct(iterable $config = [], array $dependences = []): ObjectInterface
+    public static function construct(iterable $config = [], iterable $dependences = []): ObjectInterface
     {
         return lx::$app->diProcessor->create(static::class, [$config], $dependences);
     }
@@ -64,6 +67,21 @@ trait ObjectTrait
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * NOT PUBLIC
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+    protected function beforeObjectConstruct(iterable $config): void
+    {
+        // pass
+    }
+
+    protected function afterObjectConstruct(iterable $config): void
+    {
+        // pass
+    }
+
+    protected function init(): void
+    {
+        // pass
+    }
 
     protected function __objectConstruct(iterable &$config = []): void
     {

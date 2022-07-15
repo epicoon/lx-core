@@ -791,13 +791,13 @@ class CliProcessor
 
 	private function createService(): void
 	{
-		$dirs = lx::$app->getConfig('packagesMap');
+		$dirs = lx::$app->getConfig('servicesMap');
 		if ($dirs) {
 			$dirs = (array)$dirs;
 		}
 
 		if (!is_array($dirs) || empty($dirs)) {
-			$this->outln("Application configuration 'packagesMap' not found");
+			$this->outln("Application configuration 'servicesMap' not found");
 			$this->done();
 			return;
 		}
@@ -1035,7 +1035,7 @@ class CliProcessor
 
 	private function resetServicesList(): void
 	{
-		$services = PackageBrowser::getServicePathesList();
+		$services = ServiceBrowser::getServicePathesList();
 		$data = [];
 		foreach ($services as $name => $path) {
 			$data[$name] = [

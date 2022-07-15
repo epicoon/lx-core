@@ -11,7 +11,7 @@ lx.checkDisplay = function(event) {
 }
 
 
-lx.start = function(settings, modules, moduleNames, jsBootstrap, plugin, jsMain) {
+lx.start = function(settings, modules, moduleNames, plugin) {
 	this.setSettings(settings);
 
 	this.setWatchForKeypress(true);
@@ -26,14 +26,8 @@ lx.start = function(settings, modules, moduleNames, jsBootstrap, plugin, jsMain)
 		modules: moduleNames
 	});
 
-	// Глобальный js-код, выполняемый ДО загрузки корневого плагина
-	if (jsBootstrap && jsBootstrap != '') lx._f.createAndCallFunction('', jsBootstrap, this);
-
 	// Запуск загрузчика
 	if (plugin) lx.Loader.run(plugin, lx.body);
-
-	// Глобальный js-код, выполняемый ПОСЛЕ загрузки корневого плагина
-	if (jsMain && jsMain != '') lx._f.createAndCallFunction('', jsMain, this);
 
 	#lx:mode-case: dev
 		__findDump();

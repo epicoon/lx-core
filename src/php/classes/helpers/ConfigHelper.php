@@ -13,7 +13,12 @@ class ConfigHelper
 	        $result['autoload.psr-4'] = $config['autoload']['psr-4'];
         }
 
-	    $result = array_merge($result, $config['service']);
+        $configService = $config['service'] ?? [];
+        if (is_string($configService)) {
+            $configService = ['name' => $configService];
+        }
+
+	    $result = array_merge($result, $configService);
 
         $commonConfig = lx::$app->getDefaultServiceConfig();
 		self::prepareConfig($commonConfig, $result);

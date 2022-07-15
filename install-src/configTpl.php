@@ -6,8 +6,8 @@ $configMainCode = <<<EOT
 return [
     // 'localConfig' => '@site/config/main.php',
 
-	// Directories for packages
-	'packagesMap' => [
+	// Directories for services
+	'servicesMap' => [
 		'vendor',
 		'services',
 	],

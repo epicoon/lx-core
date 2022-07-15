@@ -1,5 +1,6 @@
 {
     "name": "lx/core",
+    "service": "lx/core",
     "description": "Lx framework",
     "version": "1.0.0",
     "keywords": ["lx", "core"],

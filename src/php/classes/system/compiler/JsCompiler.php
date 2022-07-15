@@ -149,7 +149,7 @@ class JsCompiler
     private function getExtensions(): array
     {
         if (self::$extensionsLoaded === false) {
-            $services = PackageBrowser::getServicesList();
+            $services = ServiceBrowser::getServicesList();
             foreach ($services as $service) {
                 $jsCompiler = $service->jsCompiler;
                 if ($jsCompiler && $jsCompiler instanceof JsCompilerExtensionInterafce) {

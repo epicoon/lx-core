@@ -7,7 +7,7 @@ use lx;
 /**
  * @property-read string $name
  * @property-read string $relativePath
- * @property-read PackageDirectory $directory
+ * @property-read ServiceDirectory $directory
  * @property-read ServiceConductor $conductor
  * @property-read ServiceRouter $router
  * @property-read ServiceI18nMap $i18nMap
@@ -15,29 +15,27 @@ use lx;
  * @property-read ModelManagerInterface|null $modelManager
  * @property-read JsModuleInjectorInterface $moduleInjector
  */
-class Service implements FusionInterface
+class Service implements ObjectInterface, FusionInterface
 {
+    use ObjectTrait;
 	use FusionTrait;
 
 	protected string $_name;
 	protected string $_path;
 	protected ?array $_config = null;
 
-	/**
-	 * Don't use for service creation. Use Service::create() instead
-	 */
-	public function __construct(iterable $config = [])
-	{
-	    $serviceConfig = $config['serviceConfig'] ?? [];
-	    unset($config['serviceConfig']);
-
+    protected function beforeObjectConstruct(iterable $config): void
+    {
+        $serviceConfig = $config['serviceConfig'] ?? [];
         $this->setName($serviceConfig['name']);
-	    $this->__objectConstruct($config);
-
         $this->_config = $serviceConfig;
+    }
+
+    protected function init(): void
+    {
         $this->initFusionComponents($this->getConfig('components') ?? []);
-	}
-    
+    }
+
     public function getFusionComponentTypes(): array
     {
         return [
@@ -62,7 +60,7 @@ class Service implements FusionInterface
     {
         return [
             'directory' => [
-                'class' => PackageDirectory::class,
+                'class' => ServiceDirectory::class,
                 'readable' => true,
             ],
             'conductor' => [
@@ -100,7 +98,7 @@ class Service implements FusionInterface
 
 	public static function exists(string $name): bool
 	{
-		return array_key_exists($name, Autoloader::getInstance()->map->packages);
+		return array_key_exists($name, Autoloader::getInstance()->map->services);
 	}
 
 	/**
@@ -130,8 +128,8 @@ class Service implements FusionInterface
 			return null;
 		}
 
-		$path = $app->sitePath . '/' . Autoloader::getInstance()->map->packages[$name];
-		$dir = new PackageDirectory($path);
+		$path = $app->sitePath . '/' . Autoloader::getInstance()->map->services[$name];
+		$dir = new ServiceDirectory($path);
 
 		$configFile = $dir->getConfigFile();
 		if (!$configFile) {
@@ -195,8 +193,8 @@ class Service implements FusionInterface
 
 	public function getCategory(): string
     {
-        $packages = lx::$autoloader->map->packages;
-        $path = $packages[$this->name];
+        $services = lx::$autoloader->map->services;
+        $path = $services[$this->name];
         $category = (explode('/' . $this->name, $path))[0];
         return $category;
     }
@@ -490,6 +488,6 @@ class Service implements FusionInterface
 	private function setName(string $name): void
 	{
 		$this->_name = $name;
-		$this->_path = Autoloader::getInstance()->map->packages[$this->_name];
+		$this->_path = Autoloader::getInstance()->map->services[$this->_name];
 	}
 }

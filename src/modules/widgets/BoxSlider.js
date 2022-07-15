@@ -21,9 +21,7 @@ class BoxSlider extends lx.Box {
 
 	static initCssAsset(css) {
 		css.addAbstractClass('lx-IS-button', {
-			backgroundImage: 'url(/web/css/img/ISarroy.png)',
-			backgroundRepeat: 'no-repeat',
-			backgroundSize: '100% 100%',
+			'@icon': ['\\276F', {fontSize:'calc(25px + 1.0vh)', paddingBottom:'10px'}],
 			borderTopLeftRadius: css.preset.borderRadius,
 			borderBottomLeftRadius: css.preset.borderRadius,
 			opacity: '0.3'
@@ -44,6 +42,7 @@ class BoxSlider extends lx.Box {
 	 *
 	 * @param [config] {Object: {
 	 *     #merge(lx.Rect::constructor::config),
+	 *     [count = 1] {Number}
 	 *     [type = lx.BoxSlider.TYPE_OPACITY] {Number&Enum(
 	 *         lx.BoxSlider.TYPE_SLIDER,
 	 *         lx.BoxSlider.TYPE_OPACITY

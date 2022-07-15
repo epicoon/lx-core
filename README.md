@@ -118,14 +118,14 @@ Of all the elements of the architecture a service and a plugin are configurable 
   * `lx-config/main.php`
   * `lx-config/main.yaml`<br>
   The presence of the configuration file `composer.json` means that the directory is a composer-package.<br>
-  The presence of a configuration file with the prefix `lx` means that the directory is an lx-package.<br>
+  The presence of a configuration file with the prefix `lx` means that the directory is an lx-package (service).<br>
   A package can be a composer package and an lx package at the same time (if it has both configuration files).<br>
   It is recommended to describe the autoload rules in the lx-configuration file (and not in `composer.json`), since the platform has its own autoloader which does not contradict the autoloader of the composer but has advanced capabilities.<br>
   The `composer.json` file can be used to describe dependencies.<br>
   Packages can be located in multiple directories within the application, in which ones it is defined in the application configuration. [Application configuration details](https://github.com/epicoon/lx-doc-articles/blob/master/en/lx-core/doc/app-config.md)
 
 * <a name="arch-service"><h3>Services</h3></a>
-  Service is a package that can respond to requests.<br>
+  Service is an lx-package that can respond to requests.<br>
   If has a set of tools to do this:
   * [Service routers](#arch-service-router)
   * [Controllers](#arch-controller)

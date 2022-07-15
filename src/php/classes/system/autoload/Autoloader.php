@@ -146,7 +146,7 @@ class Autoloader
 
 			$subName = explode($namespace, $className)[1];
 			$relativePath = str_replace('\\', '/', $subName);
-			$basePath = $this->sitePath . '/' . $this->map->packages[$data['package']] . '/';
+			$basePath = $this->sitePath . '/' . $this->map->services[$data['package']] . '/';
 			foreach ($data['pathes'] as $innerPath) {
 				$path = $basePath . $innerPath;
 				if ($path[-1] != '/') $path .= '/';

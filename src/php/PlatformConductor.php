@@ -36,7 +36,7 @@ class PlatformConductor
 	private string $_devLog;
 	private string $_defaultServiceConfig;
 	private string $_defaultPluginConfig;
-	private array $_lxPackageConfig;
+	private array $_serviceConfig;
 	private array $_packageConfig;
 	private array $publicFields;
 
@@ -63,8 +63,8 @@ class PlatformConductor
 		$this->_defaultServiceConfig = $this->_clientConfig . '/service.php';
 		$this->_defaultPluginConfig = $this->_clientConfig . '/plugin.php';
 
-		$this->_lxPackageConfig = ['lx-config', 'lx-config/main'];
-		$this->_packageConfig = array_merge($this->_lxPackageConfig, ['composer.json']);
+		$this->_serviceConfig = ['lx-config', 'lx-config/main'];
+		$this->_packageConfig = array_merge($this->_serviceConfig, ['composer.json']);
 		$this->publicFields = [
 			'web',
 			'webCss',
@@ -124,9 +124,9 @@ class PlatformConductor
 		return $this->_packageConfig;
 	}
 
-	public function getLxPackageConfigNames(): array
+	public function getServiceConfigNames(): array
 	{
-		return $this->_lxPackageConfig;
+		return $this->_serviceConfig;
 	}
 
 	public function getTempFile(?string $extension = null): File

@@ -17,9 +17,9 @@ class ApplicationLogger implements LoggerInterface, FusionComponentInterface
 	protected ?array $allowedCategories = null;
 	protected array $ignoredCategories = [];
 
-    public function init(array $config): void
+    public function setFilePath(string $path): void
     {
-        $this->path = $config['path'] ?? null;
+        $this->path = $path;
     }
 
 	/**

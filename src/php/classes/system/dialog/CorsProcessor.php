@@ -8,10 +8,8 @@ class CorsProcessor implements FusionComponentInterface
 
 	protected array $originMap = [];
 
-	public function __construct(iterable $config = [])
+	protected function init(): void
 	{
-	    $this->__objectConstruct($config);
-
 		$originMap = [];
 		foreach ($this->originMap as $key => $value) {
 			if (is_string($key)) {
