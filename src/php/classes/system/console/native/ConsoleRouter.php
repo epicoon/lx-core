@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class ConsoleRouter implements RouterInterface, FusionComponentInterface
 {
     use FusionComponentTrait;
@@ -10,29 +12,45 @@ class ConsoleRouter implements RouterInterface, FusionComponentInterface
 
     public function route(string $route): ?ResourceContextInterface
     {
-        if (array_key_exists($route, $this->routes)) {
-            $config = $this->routes[$route];
-            $executor = is_string($config)
-                ? $config
-                : $config['executor'] ?? null;
-            if ($executor) {
-                return new ConsoleResourceContext([
-                    'executor' => $executor,
-                ]);
+        $executor = $this->getExecutor($this->routes, $route);
+        if ($executor) {
+            return new ConsoleResourceContext([
+                'executor' => $executor,
+            ]);
+        }
+        
+        foreach ($this->routes as $routeKey => $routeDef) {
+            if ($routeKey[0] == '!') {
+                $prefix = trim($routeKey, '!');
+                if (preg_match('/^' . $prefix . '/', $route)) {
+                    $service = lx::$app->getService($routeDef);
+                    $routeResidue = preg_replace('/^' . $prefix . '\\//', '', $route);
+                    $executor = $this->getExecutor($service->getConfig('commands') ?? [], $routeResidue);
+                    if ($executor) {
+                        return new ConsoleResourceContext([
+                            'executor' => $executor,
+                        ]);
+                    }
+                }
             }
         }
-
-
-//        $e = [
-//            'loc_com' => CommandClass,
-//            '!serv' => 'service/name',
-//        ];
-        //TODO !serv
-
 
         // Если не найдено
         return new ConsoleResourceContext([
             'executor' => DefaultCommand::class,
         ]);
+    }
+    
+    private function getExecutor($list, $key)
+    {
+        if (!array_key_exists($key, $list)) {
+            return null;
+        }
+
+        $config = $list[$key];
+        $executor = is_string($config)
+            ? $config
+            : $config['executor'] ?? null;
+        return $executor;
     }
 }

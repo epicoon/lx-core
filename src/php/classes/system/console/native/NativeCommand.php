@@ -14,15 +14,15 @@ abstract class NativeCommand extends AbstractCommand implements CommandExecutorI
 
     abstract public function getName(): string;
 
-    /**
-     * @return mixed
-     */
-    abstract protected function run();
-
     protected function defineArguments(): array
     {
         return [];
     }
+
+    /**
+     * @return mixed
+     */
+    abstract protected function run();
 
     public function setParams(array $params): void
     {

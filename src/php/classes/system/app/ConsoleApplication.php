@@ -45,68 +45,28 @@ class ConsoleApplication extends AbstractApplication
         
         $resourceContext->setParams($this->args);
         $resourceContext->invoke();
-
-        $e = 1;
-
-
-        $showCommandInConsole = $this->args['w'] ?? false;
-        $showCommandInFile = $this->args['f'] ?? false;
-        if ($showCommandInConsole || $showCommandInFile) {
-            $this->setParam('showCommand', true);
-        }
-
-		switch ($this->command) {
-            case 'run':
-                $serviceName = $this->args[0] ?? '';
-                $service = $this->getService($serviceName);
-                if (!$service) {
-                    echo 'Service doesn\'t exist' . PHP_EOL;
-                    return;
-                }
-
-                $processName = $this->args[1] ?? '';
-                if (!$service->hasProcess($processName)) {
-                    echo 'Process doesn\'t exist' . PHP_EOL;
-                    return;
-                }
-
-                echo 'Process is running' . PHP_EOL;
-                $result = $service->runProcess($processName);
-                if ($result === null) {
-                    echo 'Done' . PHP_EOL;
-                } else {
-                    echo $result . PHP_EOL;
-                }
-                break;
-
-			default:
-				//TODO можно реализовать какие-то команды безоболочечные
-				break;
-		}
-        
-        if ($showCommandInConsole) {
-            echo $this->getParam('showCommand') . PHP_EOL;
-        }
-        if ($showCommandInFile) {
-            $this->log($this->getParam('showCommand'), 'command-run');
-        }
 	}
 	
 	private function processCli(): void
     {
-        if (empty($this->args)) {
-            (new Cli())->run();
-        } else {
-            $processor = new CliProcessor();
-            $argsStr = implode(' ', $this->args);
-            list($command, $args) = $processor->parseInput($argsStr);
-            $result = $processor->handleCommand(
-                $command,
-                CliProcessor::COMMAND_TYPE_CONSOLE,
-                $args,
-                null, null
-            );
-            //TODO допилить логирование ошибок и настройку вывода в консоль если надо
+        try {
+            if (empty($this->args)) {
+                (new Cli())->run();
+            } else {
+                (new CliProcessor())->handleCommand(
+                    $this->command,
+                    CliProcessor::COMMAND_TYPE_CONSOLE,
+                    $this->args,
+                    null, null
+                );
+            }
+        } catch (\Throwable $exception) {
+            \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+                '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+                'msg' => $exception->getMessage(),
+            ]);
+            echo $exception->getMessage() . PHP_EOL;
+            echo 'Look for details in the dev log' . PHP_EOL;
         }
     }
 }
