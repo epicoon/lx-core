@@ -20,15 +20,8 @@ defined('STDOUT') or define('STDOUT', fopen('php://stdout', 'w'));
 require_once(__DIR__ . '/main.php');
 $site = new Directory(lx::$conductor->sitePath);
 
-$app = new lx\ConsoleApplication(
-    $site->contains('lx/config/main.php') ? []
-    : [
-        'servicesMap' => [
-            'vendor',
-            'services',
-        ],
-    ]
-);
+$config = defineConfig($site);
+new lx\ConsoleApplication($config);
 
 actualizeGitignore($site);
 genFileStructure($site);
@@ -40,6 +33,18 @@ lx\Console::outln('Done');
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Functions
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+function defineConfig(Directory $site): array
+{
+    return $site->contains('lx/config/__map__.php')
+        ? []
+        : [
+            'servicesMap' => [
+                'vendor',
+                'services',
+            ],
+        ];
+}
 
 function actualizeGitignore(Directory $siteDirectory): void
 {

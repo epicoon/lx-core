@@ -11,7 +11,7 @@ namespace lx;
  * Object has to know action class name and method name. It can also know service name.
  *	$this->data == ['service' => 'serviceName', 'class' => 'className', 'method' => 'methodName']
  */
-class ResourceContext
+class ResourceContext implements ResourceContextInterface
 {
 	private array $data;
 	private Plugin $plugin;
@@ -27,14 +27,19 @@ class ResourceContext
 		$this->data = $data;
 	}
 
-	public function invoke(?string $methodName = null, ?array $params = null): ResponseInterface
+    public function setParams(array $params): void
+    {
+        $this->data['params'] = $params;
+    }
+
+	public function invoke(): ResponseInterface
 	{
 		if ($this->isAction()) {
-			return $this->invokeAction($methodName, $params);
+			return $this->invokeAction();
 		}
 
 		if ($this->isPlugin()) {
-			return $this->invokePlugin($methodName, $params);
+			return $this->invokePlugin();
 		}
 
 		return $this->getNotFoundResponse();
@@ -120,19 +125,19 @@ class ResourceContext
 	 * PRIVATE
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	private function invokeAction(?string $methodName, ?array $params): ResponseInterface
+	private function invokeAction(): ResponseInterface
 	{
 		$object = $this->getResource();
 		if (!$object) {
 			return $this->getNotFoundResponse();
 		}
 
-		$methodName = $methodName ?? $this->data['method'] ?? null;
+		$methodName = $this->data['method'] ?? null;
 		if (!$methodName || !method_exists($object, $methodName)) {
             return $this->getNotFoundResponse();
 		}
 
-		$params = $params ?? $this->data['params'] ?? [];
+		$params = $this->data['params'] ?? [];
 
 		//TODO здесь нужен try catch с фиксацией 500-проблем 
 		$result = $object->runAction($methodName, $params);
@@ -140,15 +145,15 @@ class ResourceContext
 		return $response;
 	}
 
-	private function invokePlugin(?string $methodName, ?array $params): ResponseInterface
+	private function invokePlugin(): ResponseInterface
 	{
 		$plugin = $this->getPlugin();
-		$methodName = $methodName ?? Plugin::DEFAULT_RESOURCE_METHOD;
+		$methodName = Plugin::DEFAULT_RESOURCE_METHOD;
 		if (!method_exists($plugin, $methodName)) {
             return $this->getNotFoundResponse();
 		}
 
-		$params = $params ?? $this->data['params'] ?? [];
+		$params = $this->data['params'] ?? [];
 
         //TODO здесь нужен try catch с фиксацией 500-проблем 
 		$result = $plugin->runAction($methodName, $params);

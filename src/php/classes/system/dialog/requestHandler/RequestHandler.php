@@ -72,9 +72,10 @@ abstract class RequestHandler
                 $this->resourceContext = $resourceContext;
             }
         } else {
+            /** @var Router $router */
             $router = lx::$app->router;
             if ($router !== null) {
-                $resourceContext = $router->route();
+                $resourceContext = $router->route(lx::$app->dialog->getRoute());
                 if ($resourceContext !== null) {
                     $this->resourceContext = $resourceContext;
                 }

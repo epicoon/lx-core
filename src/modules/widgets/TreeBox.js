@@ -486,7 +486,7 @@ function __handlerAddNode() {
 		return;
 	}
 
-	tw.addProcess(node, obj || {});
+	tw.addProcess(pNode, obj || {});
 }
 
 function __handlerDelNode() {

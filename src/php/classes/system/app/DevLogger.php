@@ -26,7 +26,7 @@ class DevLogger implements LoggerInterface
         //TODO
     }
 
-    public function init(array $config): void
+    public function setFilePath(string $path): void
     {
         // pass
     }

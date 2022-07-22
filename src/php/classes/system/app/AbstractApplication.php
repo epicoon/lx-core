@@ -107,6 +107,7 @@ abstract class AbstractApplication implements FusionInterface
     {
         return [
             'dbConnector' => DbConnectorInterface::class,
+            'router' => RouterInterface::class,
             'userManager' => UserManagerInterface::class,
             'user' => UserInterface::class,
             'authenticationGate' => AuthenticationInterface::class,
@@ -378,7 +379,7 @@ abstract class AbstractApplication implements FusionInterface
 
 	private function loadConfig(): void
 	{
-		$path = lx::$conductor->getAppConfig();
+		$path = lx::$conductor->getAppConfig($this);
 		if (!$path) {
 		    return;
         }

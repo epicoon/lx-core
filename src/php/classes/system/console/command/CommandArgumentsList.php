@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class CliArgumentsList
+class CommandArgumentsList
 {
     private array $data = [];
     private bool $validated;

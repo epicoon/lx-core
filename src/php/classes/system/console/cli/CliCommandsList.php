@@ -51,7 +51,9 @@ class CliCommandsList
         $this->list = [];
         foreach ($list as $command) {
             if (is_array($command)) {
-                $command = new CliCommand($command);
+                $config = $command;
+                $command = new CliCommand();
+                $command->init($config);
             }
 
             $this->list[] = $command;

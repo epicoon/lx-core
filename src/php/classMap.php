@@ -52,17 +52,22 @@ return [
 	'EventListenerInterface' => 'classes/system/event',
 	'EventListenerTrait' => 'classes/system/event',
 
-	'Console' => 'classes/system/console',
-	'Cli' => 'classes/system/console',
-	'CliProcessor' => 'classes/system/console',
-    'CliArgument' => 'classes/system/console',
-    'CliArgumentsList' => 'classes/system/console',
-    'CliCommand' => 'classes/system/console',
-    'CliCommandsList' => 'classes/system/console',
-	'ServiceCliExecutor' => 'classes/system/console',
+    'Console' => 'classes/system/console',
     'AbstractConsoleInput' => 'classes/system/console/input',
     'ConsoleInput' => 'classes/system/console/input',
     'ConsoleSelect' => 'classes/system/console/input',
+    'CommandArgument' => 'classes/system/console/command',
+    'CommandArgumentsList' => 'classes/system/console/command',
+    'AbstractCommand' => 'classes/system/console/command',
+    'Cli' => 'classes/system/console/cli',
+    'CliProcessor' => 'classes/system/console/cli',
+    'CliCommandsList' => 'classes/system/console/cli',
+    'CliCommand' => 'classes/system/console/cli',
+    'ServiceCliExecutor' => 'classes/system/console/cli',
+    'ConsoleRouter' => 'classes/system/console/native',
+    'ConsoleResourceContext' => 'classes/system/console/native',
+    'NativeCommand' => 'classes/system/console/native',
+    'DefaultCommand' => 'classes/system/console/native',
 
 	'JsCompiler' => 'classes/system/compiler',
     'JsCompilerExtension' => 'classes/system/compiler',
@@ -213,6 +218,8 @@ return [
 	 * Interfaces
 	 ******************************************************************************************************************/
 	'ConductorInterface' => 'interfaces',
+    'RouterInterface' => 'interfaces',
+    'ResourceContextInterface' => 'interfaces',
     'ResponseInterface' => 'interfaces',
     'HtmlRendererInterface' => 'interfaces',
     'HtmlTemplateProviderInterface' => 'interfaces',
@@ -246,4 +253,7 @@ return [
 	'ModelInterface' => 'interfaces/model',
     'ModelManagerInterface' => 'interfaces/model',
     'ModelSchemaInterface' => 'interfaces/model',
+
+    'CommandInterface' => 'interfaces/console',
+    'CommandExecutorInterface' => 'interfaces/console',
 ];

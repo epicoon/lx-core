@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class CliArgument
+class CommandArgument
 {
     const TYPE_FREE = 'free';
     const TYPE_INTEGER = 'int';
@@ -22,47 +22,61 @@ class CliArgument
     private bool $isMandatory;
     private bool $isFlag;
 
+    public static function getServiceArgument(): CommandArgument
+    {
+        return (new CommandArgument())->setKeys(['service', 's', 0])
+            ->setType(CommandArgument::TYPE_STRING)
+            ->setDescription('Service name');
+    }
+
+    public static function getPluginArgument(): CommandArgument
+    {
+        return (new CommandArgument())->setKeys(['plugin', 'p', 0])
+            ->setType(CommandArgument::TYPE_STRING)
+            ->setDescription('Plugin name');
+    }
+
     public function __construct()
     {
         $this->keys = [];
         $this->type = self::TYPE_FREE;
         $this->enum = null;
-        $this->description = 'Description does not defined';
+        $this->description = 'Description is not defined';
         $this->isMandatory = false;
         $this->isFlag = false;
     }
 
-    public function setKeys(array $key): CliArgument
+    public function setKeys(array $key): CommandArgument
     {
         $this->keys = $key;
         return $this;
     }
 
-    public function setType(string $type): CliArgument
+    public function setType(string $type): CommandArgument
     {
         $this->type = $type;
         return $this;
     }
 
-    public function setEnum(array $enum): CliArgument
+    public function setEnum(array $enum): CommandArgument
     {
         $this->enum = $enum;
         return $this;
     }
 
-    public function setDescription(string $text): CliArgument
+    public function setDescription(string $text): CommandArgument
     {
         $this->description = $text;
         return $this;
     }
 
-    public function setMandatory(): CliArgument
+    public function setMandatory(): CommandArgument
     {
         $this->isMandatory = true;
         return $this;
     }
 
-    public function setFlag(): CliArgument
+    public function setFlag(): CommandArgument
     {
         $this->isFlag = true;
         return $this;

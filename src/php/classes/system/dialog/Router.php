@@ -4,13 +4,13 @@ namespace lx;
 
 use lx;
 
-class Router implements FusionComponentInterface
+class Router implements RouterInterface, FusionComponentInterface
 {
 	use FusionComponentTrait;
 
 	protected array $routes = [];
 
-	public function route(): ?ResourceContext
+	public function route(string $route): ?ResourceContextInterface
 	{
 		foreach ($this->routes as $routeKey => $data) {
 			$routeData = $this->determineRouteData($data);
@@ -18,7 +18,7 @@ class Router implements FusionComponentInterface
 				continue;
 			}
 
-			$serviceRoute = $this->determineServiceRoute($routeKey, lx::$app->dialog->getRoute());
+			$serviceRoute = $this->determineServiceRoute($routeKey, $route);
 			if (!$serviceRoute) {
 				continue;
 			}

@@ -2,21 +2,32 @@
 
 namespace lx;
 
+/**
+ * @property-read ConsoleRouter $router
+ */
 class ConsoleApplication extends AbstractApplication
 {
     protected string $command = '';
 	protected array $args = [];
 
+    public function getDefaultFusionComponents(): array
+    {
+        return array_merge(parent::getDefaultFusionComponents(), [
+            'router' => ConsoleRouter::class,
+        ]);
+    }
+
 	public function setArguments(array $argv): void
     {
-        $lx = array_shift($argv);
-        $this->command = array_shift($argv);
-        $this->args = $argv;
+        array_shift($argv);
+        $argsStr = implode(' ', $argv);
+        list($this->command, $this->args) = CliProcessor::parseInput($argsStr);
     }
 
 	public function run(): void
 	{
 		if (!isset($this->command)) {
+            echo 'Command is undefined' . PHP_EOL;
 			return;
 		}
 
@@ -24,11 +35,22 @@ class ConsoleApplication extends AbstractApplication
 		    $this->processCli();
 		    return;
         }
+        
+        /** @var ConsoleResourceContext $resourceContext */
+        $resourceContext = $this->router->route($this->command);
+        if (!$resourceContext->validate()) {
+            echo $resourceContext->getFirstFlightRecord() . PHP_EOL;
+            return;
+        }
+        
+        $resourceContext->setParams($this->args);
+        $resourceContext->invoke();
 
-        $argsStr = $this->command . ' ' . implode(' ', $this->args);
-        list($command, $args) = CliProcessor::parseInput($argsStr);
-        $showCommandInConsole = $args['w'] ?? false;
-        $showCommandInFile = $args['f'] ?? false;
+        $e = 1;
+
+
+        $showCommandInConsole = $this->args['w'] ?? false;
+        $showCommandInFile = $this->args['f'] ?? false;
         if ($showCommandInConsole || $showCommandInFile) {
             $this->setParam('showCommand', true);
         }

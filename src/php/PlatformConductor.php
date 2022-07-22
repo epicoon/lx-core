@@ -20,6 +20,8 @@ namespace lx;
  */
 class PlatformConductor
 {
+    private ?array $_appConfigMap = null;
+
 	private string $_sitePath;
 	private string $_web;
 	private string $_webCss;
@@ -106,17 +108,22 @@ class PlatformConductor
 		return $this->_system;
 	}
 
-	public function getAppConfig(): ?string
+	public function getAppConfig(AbstractApplication $app): ?string
 	{
-		$config = $this->_clientConfig;
-		if (file_exists($config . '/main.php')) {
-			return $config . '/main.php';
-		}
-		if (file_exists($config . '/main.yaml')) {
-			return $config . '/main.yaml';
-		}
+        $map = $this->getAppConfigMap();
+        $configPath = null;
+        foreach ($map as $class => $path) {
+            if ($app instanceof $class) {
+                $configPath = $path;
+                break;
+            }
+        }
 
-		return null;
+        if (!$configPath || !file_exists($configPath)) {
+            return null;
+        }
+
+        return $configPath;
 	}
 
 	public function getPackageConfigNames(): array
@@ -137,4 +144,31 @@ class PlatformConductor
             . ($extension ? ('.' . $extension) : '');
         return new File($tempPath);
 	}
+
+    private function getAppConfigMap(): array
+    {
+        if ($this->_appConfigMap === null) {
+            $config = $this->_clientConfig;
+            switch (true) {
+                case file_exists($config . '/__map__.php'):
+                    $mapPath = $config . '/__map__.php';
+                    break;
+                case file_exists($config . '/__map__.json'):
+                    $mapPath = $config . '/__map__.json';
+                    break;
+                case file_exists($config . '/__map__.yaml'):
+                    $mapPath = $config . '/__map__.yaml';
+                    break;
+                default: $mapPath = null;
+            }
+            if ($mapPath) {
+                $file = new DataFile($mapPath);
+                $this->_appConfigMap = $file->get();
+            } else {
+                $this->_appConfigMap = [];
+            }
+        }
+
+        return $this->_appConfigMap;
+    }
 }

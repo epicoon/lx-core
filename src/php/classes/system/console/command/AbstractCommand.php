@@ -2,50 +2,31 @@
 
 namespace lx;
 
-class CliCommand
+abstract class AbstractCommand implements CommandInterface
 {
-    private array $data;
+    /**
+     * @return CommandExecutorInterface|string|array|null
+     */
+    abstract public function getExecutor();
 
-    public function __construct(array $config)
-    {
-        $this->data = $config;
-        $this->data['command'] = (array)$this->data['command'];
-    }
-
-    public function getNames(): array
-    {
-        return $this->data['command'];
-    }
-
-    public function getType(): int
-    {
-        return $this->data['type'] ?? CliProcessor::COMMAND_TYPE_COMMON;
-    }
+    abstract public function getName(): string;
 
     public function getDescription(): string
     {
-        return $this->data['description'] ?? 'Description not defined';
+        return 'Description not defined';
     }
 
     /**
-     * @return array<CliArgument>
+     * @return array<CommandArgument>
      */
-    public function getArguments(): array
+    public function getArgumentsSchema(): array
     {
-        return $this->data['arguments'] ?? [];
+        return [];
     }
 
-    /**
-     * @return string|array|null
-     */
-    public function getExecutor()
+    public function validateInput(CommandArgumentsList $arguments): array
     {
-        return $this->data['handler'] ?? null;
-    }
-
-    public function validateInput(CliArgumentsList $arguments): array
-    {
-        $argumentsDefinition = $this->data['arguments'] ?? [];
+        $argumentsDefinition = $this->getArgumentsSchema();
         if (empty($argumentsDefinition)) {
             $arguments->setValidatedData([]);
             return [];
@@ -58,7 +39,7 @@ class CliCommand
             'typeMismatch' => [],
             'enumMismatch' => [],
         ];
-        /** @var CliArgument $definition */
+        /** @var CommandArgument $definition */
         foreach ($argumentsDefinition as $definition) {
             $key = $definition->getKeys();
             $value = $arguments->get($key);
@@ -72,11 +53,11 @@ class CliCommand
             }
 
             $validationResult = $definition->validateValue($value);
-            if ($validationResult == CliArgument::PROBLEM_ENUM_MISMATCH) {
+            if ($validationResult == CommandArgument::PROBLEM_ENUM_MISMATCH) {
                 $errors['enumMismatch'][] = $definition;
                 $errorsCounter++;
                 continue;
-            } elseif ($validationResult == CliArgument::PROBLEM_TYPE_MISMATCH) {
+            } elseif ($validationResult == CommandArgument::PROBLEM_TYPE_MISMATCH) {
                 $errors['typeMismatch'][] = $definition;
                 $errorsCounter++;
                 continue;
@@ -117,10 +98,5 @@ class CliCommand
 
         $arguments->setValidatedData($validatedArgs);
         return [];
-    }
-    
-    public function toArray(): array
-    {
-        return $this->data;
     }
 }

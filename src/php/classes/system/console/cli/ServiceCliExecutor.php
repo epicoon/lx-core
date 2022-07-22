@@ -20,20 +20,6 @@ class ServiceCliExecutor implements ServiceCliExecutorInterface
 		$this->processor->done();
 	}
 
-	public static function getServiceArgument(): CliArgument
-    {
-        return (new CliArgument())->setKeys(['service', 's', 0])
-            ->setType(CliArgument::TYPE_STRING)
-            ->setDescription('Service name');
-    }
-
-    public static function getPluginArgument(): CliArgument
-    {
-        return (new CliArgument())->setKeys(['plugin', 'p', 0])
-            ->setType(CliArgument::TYPE_STRING)
-            ->setDescription('Plugin name');
-    }
-
     public function defineService(): bool
     {
         if ($this->service) {

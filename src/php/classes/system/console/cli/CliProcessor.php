@@ -15,7 +15,7 @@ class CliProcessor
 	private ?int $currentCommandType = null;
 	private ?Service $service = null;
 	private ?Plugin $plugin = null;
-	private CliArgumentsList $args;
+	private CommandArgumentsList $args;
 	private array $consoleMap = [];
 	private ?string $needParam = null;
 	private array $params = [];
@@ -48,7 +48,7 @@ class CliProcessor
                 'description' => 'Show available commands list',
                 'arguments' => [
                     $this->initArgument([0])
-                        ->setType(CliArgument::TYPE_STRING)
+                        ->setType(CommandArgument::TYPE_STRING)
                         ->setDescription('Command name'),
                 ],
                 'handler' => 'showHelp',
@@ -59,16 +59,16 @@ class CliProcessor
                 'description' => 'Enter into service or plugin',
                 'arguments' => [
                     $this->initArgument(['index', 'i'])
-                        ->setType(CliArgument::TYPE_INTEGER)
+                        ->setType(CommandArgument::TYPE_INTEGER)
                         ->setDescription('Index of service due to list returned by command "services-list"'),
                     $this->initArgument(['service', 's'])
-                        ->setType(CliArgument::TYPE_STRING)
+                        ->setType(CommandArgument::TYPE_STRING)
                         ->setDescription('Service name'),
                     $this->initArgument(['plugin', 'p'])
-                        ->setType(CliArgument::TYPE_STRING)
+                        ->setType(CommandArgument::TYPE_STRING)
                         ->setDescription('Plugin name'),
                     $this->initArgument(0)
-                        ->setType(CliArgument::TYPE_STRING)
+                        ->setType(CommandArgument::TYPE_STRING)
                         ->setDescription('Service or plugin name'),
                 ],
                 'handler' => 'move',
@@ -79,13 +79,13 @@ class CliProcessor
                 'description' => 'Show path to service or plugin directory',
                 'arguments' => [
                     $this->initArgument(['service', 's'])
-                        ->setType(CliArgument::TYPE_STRING)
+                        ->setType(CommandArgument::TYPE_STRING)
                         ->setDescription('Service name'),
                     $this->initArgument(['plugin', 'p'])
-                        ->setType(CliArgument::TYPE_STRING)
+                        ->setType(CommandArgument::TYPE_STRING)
                         ->setDescription('Plugin name'),
                     $this->initArgument(0)
-                        ->setType(CliArgument::TYPE_STRING)
+                        ->setType(CommandArgument::TYPE_STRING)
                         ->setDescription('Service or plugin name'),
                 ],
                 'handler' => 'fullPath',
@@ -102,7 +102,7 @@ class CliProcessor
                 'description' => 'Show plugins list',
                 'arguments' => [
                     $this->initArgument(['service', 's', 0])
-                        ->setType(CliArgument::TYPE_STRING)
+                        ->setType(CommandArgument::TYPE_STRING)
                         ->setDescription('Service name'),
                 ],
                 'handler' => 'showPlugins',
@@ -113,7 +113,7 @@ class CliProcessor
                 'description' => 'Create new service',
                 'arguments' => [
                     $this->initArgument(['name', 'n', 0])
-                        ->setType(CliArgument::TYPE_STRING)
+                        ->setType(CommandArgument::TYPE_STRING)
                         ->setDescription('New service name'),
                 ],
                 'handler' => 'createService',
@@ -124,7 +124,7 @@ class CliProcessor
                 'description' => 'Create new plugin',
                 'arguments' => [
                     $this->initArgument(['name', 'n', 0])
-                        ->setType(CliArgument::TYPE_STRING)
+                        ->setType(CommandArgument::TYPE_STRING)
                         ->setDescription('New plugin name'),
                 ],
                 'handler' => 'createPlugin',
@@ -144,7 +144,7 @@ class CliProcessor
                         ->setEnum(['core', 'head', 'all'])
                         ->setDescription('Reset mode: "head" (reset common map) or "all" (reset services map)'),
                     $this->initArgument(['service', 's'])
-                        ->setType(CliArgument::TYPE_STRING)
+                        ->setType(CommandArgument::TYPE_STRING)
                         ->setDescription('Service name'),
                 ],
                 'handler' => 'resetJsAutoloadMap',
@@ -155,10 +155,10 @@ class CliProcessor
                 'description' => 'Reset plugins cache',
                 'arguments' => [
                     $this->initArgument(['service', 's'])
-                        ->setType(CliArgument::TYPE_STRING)
+                        ->setType(CommandArgument::TYPE_STRING)
                         ->setDescription('Service name'),
                     $this->initArgument(['plugin', 'p'])
-                        ->setType(CliArgument::TYPE_STRING)
+                        ->setType(CommandArgument::TYPE_STRING)
                         ->setDescription('Plugin name'),
                     $this->initArgument(['build', 'b'])
                         ->setFlag()
@@ -178,9 +178,9 @@ class CliProcessor
     /**
      * @param string|int|array $key
      */
-    public function initArgument($key = null): CliArgument
+    public function initArgument($key = null): CommandArgument
     {
-        $arg = new CliArgument();
+        $arg = new CommandArgument();
         if ($key !== null) {
             $arg->setKeys((array)$key);
         }
@@ -214,7 +214,7 @@ class CliProcessor
 	{
 		$this->service = $service;
 		$this->plugin = $plugin;
-		$this->args = new CliArgumentsList($args);
+		$this->args = new CommandArgumentsList($args);
 		$this->consoleMap = [];
 		$this->needParam = null;
 
@@ -448,7 +448,10 @@ class CliProcessor
             if ($item[0] == '-') {
                 $pos = strpos($item, '=');
                 if ($pos === false) {
-                    $argsMap[trim($item, '-')] = true;
+                    $list = str_split(trim($item, '-'));
+                    foreach ($list as $flag) {
+                        $argsMap[$flag] = true;
+                    }
                     continue;
                 }
 
@@ -526,7 +529,7 @@ class CliProcessor
 	    $this->outln('Command information:', ['decor' => 'b']);
 	    $this->outln('* Commands: ' . implode(', ', $command->getNames()));
 	    $this->outln('* Description: ' . $command->getDescription());
-	    $args = $command->getArguments();
+	    $args = $command->getArgumentsSchema();
 	    if (!empty($args)) {
 	        $this->outln('* Arguments:');
 	        foreach ($args as $argument) {
@@ -538,7 +541,7 @@ class CliProcessor
                 }
 
 	            $type = $argument->getType();
-                if ($type == CliArgument::TYPE_ENUM) {
+                if ($type == CommandArgument::TYPE_ENUM) {
                     $this->out('enum - [' . implode(', ', $argument->getEnum()) . ']. ');
                 } else {
                     $this->out('type - ' . $type . '. ');
@@ -1110,6 +1113,8 @@ class CliProcessor
                 $object->setProcessor($this);
                 $object->{$method}();
             }
+        } elseif ($executor instanceof CommandExecutorInterface) {
+            $executor->run();
         }
 	}
 
