@@ -150,7 +150,7 @@ class Service implements ObjectInterface, FusionInterface
 			return null;
 		}
 
-        $config = ConfigHelper::prepareServiceConfig($name, $config);
+        $config = ConfigHelper::prepareServiceConfig($config, $name);
         $className = $config['class'] ?? self::class;
 
 		if (!ClassHelper::exists($className)) {

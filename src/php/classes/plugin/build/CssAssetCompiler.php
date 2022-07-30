@@ -31,14 +31,15 @@ class CssAssetCompiler
         }
 
         $plugin = $this->plugin;
-        $compiler = new JsCompiler($plugin->conductor, $plugin->moduleInjector);
+        $compiler = new PluginFrontendJsCompiler($plugin);
         $compiler->setBuildModules(true);
         $exec = new NodeJsExecutor($compiler);
         $result = $exec
             ->setCore([
                 '-R @core/js/commonCore',
                 '-R @core/js/common/tools/',
-                '-R @core/js/server/app/classes/',
+                '-R @core/js/serverCore',
+                '-R @core/js/client/app/classes/',
                 '-R @core/js/server/tools/',
             ])
             ->setCode($code)
@@ -90,34 +91,52 @@ class CssAssetCompiler
     private function getCode(array $needFiles): string
     {
         $plugin = $this->plugin;
-        $pluginFile = new File($plugin->conductor->getFullPath($plugin->getConfig('client')));
 
+        $initCssAssetCode = '';
+        $pluginFile = new File($plugin->conductor->getFullPath($plugin->getConfig('client')));
         $pluginCode = $pluginFile->get();
         $reg = '/(initCssAsset\([^\)]+?\))\s*(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
         preg_match_all($reg, $pluginCode, $matches);
-        if (empty($matches['therec'])) {
-            return '';
+        if (!empty($matches['therec'])) {
+            $cssAsset = trim($matches['therec'][0], '{} ');
+            $cssAsset = preg_replace('(^\s+|\s+$)', '', $cssAsset);
+            $initCssAssetCode = ($cssAsset == '') ? '' : ($matches[1][0] . '{' . $cssAsset . '}');
         }
-        $cssAsset = trim($matches['therec'][0], '{} ');
-        $cssAsset = preg_replace('(^\s+|\s+$)', '', $cssAsset);
-        if ($cssAsset == '') {
+
+        $getCssAssetClassesCode = '';
+        $cssAssets = $plugin->getConfig('cssAssets');
+        if ($cssAssets) {
+            $assetClasses = implode(',', $cssAssets);
+            $getCssAssetClassesCode .= "getCssAssetClasses(){return [$assetClasses];}";
+        }
+
+        if ($getCssAssetClassesCode == '' && $initCssAssetCode == '') {
             return '';
         }
 
-        $code = '';
+        $require = $plugin->getConfig('require');
+        $requireStr = '';
+        if ($require) {
+            foreach ($require as $item) {
+                $requireStr .= "#lx:require $item;";
+            }
+        }
+
+        $code = $requireStr;
         foreach (lx::$app->presetManager->getCssPresets() as $type => $preset) {
             $code .= '#lx:use ' . lx::$app->presetManager->getCssPresetModule($type) . ';';
         }
-        $code .= 'const __plugin__ = (()=>{class Plugin extends lx.Plugin{';
-        $code .= $matches[1][0] . '{' . $cssAsset . '}';
-        $code .= '}return new Plugin(' . CodeConverterHelper::arrayToJsCode($plugin->getBuildData()) . ');})();';
+        $code .= 'const __plugin__ = (()=>{class Plugin extends lx.Plugin{'
+            . $getCssAssetClassesCode
+            . $initCssAssetCode
+            . '}return new Plugin(' . CodeConverterHelper::arrayToJsCode($plugin->getBuildData()) . ');})();';
 
         $code .= 'const result = {};';
         foreach (lx::$app->presetManager->getCssPresets() as $type => $preset) {
-            $code .= 'var asset = new lx.CssAsset();';
-            $code .= 'asset.usePreset(lx.CssPresetsList.getCssPreset(\'' . $type . '\'));';
-            $code .= '__plugin__.initCssAsset(asset);';
-            $code .= 'result.' . $type . '= asset.toString();';
+            $code .= 'var asset = new lx.CssAsset();'
+                . 'asset.usePreset(lx.CssPresetsList.getCssPreset(\'' . $type . '\'));'
+                . '__plugin__.initCssAsset(asset);'
+                . 'result.' . $type . '= asset.toString();';
         }
         $code .= 'return result;';
         return $code;

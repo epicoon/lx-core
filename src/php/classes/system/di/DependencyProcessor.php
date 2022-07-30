@@ -17,7 +17,7 @@ class DependencyProcessor
         $this->setDefaults([
             DataFileInterface::class => DataFile::class,
             EventManagerInterface::class => EventManager::class,
-            ResponseInterface::class => Response::class,
+            HttpResponseInterface::class => HttpResponse::class,
             HtmlRendererInterface::class => HtmlRenderer::class,
             HtmlTemplateProviderInterface::class => HtmlTemplateProvider::class,
             UserInterface::class => User::class,

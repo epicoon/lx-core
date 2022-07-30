@@ -9,13 +9,13 @@ class AjaxRequestHandler extends RequestHandler
         $this->response = $this->resourceContext->invoke();
     }
 
-    protected function prepareResponse(): ResponseInterface
+    protected function prepareResponse(): HttpResponseInterface
     {
         return $this->response;
     }
 
-    protected function processProblemResponse(ResponseInterface $response): ResponseInterface
+    protected function processProblemResponse(HttpResponseInterface $response): void
     {
-        return $response;
+        // pass
     }
 }

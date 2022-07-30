@@ -11,19 +11,19 @@ interface ResourceInterface
     public function afterSuccessfulAction(): void;
     public function afterFailedAction(): void;
 
-    public function run(array $params, UserInterface $user = null): ResponseInterface;
-	public function runAction(string $actionName, array $params, ?UserInterface $user = null): ?ResponseInterface;
+    public function run(array $params, UserInterface $user = null): HttpResponseInterface;
+	public function runAction(string $actionName, array $params, ?UserInterface $user = null): ?HttpResponseInterface;
 
     /**
      * @param mixed $data
      */
-    public function prepareResponse($data): ResponseInterface;
+    public function prepareResponse($data): HttpResponseInterface;
     /**
      * @param mixed $data
      */
-    public function prepareWarningResponse($data = []): ResponseInterface;
+    public function prepareWarningResponse($data = []): HttpResponseInterface;
     /**
      * @param array|string $error
      */
-    public function prepareErrorResponse($error, int $code = ResponseCodeEnum::BAD_REQUEST_ERROR): ResponseInterface;
+    public function prepareErrorResponse($error, int $code = ResponseCodeEnum::BAD_REQUEST_ERROR): HttpResponseInterface;
 }

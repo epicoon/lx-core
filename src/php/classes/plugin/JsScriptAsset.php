@@ -11,7 +11,6 @@ class JsScriptAsset
 	private Plugin $plugin;
 	private string $path;
 	private string $location;
-	private bool $parallel;
 	private string $onLoad;
 	private string $onError;
 
@@ -30,7 +29,6 @@ class JsScriptAsset
 
 		$this->path = $this->plugin->conductor->getAssetPath($config['script'] ?? $config['path']);
 		$this->location = $config['location'] ?? self::LOCATION_HEAD;
-		$this->parallel = $config['parallel'] ?? false;
 		$this->onLoad = $config['onLoad'] ?? '';
 		$this->onError = $config['onError'] ?? '';
 	}
@@ -40,6 +38,11 @@ class JsScriptAsset
 		return $this->path;
 	}
 
+    public function setPath(string $path): void
+    {
+        $this->path = $path;
+    }
+    
 	public function toArray(): array
 	{
 		$result = [
@@ -48,10 +51,6 @@ class JsScriptAsset
 
 		if ($this->location != self::LOCATION_HEAD) {
 			$result['location'] = $this->location;
-		}
-
-		if ($this->parallel) {
-			$result['parallel'] = true;
 		}
 
 		if ($this->onLoad != '') {

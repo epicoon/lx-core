@@ -31,7 +31,7 @@ class PageRequestHandler extends RequestHandler
         $this->response = $response;
     }
 
-    protected function prepareResponse(): ResponseInterface
+    protected function prepareResponse(): HttpResponseInterface
     {
         if ($this->resourceContext && $this->resourceContext->isPlugin()) {
             return $this->renderPlugin();
@@ -40,20 +40,17 @@ class PageRequestHandler extends RequestHandler
         return $this->response;
     }
     
-    protected function processProblemResponse(ResponseInterface $response): ResponseInterface
+    protected function processProblemResponse(HttpResponseInterface $response): void
     {
         /** @var HtmlRendererInterface $renderer */
         $renderer = lx::$app->diProcessor->createByInterface(HtmlRendererInterface::class);
         $result = $renderer
             ->setTemplateType($response->getCode())
             ->render();
-
-        /** @var ResponseInterface $response */
-        $newResponse = lx::$app->diProcessor->createByInterface(ResponseInterface::class, [$result]);
-        return $newResponse;
+        $response->setData($result);
     }
 
-    private function renderPlugin(): ResponseInterface
+    private function renderPlugin(): HttpResponseInterface
     {
         $pluginData = $this->response->getData();
         $pluginInfo = addcslashes($pluginData['pluginInfo'], '\\`');
@@ -89,8 +86,8 @@ class PageRequestHandler extends RequestHandler
                 'body' => new HtmlBody($pageData, $js),
             ])->render();
 
-        /** @var ResponseInterface $response */
-        $response = lx::$app->diProcessor->createByInterface(ResponseInterface::class, [$result]);
+        /** @var HttpResponseInterface $response */
+        $response = lx::$app->diProcessor->createByInterface(HttpResponseInterface::class, [$result]);
         return $response;
     }
 }

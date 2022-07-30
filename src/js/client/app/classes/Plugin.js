@@ -18,15 +18,36 @@ class Plugin {
 		this._onFocus = null;
 		this._onUnfocus = null;
 
-		__init(this, info);
+		if (this.root) {
+			__init(this, info);
+			this.root.click(__onClick);
+		}
 
 		this.guiNodes = {};
-		this.root.click(__onClick);
 		this.init();
 	}
 
 	init() {
 		// pass
+	}
+
+	getCoreClass() {
+		return null;
+	}
+
+	getCssAssetClasses() {
+		return [];
+	}
+
+	getGuiNodeClasses() {
+		return {};
+	}
+
+	initCssAsset(css) {
+		this.getCssAssetClasses().forEach(assetClass => {
+			const asset = new assetClass(this);
+			asset.init(css);
+		});
 	}
 
 	initGuiNodes(map) {
@@ -35,7 +56,7 @@ class Plugin {
 			if (lx.isString(className) && !lx.classExists(className)) continue;
 			let box = this.findOne(name);
 			if (box === null) continue;
-			this.guiNodes[name] = (lx.isString(className))
+			this.guiNodes[name] = lx.isString(className)
 				? lx.createObject(className, [this, box])
 				: new className(this, box);
 		}
@@ -57,9 +78,19 @@ class Plugin {
 		return document.title;
 	}
 
-	beforeRender() { /* pass */ }
-	beforeRun() { /* pass */ }
-	run() { /* pass */ }
+	beforeRender() {
+		// pass
+	}
+
+	beforeRun() {
+		const coreClass = this.getCoreClass();
+		if (coreClass) this.core = new coreClass(this);
+		this.initGuiNodes(this.getGuiNodeClasses());
+	}
+
+	run() {
+		// pass
+	}
 
 	get eventDispatcher() {
 		if (!this._eventDispatcher)

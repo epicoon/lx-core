@@ -6,7 +6,7 @@ use lx;
 
 class ConfigHelper
 {
-	public static function prepareServiceConfig(string $serviceName, array $config): array
+	public static function prepareServiceConfig(array $config, string $serviceName): array
 	{
 	    $result = [];
 	    if ($config['autoload']['psr-4'] ?? null) {
@@ -36,20 +36,9 @@ class ConfigHelper
         return $result;
 	}
 
-    public static function injectServiceConfig(string $name, array $config): array
-    {
-        $allInjections = lx::$app->getConfig('configInjection');
-
-        if (!is_array($allInjections) || !array_key_exists($name, $allInjections)) {
-            return $config;
-        }
-
-        $injections = $allInjections[$name];
-        return ArrayHelper::mergeRecursiveDistinct($config, $injections, true);
-    }
-
-	public static function preparePluginConfig(array $commonConfig, array &$config): void
+	public static function preparePluginConfig(array $config, string $pluginName, ?string $prototype): array
 	{
+        $commonConfig = lx::$app->getDefaultPluginConfig();
 		self::prepareConfig($commonConfig, $config);
 
 		foreach ($commonConfig as $key => $value) {
@@ -59,37 +48,60 @@ class ConfigHelper
 				$config[$key] = $value;
 			}
 		}
+
+        ConfigHelper::pluginInject($pluginName, $prototype, $config);
+        return $config;
 	}
 
-	public static function pluginInject(string $name, ?string $prototype, array $injections, array &$config): void
-	{
-		if ($injections) {
-			if (array_key_exists($prototype, $injections)) {
-				$config = ArrayHelper::mergeRecursiveDistinct(
-					$config,
-					$injections[$prototype],
-					true
-				);
-			}
 
-			if (array_key_exists($name, $injections)) {
-				$config = ArrayHelper::mergeRecursiveDistinct(
-					$config,
-					$injections[$name],
-					true
-				);
-			}
-		}
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * PRIVATE
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+    private static function injectServiceConfig(string $name, array $config): array
+    {
+        $allInjections = lx::$app->getConfig('configInjection');
+
+        if (!is_array($allInjections) || !array_key_exists($name, $allInjections)) {
+            return $config;
+        }
+
+        $injections = $allInjections[$name];
+        return ArrayHelper::mergeRecursiveDistinct($config, $injections, true, true);
+    }
+
+	private static function pluginInject(string $name, ?string $prototype, array &$config): void
+	{
+        $injections = lx::$app->getConfig('configInjection') ?? [];
+        if (empty($injections)) {
+            return;
+        }
+
+        if (array_key_exists($prototype, $injections)) {
+            $config = ArrayHelper::mergeRecursiveDistinct(
+                $config,
+                $injections[$prototype],
+                true,
+                true
+            );
+        }
+
+        if (array_key_exists($name, $injections)) {
+            $config = ArrayHelper::mergeRecursiveDistinct(
+                $config,
+                $injections[$name],
+                true,
+                true
+            );
+        }
 	}
 
 	private static function prepareConfig(array &$commonConfig, array &$config): void
 	{
-		$useAliases = isset($commonConfig['useCommonAliases'])
-			? $commonConfig['useCommonAliases']
-			: false;
+		$useAliases = $commonConfig['useCommonAliases'] ??false;
 		unset($commonConfig['useCommonAliases']);
 		if ($useAliases) {
-			if ( ! isset($config['aliases'])) {
+			if (!isset($config['aliases'])) {
 				$config['aliases'] = [];
 			}
 		} else {

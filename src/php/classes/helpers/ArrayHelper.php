@@ -159,7 +159,12 @@ class ArrayHelper
 		return $rec($arr);
 	}
 
-	public static function mergeRecursiveDistinct(iterable $array1, iterable $array2, bool $rewrite = false): iterable
+	public static function mergeRecursiveDistinct(
+        iterable $array1,
+        iterable $array2,
+        bool $rewrite = false,
+        bool $overwrite = false
+    ): iterable
 	{
         if (!self::isAssoc($array1) && !self::isAssoc($array2)) {
             return array_merge($array1, $array2);
@@ -167,13 +172,37 @@ class ArrayHelper
 
 		$merged = $array1;
 		foreach ($array2 as $key => $value) {
-			if ((is_iterable($value)) && isset($merged[$key]) && (is_iterable($merged[$key]))) {
-				$merged[$key] = self::mergeRecursiveDistinct($merged[$key], $value, $rewrite);
-			} else {
-                if (!isset($merged[$key]) || $rewrite) {
-                    $merged[$key] = $value;
+            $cleanKey = $key;
+            $overwriteByKey = false;
+            if ($overwrite && preg_match('/!$/', $key)) {
+                $cleanKey = trim($key, '!');
+                $overwriteByKey = true;
+            }
+
+            // dest - without value
+            if (!array_key_exists($cleanKey, $merged)) {
+                $merged[$cleanKey] = $value;
+                continue;
+            }
+
+            // dest and src - scalar and array, or both scalar
+            if (
+                (!is_iterable($value) && !is_iterable($merged[$cleanKey]))
+                || (is_iterable($value) && !is_iterable($merged[$cleanKey]))
+                || (!is_iterable($value) && is_iterable($merged[$cleanKey]))
+            ) {
+                if ($rewrite) {
+                    $merged[$cleanKey] = $value;
                 }
-			}
+                continue;
+            }
+
+            // dest and src - array
+            if ($overwriteByKey) {
+                $merged[$cleanKey] = $value;
+            } else {
+                $merged[$cleanKey] = self::mergeRecursiveDistinct($merged[$cleanKey], $value, $rewrite, $overwrite);
+            }
 		}
 
 		return $merged;

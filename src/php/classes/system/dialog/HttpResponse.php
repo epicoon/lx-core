@@ -4,7 +4,7 @@ namespace lx;
 
 use lx;
 
-class Response implements ResponseInterface
+class HttpResponse implements HttpResponseInterface
 {
     private int $code;
     private bool $isWarning = false;
@@ -21,20 +21,35 @@ class Response implements ResponseInterface
         $this->data = $data;
     }
 
-    public function setWarning(): void
-    {
-        $this->isWarning = true;
-    }
-
-    public function beforeSend(): void
-    {
-        http_response_code($this->getCode());
-        header("Content-Type: text/{$this->getDataType()}; charset=utf-8");
-    }
-
     public function getCode(): int
     {
         return $this->code;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getData()
+    {
+        return $this->data;
+    }
+
+    public function setCode(int $code): void
+    {
+        $this->code = $code;
+    }
+
+    /**
+     * @param mixed $data
+     */
+    public function setData($data): void
+    {
+        $this->data = $data;
+    }
+
+    public function setWarning(): void
+    {
+        $this->isWarning = true;
     }
 
     public function isForbidden(): bool
@@ -50,14 +65,6 @@ class Response implements ResponseInterface
     public function isSuccessfull(): bool
     {
         return $this->getCode() == ResponseCodeEnum::OK;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getData()
-    {
-        return $this->data;
     }
 
     public function getDataAsString(): string
@@ -94,14 +101,14 @@ class Response implements ResponseInterface
     {
         if (!isset($this->type)) {
             switch (true) {
-                case lx::$app->dialog->isPageLoad():
+                case lx::$app->request->isPageLoad():
                     $this->type = 'html';
                     break;
-                case lx::$app->dialog->isAssetLoad():
+                case lx::$app->request->isAssetLoad():
                     $this->type = 'plane';
                     break;
-                case lx::$app->dialog->isAjax():
-                case lx::$app->dialog->isCors():
+                case lx::$app->request->isAjax():
+                case lx::$app->request->isCors():
                 default:
                     $this->type = 'json';
             }
@@ -109,16 +116,48 @@ class Response implements ResponseInterface
 
         return $this->type;
     }
-    
+
+    public function beforeSend(): void
+    {
+        http_response_code($this->getCode());
+        header("Content-Type: text/{$this->getDataType()}; charset=utf-8");
+    }
+
+    public function send(): void
+    {
+        $this->beforeSend();
+        $this->echo($this->getDataAsString());
+    }
+
+
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * PRIVATE
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+    private function echo(string $data): void
+    {
+        ignore_user_abort(true);
+        set_time_limit(0);
+        ob_start(/*'ob_gzhandler'*/);
+        echo $data;
+        header('Connection: close');
+        header('Content-Length: ' . ob_get_length());
+        ob_end_flush();
+        ob_flush();
+        flush();
+        if (session_id()) session_write_close();
+        fastcgi_finish_request();
+    }
+
     private function getDump(): string
     {
-        /** @var Dialog $dialog */
-        $dialog = lx::$app->dialog;
-        if (!$dialog) {
+        /** @var HttpRequest $request */
+        $request = lx::$app->request;
+        if (!$request) {
             return '';
         }
 
-        if (!$dialog->isPageLoad() && !$dialog->isAjax()) {
+        if (!$request->isPageLoad() && !$request->isAjax()) {
             return '';
         }
 

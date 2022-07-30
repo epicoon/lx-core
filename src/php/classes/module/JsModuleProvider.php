@@ -12,10 +12,10 @@ class JsModuleProvider extends Resource
 		return $modulesCode;
 	}
 
-	public function getModulesResponse(array $list): ResponseInterface
+	public function getModulesResponse(array $list): HttpResponseInterface
     {
         list ($modulesCode, $modules) = $this->compile($list['need'], $list['have']);
-        return lx::$app->diProcessor->createByInterface(ResponseInterface::class, [
+        return lx::$app->diProcessor->createByInterface(HttpResponseInterface::class, [
             [
                 'code' => $modulesCode,
                 'compiledModules' => $modules,

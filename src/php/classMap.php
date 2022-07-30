@@ -31,13 +31,13 @@ return [
     'AssetCompiler' => 'classes/system/asset',
     'PresetManager' => 'classes/system/asset',
 
-	'Dialog' => 'classes/system/dialog',
+	'HttpRequest' => 'classes/system/dialog',
 	'Cookie' => 'classes/system/dialog',
 	'ResponseCodeEnum' => 'classes/system/dialog',
 	'Router' => 'classes/system/dialog',
 	'SpecialAjaxRouter' => 'classes/system/dialog',
 	'Resource' => 'classes/system/dialog',
-    'Response' => 'classes/system/dialog',
+    'HttpResponse' => 'classes/system/dialog',
     'Module' => 'classes/system/dialog',
 	'ResourceContext' => 'classes/system/dialog',
 	'AbstractResourceVoter' => 'classes/system/dialog',
@@ -46,6 +46,7 @@ return [
     'PageRequestHandler' => 'classes/system/dialog/requestHandler',
     'AjaxRequestHandler' => 'classes/system/dialog/requestHandler',
     'CommonRequestHandler' => 'classes/system/dialog/requestHandler',
+    'CorsRequestHandler' => 'classes/system/dialog/requestHandler',
 
     'EventManagerInterface' => 'classes/system/event',
 	'EventManager' => 'classes/system/event',
@@ -147,7 +148,7 @@ return [
     'DbQueryTableData' => 'classes/db/query',
     'DbQueryFieldData' => 'classes/db/query',
 
-	'Request' => 'classes/tools',
+	'CurlRequest' => 'classes/tools',
 	'Vector' => 'classes/tools',
     'CascadeReport' => 'classes/tools',
     'Undefined' => 'classes/tools',
@@ -180,7 +181,6 @@ return [
 	'StringHelper' => 'classes/helpers',
 	'I18nHelper' => 'classes/helpers',
     'ErrorHelper' => 'classes/helpers',
-    'PhpConfigHelper' => 'classes/helpers',
     'CodeConverterHelper' => 'classes/helpers',
 
 
@@ -220,7 +220,7 @@ return [
 	'ConductorInterface' => 'interfaces',
     'RouterInterface' => 'interfaces',
     'ResourceContextInterface' => 'interfaces',
-    'ResponseInterface' => 'interfaces',
+    'HttpResponseInterface' => 'interfaces',
     'HtmlRendererInterface' => 'interfaces',
     'HtmlTemplateProviderInterface' => 'interfaces',
     'UserManagerInterface' => 'interfaces',

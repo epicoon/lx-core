@@ -88,7 +88,7 @@ lx.dependencies = {
 		if (__data.scripts == {}) return list;
 		var result = [];
 		for (let i=0, l=list.len; i<l; i++)
-			if (list[i].parallel || !(list[i].path in __data.scripts))
+			if (!(list[i].path in __data.scripts))
 				result.push(list[i]);
 		return result;
 	}

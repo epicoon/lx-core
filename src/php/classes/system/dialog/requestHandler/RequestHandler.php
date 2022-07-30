@@ -4,28 +4,45 @@ namespace lx;
 
 use lx;
 
-abstract class RequestHandler
+abstract class RequestHandler implements EventListenerInterface
 {
+    use EventListenerTrait;
+
+    protected HttpRequest $request;
     protected ?ResourceContext $resourceContext = null;
-    protected ?ResponseInterface $response = null;
+    protected ?HttpResponseInterface $response = null;
 
-    public static function create(): RequestHandler
+    protected function __construct(HttpRequest $request)
     {
-        if (lx::$app->dialog->isPageLoad()) {
-            return new PageRequestHandler();
-        }
+        $this->request = $request;
+    }
 
-        if (lx::$app->dialog->isAjax()) {
-            return new AjaxRequestHandler();
+    public static function create(HttpRequest $request): RequestHandler
+    {
+        switch (true) {
+            case $request->isPageLoad():
+                return new PageRequestHandler($request);
+            case $request->isAjax():
+                return new AjaxRequestHandler($request);
+            case $request->isCors():
+                return new CorsRequestHandler($request);
+            default:
+                return new CommonRequestHandler($request);
         }
+    }
 
-        return new CommonRequestHandler();
+    public static function getEventHandlersMap(): array
+    {
+        return [
+            HttpApplication::EVENT_BEFORE_SEND_RESPONSE => 'beforeSendResponse',
+            HttpApplication::EVENT_AFTER_SEND_RESPONSE => 'afterSendResponse',
+        ];
     }
 
     /**
      * Launch of the response preparing
      */
-    public function run(): void
+    public function handle(): HttpResponseInterface
     {
         $this->defineResourceContext();
         if (!$this->resourceContext) {
@@ -33,30 +50,33 @@ abstract class RequestHandler
         } else {
             $this->defineResponse();
         }
+
+        $this->response = $this->prepareResponse();
+        return $this->response;
     }
 
-    /**
-     * Send the response
-     */
-    public function send(): void
+    protected function beforeSendResponse(HttpResponseInterface $response): void
     {
-        $response = $this->prepareResponse();
-
         if ($response->getCode() == ResponseCodeEnum::OK) {
             $this->beforeSuccessfulSending();
-            lx::$app->dialog->send($response);
+        } else {
+            $this->processProblemResponse($response);
+            $this->beforeFailedSending();
+        }
+    }
+
+    protected function afterSendResponse(HttpResponseInterface $response): void
+    {
+        if ($response->getCode() == ResponseCodeEnum::OK) {
             $this->afterSuccessfulSending();
         } else {
-            $response = $this->processProblemResponse($response);
-            $this->beforeFailedSending();
-            lx::$app->dialog->send($response);
             $this->afterFailedSending();
         }
     }
 
     abstract protected function defineResponse(): void;
-    abstract protected function prepareResponse(): ResponseInterface;
-    abstract protected function processProblemResponse(ResponseInterface $response): ResponseInterface;
+    abstract protected function prepareResponse(): HttpResponseInterface;
+    abstract protected function processProblemResponse(HttpResponseInterface $response): void;
 
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -65,7 +85,7 @@ abstract class RequestHandler
 
     private function defineResourceContext(): void
     {
-        if (SpecialAjaxRouter::checkDialog()) {
+        if (SpecialAjaxRouter::checkRequest()) {
             $ajaxRouter = new SpecialAjaxRouter();
             $resourceContext = $ajaxRouter->route();
             if ($resourceContext !== null) {
@@ -75,7 +95,7 @@ abstract class RequestHandler
             /** @var Router $router */
             $router = lx::$app->router;
             if ($router !== null) {
-                $resourceContext = $router->route(lx::$app->dialog->getRoute());
+                $resourceContext = $router->route($this->request->getRoute());
                 if ($resourceContext !== null) {
                     $this->resourceContext = $resourceContext;
                 }
@@ -85,7 +105,7 @@ abstract class RequestHandler
 
     private function setNotFoundResponse(): void
     {
-        $this->response = lx::$app->diProcessor->createByInterface(ResponseInterface::class, [
+        $this->response = lx::$app->diProcessor->createByInterface(HttpResponseInterface::class, [
             'Resource not found',
             ResponseCodeEnum::NOT_FOUND,
         ]);

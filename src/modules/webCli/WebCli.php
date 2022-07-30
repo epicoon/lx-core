@@ -6,7 +6,7 @@ use lx;
 
 class WebCli extends Module
 {
-    public function getCommandList(): ResponseInterface
+    public function getCommandList(): HttpResponseInterface
     {
         $processor = new CliProcessor();
         $list = $processor->getCommandsList()->getSubList([
@@ -30,7 +30,7 @@ class WebCli extends Module
         array $processParams,
         ?string $serviceName,
         ?string $pluginName
-    ): ResponseInterface
+    ): HttpResponseInterface
     {
         $service = null;
         if ($serviceName) {
@@ -72,7 +72,7 @@ class WebCli extends Module
         return $this->prepareResponse($result);
     }
 
-    public function tryFinishCommand(string $currentInput): ResponseInterface
+    public function tryFinishCommand(string $currentInput): HttpResponseInterface
     {
         $processor = new CliProcessor();
         $list = $processor->getCommandsList()->getSubList([

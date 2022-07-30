@@ -71,19 +71,18 @@ class AssetCompiler
     public function createLinks(array $originalPathes, array $linkPathes): void
     {
         $sitePath = lx::$conductor->sitePath;
-        foreach ($linkPathes as $key => $path) {
-            $origin = $originalPathes[$key];
-            if ($origin == $path || !file_exists($sitePath . $origin)) {
+        foreach ($linkPathes as $key => $linkPath) {
+            $fullLinkPath = $sitePath . $linkPath;
+            $fullOriginPath = $sitePath . $originalPathes[$key];
+            if ($fullOriginPath == $fullLinkPath || !file_exists($fullOriginPath)) {
                 continue;
             }
 
-            $fullPath = $sitePath . $path;
-            $link = new FileLink($fullPath);
-            if (!$link->exists()) {
-                $origin = BaseFile::construct($sitePath . $originalPathes[$key]);
-                $dir = $link->getParentDir();
+            $linkFile = new FileLink($fullLinkPath);
+            if (!$linkFile->exists()) {
+                $dir = $linkFile->getParentDir();
                 $dir->make();
-                $link->create($origin);
+                $linkFile->create(BaseFile::construct($fullOriginPath));
             }
         }
     }

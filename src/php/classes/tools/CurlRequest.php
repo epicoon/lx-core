@@ -2,7 +2,7 @@
 
 namespace lx;
 
-Class Request
+Class CurlRequest
 {
 	private bool $returnAsString;
 	private ?string $url = null;
@@ -20,7 +20,7 @@ Class Request
 			$tempUrl = explode('?', $url);
 			if (count($tempUrl) > 1) {
 				$url = $tempUrl[0];
-				$params = array_merge($params, \lx::$app->dialog->translateGetParams($tempUrl[1]));
+				$params = array_merge($params, \lx::$app->request->translateGetParams($tempUrl[1]));
 			}
 
 			$this->url = $url;

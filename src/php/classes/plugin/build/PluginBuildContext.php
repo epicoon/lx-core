@@ -18,6 +18,7 @@ class PluginBuildContext implements ContextTreeInterface
 	private string $mainJs;
 	private string $snippetData;
 	private string $commonData;
+    /** @var JsScriptAsset[] */
 	private array $scripts = [];
 	private array $css = [];
 	private JsCompiler $jsCompiler;
@@ -182,7 +183,7 @@ class PluginBuildContext implements ContextTreeInterface
 		if (!empty($this->scripts)) {
 			$dependencies['s'] = [];
 			foreach ($this->scripts as $script) {
-				$dependencies['s'][] = $script['path'];
+				$dependencies['s'][] = $script->getPath();
 			}
 		}
 		if (!empty($this->css)) {
@@ -215,24 +216,62 @@ class PluginBuildContext implements ContextTreeInterface
             $this->mainJs = '';
             return;
         }
+
+        $require = $plugin->getConfig('require');
+        $core = $plugin->getConfig('core');
+        $cssAssets = (lx::$app->presetManager->getBuildType() === PresetManager::BUILD_TYPE_NONE)
+            ? $plugin->getConfig('cssAssets')
+            : null;
+        $guiNodes = $plugin->getConfig('guiNodes');
+
+        if ($require) {
+            $requireStr = '';
+            foreach ($require as $item) {
+                $requireStr .= "#lx:require $item;";
+            }
+            $code = $requireStr . $code;
+        }
+
+        $initMethods = '';
+        if ($core) {
+            $initMethods .= "getCoreClass(){return $core;}";
+        }
+
+        if ($cssAssets) {
+            $assetClasses = implode(',', $cssAssets);
+            $initMethods .= "getCssAssetClasses(){return [$assetClasses];}";
+        }
+
+        if ($guiNodes) {
+            $guiNodesObj = [];
+            foreach ($guiNodes as $key => $class) {
+                $guiNodesObj[] = "$key:$class";
+            }
+            $guiNodesObj = implode(',', $guiNodesObj);
+            $initMethods .= 'getGuiNodeClasses(){return {' . $guiNodesObj . '};}';
+        }
+
+        if ($initMethods !== '') {
+            $code = preg_replace('/(class Plugin[^{]*?{)/', '$1' . $initMethods, $code);
+        }
+
         $code = $this->jsCompiler->compileCode(
             '#lx:public;' . $code,
             $file->exists() ? $file->getPath() : $this->plugin->directory->getPath()
         );
-        $this->mainJs = '(info,el)=>{let __plugin__;' . $code . '__plugin__=new Plugin(info,el);return __plugin__;}';
+        $this->mainJs = '(info,el)=>{let __plugin__=null;' . $code . '__plugin__=new Plugin(info,el);return __plugin__;}';
 	}
 
+    /**
+     * @param JsScriptAsset[] $scripts
+     */
 	private function collapseScripts(array $scripts): array
 	{
 		$result = [];
-		foreach ($scripts as $value) {
-			$path = $value['path'];
+		foreach ($scripts as $script) {
+			$path = $script->getPath();
 			if (!array_key_exists($path, $result)) {
-				$result[$path] = $value;
-			} else {
-				if ($value['parallel'] ?? false) {
-					$result[] = $value;
-				}
+				$result[$path] = $script->toArray();
 			}
 		}
 

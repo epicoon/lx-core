@@ -9,17 +9,17 @@ class SpecialAjaxRouter
 	/**
 	 * Method defines if request is special AJAX
 	 */
-	public static function checkDialog(): bool
+	public static function checkRequest(): bool
 	{
-		$dialog = lx::$app->dialog;
+		$request = lx::$app->request;
 		return (
-			$dialog->isAjax() && $dialog->getHeader('lx-type')
+			$request->isAjax() && $request->getHeader('lx-type')
 		);
 	}
 
 	public function route(): ?ResourceContext
 	{
-		switch (lx::$app->dialog->getHeader('lx-type')) {
+		switch (lx::$app->request->getHeader('lx-type')) {
 			case 'service': return $this->serviceAjaxResponse();
 			case 'plugin': return $this->pluginAjaxResponse();
 			case 'module': return $this->moduleAjaxResponse();
@@ -34,11 +34,11 @@ class SpecialAjaxRouter
 
 	private function serviceAjaxResponse(): ResourceContext
 	{
-		$type = lx::$app->dialog->getHeader('lx-service');
+		$type = lx::$app->request->getHeader('lx-service');
 
 		// AJAX-request for required modules
 		if ($type == 'get-modules') {
-			$data = lx::$app->dialog->getParams();
+			$data = lx::$app->request->getParams();
 			return new ResourceContext([
 				'class' => JsModuleProvider::class,
 				'method' => 'getModulesResponse',
@@ -49,7 +49,7 @@ class SpecialAjaxRouter
 
 	private function pluginAjaxResponse(): ?ResourceContext
 	{
-		$meta = lx::$app->dialog->getHeader('lx-plugin');
+		$meta = lx::$app->request->getHeader('lx-plugin');
 		if ($meta === null) {
 			lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
 				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
@@ -70,12 +70,12 @@ class SpecialAjaxRouter
 		}
 
 		$respondentName = $arr[1] ?? null;
-		return $plugin->getResourceContext($respondentName, lx::$app->dialog->getParams());
+		return $plugin->getResourceContext($respondentName, lx::$app->request->getParams());
 	}
 
 	private function moduleAjaxResponse(): ?ResourceContext
 	{
-        list($moduleName, $methodName) = explode(':', lx::$app->dialog->getHeader('lx-module'));
+        list($moduleName, $methodName) = explode(':', lx::$app->request->getHeader('lx-module'));
         if (!$moduleName) {
             return null;
         }
@@ -93,7 +93,7 @@ class SpecialAjaxRouter
 		return new ResourceContext([
 			'class' => $serverModuleName,
 			'method' => $methodName,
-			'params' => lx::$app->dialog->getParams(),
+			'params' => lx::$app->request->getParams(),
 		]);
 	}
 }

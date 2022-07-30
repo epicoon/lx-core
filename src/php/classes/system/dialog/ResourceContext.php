@@ -32,7 +32,7 @@ class ResourceContext implements ResourceContextInterface
         $this->data['params'] = $params;
     }
 
-	public function invoke(): ResponseInterface
+	public function invoke(): HttpResponseInterface
 	{
 		if ($this->isAction()) {
 			return $this->invokeAction();
@@ -125,7 +125,7 @@ class ResourceContext implements ResourceContextInterface
 	 * PRIVATE
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	private function invokeAction(): ResponseInterface
+	private function invokeAction(): HttpResponseInterface
 	{
 		$object = $this->getResource();
 		if (!$object) {
@@ -145,7 +145,7 @@ class ResourceContext implements ResourceContextInterface
 		return $response;
 	}
 
-	private function invokePlugin(): ResponseInterface
+	private function invokePlugin(): HttpResponseInterface
 	{
 		$plugin = $this->getPlugin();
 		$methodName = Plugin::DEFAULT_RESOURCE_METHOD;
@@ -161,18 +161,18 @@ class ResourceContext implements ResourceContextInterface
         return $response;
 	}
 
-	private function prepareResponse(ResourceInterface $object, ?ResponseInterface $result): ResponseInterface
+	private function prepareResponse(ResourceInterface $object, ?HttpResponseInterface $result): HttpResponseInterface
 	{
         if ($result === null) {
-            return \lx::$app->diProcessor->createByInterface(ResponseInterface::class, ['Ok']);
+            return \lx::$app->diProcessor->createByInterface(HttpResponseInterface::class, ['Ok']);
         }
 
         return $result;
     }
     
-	private function getNotFoundResponse(): ResponseInterface
+	private function getNotFoundResponse(): HttpResponseInterface
     {
-        return \lx::$app->diProcessor->createByInterface(ResponseInterface::class, [
+        return \lx::$app->diProcessor->createByInterface(HttpResponseInterface::class, [
             'Resource not found',
             ResponseCodeEnum::NOT_FOUND
         ]);

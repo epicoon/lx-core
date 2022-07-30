@@ -64,13 +64,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
             $this->_prototype = $config['prototype'];
         }
 
-        $pluginConfig = $config['config'];
-        $commonConfig = lx::$app->getDefaultPluginConfig();
-        ConfigHelper::preparePluginConfig($commonConfig, $pluginConfig);
-        $injections = lx::$app->getConfig('configInjection') ?? [];
-        ConfigHelper::pluginInject($this->name, $this->prototype, $injections, $pluginConfig);
-        $this->config = $pluginConfig;
-
+        $this->config = ConfigHelper::preparePluginConfig($config['config'], $this->name, $this->prototype);
         $this->initFusionComponents($this->getConfig('components') ?? []);
         $this->resetCssPreset();
     }
@@ -307,7 +301,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 	/**
 	 * This method is used by ResourceContext for return Plugin as resource
 	 */
-	public function run(array $params = [], ?UserInterface $user = null): ResponseInterface
+	public function run(array $params = [], ?UserInterface $user = null): HttpResponseInterface
 	{
 		$builder = new PluginBuildContext(['plugin' => $this]);
 		$result = $builder->build();
@@ -318,7 +312,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 	/**
 	 * Define in child
 	 */
-	protected function handleAjaxResponse(array $data): ResponseInterface
+	protected function handleAjaxResponse(array $data): HttpResponseInterface
 	{
 		return $this->prepareErrorResponse('Resource not found', ResponseCodeEnum::NOT_FOUND);
 	}
@@ -591,25 +585,15 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 		return $info;
 	}
 
+    /**
+     * @return JsScriptAsset[]
+     */
 	public function getOriginScripts(): array
 	{
 		$assets = [
-			'from-code' => [],
-			'from-config' => [],
+			'from-code' => array_values($this->scripts),
+			'from-config' => array_values($this->getConfig('scripts-list') ?? []),
 		];
-
-		/** @var JsScriptAsset $script */
-		foreach ($this->scripts as $script) {
-			$assets['from-code'][] = $script->toArray();
-		}
-
-		$fromConfig = $this->getConfig('scripts-list');
-		if ($fromConfig) {
-			foreach ($fromConfig as $item) {
-				$asset = new JsScriptAsset($this, $item);
-				$assets['from-config'][] = $asset->toArray();
-			}
-		}
 
 		$priopity = $this->getConfig('scripts-priopity') ?? ['from-code', 'from-config'];
 		$result = [];
@@ -644,12 +628,15 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 		return $this->conductor->getImagePathesInSite();
 	}
 
+    /**
+     * @return JsScriptAsset[]
+     */
 	public function getScripts(): array
 	{
 		$list = $this->getOriginScripts();
 		$arr = [];
-		foreach ($list as $value) {
-			$arr[] = $value['path'];
+		foreach ($list as $script) {
+            $arr[] = $script->getPath();
 		}
 
 		$linksMap = AssetCompiler::getLinksMap($arr);
@@ -659,7 +646,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
         ]);
 		
 		foreach ($linksMap['names'] as $key => $name) {
-			$list[$key]['path'] = $name;
+			$list[$key]->setPath($name);
 		}
 
 		return $list;

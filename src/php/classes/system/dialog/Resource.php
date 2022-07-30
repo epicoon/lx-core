@@ -27,12 +27,12 @@ class Resource implements ResourceInterface, ObjectInterface
     /**
      * @param mixed $data
      */
-	public function prepareResponse($data): ResponseInterface
+	public function prepareResponse($data): HttpResponseInterface
     {
         return $this->newResponse($data);
     }
     
-    public function prepareWarningResponse($data = []): ResponseInterface
+    public function prepareWarningResponse($data = []): HttpResponseInterface
     {
         $responce = $this->newResponse($data);
         $responce->setWarning();
@@ -42,17 +42,17 @@ class Resource implements ResourceInterface, ObjectInterface
     /**
      * @param array|string $error
      */
-    public function prepareErrorResponse($error, int $code = ResponseCodeEnum::BAD_REQUEST_ERROR): ResponseInterface
+    public function prepareErrorResponse($error, int $code = ResponseCodeEnum::BAD_REQUEST_ERROR): HttpResponseInterface
     {
         return $this->newResponse($error, $code);
     }
 
-	public function run(array $params, ?UserInterface $user = null): ResponseInterface
+	public function run(array $params, ?UserInterface $user = null): HttpResponseInterface
 	{
 	    return $this->newResponse('Resource not found', ResponseCodeEnum::NOT_FOUND);
 	}
 
-	public function runAction(string $actionName, array $params, ?UserInterface $user = null): ?ResponseInterface
+	public function runAction(string $actionName, array $params, ?UserInterface $user = null): ?HttpResponseInterface
 	{
 		if (!method_exists($this, $actionName)) {
 			return $this->newResponse('Resource not found', ResponseCodeEnum::NOT_FOUND);
@@ -155,8 +155,8 @@ class Resource implements ResourceInterface, ObjectInterface
     /**
      * @param mixed $data
      */
-    protected function newResponse($data, int $code = ResponseCodeEnum::OK): ResponseInterface
+    protected function newResponse($data, int $code = ResponseCodeEnum::OK): HttpResponseInterface
     {
-        return lx::$app->diProcessor->createByInterface(ResponseInterface::class, [$data, $code]);
+        return lx::$app->diProcessor->createByInterface(HttpResponseInterface::class, [$data, $code]);
     }
 }

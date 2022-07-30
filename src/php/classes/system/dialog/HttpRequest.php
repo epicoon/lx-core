@@ -4,7 +4,7 @@ namespace lx;
 
 use lx;
 
-class Dialog implements FusionComponentInterface
+class HttpRequest implements FusionComponentInterface
 {
 	use FusionComponentTrait;
 
@@ -63,7 +63,9 @@ class Dialog implements FusionComponentInterface
 		$name = strtoupper($name);
 		$name = str_replace('-', '_', $name);
 		$headers = $this->getHeaders();
-		if (array_key_exists($name, $headers)) return $headers[$name];
+		if (array_key_exists($name, $headers)) {
+            return $headers[$name];
+        }
 		return null;
 	}
 
@@ -215,21 +217,6 @@ class Dialog implements FusionComponentInterface
         return $params;
 	}
 
-	public function send(ResponseInterface $response): void
-	{
-	    $response->beforeSend();
-
-        if ($this->isCors()) {
-            $this->addCorsHeaders();
-        }
-
-        if (!lx::$app->user || lx::$app->user->isGuest()) {
-            header('lx-user-status: guest');
-        }
-
-        $this->echo($response->getDataAsString());
-	}
-
 	public function retrieveAll(): void
 	{
 		$this->getUrl();
@@ -244,40 +231,6 @@ class Dialog implements FusionComponentInterface
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-	private function echo(string $data): void
-	{
-		ignore_user_abort(true);
-		set_time_limit(0);
-		ob_start(/*'ob_gzhandler'*/);
-		echo $data;
-		header('Connection: close');
-		header('Content-Length: ' . ob_get_length());
-		ob_end_flush();
-		ob_flush();
-		flush();
-		if (session_id()) session_write_close();
-		fastcgi_finish_request();
-	}
-
-	private function addCorsHeaders(): void
-	{
-		$corsProcessor = lx::$app->corsProcessor;
-		if (!$corsProcessor) {
-			return;
-		}
-
-		$requestHeaders = [
-			'origin' => $this->getHeader('ORIGIN'),
-			'method' => $this->getHeader('Access-Control-Request-Method'),
-			'headers' => $this->getHeader('Access-Control-Request-Headers'),
-		];
-
-		$headers = $corsProcessor->getHeaders($requestHeaders);
-		foreach ($headers as $header) {
-			header($header);
-		}
-	}
 
 	private function defineClientIp(): void
 	{
@@ -310,7 +263,7 @@ class Dialog implements FusionComponentInterface
 			return;
 		}
 
-		preg_match('/[^:]+?:\/\/(.+)/', $origin, $matches);
+		preg_match('/[^:]+?:\/\/([^:]+)/', $origin, $matches);
 		$originName = $matches[1] ?? null;
 
 		if ($originName == $this->_serverName || $originName == $this->_serverAddr) {

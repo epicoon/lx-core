@@ -4,15 +4,19 @@ namespace lx;
 
 /**
  * @property-read Router $router
- * @property-read Dialog $dialog
+ * @property-read HttpRequest $request
  */
 class HttpApplication extends AbstractApplication
 {
+    const EVENT_BEFORE_HANDLE_REQUEST = 'beforeHandleRequest';
+    const EVENT_BEFORE_SEND_RESPONSE = 'beforeSendResponse';
+    const EVENT_AFTER_SEND_RESPONSE = 'afterSendResponse';
+
     public function getDefaultFusionComponents(): array
     {
         return array_merge(parent::getDefaultFusionComponents(), [
             'router' => Router::class,
-            'dialog' => Dialog::class,
+            'request' => HttpRequest::class,
             'user' => UserInterface::class,
         ]);
     }
@@ -21,24 +25,34 @@ class HttpApplication extends AbstractApplication
 	{
         try {
             $this->events->trigger(self::EVENT_BEFORE_RUN);
-            
+
             $this->authenticateUser();
-            $requestHandler = RequestHandler::create();
-            $requestHandler->run();
-            $requestHandler->send();
+
+            $request = $this->request;
+            $this->events->trigger(self::EVENT_BEFORE_HANDLE_REQUEST, $request);
+            $requestHandler = RequestHandler::create($request);
+            $response = $requestHandler->handle();
+
+            if (!$this->user || $this->user->isGuest()) {
+                header('lx-user-status: guest');
+            }
+
+            $this->events->trigger(self::EVENT_BEFORE_SEND_RESPONSE, $response);
+            $response->send();
+            $this->events->trigger(self::EVENT_AFTER_SEND_RESPONSE, $response);
 
             $this->events->trigger(self::EVENT_AFTER_RUN);
         } catch (\Throwable $exception) {
             //TODO обработчик ошибок должен быть отдельно - какой-то класс/компонент?
             if ($this->isProd()) {
                 $this->logger->error($exception, [
-                    'URL' => $this->dialog->getUrl(),
+                    'URL' => $this->request->getUrl(),
                 ]);
             } else {
                 $errorString = ErrorHelper::renderErrorString($exception, [
-                    'URL' => $this->dialog->getUrl(),
+                    'URL' => $this->request->getUrl(),
                 ]);
-                if ($this->dialog->isPageLoad()) {
+                if ($this->request->isPageLoad()) {
                     /** @var HtmlRendererInterface $renderer */
                     $renderer = $this->diProcessor->createByInterface(HtmlRendererInterface::class);
                     $result = $renderer
@@ -46,16 +60,16 @@ class HttpApplication extends AbstractApplication
                         ->setParams([
                             'error' => $errorString
                         ])->render();
-                    /** @var ResponseInterface $response */
-                    $response = $this->diProcessor->createByInterface(ResponseInterface::class, [$result]);
+                    /** @var HttpResponseInterface $response */
+                    $response = $this->diProcessor->createByInterface(HttpResponseInterface::class, [$result]);
                 } else {
                     \lx::dump($errorString);
-                    $response = $this->diProcessor->createByInterface(ResponseInterface::class, [
+                    $response = $this->diProcessor->createByInterface(HttpResponseInterface::class, [
                         '',
                         ResponseCodeEnum::SERVER_ERROR
                     ]);
                 }
-                $this->dialog->send($response);
+                $response->send();
             }
         }
 	}

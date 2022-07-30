@@ -11,27 +11,24 @@ class CommonRequestHandler extends RequestHandler
         $this->response = $this->resourceContext->invoke();
     }
 
-    protected function prepareResponse(): ResponseInterface
+    protected function prepareResponse(): HttpResponseInterface
     {
         return $this->response;
     }
 
-    protected function processProblemResponse(ResponseInterface $response): ResponseInterface
+    protected function processProblemResponse(HttpResponseInterface $response): void
     {
-        if (lx::$app->dialog->isAssetLoad()) {
-            $url = lx::$app->dialog->getUrl();
+        if ($this->request->isAssetLoad()) {
+            $url = $this->request->getUrl();
             $assetName = 'unknown';
             switch (true) {
                 case preg_match('/\.js$/', $url):
                     $assetName = 'javascript file';
             }
             $msg = "Asset ($assetName) \"$url\" not found";
-            return lx::$app->diProcessor->createByInterface(ResponseInterface::class, [
-                'console.error(\'' . $msg . '\');',
-                ResponseCodeEnum::NOT_FOUND,
-            ]);
-        }
 
-        return $response;
+            $response->setCode(ResponseCodeEnum::NOT_FOUND);
+            $response->setData('console.error(\'' . $msg . '\');');
+        }
     }
 }
