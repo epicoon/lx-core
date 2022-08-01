@@ -45,7 +45,7 @@ class lx
 	{
 		self::$conductor = new lx\PlatformConductor();
 
-		require_once(__DIR__ . '/classes/system/autoload/Autoloader.php');
+		require_once(__DIR__ . '/classes/sys/autoload/Autoloader.php');
 		self::$autoloader = lx\Autoloader::getInstance();
 		self::$autoloader->init(self::$conductor->sitePath, dirname(__DIR__));
 
