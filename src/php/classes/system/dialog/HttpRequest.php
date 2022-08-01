@@ -24,7 +24,6 @@ class HttpRequest implements FusionComponentInterface
 	private ?array $_headers = null;
 	private ?string $_method = null;
 	private ?array $_params = null;
-	private ?Cookie $_cookie = null;
 	private ?DataObject $_location = null;
 
 	protected function init(): void
@@ -93,24 +92,6 @@ class HttpRequest implements FusionComponentInterface
 	public function isAssetLoad(): bool
 	{
 		return $this->_type == self::REQUEST_ASSET;
-	}
-
-	/**
-	 * @return Cookie|mixed
-	 */
-	public function getCookie(?string $data = null)
-	{
-		if ($this->_cookie === null) $this->retrieveCookie();
-
-		if ($data === null) {
-			return $this->_cookie;
-		}
-
-		if (is_string($data)) {
-			return $this->_cookie->$data;
-		}
-
-		return null;
 	}
 
 	/**
@@ -345,10 +326,5 @@ class HttpRequest implements FusionComponentInterface
 		}
 
         $this->_params = $post + $get;
-	}
-
-	private function retrieveCookie(): void
-	{
-		$this->_cookie = new Cookie();
 	}
 }

@@ -16,11 +16,17 @@ class ResourceContext implements ResourceContextInterface
 	private array $data;
 	private Plugin $plugin;
 	private ?ResourceInterface $resource;
+    private HttpResponseInterface $response;
 
 	public function __construct(array $data = [])
 	{
 		$this->setData($data);
 	}
+
+    public function setResponse(HttpResponseInterface $response): void
+    {
+        $this->response = $response;
+    }
 
 	public function setData(array $data): void
 	{
@@ -32,17 +38,19 @@ class ResourceContext implements ResourceContextInterface
         $this->data['params'] = $params;
     }
 
-	public function invoke(): HttpResponseInterface
+	public function invoke(): void
 	{
 		if ($this->isAction()) {
-			return $this->invokeAction();
+			$this->invokeAction();
+            return;
 		}
 
 		if ($this->isPlugin()) {
-			return $this->invokePlugin();
+            $this->invokePlugin();
+            return;
 		}
 
-		return $this->getNotFoundResponse();
+		$this->setNotFoundResponse();
 	}
 
 	public function isAction(): bool
@@ -125,56 +133,56 @@ class ResourceContext implements ResourceContextInterface
 	 * PRIVATE
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	private function invokeAction(): HttpResponseInterface
+	private function invokeAction(): void
 	{
 		$object = $this->getResource();
 		if (!$object) {
-			return $this->getNotFoundResponse();
+			$this->setNotFoundResponse();
+            return;
 		}
 
 		$methodName = $this->data['method'] ?? null;
 		if (!$methodName || !method_exists($object, $methodName)) {
-            return $this->getNotFoundResponse();
+            $this->setNotFoundResponse();
+            return;
 		}
 
 		$params = $this->data['params'] ?? [];
 
 		//TODO здесь нужен try catch с фиксацией 500-проблем 
 		$result = $object->runAction($methodName, $params);
-		$response = $this->prepareResponse($object, $result);
-		return $response;
+		$this->prepareResponse($result);
 	}
 
-	private function invokePlugin(): HttpResponseInterface
+	private function invokePlugin(): void
 	{
 		$plugin = $this->getPlugin();
 		$methodName = Plugin::DEFAULT_RESOURCE_METHOD;
 		if (!method_exists($plugin, $methodName)) {
-            return $this->getNotFoundResponse();
+            $this->setNotFoundResponse();
+            return;
 		}
 
 		$params = $this->data['params'] ?? [];
 
         //TODO здесь нужен try catch с фиксацией 500-проблем 
 		$result = $plugin->runAction($methodName, $params);
-        $response = $this->prepareResponse($plugin, $result);
-        return $response;
+        $this->prepareResponse($result);
 	}
 
-	private function prepareResponse(ResourceInterface $object, ?HttpResponseInterface $result): HttpResponseInterface
+	private function prepareResponse(?HttpResponseInterface $result): void
 	{
-        if ($result === null) {
-            return \lx::$app->diProcessor->createByInterface(HttpResponseInterface::class, ['Ok']);
+        if ($result) {
+            $this->response->setCode($result->getCode());
+            $this->response->setData($result->getData());
+        } else {
+            $this->response->setData('Ok');
         }
-
-        return $result;
     }
     
-	private function getNotFoundResponse(): HttpResponseInterface
+	private function setNotFoundResponse(): void
     {
-        return \lx::$app->diProcessor->createByInterface(HttpResponseInterface::class, [
-            'Resource not found',
-            ResponseCodeEnum::NOT_FOUND
-        ]);
+        $this->response->setCode(HttpResponse::NOT_FOUND);
+        $this->response->setData('Resource not found');
     }
 }

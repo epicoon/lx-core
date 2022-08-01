@@ -38,10 +38,7 @@ class ConsoleResourceContext implements ResourceContextInterface, FlightRecorder
         $this->params = $params;
     }
 
-    /**
-     * @return mixed
-     */
-    public function invoke()
+    public function invoke(): void
     {
         $executor = $this->executor;
         if (is_string($executor)) {

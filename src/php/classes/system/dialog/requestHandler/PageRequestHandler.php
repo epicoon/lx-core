@@ -18,26 +18,24 @@ class PageRequestHandler extends RequestHandler
             $this->icon = $plugin->getIcon();
         }
 
-        $response = $this->resourceContext->invoke();
+        $this->resourceContext->setResponse($this->response);
+        $this->resourceContext->invoke();
 
-        if ($response->requireAuthorization()) {
+        if ($this->response->requireAuthorization()) {
             $resourceContext = lx::$app->authenticationGate->responseToAuthenticate() ?? null;
             if ($resourceContext && $resourceContext->isPlugin()) {
                 $this->resourceContext = $resourceContext;
-                $response = $this->resourceContext->invoke();
+                $this->resourceContext->setResponse($this->response);
+                $this->resourceContext->invoke();
             }
         }
-
-        $this->response = $response;
     }
 
-    protected function prepareResponse(): HttpResponseInterface
+    protected function prepareResponse(): void
     {
         if ($this->resourceContext && $this->resourceContext->isPlugin()) {
-            return $this->renderPlugin();
+            $this->renderPlugin();
         }
-
-        return $this->response;
     }
     
     protected function processProblemResponse(HttpResponseInterface $response): void
@@ -50,7 +48,7 @@ class PageRequestHandler extends RequestHandler
         $response->setData($result);
     }
 
-    private function renderPlugin(): HttpResponseInterface
+    private function renderPlugin(): void
     {
         $pluginData = $this->response->getData();
         $pluginInfo = addcslashes($pluginData['pluginInfo'], '\\`');
@@ -80,14 +78,12 @@ class PageRequestHandler extends RequestHandler
         }
 
         $result = $renderer
-            ->setTemplateType(ResponseCodeEnum::OK)
+            ->setTemplateType(HttpResponse::OK)
             ->setParams([
                 'head' => new HtmlHead($pageData),
                 'body' => new HtmlBody($pageData, $js),
             ])->render();
 
-        /** @var HttpResponseInterface $response */
-        $response = lx::$app->diProcessor->createByInterface(HttpResponseInterface::class, [$result]);
-        return $response;
+        $this->response->setData($result);
     }
 }

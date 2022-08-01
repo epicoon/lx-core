@@ -5,6 +5,8 @@ namespace lx;
 /**
  * @property-read Router $router
  * @property-read HttpRequest $request
+ * @property-read HttpResponse $response
+ * @property-read Cookie $cookie
  */
 class HttpApplication extends AbstractApplication
 {
@@ -12,11 +14,20 @@ class HttpApplication extends AbstractApplication
     const EVENT_BEFORE_SEND_RESPONSE = 'beforeSendResponse';
     const EVENT_AFTER_SEND_RESPONSE = 'afterSendResponse';
 
+    public function getFusionComponentTypes(): array
+    {
+        return array_merge(parent::getFusionComponentTypes(), [
+            'response' => HttpResponseInterface::class,
+        ]);
+    }
+
     public function getDefaultFusionComponents(): array
     {
         return array_merge(parent::getDefaultFusionComponents(), [
             'router' => Router::class,
             'request' => HttpRequest::class,
+            'response' => HttpResponseInterface::class,
+            'cookie' => Cookie::class,
             'user' => UserInterface::class,
         ]);
     }
@@ -29,9 +40,10 @@ class HttpApplication extends AbstractApplication
             $this->authenticateUser();
 
             $request = $this->request;
+            $response = $this->response;
             $this->events->trigger(self::EVENT_BEFORE_HANDLE_REQUEST, $request);
-            $requestHandler = RequestHandler::create($request);
-            $response = $requestHandler->handle();
+            $requestHandler = RequestHandler::create($request, $response);
+            $requestHandler->handle();
 
             if (!$this->user || $this->user->isGuest()) {
                 header('lx-user-status: guest');
@@ -61,12 +73,19 @@ class HttpApplication extends AbstractApplication
                             'error' => $errorString
                         ])->render();
                     /** @var HttpResponseInterface $response */
-                    $response = $this->diProcessor->createByInterface(HttpResponseInterface::class, [$result]);
+                    $response = $this->diProcessor->createByInterface(HttpResponseInterface::class, [
+                        [
+                            'code' => HttpResponse::SERVER_ERROR,
+                            'data' => $result,
+                        ]
+                    ]);
                 } else {
                     \lx::dump($errorString);
                     $response = $this->diProcessor->createByInterface(HttpResponseInterface::class, [
-                        '',
-                        ResponseCodeEnum::SERVER_ERROR
+                        [
+                            'code' => HttpResponse::SERVER_ERROR,
+                            'data' => '',
+                        ]
                     ]);
                 }
                 $response->send();

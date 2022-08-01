@@ -314,7 +314,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 	 */
 	protected function handleAjaxResponse(array $data): HttpResponseInterface
 	{
-		return $this->prepareErrorResponse('Resource not found', ResponseCodeEnum::NOT_FOUND);
+		return $this->prepareErrorResponse('Resource not found', HttpResponse::NOT_FOUND);
 	}
 
 	public function getCacheInfo(): array

@@ -9,25 +9,26 @@ abstract class RequestHandler implements EventListenerInterface
     use EventListenerTrait;
 
     protected HttpRequest $request;
+    protected HttpResponseInterface $response;
     protected ?ResourceContext $resourceContext = null;
-    protected ?HttpResponseInterface $response = null;
 
-    protected function __construct(HttpRequest $request)
+    protected function __construct(HttpRequest $request, HttpResponseInterface $response)
     {
         $this->request = $request;
+        $this->response = $response;
     }
 
-    public static function create(HttpRequest $request): RequestHandler
+    public static function create(HttpRequest $request, HttpResponseInterface $response): RequestHandler
     {
         switch (true) {
             case $request->isPageLoad():
-                return new PageRequestHandler($request);
+                return new PageRequestHandler($request, $response);
             case $request->isAjax():
-                return new AjaxRequestHandler($request);
+                return new AjaxRequestHandler($request, $response);
             case $request->isCors():
-                return new CorsRequestHandler($request);
+                return new CorsRequestHandler($request, $response);
             default:
-                return new CommonRequestHandler($request);
+                return new CommonRequestHandler($request, $response);
         }
     }
 
@@ -42,22 +43,21 @@ abstract class RequestHandler implements EventListenerInterface
     /**
      * Launch of the response preparing
      */
-    public function handle(): HttpResponseInterface
+    public function handle(): void
     {
         $this->defineResourceContext();
         if (!$this->resourceContext) {
             $this->setNotFoundResponse();
-        } else {
-            $this->defineResponse();
+            return;
         }
 
-        $this->response = $this->prepareResponse();
-        return $this->response;
+        $this->defineResponse();
+        $this->prepareResponse();
     }
 
     protected function beforeSendResponse(HttpResponseInterface $response): void
     {
-        if ($response->getCode() == ResponseCodeEnum::OK) {
+        if ($response->getCode() == HttpResponse::OK) {
             $this->beforeSuccessfulSending();
         } else {
             $this->processProblemResponse($response);
@@ -67,16 +67,28 @@ abstract class RequestHandler implements EventListenerInterface
 
     protected function afterSendResponse(HttpResponseInterface $response): void
     {
-        if ($response->getCode() == ResponseCodeEnum::OK) {
+        if ($response->getCode() == HttpResponse::OK) {
             $this->afterSuccessfulSending();
         } else {
             $this->afterFailedSending();
         }
     }
 
-    abstract protected function defineResponse(): void;
-    abstract protected function prepareResponse(): HttpResponseInterface;
-    abstract protected function processProblemResponse(HttpResponseInterface $response): void;
+    protected function defineResponse(): void
+    {
+        $this->resourceContext->setResponse($this->response);
+        $this->resourceContext->invoke();
+    }
+
+    protected function prepareResponse(): void
+    {
+        // pass
+    }
+
+    protected function processProblemResponse(HttpResponseInterface $response): void
+    {
+        // pass
+    }
 
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -105,10 +117,8 @@ abstract class RequestHandler implements EventListenerInterface
 
     private function setNotFoundResponse(): void
     {
-        $this->response = lx::$app->diProcessor->createByInterface(HttpResponseInterface::class, [
-            'Resource not found',
-            ResponseCodeEnum::NOT_FOUND,
-        ]);
+        $this->response->setCode(HttpResponse::NOT_FOUND);
+        $this->response->setData('Resource not found');
     }
 
     private function beforeSuccessfulSending(): void

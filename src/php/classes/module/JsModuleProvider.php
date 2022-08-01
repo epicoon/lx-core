@@ -17,8 +17,10 @@ class JsModuleProvider extends Resource
         list ($modulesCode, $modules) = $this->compile($list['need'], $list['have']);
         return lx::$app->diProcessor->createByInterface(HttpResponseInterface::class, [
             [
-                'code' => $modulesCode,
-                'compiledModules' => $modules,
+                'data' => [
+                    'code' => $modulesCode,
+                    'compiledModules' => $modules,
+                ],
             ]
         ]);
     }

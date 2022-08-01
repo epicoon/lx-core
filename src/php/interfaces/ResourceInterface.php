@@ -25,5 +25,5 @@ interface ResourceInterface
     /**
      * @param array|string $error
      */
-    public function prepareErrorResponse($error, int $code = ResponseCodeEnum::BAD_REQUEST_ERROR): HttpResponseInterface;
+    public function prepareErrorResponse($error, int $code = HttpResponse::BAD_REQUEST): HttpResponseInterface;
 }

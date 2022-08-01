@@ -33,7 +33,6 @@ return [
 
 	'HttpRequest' => 'classes/system/dialog',
 	'Cookie' => 'classes/system/dialog',
-	'ResponseCodeEnum' => 'classes/system/dialog',
 	'Router' => 'classes/system/dialog',
 	'SpecialAjaxRouter' => 'classes/system/dialog',
 	'Resource' => 'classes/system/dialog',

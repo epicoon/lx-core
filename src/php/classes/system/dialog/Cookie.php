@@ -2,12 +2,24 @@
 
 namespace lx;
 
-class Cookie extends DataObject
+class Cookie implements FusionComponentInterface
 {
+    use FusionComponentTrait;
+
+    private DataObject $data;
+
 	public function __construct()
 	{
-        $this->__constructArray($_COOKIE);
-	}
+        $this->data = new DataObject($_COOKIE);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function __get(string $name)
+    {
+        return $this->data->$name;
+    }
 
 	/**
 	 * @param mixed $val
@@ -23,7 +35,7 @@ class Cookie extends DataObject
 	public function set(string $name, $val, ?int $expire = null): void
 	{
 		if ($val === null) {
-			$this->drop($name);
+			$this->data->drop($name);
 		} else {
 		    if ($expire === null) {
                 setcookie($name, $val);
@@ -31,13 +43,13 @@ class Cookie extends DataObject
                 setcookie($name, $val, $expire);
             }
 
-			parent::__set($name, $val);
+            $this->data->$name = $val;
 		}
 	}
 
 	public function drop(string $name): void
 	{
-		$this->extract($name);
+		$this->data->extract($name);
 		setcookie($name, '', time() - 1);
 	}
 }

@@ -4,21 +4,27 @@ namespace lx;
 
 use lx;
 
-class HttpResponse implements HttpResponseInterface
+class HttpResponse implements HttpResponseInterface, FusionComponentInterface
 {
+    use FusionComponentTrait;
+
+    const OK = 200;
+    const BAD_REQUEST = 400;
+    const UNAUTHORIZED = 401;
+    const FORBIDDEN = 403;
+    const NOT_FOUND = 404;
+    const SERVER_ERROR = 500;
+
     private int $code;
     private bool $isWarning = false;
     private string $type;
     /** @var mixed */
     private $data;
 
-    /**
-     * @param mixed $data
-     */
-    public function __construct($data, int $code = ResponseCodeEnum::OK)
+    public function __construct(iterable $config = [])
     {
-        $this->code = $code;
-        $this->data = $data;
+        $this->code = $config['code'] ?? self::OK;
+        $this->data = $config['data'] ?? '';
     }
 
     public function getCode(): int
@@ -54,17 +60,17 @@ class HttpResponse implements HttpResponseInterface
 
     public function isForbidden(): bool
     {
-        return $this->getCode() == ResponseCodeEnum::FORBIDDEN;
+        return $this->getCode() == self::FORBIDDEN;
     }
 
     public function requireAuthorization(): bool
     {
-        return $this->getCode() == ResponseCodeEnum::UNAUTHORIZED;
+        return $this->getCode() == self::UNAUTHORIZED;
     }
 
     public function isSuccessfull(): bool
     {
-        return $this->getCode() == ResponseCodeEnum::OK;
+        return $this->getCode() == self::OK;
     }
 
     public function getDataAsString(): string

@@ -6,16 +6,6 @@ use lx;
 
 class CommonRequestHandler extends RequestHandler
 {
-    protected function defineResponse(): void
-    {
-        $this->response = $this->resourceContext->invoke();
-    }
-
-    protected function prepareResponse(): HttpResponseInterface
-    {
-        return $this->response;
-    }
-
     protected function processProblemResponse(HttpResponseInterface $response): void
     {
         if ($this->request->isAssetLoad()) {
@@ -27,7 +17,7 @@ class CommonRequestHandler extends RequestHandler
             }
             $msg = "Asset ($assetName) \"$url\" not found";
 
-            $response->setCode(ResponseCodeEnum::NOT_FOUND);
+            $response->setCode(HttpResponse::NOT_FOUND);
             $response->setData('console.error(\'' . $msg . '\');');
         }
     }

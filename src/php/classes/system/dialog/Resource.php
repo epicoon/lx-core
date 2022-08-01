@@ -42,39 +42,39 @@ class Resource implements ResourceInterface, ObjectInterface
     /**
      * @param array|string $error
      */
-    public function prepareErrorResponse($error, int $code = ResponseCodeEnum::BAD_REQUEST_ERROR): HttpResponseInterface
+    public function prepareErrorResponse($error, int $code = HttpResponse::BAD_REQUEST): HttpResponseInterface
     {
         return $this->newResponse($error, $code);
     }
 
 	public function run(array $params, ?UserInterface $user = null): HttpResponseInterface
 	{
-	    return $this->newResponse('Resource not found', ResponseCodeEnum::NOT_FOUND);
+	    return $this->newResponse('Resource not found', HttpResponse::NOT_FOUND);
 	}
 
 	public function runAction(string $actionName, array $params, ?UserInterface $user = null): ?HttpResponseInterface
 	{
 		if (!method_exists($this, $actionName)) {
-			return $this->newResponse('Resource not found', ResponseCodeEnum::NOT_FOUND);
+			return $this->newResponse('Resource not found', HttpResponse::NOT_FOUND);
 		}
 
 		$list = static::getActionMethodsList();
 		if (is_array($list) && array_search($actionName, $list) === false) {
-			return $this->newResponse('Resource not found',ResponseCodeEnum::NOT_FOUND);
+			return $this->newResponse('Resource not found',HttpResponse::NOT_FOUND);
 		}
 
 		$list = static::getOwnMethodsList();
 		if (array_search($actionName, $list) !== false) {
-			return $this->newResponse('Resource not found',ResponseCodeEnum::NOT_FOUND);
+			return $this->newResponse('Resource not found',HttpResponse::NOT_FOUND);
 		}
 
 		if (preg_match('/^__/', $actionName)) {
-			return $this->newResponse('Resource not found',ResponseCodeEnum::NOT_FOUND);
+			return $this->newResponse('Resource not found',HttpResponse::NOT_FOUND);
 		}
 
 		$re = new \ReflectionMethod($this, $actionName);
 		if ($re->isStatic() || !$re->isPublic()) {
-			return $this->newResponse('Resource not found',ResponseCodeEnum::NOT_FOUND);
+			return $this->newResponse('Resource not found',HttpResponse::NOT_FOUND);
 		}
 
 		if ($user === null) {
@@ -84,10 +84,10 @@ class Resource implements ResourceInterface, ObjectInterface
 		if ($user && $this->voter) {
 			if (!$this->voter->run($user, $actionName, $params)) {
                 if ($user->isGuest()) {
-                    return $this->newResponse('Unauthorized', ResponseCodeEnum::UNAUTHORIZED);
+                    return $this->newResponse('Unauthorized', HttpResponse::UNAUTHORIZED);
                 }
 
-				return $this->newResponse('Forbidden',ResponseCodeEnum::FORBIDDEN);
+				return $this->newResponse('Forbidden',HttpResponse::FORBIDDEN);
 			}
 
 			$params = $this->voter->processActionParams($user, $actionName, $params);
@@ -155,8 +155,13 @@ class Resource implements ResourceInterface, ObjectInterface
     /**
      * @param mixed $data
      */
-    protected function newResponse($data, int $code = ResponseCodeEnum::OK): HttpResponseInterface
+    protected function newResponse($data, int $code = HttpResponse::OK): HttpResponseInterface
     {
-        return lx::$app->diProcessor->createByInterface(HttpResponseInterface::class, [$data, $code]);
+        return lx::$app->diProcessor->createByInterface(HttpResponseInterface::class, [
+            [
+                'code' => $code,
+                'data' => $data,
+            ]
+        ]);
     }
 }
