@@ -11,9 +11,7 @@ class Plugin {
         this._icon = data.icon;
         this._changes = {
             title: null,
-            icon: null,
-            beforeRenderCallbacks: [],
-            beforeRunCallbacks: []
+            icon: null
         };
 
         this._oldAttributes = data.attributes ? data.attributes.lxClone() : {};
@@ -64,14 +62,6 @@ class Plugin {
 
     }
 
-    beforeRender(code) {
-        this._changes.beforeRenderCallbacks.push(lx._f.functionToString(code));
-    }
-
-    beforeRun(code) {
-        this._changes.beforeRunCallbacks.push(lx._f.functionToString(code));
-    }
-
     getDependencies() {
         return {};
     }
@@ -89,8 +79,6 @@ class Plugin {
         }
 
         if (!changedAttributes.lxEmpty()) result.attributes = changedAttributes;
-        if (this._changes.beforeRenderCallbacks.len) result.beforeRender = this._changes.beforeRenderCallbacks;
-        if (this._changes.beforeRunCallbacks.len) result.beforeRun = this._changes.beforeRunCallbacks;
         if (this._changes.title) result.title = this._changes.title;
         if (this._changes.icon) result.icon = this._changes.icon;
         

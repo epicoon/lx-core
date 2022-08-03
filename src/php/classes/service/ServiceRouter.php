@@ -91,7 +91,7 @@ class ServiceRouter implements FusionComponentInterface
 	{
 		$arr = explode('::', $nameWithAction);
 		$className = $arr[0];
-		$actionMethod = $arr[1] ?? 'run';
+		$actionMethod = $arr[1] ?? Resource::DEFAULT_RESOURCE_METHOD;
 
 		if (ClassHelper::exists($className) && method_exists($className, $actionMethod)) {
 			return [$className, $actionMethod];

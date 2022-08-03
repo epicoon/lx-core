@@ -52,4 +52,14 @@ class Cookie implements FusionComponentInterface
 		$this->data->extract($name);
 		setcookie($name, '', time() - 1);
 	}
+
+    /**
+     * @param array|string $names
+     * @param mixed $default
+     * @return mixed
+     */
+    public function getFirstDefined($names, $default = null)
+    {
+        return $this->data->getFirstDefined($names, $default);
+    }
 }

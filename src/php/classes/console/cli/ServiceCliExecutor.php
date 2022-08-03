@@ -90,7 +90,7 @@ class ServiceCliExecutor implements ServiceCliExecutorInterface
             'type' => 'plugin',
             'message' => $config['message'] ?? 'Plugin loaded',
             'header' => $config['header'] ?? "Plugin $pluginName",
-            'plugin' => $plugin->run()->getData(),
+            'plugin' => $plugin->render()->getData(),
         ]);
         $processor->done();
     }

@@ -11,7 +11,7 @@ interface ResourceInterface
     public function afterSuccessfulAction(): void;
     public function afterFailedAction(): void;
 
-    public function run(array $params, UserInterface $user = null): HttpResponseInterface;
+    public function render(array $params, UserInterface $user = null): HttpResponseInterface;
 	public function runAction(string $actionName, array $params, ?UserInterface $user = null): ?HttpResponseInterface;
 
     /**

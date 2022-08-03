@@ -8,6 +8,8 @@ class Resource implements ResourceInterface, ObjectInterface
 {
     use ObjectTrait;
 
+    const DEFAULT_RESOURCE_METHOD = 'render';
+
 	protected ?ResourceVoterInterface $voter = null;
 
     protected function init(): void
@@ -47,7 +49,7 @@ class Resource implements ResourceInterface, ObjectInterface
         return $this->newResponse($error, $code);
     }
 
-	public function run(array $params, ?UserInterface $user = null): HttpResponseInterface
+	public function render(array $params, ?UserInterface $user = null): HttpResponseInterface
 	{
 	    return $this->newResponse('Resource not found', HttpResponse::NOT_FOUND);
 	}
@@ -91,10 +93,6 @@ class Resource implements ResourceInterface, ObjectInterface
 			}
 
 			$params = $this->voter->processActionParams($user, $actionName, $params);
-		}
-
-		if ($actionName == 'run') {
-			return $this->run($params, $user);
 		}
 
 		return $params

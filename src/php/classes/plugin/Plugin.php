@@ -18,7 +18,6 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
     use ObjectTrait;
 	use FusionTrait;
 
-	const DEFAULT_RESOURCE_METHOD = 'run';
 	const AJAX_RESOURCE_METHOD = 'handleAjaxResponse';
 
 	const CACHE_NONE = 'none';
@@ -42,8 +41,6 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 	private string $rootSnippetKey;
     private string $cssPreset;
 	private array $dependencies = ['modules' => ['lx.Box']];
-    private array $beforeRenderCallbacks = [];
-	private array $beforeRunCallbacks = [];
 	private array $scripts = [];
 	private array $css = [];
     private ?array $_imagePathes = null;
@@ -227,21 +224,10 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 		return $this->conductor->getFullPath($fileName);
 	}
 
-    public function createFile(string $name): File
-    {
-        $fullName = $this->conductor->getFullPath($name);
-        return new File($fullName);
-    }
-
 	public function getFile(string $name): ?CommonFileInterface
 	{
 		return $this->conductor->getFile($name);
 	}
-
-    public function prepareFile(string $name): CommonFileInterface
-    {
-        return $this->getFile($name) ?? $this->createFile($name);
-    }
 
 	public function findFile(string $name): ?CommonFileInterface
 	{
@@ -301,7 +287,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 	/**
 	 * This method is used by ResourceContext for return Plugin as resource
 	 */
-	public function run(array $params = [], ?UserInterface $user = null): HttpResponseInterface
+	public function render(array $params = [], ?UserInterface $user = null): HttpResponseInterface
 	{
 		$builder = new PluginBuildContext(['plugin' => $this]);
 		$result = $builder->build();
@@ -369,7 +355,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 	{
 		// pass
 	}
-	
+
 	/**
 	 * @param mixed $value
 	 */
@@ -464,16 +450,6 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 		}
 	}
 
-    public function beforeRender(string $code): void
-    {
-        $this->beforeRenderCallbacks[] = $code;
-    }
-
-	public function beforeRun(string $code): void
-	{
-		$this->beforeRunCallbacks[] = $code;
-	}
-
 	public function addDependencies(array $dependencies): void
 	{
 		$this->dependencies = ArrayHelper::mergeRecursiveDistinct(
@@ -484,11 +460,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 
 	public function getModuleDependencies(): array
 	{
-		if (isset($this->dependencies['modules'])) {
-			return $this->dependencies['modules'];
-		}
-
-		return [];
+        return $this->dependencies['modules'] ?? [];
 	}
 
 
@@ -536,18 +508,6 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 				$this->addAttribute($key, $value);
 			}
 		}
-
-        if (isset($data['beforeRender'])) {
-            foreach ($data['beforeRender'] as $code) {
-                $this->beforeRender($code);
-            }
-        }
-
-		if (isset($data['beforeRun'])) {
-			foreach ($data['beforeRun'] as $code) {
-				$this->beforeRun($code);
-			}
-		}
 	}
 
 	public function getSelfInfo(): array
@@ -561,14 +521,6 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 		$attributes = $this->attributes->getProperties();
 		if (!empty($attributes)) {
 			$info['attributes'] = $attributes;
-		}
-
-        if (!empty($this->beforeRenderCallbacks)) {
-            $info['beforeRender'] = $this->beforeRenderCallbacks;
-        }
-
-		if (!empty($this->beforeRunCallbacks)) {
-			$info['beforeRun'] = $this->beforeRunCallbacks;
 		}
 
 		if (isset($config['images'])) {
