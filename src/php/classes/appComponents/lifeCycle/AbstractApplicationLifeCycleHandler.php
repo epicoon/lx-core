@@ -13,8 +13,8 @@ abstract class AbstractApplicationLifeCycleHandler
         return [
             AbstractApplication::EVENT_BEFORE_RUN => 'beforeApplicationRun',
             AbstractApplication::EVENT_AFTER_RUN => 'afterApplicationRun',
-            Plugin::EVENT_BEFORE_GET_AUTO_LINKS => 'beforeGetAutoLinkPathes',
-            Plugin::EVENT_BEFORE_GET_CSS_ASSETS => 'beforeGetPluginCssAssets',
+            PluginAssetProvider::EVENT_BEFORE_GET_AUTO_LINKS => 'beforeGetAutoLinkPathes',
+            PluginAssetProvider::EVENT_BEFORE_GET_CSS_ASSETS => 'beforeGetPluginCssAssets',
         ];
     }
 

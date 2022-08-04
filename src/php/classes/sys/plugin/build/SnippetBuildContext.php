@@ -35,11 +35,11 @@ class SnippetBuildContext implements ContextTreeInterface
 
 		$buildType = $this->pluginBuildContext->getCacheType();
 		switch ($buildType) {
-			case Plugin::CACHE_BUILD:
+			case PluginCacheManager::CACHE_BUILD:
 				return $this->buildProcess(true);
-			case Plugin::CACHE_NONE:
+			case PluginCacheManager::CACHE_NONE:
 				return $this->buildProcess(false);
-			case Plugin::CACHE_STRICT:
+			case PluginCacheManager::CACHE_STRICT:
 				$result = $this->getCache();
 				if (!$result) {
 					\lx::devLog(['_' => [__FILE__, __CLASS__, __METHOD__, __LINE__],
@@ -53,9 +53,9 @@ class SnippetBuildContext implements ContextTreeInterface
 					$result = '[]';
 				}
 				return $result;
-			case Plugin::CACHE_ON:
+			case PluginCacheManager::CACHE_ON:
 				return $this->getCache() ?? $this->buildProcess(true);
-			case Plugin::CACHE_SMART:
+			case PluginCacheManager::CACHE_SMART:
 				return $this->getSmartCache();
 		}
 	}

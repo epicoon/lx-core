@@ -98,7 +98,7 @@ return [
 	 * build - [[lx\Plugin::CACHE_BUILD]] allways rebuild plugin and cache
 	 * smart - [[lx\Plugin::CACHE_SMART]] update cache if files were changed
 	 */
-	'cacheType' => lx\Plugin::CACHE_SMART,
+	'cacheType' => lx\PluginCacheManager::CACHE_SMART,
 
 	// Common plugin aliases
 	'aliases' => [],

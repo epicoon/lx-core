@@ -49,7 +49,7 @@ class AssetCompiler
         foreach ($services as $service) {
             $plugins = $service->getStaticPlugins();
             foreach ($plugins as $plugin) {
-                $origins = $plugin->getOriginScripts();
+                $origins = $plugin->getScriptsList();
                 $arr = [];
                 foreach ($origins as $value) {
                     $arr[] = $value['path'];
@@ -57,11 +57,11 @@ class AssetCompiler
                 $linksMap = self::getLinksMap($arr);
                 $this->createLinks($linksMap['origins'], $linksMap['links']);
 
-                $origins = $plugin->getOriginCss();
+                $origins = $plugin->getCssList();
                 $linksMap = self::getLinksMap($origins);
                 $this->createLinks($linksMap['origins'], $linksMap['links']);
 
-                $origins = $plugin->getOriginImagePathes();
+                $origins = $plugin->getImagePathsList();
                 $linksMap = self::getLinksMap($origins);
                 $this->createLinks($linksMap['origins'], $linksMap['links']);
             }

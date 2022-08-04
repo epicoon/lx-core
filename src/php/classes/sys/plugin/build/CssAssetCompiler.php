@@ -129,7 +129,9 @@ class CssAssetCompiler
         $code .= 'const __plugin__ = (()=>{class Plugin extends lx.Plugin{'
             . $getCssAssetClassesCode
             . $initCssAssetCode
-            . '}return new Plugin(' . CodeConverterHelper::arrayToJsCode($plugin->getBuildData()) . ');})();';
+            . '}return new Plugin('
+            . CodeConverterHelper::arrayToJsCode($plugin->getBuildData())
+            . ');})();';
 
         $code .= 'const result = {};';
         foreach (lx::$app->presetManager->getCssPresets() as $type => $preset) {
@@ -145,7 +147,7 @@ class CssAssetCompiler
     private function getNeedFiles(array $needMap): array
     {
         $plugin = $this->plugin;
-        $cssFiles = $plugin->getOriginCss();
+        $cssFiles = $plugin->getCssList();
         foreach ($cssFiles as $cssPath) {
             $cssFile = $plugin->getFile($cssPath);
             $fileName = $cssFile->getName();

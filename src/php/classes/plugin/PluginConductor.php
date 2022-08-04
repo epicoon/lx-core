@@ -56,7 +56,7 @@ class PluginConductor implements ConductorInterface
 
 	public function getImagePath(string $fileName): ?string
 	{
-		$map = $this->getImagePathesInSite();
+		$map = $this->getImagePathsInSite();
 		if ($fileName[0] == '@') {
 			preg_match('/^@([^\/]+?)(\/.+)$/', $fileName, $match);
 			if (empty($match)) {
@@ -215,7 +215,7 @@ class PluginConductor implements ConductorInterface
 	/**
 	 * @return array<string>
 	 */
-	public function getImagePathesInSite(): array
+	public function getImagePathsInSite(): array
 	{
 		$images = $this->getPlugin()->getConfig('images');
 		if ($images === null) {

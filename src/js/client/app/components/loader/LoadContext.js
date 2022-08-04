@@ -153,6 +153,7 @@ class LoadContext {
 			lx.body.clientBuild();
 			el = lx.body;
 		}
+
 		var info = pluginInfo.info;
 		if (parent) info.parent = parent;
 		info.key = pluginInfo.key;

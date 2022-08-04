@@ -151,6 +151,8 @@ return [
     'Snippet' => 'classes/sys/plugin/build',
     'SnippetBuildContext' => 'classes/sys/plugin/build',
     'SnippetCacheData' => 'classes/sys/plugin/build',
+    'PluginCacheManager' => 'classes/sys/plugin/build',
+    'PluginAssetProvider' => 'classes/sys/plugin/build',
     'ServiceBrowser' => 'classes/sys/service',
     'ServiceProvider' => 'classes/sys/service',
     'ServicesMap' => 'classes/sys/service',

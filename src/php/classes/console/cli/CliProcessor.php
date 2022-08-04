@@ -973,8 +973,8 @@ class CliProcessor
                 foreach ($servicePlugins as $plugin) {
                     foreach ($plugins as $serviceName => $servicePlugins) {
                         foreach ($servicePlugins as $plugin) {
-                            if ($plugin->getConfig('cacheType') != Plugin::CACHE_NONE) {
-                                $plugin->buildCache();
+                            if ($plugin->getConfig('cacheType') != PluginCacheManager::CACHE_NONE) {
+                                (new PluginCacheManager($plugin))->buildCache();
                             }
                         }
                     }
@@ -987,7 +987,7 @@ class CliProcessor
         if ($this->getArg('clear', false)) {
             foreach ($plugins as $serviceName => $servicePlugins) {
                 foreach ($servicePlugins as $plugin) {
-                    $plugin->dropCache();
+                    (new PluginCacheManager($plugin))->dropCache();
                 }
             }
             $this->outln('done');
@@ -998,10 +998,10 @@ class CliProcessor
             foreach ($plugins as $serviceName => $servicePlugins) {
                 foreach ($servicePlugins as $plugin) {
                     $cacheType = $plugin->getConfig('cacheType');
-                    if (!$cacheType || $cacheType == Plugin::CACHE_NONE) {
+                    if (!$cacheType || $cacheType == PluginCacheManager::CACHE_NONE) {
                         continue;
                     }
-                    $plugin->renewCache();
+                    (new PluginCacheManager($plugin))->renewCache();
                 }
             }
             $this->outln('done');
@@ -1013,7 +1013,7 @@ class CliProcessor
             $this->outln('Service ' . $serviceName . ':' , ['decor' => 'b']);
             $data = [];
             foreach ($servicePlugins as $plugin) {
-                $info = $plugin->getCacheInfo();
+                $info = (new PluginCacheManager($plugin))->getCacheInfo();
                 $data[] = [
                     'name' => $plugin->name,
                     'type' => $info['type'],

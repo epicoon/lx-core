@@ -20,15 +20,6 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 
 	const AJAX_RESOURCE_METHOD = 'handleAjaxResponse';
 
-	const CACHE_NONE = 'none';
-	const CACHE_ON = 'on';
-	const CACHE_STRICT = 'strict';
-	const CACHE_BUILD = 'build';
-	const CACHE_SMART = 'smart';
-
-	const EVENT_BEFORE_GET_AUTO_LINKS = 'pluginEventBeforeGetAutoLinks';
-    const EVENT_BEFORE_GET_CSS_ASSETS = 'pluginEventBeforeGetCssAssets';
-
 	public ?string $title = null;
 	public ?string $icon = null;
 	public DataObject $attributes;
@@ -43,7 +34,6 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 	private array $dependencies = ['modules' => ['lx.Box']];
 	private array $scripts = [];
 	private array $css = [];
-    private ?array $_imagePathes = null;
 
     protected function beforeObjectConstruct(iterable $config): void
     {
@@ -74,7 +64,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 	/**
 	 * Define in child
 	 */
-	protected function widgetBasicCssList(): array
+	public function widgetBasicCssList(): array
 	{
 		return [];
 	}
@@ -295,47 +285,6 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 		return $this->prepareResponse($result);
 	}
 
-	/**
-	 * Define in child
-	 */
-	protected function handleAjaxResponse(array $data): HttpResponseInterface
-	{
-		return $this->prepareErrorResponse('Resource not found', HttpResponse::NOT_FOUND);
-	}
-
-	public function getCacheInfo(): array
-    {
-        return [
-            'type' => $this->getConfig('cacheType'),
-            'exists' => $this->cacheExists(),
-        ];
-    }
-
-    public function cacheExists(): bool
-    {
-        $dir = new Directory($this->conductor->getSnippetsCachePath());
-        return $dir->exists();
-    }
-
-    public function buildCache(): void
-    {
-        if (!$this->cacheExists()) {
-            $this->renewCache();
-        }
-    }
-
-	public function renewCache(): void
-	{
-		$builder = new PluginBuildContext(['plugin' => $this]);
-		$builder->buildCache();
-	}
-
-	public function dropCache(): void
-	{
-		$dir = new Directory($this->conductor->getSnippetsCachePath());
-		$dir->remove();
-	}
-
 	public function beforeAddAttributes(array $attributes): array
 	{
 		return $attributes;
@@ -382,30 +331,6 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 	public function getRootSnippetKey(): string
 	{
 		return $this->rootSnippetKey;
-	}
-
-	public function getResourceContext(string $respondent, array $data): ?ResourceContext
-	{
-		if (!isset($data['attributes']) || !isset($data['data'])) {
-			lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
-				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-				'msg' => "Wrong data in ajax-request for plugin '{$this->name}'",
-			]);
-			return null;
-		}
-
-		$this->attributes->setProperties($data['attributes']);
-		$requestData = $data['data'];
-
-		if ($respondent) {
-			return $this->ajaxResponseByRespondent($respondent, $requestData);
-		}
-
-		return new ResourceContext([
-			'object' => $this,
-			'method' => self::AJAX_RESOURCE_METHOD,
-			'params' => [$requestData],
-		]);
 	}
 
 	public function addAttributes(array $attributes): void
@@ -474,7 +399,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 			'serviceName' => $this->service->name,
 			'name' => $this->_name,
 			'path' => $this->getPath(),
-            'images' => $this->getImagePathes(),
+            'images' => (new PluginAssetProvider($this))->getImagePaths(),
             'cssPreset' => $this->cssPreset,
 			'title' => $this->title,
 			'icon' => $this->icon,
@@ -510,37 +435,10 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 		}
 	}
 
-	public function getSelfInfo(): array
-	{
-		$config = $this->config;
-		$info = [
-			'name' => $this->_name,
-			'anchor' => $this->anchor,
-		];
-
-		$attributes = $this->attributes->getProperties();
-		if (!empty($attributes)) {
-			$info['attributes'] = $attributes;
-		}
-
-		if (isset($config['images'])) {
-			$info['images'] = $this->getImagePathes();
-		}
-
-		$widgetBasicCssList = $this->widgetBasicCssList();
-		if (!empty($widgetBasicCssList)) {
-			$info['wgdl'] = $widgetBasicCssList;
-		}
-
-        $info['cssPreset'] = $this->getCssPreset();
-
-		return $info;
-	}
-
     /**
      * @return JsScriptAsset[]
      */
-	public function getOriginScripts(): array
+	public function getScriptsList(): array
 	{
 		$assets = [
 			'from-code' => array_values($this->scripts),
@@ -555,7 +453,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 		return $result;
 	}
 
-	public function getOriginCss(): array
+	public function getCssList(): array
 	{
 		$assets = [
 			'from-code' => array_keys($this->css),
@@ -575,85 +473,47 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 		return $result;
 	}
 
-	public function getOriginImagePathes(): array
-	{
-		return $this->conductor->getImagePathesInSite();
-	}
-
-    /**
-     * @return JsScriptAsset[]
-     */
-	public function getScripts(): array
-	{
-		$list = $this->getOriginScripts();
-		$arr = [];
-		foreach ($list as $script) {
-            $arr[] = $script->getPath();
-		}
-
-		$linksMap = AssetCompiler::getLinksMap($arr);
-		lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
-		    $linksMap['origins'],
-            $linksMap['links']
-        ]);
-		
-		foreach ($linksMap['names'] as $key => $name) {
-			$list[$key]->setPath($name);
-		}
-
-		return $list;
-	}
-
-	public function getCss(): array
-	{
-        if (lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_NONE)) {
-            return [];
-        }
-
-        lx::$app->events->trigger(self::EVENT_BEFORE_GET_CSS_ASSETS, $this);
-
-		$originCss = $this->getOriginCss();
-        $list = [];
-        foreach ($originCss as $path) {
-            if (lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_SEGREGATED)) {
-                if (basename($path) == 'asset.css') {
-                    continue;
-                }
-            } elseif (lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_ALL_TOGETHER)) {
-                if (basename($path) != 'asset.css') {
-                    continue;
-                }
-            }
-            $list[] = $path;
-        }
-		$linksMap = AssetCompiler::getLinksMap($list);
-        lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
-            $linksMap['origins'],
-            $linksMap['links']
-        ]);
-
-		return $linksMap['names'];
-	}
-
-	public function getImagePathes(): array
-	{
-        if ($this->_imagePathes === null) {
-            $list = $this->getOriginImagePathes();
-            $linksMap = AssetCompiler::getLinksMap($list);
-            lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
-                $linksMap['origins'],
-                $linksMap['links']
-            ]);
-            $this->_imagePathes = $linksMap['names'];
-        }
-
-		return $this->_imagePathes;
-	}
+    public function getImagePathsList(): array
+    {
+        return $this->conductor->getImagePathsInSite();
+    }
 
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+    public function getResourceContext(string $respondent, array $data): ?ResourceContext
+    {
+        if (!isset($data['attributes']) || !isset($data['data'])) {
+            lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+                '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+                'msg' => "Wrong data in ajax-request for plugin '{$this->name}'",
+            ]);
+            return null;
+        }
+
+        $this->attributes->setProperties($data['attributes']);
+        $requestData = $data['data'];
+
+        if ($respondent) {
+            return $this->ajaxResponseByRespondent($respondent, $requestData);
+        }
+
+        return new ResourceContext([
+            'object' => $this,
+            'method' => self::AJAX_RESOURCE_METHOD,
+            'params' => [$requestData],
+        ]);
+    }
+
+    /**
+     * Define in child
+     */
+    protected function handleAjaxResponse(array $data): HttpResponseInterface
+    {
+        return $this->prepareErrorResponse('Resource not found', HttpResponse::NOT_FOUND);
+    }
 
 	private function ajaxResponseByRespondent(string $respondentName, array $respondentParams): ?ResourceContext
 	{

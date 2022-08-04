@@ -44,12 +44,12 @@ class PluginBuildContext implements ContextTreeInterface
 
 	public function getCacheType(): string
 	{
-		return $this->cacheType ?? $this->getPlugin()->getConfig('cacheType') ?? Plugin::CACHE_NONE;
+		return $this->cacheType ?? $this->getPlugin()->getConfig('cacheType') ?? PluginCacheManager::CACHE_NONE;
 	}
 
 	public function buildCache(): void
 	{
-		$this->cacheType = Plugin::CACHE_BUILD;
+		$this->cacheType = PluginCacheManager::CACHE_BUILD;
 		$this->compile();
 	}
 
@@ -171,14 +171,14 @@ class PluginBuildContext implements ContextTreeInterface
 
 	private function compilePluginInfo(): void
 	{
-		$info = $this->getPlugin()->getSelfInfo();
+		$info = $this->getPluginInfo();
 
 		// Root snippet key
 		$info['rsk'] = $this->getPlugin()->getRootSnippetKey();
 
 		// All plugin dependencies
-		$this->scripts = $this->getPlugin()->getScripts();
-		$this->css = $this->getPlugin()->getCss();
+		$this->scripts = (new PluginAssetProvider($this->getPlugin()))->getPluginScripts();
+		$this->css = (new PluginAssetProvider($this->getPlugin()))->getPluginCss();
 		$dependencies = [];
 		if (!empty($this->scripts)) {
 			$dependencies['s'] = [];
@@ -198,6 +198,34 @@ class PluginBuildContext implements ContextTreeInterface
 
 		$this->pluginInfo = json_encode($info);
 	}
+    
+    private function getPluginInfo(): array
+    {
+        $plugin = $this->getPlugin();
+        $config = $plugin->getConfig();
+        $info = [
+            'name' => $plugin->name,
+            'anchor' => $plugin->getAnchor(),
+        ];
+
+        $attributes = $plugin->attributes->getProperties();
+        if (!empty($attributes)) {
+            $info['attributes'] = $attributes;
+        }
+
+        if (isset($config['images'])) {
+            $info['images'] = $plugin->getImagePathsList();
+        }
+
+        $widgetBasicCssList = $plugin->widgetBasicCssList();
+        if (!empty($widgetBasicCssList)) {
+            $info['wgdl'] = $widgetBasicCssList;
+        }
+
+        $info['cssPreset'] = $plugin->getCssPreset();
+
+        return $info;
+    }
 
 	private function compileSnippet(): void
 	{

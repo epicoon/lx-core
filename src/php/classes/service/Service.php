@@ -345,7 +345,7 @@ class Service implements ObjectInterface, FusionInterface
 	{
 		$plugins = $this->getStaticPlugins();
 		foreach ($plugins as $plugin) {
-			$plugin->renewCache();
+            (new PluginCacheManager($plugin))->renewCache();
 		}
 	}
 
@@ -353,7 +353,7 @@ class Service implements ObjectInterface, FusionInterface
 	{
 		$plugins = $this->getStaticPlugins();
 		foreach ($plugins as $plugin) {
-			$plugin->dropCache();
+            (new PluginCacheManager($plugin))->dropCache();
 		}
 	}
 
