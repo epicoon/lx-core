@@ -127,6 +127,7 @@ class CssAssetCompiler
             $code .= '#lx:use ' . lx::$app->presetManager->getCssPresetModule($type) . ';';
         }
         $code .= 'const __plugin__ = (()=>{class Plugin extends lx.Plugin{'
+            . "init(){this._cssPreset='$type';}"
             . $getCssAssetClassesCode
             . $initCssAssetCode
             . '}return new Plugin('

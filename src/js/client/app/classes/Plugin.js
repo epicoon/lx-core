@@ -8,6 +8,7 @@ class Plugin {
 		this.attributes =  {};
 		this.root = snippetBox;
 		this.widgetBasicCssList = {};
+		this._cssPreset = null;
 
 		this.destructCallbacks = [];
 		this.namespaces = [];
