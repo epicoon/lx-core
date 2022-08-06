@@ -12,7 +12,7 @@ class Input extends lx.Rect {
 		return 'lx-Input';
 	}
 	
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.inheritClass('lx-Input', 'Input', {
 		}, {
 			focus: 'border: 1px solid ' + css.preset.checkedMainColor,

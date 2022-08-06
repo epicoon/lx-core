@@ -15,7 +15,7 @@ class Checkbox extends lx.Box {
 		};
 	}
 	
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.inheritClass('lx-Checkbox-0', 'Checkbox-shape', {
 			backgroundPosition: '-2px -3px'
 		}, {

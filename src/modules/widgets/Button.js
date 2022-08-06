@@ -18,7 +18,7 @@ class Button extends lx.Box {
 		return 'lx-Button';
 	}
 	
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.inheritClass('lx-Button', 'ActiveButton');
 	}
 }

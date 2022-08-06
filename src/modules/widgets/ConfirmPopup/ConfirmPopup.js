@@ -73,7 +73,7 @@ class ConfirmPopup extends lx.Box {
 		}
 	}
 
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.addClass('lx-ConfirmPopup-back', {
 			backgroundColor: css.preset.bodyBackgroundColor,
 			borderRadius: css.preset.borderRadius,

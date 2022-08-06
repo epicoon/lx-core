@@ -15,7 +15,7 @@ class Radio extends lx.Checkbox {
 		};
 	}
 
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.inheritClass('lx-Radio-0', 'Checkbox-shape', {
 			backgroundPosition: '-1px -24px'
 		}, {

@@ -28,7 +28,7 @@ class ModelCollectionGrid extends lx.Box {
         }
     }
     
-    static initCssAsset(css) {
+    static initCss(css) {
         css.inheritClass('lx-MCG', 'AbstractBox');
         css.addClass('lx-MCG-lPart', {
             borderRight: 'thick double ' + css.preset.widgetBorderColor

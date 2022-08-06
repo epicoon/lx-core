@@ -19,9 +19,9 @@
         "name": "lx.CodeEditor",
         "path": "modules\/codeEditor\/CodeEditor.js"
     },
-    "lx.BasicCssAsset": {
-        "name": "lx.BasicCssAsset",
-        "path": "modules\/cssPresets\/BasicCssAsset.js"
+    "lx.BasicCssContext": {
+        "name": "lx.BasicCssContext",
+        "path": "modules\/cssPresets\/BasicCssContext.js"
     },
     "lx.CssPresetDark": {
         "name": "lx.CssPresetDark",

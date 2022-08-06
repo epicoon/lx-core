@@ -37,7 +37,7 @@ class WebCli extends lx.Module {
         ^self::getCommandList().then(res=>this.commandList=res.data);
     }
 
-    static initCssAsset(css) {
+    static initCss(css) {
         css.addClass('lxWC-back', {
             padding: '10px',
             fontFamily: 'Courier', // Verdana

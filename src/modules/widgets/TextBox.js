@@ -27,7 +27,7 @@ class TextBox extends lx.Rect {
 		return 'lx-TextBox';
 	}
 
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.addClass('lx-TextBox', {
 			padding: '0px 5px',
 			width: 'auto',

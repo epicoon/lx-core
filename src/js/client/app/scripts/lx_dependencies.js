@@ -36,7 +36,7 @@ lx.dependencies = {
 				}
 				
 				lx._f.createAndCallFunction('', res.data.code);
-				lx.actualizeModuleAssets({
+				lx.actualizeModuleCss({
 					modules: res.data.compiledModules
 				});
 				this.depend({modules: need});

@@ -53,7 +53,7 @@ class Calendar extends lx.Input {
         };
     }
 
-    static initCssAsset(css) {
+    static initCss(css) {
         css.inheritClass('lx-Calendar', 'Input');
         css.inheritClass('lx-Calendar-daysTable', 'AbstractBox');
         css.inheritClass('lx-Calendar-monthTable', 'AbstractBox');

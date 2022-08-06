@@ -17,7 +17,7 @@ EOT;
 
 $mainJsCode = <<<EOT
 class Plugin extends lx.Plugin {
-    initCssAsset(css) {
+    initCss(css) {
 
     }
     

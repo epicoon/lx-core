@@ -22,7 +22,7 @@ lx.start = function(settings, modules, moduleNames, plugin) {
 
 	// Js-модули
 	if (modules && modules != '') lx._f.createAndCallFunction('', modules);
-	this.actualizeModuleAssets({
+	this.actualizeModuleCss({
 		modules: moduleNames
 	});
 
@@ -37,21 +37,21 @@ lx.start = function(settings, modules, moduleNames, plugin) {
 	lx.go([Function("lx.doActions();")]);
 };
 
-lx.actualizeModuleAssets = function(config) {
+lx.actualizeModuleCss = function(config) {
 	let modules = config.modules || lx.dependencies.getCurrentModules(),
 		presets = config.presets || lx.CssPresetsList.getCssPresets();
 	for (let i in modules) {
 		let module = modules[i],
 			moduleClass = lx.getClassConstructor(module);
-		if (!moduleClass || !moduleClass.initCssAsset || lx._f.isEmptyFunction(moduleClass.initCssAsset)) continue;
+		if (!moduleClass || !moduleClass.initCss || lx._f.isEmptyFunction(moduleClass.initCss)) continue;
 		for (let j in presets) {
 			let preset = presets[j],
 				cssName = module + '-' + preset.name;
-			if (lx.Css.exists(cssName)) continue;
-			const css = new lx.Css(cssName, lx.Css.POSITION_TOP);
-			const asset = css.getAsset();
-			asset.usePreset(preset);
-			moduleClass.initCssAsset(asset);
+			if (lx.CssTag.exists(cssName)) continue;
+			// const css = new lx.CssTag(cssName, lx.CssTag.POSITION_TOP);
+			const css = new lx.CssTag(cssName);
+			css.usePreset(preset);
+			moduleClass.initCss(css.getContext());
 			css.commit();
 		}
 	}

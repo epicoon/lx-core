@@ -19,7 +19,7 @@ class BoxSlider extends lx.Box {
 		};
 	}
 
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.addAbstractClass('lx-IS-button', {
 			'@icon': ['\\276F', {fontSize:'calc(25px + 1.0vh)', paddingBottom:'10px'}],
 			borderTopLeftRadius: css.preset.borderRadius,

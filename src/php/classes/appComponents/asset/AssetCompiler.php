@@ -132,9 +132,9 @@ class AssetCompiler
             const map = {};
             for (let i in list) {
                 let name = list[i];
-                const asset = new lx.CssAsset();
+                const asset = new lx.CssContext();
                 asset.usePreset(lx.CssPresetsList.getCssPreset(name));
-                initCssAsset(asset);
+                initCss(asset);
                 map[name] = asset.toString();
             }
             return map;

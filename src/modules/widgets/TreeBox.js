@@ -31,7 +31,7 @@ class TreeBox extends lx.Box {
 		};
 	}
 
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.addClass('lx-TreeBox', {
 			backgroundColor: css.preset.altBodyBackgroundColor,
 			borderRadius: '10px'

@@ -28,7 +28,7 @@ class Paginator extends lx.Box {
         };
     }
 
-    static initCssAsset(css) {
+    static initCss(css) {
         css.addClass('lx-Paginator', {
             gridTemplateRows: '100% !important',
             overflow: 'hidden',

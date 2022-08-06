@@ -29,7 +29,7 @@ class Dropbox extends lx.Box {
 		};
 	}
 	
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.addClass('lx-Dropbox', {
 			borderRadius: css.preset.borderRadius,
 			cursor: 'pointer',

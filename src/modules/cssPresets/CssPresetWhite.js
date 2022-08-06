@@ -1,6 +1,6 @@
 #lx:module lx.CssPresetWhite;
 
-#lx:use lx.BasicCssAsset;
+#lx:use lx.BasicCssContext;
 
 #lx:namespace lx;
 class CssPresetWhite extends lx.CssPreset {
@@ -8,9 +8,9 @@ class CssPresetWhite extends lx.CssPreset {
         return 'white';
     }
 
-    getProxyCssAssets() {
+    getProxyContexts() {
         return [
-            new lx.BasicCssAsset()
+            new lx.BasicCssContext()
         ];
     }
 

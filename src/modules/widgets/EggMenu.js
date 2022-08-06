@@ -25,7 +25,7 @@ class EggMenu extends lx.Box {
 		}
 	}
 	
-	static initCssAsset(css) {
+	static initCss(css) {
 		let shadowSize = css.preset.shadowSize + 2,
 			shadowShift = Math.floor(shadowSize * 0.5);
 		css.addClass('lx-EggMenu', {

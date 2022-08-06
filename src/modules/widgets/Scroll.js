@@ -20,7 +20,7 @@ class Scroll extends lx.Box {
         };
     }
     
-    static initCssAsset(css) {
+    static initCss(css) {
         let scrollSize = parseInt(this.DEFAULT_SIZE, 10),
             trackPadding = Math.floor(scrollSize / 3),
             scrollBorderRadius = Math.round(scrollSize * 0.5) + 'px',

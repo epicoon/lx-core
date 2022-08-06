@@ -1,7 +1,7 @@
 #lx:namespace lx;
 class CssPreset {
     constructor() {
-        this._proxyAssets = [];
+        this._proxyContexts = [];
         __init(this);
     }
 
@@ -13,7 +13,7 @@ class CssPreset {
         return {};
     }
 
-    getProxyCssAssets() {
+    getProxyContexts() {
         return [];
     }
 
@@ -21,8 +21,8 @@ class CssPreset {
         return self::getName();
     }
 
-    get proxyAssets() {
-        return this._proxyAssets;
+    get proxyContexts() {
+        return this._proxyContexts;
     }
 
     static getName() {
@@ -49,11 +49,11 @@ function __init(self) {
         });
     }
 
-    const assets = self.getProxyCssAssets();
-    for (let i in assets) {
-        let asset = assets[i];
-        asset.init(self);
-        self._proxyAssets.push(asset);
+    const contexts = self.getProxyContexts();
+    for (let i in contexts) {
+        let context = contexts[i];
+        context.init(self);
+        self._proxyContexts.push(context);
     }
 }
 

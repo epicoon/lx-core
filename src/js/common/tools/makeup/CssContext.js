@@ -1,5 +1,5 @@
 #lx:namespace lx;
-class CssAsset {
+class CssContext {
     constructor() {
         this.sequens = [];
 
@@ -9,7 +9,7 @@ class CssAsset {
         this.mixins = {};
 
         this.preset = null;
-        this.proxyAssets = [];
+        this.proxyContexts = [];
     }
 
     init(cssPreset) {
@@ -18,16 +18,16 @@ class CssAsset {
     
     usePreset(preset) {
         this.preset = preset;
-        this.useAssets(preset.proxyAssets);
+        this.useContexts(preset.proxyContexts);
     }
 
-    useAsset(asset) {
-        this.proxyAssets.lxPushUnique(asset);
+    useContext(context) {
+        this.proxyContexts.lxPushUnique(context);
     }
 
-    useAssets(assets) {
-        for (let i in assets)
-            this.useAsset(assets[i]);
+    useContexts(contexts) {
+        for (let i in contexts)
+            this.useContext(contexts[i]);
     }
 
     get cssPreset() {
@@ -41,7 +41,7 @@ class CssAsset {
 
         let constructor = (name[0] == '@') ? CssDirective : CssStyle;
         this.styles[name] = new constructor({
-            asset: this,
+            context: this,
             name,
             content
         });
@@ -54,7 +54,7 @@ class CssAsset {
 
         var processed = __processContent(this, content, pseudoclasses);
         this.classes[name] = new CssClass({
-            asset: this,
+            context: this,
             name,
             content: processed.content,
             pseudoclasses: processed.pseudoclasses
@@ -69,7 +69,7 @@ class CssAsset {
 
         var processed = __processContent(this, content, pseudoclasses);
         this.classes[name] = new CssClass({
-            asset: this,
+            context: this,
             parent,
             name,
             content: processed.content,
@@ -82,7 +82,7 @@ class CssAsset {
 
         var processed = __processContent(this, content, pseudoclasses);
         this.abstractClasses[name] = new CssClass({
-            asset: this,
+            context: this,
             isAbstract: true,
             name,
             content: processed.content,
@@ -96,7 +96,7 @@ class CssAsset {
 
         var processed = __processContent(this, content, pseudoclasses);
         this.abstractClasses[name] = new CssClass({
-            asset: this,
+            context: this,
             isAbstract: true,
             parent,
             name,
@@ -175,7 +175,7 @@ class CssRule {
 
 class CssClass {
     constructor(config) {
-        this.asset = config.asset;
+        this.context = config.context;
         this.basicName = config.name;
         this.isAbstract = lx.getFirstDefined(config.isAbstract, false);
         this.parent = lx.getFirstDefined(config.parent, null);
@@ -200,8 +200,8 @@ class CssClass {
     }
 
     render() {
-        const className = (this.isPreseted() && this.asset.preset)
-            ? this.basicName + '-' + this.asset.preset.name
+        const className = (this.isPreseted() && this.context.preset)
+            ? this.basicName + '-' + this.context.preset.name
             : this.basicName;
 
         let text = className + '{' + __getContentString(this.content) + '}';
@@ -246,7 +246,7 @@ function __getClassPropertyWithParent(cssClass, property) {
     let parentClass = null;
     if (lx.isObject(cssClass.parent))
         parentClass = cssClass.parent;
-    if (!parentClass) parentClass = __getCssClass(cssClass.asset, cssClass.parent);
+    if (!parentClass) parentClass = __getCssClass(cssClass.context, cssClass.parent);
     if (!parentClass) return cssClass[property];
 
     let pProperty = __getClassPropertyWithParent(parentClass, property) || {};
@@ -265,15 +265,15 @@ function __getClassPropertyWithParent(cssClass, property) {
     return result;
 }
 
-function __getCssClass(asset, name) {
-    if (name in asset.abstractClasses)
-        return asset.abstractClasses[name];
+function __getCssClass(context, name) {
+    if (name in context.abstractClasses)
+        return context.abstractClasses[name];
 
-    if (name in asset.classes)
-        return asset.classes[name];
+    if (name in context.classes)
+        return context.classes[name];
 
-    for (let i in asset.proxyAssets) {
-        let c = __getCssClass(asset.proxyAssets[i], name);
+    for (let i in context.proxyContexts) {
+        let c = __getCssClass(context.proxyContexts[i], name);
         if (c) return c;
     }
 
@@ -287,7 +287,7 @@ function __getCssClass(asset, name) {
 
 class CssStyle {
     constructor(config) {
-        this.asset = config.asset;
+        this.context = config.context;
         this.selector = config.name;
         this.content = config.content;
     }
@@ -297,11 +297,11 @@ class CssStyle {
             list = [...selector.matchAll(/\.\b[\w\d_-]+\b/g)];
         for (let i in list) {
             let cssClassName = list[i][0],
-                cssClass = this.asset.getClass(cssClassName);
+                cssClass = this.context.getClass(cssClassName);
             if (!cssClass) continue;
             if (cssClass.isPreseted()) {
                 let reg = new RegExp(cssClassName + '($|[^\w\d_-])');
-                selector = selector.replace(reg, cssClassName + '-' + cssClass.asset.preset.name + '$1');
+                selector = selector.replace(reg, cssClassName + '-' + cssClass.context.preset.name + '$1');
             }
         }
 
@@ -372,8 +372,8 @@ function __getMixin(self, name) {
     if (mixinName in self.mixins)
         return self.mixins[mixinName];
 
-    for (let i in self.proxyAssets) {
-        let mixin = __getMixin(self.proxyAssets[i], name);
+    for (let i in self.proxyContexts) {
+        let mixin = __getMixin(self.proxyContexts[i], name);
         if (mixin) return mixin;
     }
 

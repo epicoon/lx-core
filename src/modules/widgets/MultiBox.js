@@ -31,7 +31,7 @@ class MultiBox extends lx.Box {
 		};
 	}
 
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.inheritClass('lx-MultiBox', 'AbstractBox');
 		css.inheritClass('lx-MultiBox-mark', 'ActiveButton');
 		css.addClass('lx-MultiBox-active', {

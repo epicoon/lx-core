@@ -21,7 +21,7 @@ class Slider extends lx.Box {
 		};
 	}
 	
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.inheritClass('lx-slider-track', 'Button');
 		css.inheritClass('lx-slider-handle', 'ActiveButton');
 	}

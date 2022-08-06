@@ -44,7 +44,7 @@ class InputPopup extends lx.Box {
 		}
 	}
 
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.addClass('lx-InputPopup-back', {
 			backgroundColor: css.preset.bodyBackgroundColor,
 			borderRadius: css.preset.borderRadius,

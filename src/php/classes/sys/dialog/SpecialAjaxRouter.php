@@ -70,7 +70,49 @@ class SpecialAjaxRouter
 		}
 
 		$respondentName = $arr[1] ?? null;
-		return $plugin->getResourceContext($respondentName, lx::$app->request->getParams());
+        if (!$respondentName) {
+            lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+                '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+                'msg' => "Respondent '{$respondentName}' not found",
+            ]);
+            return null;
+        }
+
+        $data = lx::$app->request->getParams();
+        if (!isset($data['attributes']) || !isset($data['data'])) {
+            lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+                '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+                'msg' => "Wrong data in ajax-request for plugin '{$plugin->name}'",
+            ]);
+            return null;
+        }
+
+        $plugin->attributes->setProperties($data['attributes']);
+        $requestData = $data['data'];
+        $respInfo = preg_split('/[^\w\d_]/', $respondentName);
+        $respondent = $plugin->getRespondent($respInfo[0] ?? '');
+        if (!$respondent) {
+            lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+                '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+                'msg' => "Respondent '$respondentName' is not found",
+            ]);
+            return null;
+        }
+
+        $methodName = $respInfo[1] ?? '';
+        if (!method_exists($respondent, $methodName)) {
+            lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+                '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+                'msg' => "Method '$methodName' for respondent '$respondentName' is not found",
+            ]);
+            return null;
+        }
+
+        return new ResourceContext([
+            'object' => $respondent,
+            'method' => $methodName,
+            'params' => $requestData,
+        ]);
 	}
 
 	private function moduleAjaxResponse(): ?ResourceContext

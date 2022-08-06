@@ -16,7 +16,7 @@ class Table extends lx.Box  {
 		}
 	}
 
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.addClass('lx-Table', {
 			border: '1px solid ' + css.preset.widgetBorderColor,
 			borderRadius: css.preset.borderRadius

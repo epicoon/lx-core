@@ -43,7 +43,7 @@ class Plugin {
 		return {};
 	}
 
-	initCssAsset(css) {
+	initCss(css) {
 		this.getCssAssetClasses().forEach(assetClass => {
 			const asset = new assetClass(this);
 			asset.init(css);

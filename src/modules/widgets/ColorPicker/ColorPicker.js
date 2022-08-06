@@ -41,7 +41,7 @@ class ColorPicker extends lx.Box {
         return 'lx-ColorPicker';
     }
 
-    static initCssAsset(css) {
+    static initCss(css) {
         css.inheritClass('lx-ColorPicker', 'AbstractBox');
         css.addClass('lx-ColorPicker-pick', {
             cursor: 'pointer'

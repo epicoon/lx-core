@@ -18,7 +18,7 @@ let __activeCell = null;
  */
 #lx:namespace lx;
 class TableManager extends lx.Module {
-    static initCssAsset(css) {
+    static initCss(css) {
         css.addClasses({
             'lx-TM-table': 'border: ' + css.preset.checkedDarkColor + ' solid 2px !important',
             'lx-TM-row': 'background-color: ' + css.preset.checkedMainColor + ' !important',

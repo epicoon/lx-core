@@ -1,4 +1,4 @@
-function initCssAsset(css) {
+function initCss(css) {
 	css.addClass('lxbody', {
 		position: 'absolute',
 		left: '0%',

@@ -90,7 +90,7 @@ class LoadContext {
 			modulesRequest.onLoad(function(result) {
 				if (result) {
 					lx._f.createAndCallFunction('', result.data.code);
-					lx.actualizeModuleAssets({
+					lx.actualizeModuleCss({
 						modules: result.data.compiledModules
 					});
 				}
@@ -168,18 +168,17 @@ class LoadContext {
 		if (lx.getSetting('assetBuildType') == 'none') {
 			//TODO if css as file. Context???
 			const cssPreset = plugin.cssPreset;
-			if (plugin.initCssAsset && !lx._f.isEmptyFunction(plugin.initCssAsset)) {
+			if (plugin.initCss && !lx._f.isEmptyFunction(plugin.initCss)) {
 				let cssName = plugin.name + '-' + cssPreset.name;
-				if (!lx.Css.exists(cssName)) {
-					const css = new lx.Css(cssName);
-					const asset = css.getAsset();
-					asset.usePreset(cssPreset);
-					plugin.initCssAsset(asset);
+				if (!lx.CssTag.exists(cssName)) {
+					const css = new lx.CssTag(cssName);
+					css.usePreset(cssPreset);
+					plugin.initCss(css.getContext());
 					css.commit();
 				}
 			}
 			// Actualize all modules
-			lx.actualizeModuleAssets({
+			lx.actualizeModuleCss({
 				presets: [cssPreset]
 			});
 		}

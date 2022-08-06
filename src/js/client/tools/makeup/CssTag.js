@@ -1,5 +1,5 @@
 #lx:namespace lx;
-class Css {
+class CssTag {
 	#lx:const
 		POSITION_TOP = 'top',
 		POSITION_BOTTOM = 'bottom';
@@ -23,18 +23,22 @@ class Css {
 			this.tag = factor.tag;
 		}
 
-		this._asset = new lx.CssAsset();
+		this._context = new lx.CssContext();
 	}
 
 	static exists(name) {
 		return !!document.getElementById(name);
 	}
 
-	getAsset() {
-		return this._asset;
+	getContext() {
+		return this._context;
+	}
+
+	usePreset(preset) {
+		this._context.usePreset(preset);
 	}
 
 	commit() {
-		this.tag.innerHTML = this._asset.toString();
+		this.tag.innerHTML = this._context.toString();
 	}
 }

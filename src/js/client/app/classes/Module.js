@@ -9,9 +9,9 @@ class Module {
     }
 
     /**
-     * @param {lx.CssAsset} css
+     * @param {lx.CssContext} css
      */
-    static initCssAsset(css) {
+    static initCss(css) {
         // pass
     }
 

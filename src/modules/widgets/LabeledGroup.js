@@ -16,7 +16,7 @@ class LabeledGroup extends lx.Box {
 		};
 	}
 	
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.addClass('lx-LabeledGroup', {
 			display: 'grid',
 			gridAutoFlow: 'row',

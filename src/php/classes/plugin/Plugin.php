@@ -18,8 +18,6 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
     use ObjectTrait;
 	use FusionTrait;
 
-	const AJAX_RESOURCE_METHOD = 'handleAjaxResponse';
-
 	public ?string $title = null;
 	public ?string $icon = null;
 	public DataObject $attributes;
@@ -477,70 +475,4 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
     {
         return $this->conductor->getImagePathsInSite();
     }
-
-
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	 * PRIVATE
-	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-    public function getResourceContext(string $respondent, array $data): ?ResourceContext
-    {
-        if (!isset($data['attributes']) || !isset($data['data'])) {
-            lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
-                '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-                'msg' => "Wrong data in ajax-request for plugin '{$this->name}'",
-            ]);
-            return null;
-        }
-
-        $this->attributes->setProperties($data['attributes']);
-        $requestData = $data['data'];
-
-        if ($respondent) {
-            return $this->ajaxResponseByRespondent($respondent, $requestData);
-        }
-
-        return new ResourceContext([
-            'object' => $this,
-            'method' => self::AJAX_RESOURCE_METHOD,
-            'params' => [$requestData],
-        ]);
-    }
-
-    /**
-     * Define in child
-     */
-    protected function handleAjaxResponse(array $data): HttpResponseInterface
-    {
-        return $this->prepareErrorResponse('Resource not found', HttpResponse::NOT_FOUND);
-    }
-
-	private function ajaxResponseByRespondent(string $respondentName, array $respondentParams): ?ResourceContext
-	{
-		$respInfo = preg_split('/[^\w\d_]/', $respondentName);
-		$respondent = $this->getRespondent($respInfo[0] ?? '');
-
-		if (!$respondent) {
-			lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
-				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-				'msg' => "Respondent '$respondentName' is not found",
-			]);
-			return null;
-		}
-
-		$methodName = $respInfo[1] ?? '';
-		if (!method_exists($respondent, $methodName)) {
-			lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
-				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-				'msg' => "Method '$methodName' for respondent '$respondentName' is not found",
-			]);
-			return null;
-		}
-
-		return new ResourceContext([
-			'object' => $respondent,
-			'method' => $methodName,
-			'params' => $respondentParams,
-		]);
-	}
 }

@@ -16,7 +16,7 @@ class Textarea extends lx.Input {
 		return 'lx-Textarea';
 	}
 	
-	static initCssAsset(css) {
+	static initCss(css) {
 		css.inheritClass('lx-Textarea', 'Input', {
 			resize: 'none'
 		});
