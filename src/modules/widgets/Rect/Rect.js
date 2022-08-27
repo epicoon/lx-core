@@ -519,7 +519,7 @@ class Rect extends lx.Module {
     addClass(...args) {
         if (lx.isArray(args[0])) args = args[0];
 
-        args = __defineCssClassNames(this, args);
+        args = lx.defineCssClassNames(this, args);
         args.forEach(name=>{
             if (name == '') return;
             this.domElem.addClass(name);
@@ -535,7 +535,7 @@ class Rect extends lx.Module {
     removeClass(...args) {
         if (lx.isArray(args[0])) args = args[0];
 
-        args = __defineCssClassNames(this, args);
+        args = lx.defineCssClassNames(this, args);
         args.forEach(name=>{
             if (name == '') return;
             this.domElem.removeClass(name);
@@ -568,13 +568,13 @@ class Rect extends lx.Module {
      * Если condition==true - первый класс применяется, второй убирается
      * Если condition==false - второй класс применяется, первый убирается
      * */
-    toggleClassOnCondition(condition, class1, class2='') {
+    toggleClassOnCondition(condition, class1, class2=null) {
         if (condition) {
             this.addClass(class1);
-            this.removeClass(class2);
+            if (class2) this.removeClass(class2);
         } else {
             this.removeClass(class1);
-            this.addClass(class2);
+            if (class2) this.addClass(class2);
         }
     }
 

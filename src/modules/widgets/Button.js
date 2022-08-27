@@ -12,13 +12,20 @@ class Button extends lx.Box {
 		super.clientBuild(config);
 		this.align(lx.CENTER, lx.MIDDLE);
 		this.on('mousedown', lx.Event.preventDefault);
+		this.setEllipsisHint({css: this.basicCss.hint});
 	}
 
 	getBasicCss() {
-		return 'lx-Button';
+		return {
+			main: 'lx-Button',
+			hint: 'lx-Button-hint',
+		};
 	}
 	
 	static initCss(css) {
 		css.inheritClass('lx-Button', 'ActiveButton');
+		css.inheritClass('lx-Button-hint', 'AbstractBox', {
+			padding: '10px'
+		});
 	}
 }

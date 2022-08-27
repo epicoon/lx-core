@@ -28,6 +28,33 @@ lx.isCssClassAbsolute = function (className) {
         'lx-ellipsis'
     ].includes(className);
 };
+lx.defineCssClassNames = function(context, names, plugin = null) {
+    let result = [];
+    names.forEach(name=>{
+        if (name == '') return;
+
+        result.push(name);
+        if (lx.isCssClassAbsolute(name)) return;
+
+        if (context.lxHasMethod('getCssPreset')) {
+            const cssPreset = context.getCssPreset();
+            if (cssPreset) {
+                result.push(name + '-' + cssPreset.name);
+                return;
+            }
+        }
+
+        #lx:server { result.push(name + '-#lx:preset:lx#'); }
+        #lx:client {
+            if (plugin === null && context.lxHasMethod('getPlugin'))
+                plugin = context.getPlugin();
+            result.push(name + '-' + (plugin ? plugin.cssPreset.name : lx.getSetting('cssPreset')));
+        }
+    });
+
+    return result;
+
+};
 
 lx.getFirstDefined = function (...args) {
     for (var i = 0, l = args.len; i < l; i++)

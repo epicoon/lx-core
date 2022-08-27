@@ -1,11 +1,16 @@
 #lx:namespace lx;
 class TagRenderer {
     constructor(config) {
+        this.plugin = config.plugin || null;
         this.tag = config.tag || 'div';
         this.attributes = config.attributes || {};
         this.classList = config.classList || [];
         this.style = config.style || {};
         this.content = config.content || '';
+    }
+
+    getPlugin() {
+        return this.plugin;
     }
 
     toString() {
@@ -25,7 +30,10 @@ class TagRenderer {
             );
         }
 
-        if (this.classList.len) result += ' class="' + this.classList.join(' ') + '"';
+        if (this.classList.len) {
+            let classList = lx.defineCssClassNames(this, this.classList);
+            result += ' class="' + classList.join(' ') + '"';
+        }
 
         if ( ! this.style.lxEmpty()) {
             result += ' style="';

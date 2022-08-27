@@ -818,6 +818,34 @@ class Box extends lx.Rect {
         };
     }
 
+    setEllipsisHint(config = {}) {
+        config.condition = config.condition || function(box) {
+            const elem = box->text;
+            if (!elem) return false;
+            if (elem.getDomElem().offsetWidth == elem.getDomElem().scrollWidth) return false;
+            return true;
+        };
+        config.hint = config.hint || function(box) {
+            return box->text.html();
+        }
+        this.mouseover(()=>{
+            if (!config.condition(this)) return;
+            this.__hint = new lx.Box({
+                geom: [0, 0, 'auto', 'auto'],
+                css: config.css,
+                depthCluster: lx.DepthClusterMap.CLUSTER_FRONT
+            });
+            let hint = '';
+            if (lx.isString(config.hint)) hint = config.hint;
+            else if (lx.isFunction(config.hint)) hint = config.hint(this);
+            this.__hint.html(hint);
+            this.__hint.satelliteTo(this);
+        });
+        this.mouseout(()=>{
+            if (this.__hint) this.__hint.del();
+        });
+    }
+
     #lx:client hasOverflow(direction = null) {
         if (!this.getDomElem()) return false;
 

@@ -156,10 +156,15 @@ class ActiveBox extends lx.Box {
 				}
 
 				var closeButton = this->>closeButton;
-				if (closeButton && closeButton instanceof lx.Rect && !closeButton.hasTrigger('click'))
-					closeButton.click(function() {
-						this.parent.parent.hide();
-					});
+				if (closeButton && closeButton instanceof lx.Rect) {
+					closeButton.getActiveBox = function() {
+						return this.parent.parent;
+					};
+					if (!closeButton.hasTrigger('click'))
+						closeButton.click(function() {
+							this.getActiveBox().hide();
+						});
+				}
 			}
 			this.setBuildMode(false);
 		}
