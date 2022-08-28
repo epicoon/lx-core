@@ -96,11 +96,11 @@ class HttpApplication extends AbstractApplication
     public function getSettings(): array
     {
         if (!array_key_exists('cssPreset', $this->settings)) {
-            $this->settings['cssPreset'] = $this->presetManager->getDefaultCssPreset();
+            $this->settings['cssPreset'] = $this->cssManager->getDefaultCssPreset();
         }
 
         if (!array_key_exists('assetBuildType', $this->settings)) {
-            $this->settings['assetBuildType'] = $this->presetManager->getBuildType();
+            $this->settings['assetBuildType'] = $this->cssManager->getBuildType();
         }
 
         return $this->settings;

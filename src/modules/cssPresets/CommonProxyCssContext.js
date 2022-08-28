@@ -1,7 +1,7 @@
-#lx:module lx.BasicCssContext;
+#lx:module lx.CommonProxyCssContext;
 
 #lx:namespace lx;
-class BasicCssContext extends lx.CssContext {
+class CommonProxyCssContext extends lx.CssContext {
     init(cssPreset) {
         let butShadowSize = Math.floor(cssPreset.shadowSize * 0.33) + 3;
         let butShadowShift = Math.floor(butShadowSize * 0.5);
@@ -101,13 +101,6 @@ class BasicCssContext extends lx.CssContext {
             fontFamily: 'MainFont',
             fontSize: 'calc(10px + 1.0vh)',
             color: cssPreset.textColor
-        });
-
-        this.addAbstractClass('Checkbox-shape', {
-            width: '23px !important',
-            height: '23px !important',
-            backgroundImage: 'url(/web/css/img/crsprite.png)',
-            cursor: 'pointer'
         });
 
         this.inheritAbstractClass('ActiveButton', 'Button', {

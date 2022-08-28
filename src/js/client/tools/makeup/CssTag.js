@@ -1,33 +1,31 @@
 #lx:namespace lx;
 class CssTag {
-	#lx:const
-		POSITION_TOP = 'top',
-		POSITION_BOTTOM = 'bottom';
-
-	constructor(factor, position = null) {
-		if (position === null) position = self::POSITION_BOTTOM;
-
-		if (lx.isString(factor)) {
-			var tag = document.getElementById(factor);
-			if (!tag) {
-				tag = document.createElement('style');
-				tag.setAttribute('id', factor);
-				var head = document.getElementsByTagName('head')[0];
-				if (position == self::POSITION_BOTTOM) head.appendChild(tag);
-				else head.insertBefore(tag, head.querySelector('link[name=base_css]'));
-			}
-			factor = {tag};
-		}
-
-		if (lx.isObject(factor)) {
-			this.tag = factor.tag;
-		}
-
+	constructor(config) {
 		this._context = new lx.CssContext();
+
+		this.domElem = null;
+		if (config.id) {
+			var elem = document.getElementById(config.id);
+			if (!elem) {
+				elem = document.createElement('style');
+				elem.setAttribute('id', config.id);
+				let head = document.getElementsByTagName('head')[0];
+				let before = null;
+				if (config.before) before = head.querySelector(config.before);
+				else if (config.after) {
+					let after = head.querySelector(config.after);
+					if (after) before = after.nextSibling;
+				}
+				if (before === null) head.appendChild(elem);
+				else head.insertBefore(elem, before);
+			}
+			config.domElem = elem;
+		}
+		if (config.domElem) this.domElem = config.domElem;
 	}
 
-	static exists(name) {
-		return !!document.getElementById(name);
+	static exists(id) {
+		return !!document.getElementById(id);
 	}
 
 	getContext() {
@@ -39,6 +37,6 @@ class CssTag {
 	}
 
 	commit() {
-		this.tag.innerHTML = this._context.toString();
+		this.domElem.innerHTML = this._context.toString();
 	}
 }

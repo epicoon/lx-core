@@ -12,6 +12,7 @@ class HttpRequest extends lx.Request {
 
 	setMethod(method) {
 		this.method = method.toLowerCase();
+		return this;
 	}
 
 	checkMethod(method) {
@@ -20,19 +21,23 @@ class HttpRequest extends lx.Request {
 
 	setHeaders(headers) {
 		this.headers = headers;
+		return this;
 	}
 
 	setHeader(name, value) {
 		this.headers[name] = value;
+		return this;
 	}
 
 	setParams(params) {
 		this.params = params;
+		return this;
 	}
 
 	setParam(params) {
 		for (var name in params)
 			this.params[name] = params[name];
+		return this;
 	}
 
 	send() {

@@ -6,7 +6,7 @@ return [
     'HttpApplication' => 'classes/app',
 
     'AssetCompiler' => 'classes/appComponents/asset',
-    'PresetManager' => 'classes/appComponents/asset',
+    'CssManager' => 'classes/appComponents/asset',
 
     'ApplicationComponents' => 'classes/appComponents',
     'ApplicationLogger' => 'classes/appComponents',
@@ -228,7 +228,7 @@ return [
 	'ResourceAccessDataInterface' => 'interfaces',
     'JsCompilerExtensionInterafce' => 'interfaces',
     'JsModuleInjectorInterface' => 'interfaces',
-    'PresetManagerInterface' => 'interfaces',
+    'CssManagerInterface' => 'interfaces',
     'ApplicationLifeCycleInterface' => 'interfaces',
 
     'DbConnectorInterface' => 'interfaces/db',

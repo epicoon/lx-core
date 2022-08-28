@@ -57,9 +57,6 @@ class PluginBuildContext implements ContextTreeInterface
 	{
 		$this->compile();
 
-		$plugin = $this->getPlugin();
-		$title = $plugin->title ? $plugin->title : self::DEFAULT_PLUGIN_TITLE;
-		$title = I18nHelper::localizePlugin($plugin, $title);
 		$result = [
 			'pluginInfo' => '',
 			'modules' => $this->commonModuleDependencies,
@@ -80,8 +77,12 @@ class PluginBuildContext implements ContextTreeInterface
 			}
 		});
 
+        $plugin = $this->getPlugin();
 		$result['page'] = [
-			'title' => $title,
+			'title' => I18nHelper::localizePlugin(
+                $plugin, 
+                $plugin->title ? $plugin->title : self::DEFAULT_PLUGIN_TITLE
+            ),
 			'icon' => $plugin->icon,
 			'scripts' => $this->collapseScripts($allScripts),
 			'css' => $this->collapseCss($allCss),
@@ -136,7 +137,7 @@ class PluginBuildContext implements ContextTreeInterface
         $this->compileMainJs();
 
         $dependencies = $this->jsCompiler->getDependencies() ?? new JsCompileDependencies();
-        $cssPresetModule = lx::$app->presetManager->getCssPresetModule($plugin->getCssPreset());
+        $cssPresetModule = lx::$app->cssManager->getCssPresetModule($plugin->getCssPreset());
         if ($cssPresetModule) {
             $dependencies->addModule($cssPresetModule);
         }
@@ -177,8 +178,9 @@ class PluginBuildContext implements ContextTreeInterface
 		$info['rsk'] = $this->getPlugin()->getRootSnippetKey();
 
 		// All plugin dependencies
-		$this->scripts = (new PluginAssetProvider($this->getPlugin()))->getPluginScripts();
-		$this->css = (new PluginAssetProvider($this->getPlugin()))->getPluginCss();
+        $assetProvider = new PluginAssetProvider($this->getPlugin());
+		$this->scripts = $assetProvider->getPluginScripts();
+		$this->css = $assetProvider->getPluginCss();
 		$dependencies = [];
 		if (!empty($this->scripts)) {
 			$dependencies['s'] = [];
@@ -247,7 +249,7 @@ class PluginBuildContext implements ContextTreeInterface
 
         $require = $plugin->getConfig('require');
         $core = $plugin->getConfig('core');
-        $cssAssets = (lx::$app->presetManager->getBuildType() === PresetManager::BUILD_TYPE_NONE)
+        $cssAssets = (lx::$app->cssManager->getBuildType() === CssManager::BUILD_TYPE_NONE)
             ? $plugin->getConfig('cssAssets')
             : null;
         $guiNodes = $plugin->getConfig('guiNodes');

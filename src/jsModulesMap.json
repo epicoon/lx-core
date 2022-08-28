@@ -19,9 +19,9 @@
         "name": "lx.CodeEditor",
         "path": "modules\/codeEditor\/CodeEditor.js"
     },
-    "lx.BasicCssContext": {
-        "name": "lx.BasicCssContext",
-        "path": "modules\/cssPresets\/BasicCssContext.js"
+    "lx.CommonProxyCssContext": {
+        "name": "lx.CommonProxyCssContext",
+        "path": "modules\/cssPresets\/CommonProxyCssContext.js"
     },
     "lx.CssPresetDark": {
         "name": "lx.CssPresetDark",
@@ -30,6 +30,10 @@
     "lx.CssPresetWhite": {
         "name": "lx.CssPresetWhite",
         "path": "modules\/cssPresets\/CssPresetWhite.js"
+    },
+    "lx.SourceCssContext": {
+        "name": "lx.SourceCssContext",
+        "path": "modules\/cssPresets\/SourceCssContext.js"
     },
     "lx.MdHighlighter": {
         "name": "lx.MdHighlighter",
@@ -161,10 +165,6 @@
     "lx.LanguageSwitcher": {
         "name": "lx.LanguageSwitcher",
         "path": "modules\/widgets\/LanguageSwitcher.js"
-    },
-    "lx.MessageBox": {
-        "name": "lx.MessageBox",
-        "path": "modules\/widgets\/MessageBox.js"
     },
     "lx.ModelCollectionGrid": {
         "name": "lx.ModelCollectionGrid",

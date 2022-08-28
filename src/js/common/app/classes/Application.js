@@ -6,7 +6,10 @@ let idCounter = 1;
 class Application {
     constructor(data = {}) {
         if (data.settings) __settings = data.settings;
-        this.i18nArray = {};
+
+        #lx:server {
+            this.i18nArray = {};
+        }
     }
 
     genId() {
@@ -23,18 +26,20 @@ class Application {
         return __settings.cssPreset;
     }
 
-    useI18n(config) {
-        this.i18nArray['_' + lx.HashMd5.hex(config)] = config;
-    }
+    #lx:server {
+        useI18n(config) {
+            this.i18nArray['_' + lx.HashMd5.hex(config)] = config;
+        }
 
-    getDependencies() {
-        return {
-            i18n: this.i18nArray
-        };
-    }
+        getDependencies() {
+            return {
+                i18n: this.i18nArray
+            };
+        }
 
-    getResult() {
-        return {};
+        getResult() {
+            return {};
+        }
     }
 }
 

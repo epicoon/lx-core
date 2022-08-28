@@ -12,6 +12,10 @@ lx.checkDisplay = function(event) {
 
 
 lx.start = function(settings, modules, moduleNames, plugin) {
+
+	this.App = new lx.Application({settings});
+	console.log(this.App);
+
 	this.setSettings(settings);
 
 	this.setWatchForKeypress(true);
@@ -48,8 +52,7 @@ lx.actualizeModuleCss = function(config) {
 			let preset = presets[j],
 				cssName = module + '-' + preset.name;
 			if (lx.CssTag.exists(cssName)) continue;
-			// const css = new lx.CssTag(cssName, lx.CssTag.POSITION_TOP);
-			const css = new lx.CssTag(cssName);
+			const css = new lx.CssTag({id: cssName});
 			css.usePreset(preset);
 			moduleClass.initCss(css.getContext());
 			css.commit();

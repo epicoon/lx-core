@@ -16,19 +16,24 @@ class Checkbox extends lx.Box {
 	}
 	
 	static initCss(css) {
-		css.inheritClass('lx-Checkbox-0', 'Checkbox-shape', {
-			backgroundPosition: '-2px -3px'
+		css.addClass('lx-Checkbox-0', {
+			border: 'solid #61615e 1px',
+			width: '16px',
+			height: '16px',
+			borderRadius: '4px',
+			backgroundColor: 'white'
 		}, {
-			hover: 'background-position: -46px -3px',
-			active: 'background-position: -70px -3px',
-			disabled: 'background-position: -184px -3px'
+			hover: {
+				boxShadow: '0 0 6px ' + css.preset.widgetIconColor,
+			},
+			active: {
+				backgroundColor: '#dedede',
+				boxShadow: '0 0 8px ' + css.preset.widgetIconColor,
+			}
 		});
-		css.inheritClass('lx-Checkbox-1', 'Checkbox-shape', {
-			backgroundPosition: '-92px -3px'
-		}, {
-			hover: 'background-position: -135px -3px',
-			active: 'background-position: -160px -3px',
-			disabled: 'background-position: -206px -3px'
+		css.inheritClass('lx-Checkbox-1', 'lx-Checkbox-0', {
+			color: 'black',
+			'@icon': ['\\2713', {fontSize:8, fontWeight:600, paddingLeft:'1px', paddingBottom:'0px'}],
 		});
 	}
 
@@ -44,7 +49,8 @@ class Checkbox extends lx.Box {
 		super.build(config);
 		this.add(lx.Box, {
 			key: 'check',
-			geom: [0, 0, '24px', '24px']
+			coords: [0, 0],
+			// geom: [0, 0, '24px', '24px']
 		});
 		this.align(lx.CENTER, lx.MIDDLE);
 		this.value(config.value || false);

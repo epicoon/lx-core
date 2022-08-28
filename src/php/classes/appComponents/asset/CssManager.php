@@ -2,7 +2,7 @@
 
 namespace lx;
 
-class PresetManager implements PresetManagerInterface, FusionComponentInterface
+class CssManager implements CssManagerInterface, FusionComponentInterface
 {
     use FusionComponentTrait;
     
@@ -10,11 +10,15 @@ class PresetManager implements PresetManagerInterface, FusionComponentInterface
     const BUILD_TYPE_ALL_TOGETHER = 'all';
     const BUILD_TYPE_SEGREGATED = 'segregated';
 
+    protected string $cssContext = 'lx.CommonProxyCssContext';
+    protected array $cssAssets = [
+        'main' => 'lx.SourceCssContext',
+    ];
     protected array $cssPresets = [
         'white' => 'lx.CssPresetWhite',
         'dark' => 'lx.CssPresetDark',
     ];
-    protected ?string $defaultCssPreset = 'white';
+    protected string $defaultCssPreset = 'white';
     protected string $buildType = self::BUILD_TYPE_ALL_TOGETHER;
     
     public function getCssPresets(): array

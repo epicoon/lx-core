@@ -104,7 +104,7 @@ class AssetCompiler
             $this->copyLxCss();
         }
 
-        $presets = lx::$app->presetManager->getCssPresets();
+        $presets = lx::$app->cssManager->getCssPresets();
         $need = [];
         $cssFile = new File($path . "/main.css");
         if (!$cssFile->exists() || $cssJsFile->isNewer($cssFile)) {
@@ -123,8 +123,8 @@ class AssetCompiler
         $code = $cssJsFile->get();
         $names = [];
         $modules = [];
-        foreach (lx::$app->presetManager->getCssPresets() as $type => $preset) {
-            $code .= '#lx:use ' . lx::$app->presetManager->getCssPresetModule($type) . ';';
+        foreach (lx::$app->cssManager->getCssPresets() as $type => $preset) {
+            $code .= '#lx:use ' . lx::$app->cssManager->getCssPresetModule($type) . ';';
             $names[] = "'{$type}'";
         }
         $code .= "
@@ -132,10 +132,10 @@ class AssetCompiler
             const map = {};
             for (let i in list) {
                 let name = list[i];
-                const asset = new lx.CssContext();
-                asset.usePreset(lx.CssPresetsList.getCssPreset(name));
-                initCss(asset);
-                map[name] = asset.toString();
+                const css = new lx.CssContext();
+                css.usePreset(lx.CssPresetsList.getCssPreset(name));
+                initCss(css);
+                map[name] = css.toString();
             }
             return map;
         ";

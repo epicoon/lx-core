@@ -17,7 +17,7 @@ class CssAssetCompiler
 
     public function compile(bool $force = false): void
     {
-        if (lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_NONE)) {
+        if (lx::$app->cssManager->isBuildType(CssManager::BUILD_TYPE_NONE)) {
             return;
         }
 
@@ -92,25 +92,25 @@ class CssAssetCompiler
     {
         $plugin = $this->plugin;
 
-        $initCssAssetCode = '';
+        $initCssContextCode = '';
         $pluginFile = new File($plugin->conductor->getFullPath($plugin->getConfig('client')));
         $pluginCode = $pluginFile->get();
         $reg = '/(initCss\([^\)]+?\))\s*(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
         preg_match_all($reg, $pluginCode, $matches);
         if (!empty($matches['therec'])) {
-            $cssAsset = trim($matches['therec'][0], '{} ');
-            $cssAsset = preg_replace('(^\s+|\s+$)', '', $cssAsset);
-            $initCssAssetCode = ($cssAsset == '') ? '' : ($matches[1][0] . '{' . $cssAsset . '}');
+            $cssContext = trim($matches['therec'][0], '{} ');
+            $cssContext = preg_replace('(^\s+|\s+$)', '', $cssContext);
+            $initCssContextCode = ($cssContext == '') ? '' : ($matches[1][0] . '{' . $cssContext . '}');
         }
 
-        $getCssAssetClassesCode = '';
-        $cssAssets = $plugin->getConfig('cssAssets');
-        if ($cssAssets) {
-            $assetClasses = implode(',', $cssAssets);
-            $getCssAssetClassesCode .= "getCssAssetClasses(){return [$assetClasses];}";
+        $getCssContextClassesCode = '';
+        $cssContexts = $plugin->getConfig('cssAssets');
+        if ($cssContexts) {
+            $assetClasses = implode(',', $cssContexts);
+            $getCssContextClassesCode .= "getCssAssetClasses(){return [$assetClasses];}";
         }
 
-        if ($getCssAssetClassesCode == '' && $initCssAssetCode == '') {
+        if ($getCssContextClassesCode == '' && $initCssContextCode == '') {
             return '';
         }
 
@@ -123,23 +123,23 @@ class CssAssetCompiler
         }
 
         $code = $requireStr;
-        foreach (lx::$app->presetManager->getCssPresets() as $type => $preset) {
-            $code .= '#lx:use ' . lx::$app->presetManager->getCssPresetModule($type) . ';';
+        foreach (lx::$app->cssManager->getCssPresets() as $type => $preset) {
+            $code .= '#lx:use ' . lx::$app->cssManager->getCssPresetModule($type) . ';';
         }
         $code .= 'const __plugin__ = (()=>{class Plugin extends lx.Plugin{'
             . "init(){this._cssPreset='$type';}"
-            . $getCssAssetClassesCode
-            . $initCssAssetCode
+            . $getCssContextClassesCode
+            . $initCssContextCode
             . '}return new Plugin('
             . CodeConverterHelper::arrayToJsCode($plugin->getBuildData())
             . ');})();';
 
         $code .= 'const result = {};';
-        foreach (lx::$app->presetManager->getCssPresets() as $type => $preset) {
-            $code .= 'var asset = new lx.CssContext();'
-                . 'asset.usePreset(lx.CssPresetsList.getCssPreset(\'' . $type . '\'));'
-                . '__plugin__.initCss(asset);'
-                . 'result.' . $type . '= asset.toString();';
+        foreach (lx::$app->cssManager->getCssPresets() as $type => $preset) {
+            $code .= 'var context = new lx.CssContext();'
+                . 'context.usePreset(lx.CssPresetsList.getCssPreset(\'' . $type . '\'));'
+                . '__plugin__.initCss(context);'
+                . 'result.' . $type . '= context.toString();';
         }
         $code .= 'return result;';
         return $code;
@@ -183,10 +183,10 @@ class CssAssetCompiler
 
     private function getNeedMap(): array
     {
-        $presetManager = lx::$app->presetManager;
+        $cssManager = lx::$app->cssManager;
         $needMap = ['asset.css' => ['type' => '__common__', 'need' => true, 'file' => null]];
-        if ($presetManager->isBuildType(PresetManager::BUILD_TYPE_SEGREGATED)) {
-            foreach ($presetManager->getCssPresets() as $name => $preset) {
+        if ($cssManager->isBuildType(CssManager::BUILD_TYPE_SEGREGATED)) {
+            foreach ($cssManager->getCssPresets() as $name => $preset) {
                 $needMap["asset-$name.css"] = ['type' => $name, 'need' => true, 'file' => null];
             }
         }

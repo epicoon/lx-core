@@ -16,19 +16,24 @@ class Radio extends lx.Checkbox {
 	}
 
 	static initCss(css) {
-		css.inheritClass('lx-Radio-0', 'Checkbox-shape', {
-			backgroundPosition: '-1px -24px'
+		css.addClass('lx-Radio-0', {
+			border: 'solid #61615e 1px',
+			width: '16px',
+			height: '16px',
+			borderRadius: '50%',
+			backgroundColor: 'white'
 		}, {
-			hover: 'background-position: -45px -24px',
-			active: 'background-position: -69px -24px',
-			disabled: 'background-position: -184px -24px'
+			hover: {
+				boxShadow: '0 0 6px ' + css.preset.widgetIconColor,
+			},
+			active: {
+				backgroundColor: '#dedede',
+				boxShadow: '0 0 8px ' + css.preset.widgetIconColor,
+			}
 		});
-		css.inheritClass('lx-Radio-1', 'Checkbox-shape', {
-			backgroundPosition: '-91px -24px'
-		}, {
-			hover: 'background-position: -135px -24px',
-			active: 'background-position: -160px -24px',
-			disabled: 'background-position: -206px -24px'
+		css.inheritClass('lx-Radio-1', 'lx-Radio-0', {
+			color: 'black',
+			'@icon': ['\\25CF', {fontSize:8, paddingBottom:'1px'}],
 		});
 	}
 }

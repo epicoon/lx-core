@@ -2,7 +2,7 @@
 
 namespace lx;
 
-interface PresetManagerInterface
+interface CssManagerInterface
 {
     public function getCssPresets(): array;
     public function getCssPresetModule(string $name): ?string;

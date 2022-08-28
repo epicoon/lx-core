@@ -171,7 +171,7 @@ class LoadContext {
 			if (plugin.initCss && !lx._f.isEmptyFunction(plugin.initCss)) {
 				let cssName = plugin.name + '-' + cssPreset.name;
 				if (!lx.CssTag.exists(cssName)) {
-					const css = new lx.CssTag(cssName);
+					const css = new lx.CssTag({id: cssName});
 					css.usePreset(cssPreset);
 					plugin.initCss(css.getContext());
 					css.commit();

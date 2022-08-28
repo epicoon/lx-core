@@ -44,7 +44,7 @@ class PluginAssetProvider
 
     public function getPluginCss(): array
     {
-        if (lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_NONE)) {
+        if (lx::$app->cssManager->isBuildType(CssManager::BUILD_TYPE_NONE)) {
             return [];
         }
 
@@ -54,11 +54,11 @@ class PluginAssetProvider
         $originCss = $plugin->getCssList();
         $list = [];
         foreach ($originCss as $path) {
-            if (lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_SEGREGATED)) {
+            if (lx::$app->cssManager->isBuildType(CssManager::BUILD_TYPE_SEGREGATED)) {
                 if (basename($path) == 'asset.css') {
                     continue;
                 }
-            } elseif (lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_ALL_TOGETHER)) {
+            } elseif (lx::$app->cssManager->isBuildType(CssManager::BUILD_TYPE_ALL_TOGETHER)) {
                 if (basename($path) != 'asset.css') {
                     continue;
                 }

@@ -36,7 +36,7 @@ lx.defineCssClassNames = function(context, names, plugin = null) {
         result.push(name);
         if (lx.isCssClassAbsolute(name)) return;
 
-        if (context.lxHasMethod('getCssPreset')) {
+        if (context && context.lxHasMethod('getCssPreset')) {
             const cssPreset = context.getCssPreset();
             if (cssPreset) {
                 result.push(name + '-' + cssPreset.name);
@@ -46,14 +46,13 @@ lx.defineCssClassNames = function(context, names, plugin = null) {
 
         #lx:server { result.push(name + '-#lx:preset:lx#'); }
         #lx:client {
-            if (plugin === null && context.lxHasMethod('getPlugin'))
+            if (plugin === null && context && context.lxHasMethod('getPlugin'))
                 plugin = context.getPlugin();
             result.push(name + '-' + (plugin ? plugin.cssPreset.name : lx.getSetting('cssPreset')));
         }
     });
 
     return result;
-
 };
 
 lx.getFirstDefined = function (...args) {

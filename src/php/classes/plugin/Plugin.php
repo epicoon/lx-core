@@ -259,7 +259,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 
     public function resetCssPreset(): void
     {
-        $this->cssPreset = lx::$app->presetManager->getDefaultCssPreset();
+        $this->cssPreset = lx::$app->cssManager->getDefaultCssPreset();
     }
 
     public function setCssPreset($cssPreset): void

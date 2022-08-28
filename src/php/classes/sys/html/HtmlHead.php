@@ -45,8 +45,8 @@ class HtmlHead
 
 	private function getLxCss(): string
 	{
-        $mainCss = lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_SEGREGATED)
-            ? 'main-' . lx::$app->presetManager->getDefaultCssPreset() . '.css'
+        $mainCss = lx::$app->cssManager->isBuildType(CssManager::BUILD_TYPE_SEGREGATED)
+            ? 'main-' . lx::$app->cssManager->getDefaultCssPreset() . '.css'
             : 'main.css';
 		return '<link href="' . ($this->getCssPath() . '/' . $mainCss)
 			. '" name="base_css" type="text/css" rel="stylesheet">';

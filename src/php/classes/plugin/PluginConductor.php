@@ -185,7 +185,7 @@ class PluginConductor implements ConductorInterface
      */
 	public function getCssAssets(): array
 	{
-        if (lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_NONE)) {
+        if (lx::$app->cssManager->isBuildType(CssManager::BUILD_TYPE_NONE)) {
             return [];
         }
 

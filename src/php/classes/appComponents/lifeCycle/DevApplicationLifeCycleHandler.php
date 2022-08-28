@@ -24,7 +24,7 @@ class DevApplicationLifeCycleHandler extends AbstractApplicationLifeCycleHandler
 
     public function beforeGetPluginCssAssets(Plugin $plugin): void
     {
-        if (lx::$app->presetManager->isBuildType(PresetManager::BUILD_TYPE_NONE)) {
+        if (lx::$app->cssManager->isBuildType(CssManager::BUILD_TYPE_NONE)) {
             return;
         }
 
