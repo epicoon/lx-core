@@ -35,13 +35,6 @@ class CssAssetCompiler
         $compiler->setBuildModules(true);
         $exec = new NodeJsExecutor($compiler);
         $result = $exec
-            ->setCore([
-                '-R @core/js/commonCore',
-                '-R @core/js/common/tools/',
-                '-R @core/js/serverCore',
-                '-R @core/js/client/app/classes/',
-                '-R @core/js/server/tools/',
-            ])
             ->setCode($code)
             ->setPath($plugin->conductor->getFullPath($plugin->getConfig('client')))
             ->run();
@@ -104,9 +97,9 @@ class CssAssetCompiler
         }
 
         $getCssContextClassesCode = '';
-        $cssContexts = $plugin->getConfig('cssAssets');
-        if ($cssContexts) {
-            $assetClasses = implode(',', $cssContexts);
+        $cssAssets = $plugin->getConfig('cssAssets');
+        if ($cssAssets) {
+            $assetClasses = implode(',', $cssAssets);
             $getCssContextClassesCode .= "getCssAssetClasses(){return [$assetClasses];}";
         }
 
@@ -137,7 +130,7 @@ class CssAssetCompiler
         $code .= 'const result = {};';
         foreach (lx::$app->cssManager->getCssPresets() as $type => $preset) {
             $code .= 'var context = new lx.CssContext();'
-                . 'context.usePreset(lx.CssPresetsList.getCssPreset(\'' . $type . '\'));'
+                . 'context.usePreset(lx.app.cssManager.presetsList.get(\'' . $type . '\'));'
                 . '__plugin__.initCss(context);'
                 . 'result.' . $type . '= context.toString();';
         }

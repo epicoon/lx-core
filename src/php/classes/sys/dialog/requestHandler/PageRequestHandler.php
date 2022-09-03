@@ -63,7 +63,7 @@ class PageRequestHandler extends RequestHandler
         }
 
         $settings = CodeConverterHelper::arrayToJsCode(lx::$app->getSettings());
-        $js = "lx.start($settings, `$modulesCode`, [$moduleNames], `$pluginInfo`);";
+        $js = "lx.app.start($settings, `$modulesCode`, [$moduleNames], `$pluginInfo`);";
 
         /** @var HtmlRendererInterface $renderer */
         $renderer = lx::$app->diProcessor->createByInterface(HtmlRendererInterface::class);

@@ -1,0 +1,206 @@
+lx.LEFT = 1;
+lx.CENTER = 2;
+lx.WIDTH = 2;
+lx.RIGHT = 3;
+lx.JUSTIFY = 4;
+lx.TOP = 5;
+lx.MIDDLE = 6;
+lx.HEIGHT = 6;
+lx.BOTTOM = 7;
+lx.VERTICAL = 1;
+lx.HORIZONTAL = 2;
+
+//TODO разгрести по компонентам(?)
+#lx:client {
+    #lx:require lx_core_client;
+}
+#lx:server {
+    #lx:require lx_core_server;
+}
+
+/**
+ * Правильная последовательность \r\n, коды соответственно 13 и 10
+ * */
+Object.defineProperty(lx, "EOL", {
+    get: function() { return String.fromCharCode(13) + String.fromCharCode(10); }
+});
+
+/**
+ * TODO захардкожено определение внепресетовых классов. Нужно придумать нормальную систему
+ */
+lx.isCssClassAbsolute = function (className) {
+    return [
+        'lx-abspos',
+        'lxps-grid-v',
+        'lxps-grid-h',
+        'lx-ellipsis'
+    ].includes(className);
+};
+lx.defineCssClassNames = function(context, names, plugin = null) {
+    let result = [];
+    names.forEach(name=>{
+        if (name == '') return;
+
+        result.push(name);
+        if (lx.isCssClassAbsolute(name)) return;
+
+        if (context && context.lxHasMethod('getCssPreset')) {
+            const cssPreset = context.getCssPreset();
+            if (cssPreset) {
+                result.push(name + '-' + cssPreset.name);
+                return;
+            }
+        }
+
+        #lx:server { result.push(name + '-#lx:preset:lx#'); }
+        #lx:client {
+            if (plugin === null && context && context.lxHasMethod('getPlugin'))
+                plugin = context.getPlugin();
+            result.push(name + '-' + (plugin ? plugin.cssPreset.name : lx.app.cssManager.getPresetName()));
+        }
+    });
+
+    return result;
+};
+
+lx.getFirstDefined = function (...args) {
+    for (var i = 0, l = args.len; i < l; i++)
+        if (args[i] !== undefined) return args[i];
+    return undefined;
+};
+
+lx.isInstance = function (value, constructor) {
+    if (value === undefined)
+        return (constructor === undefined);
+    if (value === null)
+        return (constructor === null);
+    if (constructor === Number) return this.isNumber(value);
+    if (constructor === String) return this.isString(value);
+    if (this.isString(constructor)) constructor = this.getNamespace(constructor);
+    if (value.constructor && value.constructor === constructor)
+        return true;
+    return value instanceof constructor;
+};
+
+lx.implementsInterface = function(value, _interface) {
+    if (value === undefined || value === null)
+        return false;
+
+    for (let i in _interface.methods) {
+        let method = _interface.methods[i];
+        if (!value[method] || !this.isFunction(value[method]))
+            return false;
+    }
+
+    return true;
+};
+
+lx.isNumber = function (value) {
+    if (value === undefined || value === null) return false;
+    if ( value.push !== undefined ) return false;
+    return ( !isNaN(parseFloat(value)) && isFinite(value) );
+};
+
+lx.isBoolean = function (value) {
+    if (value === undefined || value === null) return false;
+    return value.constructor === Boolean;
+};
+
+lx.isString = function (value) {
+    if (value === undefined || value === null) return false;
+    return value.constructor === String;    
+};
+
+lx.isArray = function (value) {
+    if (value === undefined || value === null) return false;
+    return value.constructor === Array;
+};
+
+lx.isObject = function (value) {
+    if (value === undefined || value === null) return false;
+    return (value.constructor === Object || value.lxClassName() == 'Object');
+};
+
+lx.isFunction = function (value) {
+    if (value === undefined || value === null) return false;
+    return value.constructor === Function;
+};
+
+lx.clone = function (value) {
+    if (value === undefined) return undefined;
+    if (value === null) return null;
+    if (lx.isString(value) || lx.isNumber(value) || lx.isBoolean(value))
+        return value;
+    
+    return value.lxClone();
+};
+
+lx.createNamespace = function (namespace, props) {
+    var arr = namespace.split(/[.\\]/),
+        temp = lx.globalContext;
+    for (var i = 0, l = arr.length; i < l; i++) {
+        if (temp[arr[i]] === undefined) temp[arr[i]] = {};
+        temp = temp[arr[i]];
+    }
+    if (props) temp.lxMerge(props);
+    return temp;
+};
+
+lx.getNamespace = function (namespace) {
+    var arr = lx.isString(namespace)
+        ? namespace.split(/[.\\]/)
+        : (lx.isArray(namespace) ? namespace : null);
+    if (!arr) return null;
+    if (arr.lxEmpty()) return lx.globalContext;
+
+    var temp = lx.globalContext;
+    for (var i = 0, l = arr.length; i < l; i++) {
+        if (temp[arr[i]] === undefined) return null;
+        temp = temp[arr[i]];
+    }
+    return temp;
+};
+
+lx.getClassConstructor = function (fullClassName) {
+    var arr = fullClassName.split(/[.\\]/),
+        name = arr.pop(),
+        nmsp = lx.getNamespace(arr);
+    if (!nmsp) return null;
+    if (name in nmsp && this.isFunction(nmsp[name])) return nmsp[name];
+    return null;
+};
+
+lx.classExists = function (name) {
+    return !!lx.getClassConstructor(name);
+};
+
+lx.createObject = function (fullClassName, args = undefined) {
+    if (this.isFunction(fullClassName)) {
+        if (args === undefined) return new fullClassName();
+        return new (Function.prototype.bind.apply(
+            fullClassName,
+            [null].lxMerge(args)
+        ));
+    }
+
+    var arr = lx.isString(fullClassName)
+        ? fullClassName.split(/[.\\]/)
+        : (lx.isArray(fullClassName) ? fullClassName : null);
+    if (!arr) return null;
+
+    var temp = lx.globalContext;
+    for (var i = 0, l = arr.length; i < l; i++) {
+        if (temp[arr[i]] === undefined) return null;
+
+        if (i == l - 1) {
+            if (args !== undefined) {
+                return new (Function.prototype.bind.apply(
+                    temp[arr[i]],
+                    [null].lxMerge(args)
+                ));
+            } else return new temp[arr[i]]();
+        } else temp = temp[arr[i]];
+    }
+
+    return null;
+};

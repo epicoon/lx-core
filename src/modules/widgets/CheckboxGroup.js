@@ -38,7 +38,7 @@ class CheckboxGroup extends lx.LabeledGroup {
 		this.checkboxes().forEach(a=>a.on('change', _handler_onChange));
 		this.labels().forEach(l=>{
 			l.style('cursor', 'pointer');
-			l.on('mousedown', lx.Event.preventDefault);
+			l.on('mousedown', lx.preventDefault);
 			l.on('click', (e)=>{
 				let checkbox = this.checkbox(l.index);
 				checkbox.todgle();

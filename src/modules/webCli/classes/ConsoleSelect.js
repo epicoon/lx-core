@@ -52,7 +52,7 @@ class ConsoleSelect {
         this.pressed = true;
 
         if (e.key == 'ArrowDown') {
-            lx.Event.preventDefault(e);
+            lx.preventDefault(e);
             if (this.index < this.limit() - 1) {
                 this.index++;
                 this.render();
@@ -61,7 +61,7 @@ class ConsoleSelect {
         }
 
         if (e.key == 'ArrowUp') {
-            lx.Event.preventDefault(e);
+            lx.preventDefault(e);
             if (this.index > 0) {
                 this.index--;
                 this.render();
@@ -70,14 +70,14 @@ class ConsoleSelect {
         }
 
         if (this.withQuit && e.key == 'q') {
-            lx.Event.preventDefault(e);
+            lx.preventDefault(e);
             this.index = this.options.length;
             this.render();
             return;
         }
 
         if (lx.isNumber(e.key) && +e.key <= this.options.length) {
-            lx.Event.preventDefault(e);
+            lx.preventDefault(e);
             this.index = +e.key - 1;
             this.render();
             return;
@@ -86,7 +86,7 @@ class ConsoleSelect {
 
     onKeyup(e) {
         if (this.pressed && e.key == 'Enter') {
-            lx.Event.preventDefault(e);
+            lx.preventDefault(e);
             var result = this.index;
             if (this.withQuit && result == this.options.length) result = null;
             this.console.onSelected(e, result);

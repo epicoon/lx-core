@@ -322,7 +322,7 @@ class Box extends lx.Rect {
             }
 
             if (!config.path) return;
-            var maker = lx.SnippetMap.getSnippetMaker(config.path);
+            var maker = lx.app.snippetMap.getSnippetMaker(config.path);
             if (!maker) return;
 
             var container = __getContainer(this);
@@ -1223,7 +1223,7 @@ class Box extends lx.Rect {
             if (!info.attributes) info.attributes = {};
             info.attributes.lxMerge(attributes, true);
         }
-        lx.Loader.run(info, __getContainer(this), this.getPlugin(), func);
+        lx.app.loader.run(info, __getContainer(this), this.getPlugin(), func);
     }
 
     /**
@@ -1266,20 +1266,20 @@ class Box extends lx.Rect {
         }; };
         if (!config.itemBox) config.itemBox = self::defaultMatrixItemBox;
 
-        lx.Binder.makeWidgetMatrix(this, config);
-        lx.Binder.bindMatrix(
+        lx.app.binder.makeWidgetMatrix(this, config);
+        lx.app.binder.bindMatrix(
             config.items,
             this,
-            lx.getFirstDefined(config.type, lx.Binder.BIND_TYPE_FULL)
+            lx.getFirstDefined(config.type, lx.app.binder.BIND_TYPE_FULL)
         );
     }
 
     dropMatrix() {
-        lx.Binder.unbindMatrix(this);
+        lx.app.binder.unbindMatrix(this);
     }
 
-    agregator(c, type=lx.Binder.BIND_TYPE_FULL) {
-        lx.Binder.bindAggregation(c, this, type);
+    agregator(c, type=lx.app.binder.BIND_TYPE_FULL) {
+        lx.app.binder.bindAggregation(c, this, type);
     }
     /* 6. Client-features */
     //==================================================================================================================

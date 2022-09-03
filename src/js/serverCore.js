@@ -1,9 +1,14 @@
-global.lx = {};
+(()=>{
+    const lx = {};
+    Object.defineProperty(lx, 'globalContext', {
+        get: function () {
+            return global;
+        }
+    });
+    lx.globalContext.lx = lx;
 
-Object.defineProperty(lx, "globalContext", {
-    get: function () {
-        return global;
-    }
-});
-
-#lx:require server/app/scripts/lx_core;
+    #lx:require app/Application;
+    #lx:require -R classes/common/;
+    #lx:require -R classes/server/;
+    lx.app = new lx.Application();
+})();

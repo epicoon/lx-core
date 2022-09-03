@@ -264,7 +264,7 @@ class Rect extends lx.Module {
          * */
         clientBuild(config={}) {
             this.__sizeHolder.refresh(this.width('px'), this.height('px'));
-            this.on('scroll', lx.checkDisplay);
+            this.on('scroll', __checkDisplay);
 
             if (!config) return;
             if (config.disabled !== undefined) this.disabled(config.disabled);
@@ -340,12 +340,12 @@ class Rect extends lx.Module {
         __autoParentStack = [];
     }
 
-    bind(model, type=lx.Binder.BIND_TYPE_FULL) {
+    bind(model, type=lx.app.binder.BIND_TYPE_FULL) {
         model.bind(this, type);
     }
 
     unbind() {
-        lx.Binder.unbindWidget(this);
+        lx.app.binder.unbindWidget(this);
     }
 
     get index() {
@@ -505,7 +505,7 @@ class Rect extends lx.Module {
     }
 
     getCssPreset() {
-        if (this.__cssPreset) return lx.CssPresetsList.getCssPreset(this.__cssPreset);
+        if (this.__cssPreset) return lx.app.cssManager.presetsList.get(this.__cssPreset);
         let ancestor = this.ancestor({hasProperty: '__cssPreset'});
         if (ancestor) return ancestor.getCssPreset();
         return null;
@@ -601,7 +601,6 @@ class Rect extends lx.Module {
 
     overflow(val) {
         this.domElem.style('overflow', val);
-        // if (val == 'auto') this.on('scroll', lx.checkDisplay);
         return this;
     }
 
@@ -700,13 +699,13 @@ class Rect extends lx.Module {
 
     show() {
         this.domElem.style('visibility', 'inherit');
-        #lx:client{ lx.checkDisplay.call(this); }
+        #lx:client{ __checkDisplay.call(this); }
         return this;
     }
 
     hide() {
         this.domElem.style('visibility', 'hidden');
-        #lx:client{ lx.checkDisplay.call(this); }
+        #lx:client{ __checkDisplay.call(this); }
         return this;
     }
 
@@ -1280,7 +1279,7 @@ class Rect extends lx.Module {
      * */
     #lx:client setField(name, func, type = null) {
         this._field = name;
-        this._bindType = type || lx.Binder.BIND_TYPE_FULL;
+        this._bindType = type || lx.app.binder.BIND_TYPE_FULL;
 
         if (func) {
             var valFunc = this.lxHasMethod('value')
@@ -1492,7 +1491,7 @@ class Rect extends lx.Module {
     }
 
     move(config={}) {
-        this.off('mousedown', lx.move);
+        this.off('mousedown', lx.app.dragAndDrop.move);
         this.moveParams = {};
 
         if (config === false) {
@@ -1510,8 +1509,11 @@ class Rect extends lx.Module {
             moveStep     : lx.getFirstDefined(this.moveParams.moveStep, config.moveStep, 1),
             locked       : false
         };
-        #lx:client{ if (!this.hasTrigger('mousedown', lx.move)) this.on('mousedown', lx.move); }
-        #lx:server{ this.onLoad('()=>this.on(\'mousedown\', lx.move);'); }
+        #lx:client{
+            if (!this.hasTrigger('mousedown', lx.app.dragAndDrop.move))
+                this.on('mousedown', lx.app.dragAndDrop.move);
+        }
+        #lx:server{ this.onLoad('()=>this.on(\'mousedown\', lx.app.dragAndDrop.move);'); }
         return this;
     }
 
@@ -1673,7 +1675,7 @@ class Rect extends lx.Module {
          * Метод, обратный клиентскому [[unpackFunction(str)]]
          * */
         packFunction(func) {
-            return lx._f.functionToString(func);
+            return lx.app.functionHelper.functionToString(func);
         }
     }
 
@@ -1724,7 +1726,7 @@ class Rect extends lx.Module {
                     /^(\(.*?\)\s*=>\s*{?}?)/,
                     '$1const Plugin=this.getPlugin();const Snippet=this.getSnippet(); '
                 );
-                f = lx._f.stringToFunction(str);
+                f = lx.app.functionHelper.stringToFunction(str);
             } else f = this.findFunction(str);
             if (!f) return null;
             return f;
@@ -2035,9 +2037,21 @@ function __defineCssClassNames(self, names) {
         #lx:server { result.push(name + '-#lx:preset:lx#'); }
         #lx:client {
             let plugin = self.getPlugin();
-            result.push(name + '-' + (plugin ? plugin.cssPreset.name : lx.getSetting('cssPreset')));
+            result.push(name + '-' + (plugin ? plugin.cssPreset.name : lx.app.cssManager.getPresetName()));
         }
     });
 
     return result;
+}
+
+function __checkDisplay(event) {
+    this.triggerDisplay(event);
+
+    if (this.setBuildMode) this.setBuildMode(true);
+    if (this.childrenCount) for (var i=0; i<this.childrenCount(); i++) {
+        var child = this.child(i);
+        if (!child || !child.getDomElem()) continue;
+        __checkDisplay.call(child, event);
+    }
+    if (this.setBuildMode) this.setBuildMode(false);
 }

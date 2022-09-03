@@ -184,17 +184,17 @@ class TreeBox extends lx.Box {
 			this.on('leafOpen', function(e) {
 				var opened = this.getOpenedInfo();
 				opened.push(e.leaf.index);
-				lx.Cookie.set(key, opened.join(','));
+				lx.app.cookie.set(key, opened.join(','));
 			});
 
 			// На закрытие ветки
 			this.on('leafClose', function(e) {
 				var opened = this.getOpenedInfo();
-				lx.Cookie.set(key, opened.join(','));
+				lx.app.cookie.set(key, opened.join(','));
 			});
 
 			// Проверить состояние куки прямо сейчас
-			let treeState = lx.Cookie.get(key);
+			let treeState = lx.app.cookie.get(key);
 			if (treeState) {
 				this.useOpenedInfo(treeState.split(','));
 			}

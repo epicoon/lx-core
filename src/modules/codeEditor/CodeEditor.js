@@ -239,7 +239,7 @@ function __handlerKeydown(e) {
     const ctx = this.context;
     
     // то, что делается через CTRL
-    if (lx.ctrlPressed()) {
+    if (lx.app.keyboard.ctrlPressed()) {
         // комментирование
         if (e.key == '/') ctx.getRange().lines().swapComment();
 
@@ -280,7 +280,7 @@ function __handlerKeyup(e) {
     const ctx = this.context;
 
     // CTRL тут не нужен
-    if (lx.ctrlPressed()) return;
+    if (lx.app.keyboard.ctrlPressed()) return;
     // управление курсором стрелками тоже не надо
     if (37 <= e.keyCode && e.keyCode <= 40) return;
 

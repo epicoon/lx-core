@@ -107,8 +107,8 @@ class ConfirmPopup extends lx.Box {
 
 			popup.show();
 
-			lx.onKeydown(13, __onConfirm);
-			lx.onKeydown(27, __onReject);
+			lx.app.keyboard.onKeydown(13, __onConfirm);
+			lx.app.keyboard.onKeydown(27, __onReject);
 			__applyExtraButtons(extraButtons, this.extraCols + 2);
 			return callbackHolder;
 	    }
@@ -193,7 +193,7 @@ class ConfirmPopup extends lx.Box {
 		_confirmCallback = null;
 		_rejectCallback = null;
 		__clearExtraButtons();
-		lx.offKeydown(13, __onConfirm);
-		lx.offKeydown(27, __onReject);
+		lx.app.keyboard.offKeydown(13, __onConfirm);
+		lx.app.keyboard.offKeydown(27, __onReject);
 	}
 }

@@ -20,9 +20,11 @@ class HtmlBody
 
 	public function render(): string
 	{
-        $script = 'lx.getBodyElement=()=>{return document.querySelector("[lxid^=\'' . self::LXID_BODY . '\']");};'
-            . 'lx.getTostsElement=()=>{return document.querySelector("[lxid^=\'' . self::LXID_TOSTS . '\']");};'
-            . 'lx.getAlertsElement=()=>{return document.querySelector("[lxid^=\'' . self::LXID_ALERTS . '\']");};';
+        $script = 'lx.app.domSelector.addSettings({'
+            . 'body: \'' . self::LXID_BODY . '\','
+            . 'tosts: \'' . self::LXID_TOSTS . '\','
+            . 'alerts: \'' . self::LXID_ALERTS . '\','
+        .'})';
 
         $cssClass = 'lxbody-' . \lx::$app->cssManager->getDefaultCssPreset();
 		return
@@ -31,8 +33,8 @@ class HtmlBody
 			'<div lxid=' . self::LXID_ALERTS . ' class="' . $cssClass . '"></div>' .
             '<div lxid=' . self::LXID_TOSTS . ' class="' . $cssClass . '"></div>' .
             '<div lxid=' . self::LXID_BODY . ' class="' . $cssClass . '"></div>' .
-			'<script id=__js>document.body.removeChild(document.getElementById("__js"));' .
-			$this->js . '</script>' .
+			'<script id=__js>document.body.removeChild(document.getElementById("__js"));'
+                . $this->js . '</script>' .
 			$this->renderEndScripts();
 	}
 

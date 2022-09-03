@@ -133,7 +133,7 @@ class AssetCompiler
             for (let i in list) {
                 let name = list[i];
                 const css = new lx.CssContext();
-                css.usePreset(lx.CssPresetsList.getCssPreset(name));
+                css.usePreset(lx.app.cssManager.presetsList.get(name));
                 initCss(css);
                 map[name] = css.toString();
             }
@@ -143,12 +143,8 @@ class AssetCompiler
         $compiler = new JsCompiler();
         $compiler->setBuildModules(true);
         $exec = new NodeJsExecutor($compiler);
-        $map = $exec->setCore([
-            '-R @core/js/commonCore',
-            '-R @core/js/common/tools/',
-            '-R @core/js/server/app/classes/',
-            '-R @core/js/server/tools/',
-        ])->setPath($cssJsFile->getPath())
+        $map = $exec
+            ->setPath($cssJsFile->getPath())
             ->setCode($code)
             ->run();
 

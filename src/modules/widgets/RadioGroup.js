@@ -34,7 +34,7 @@ class RadioGroup extends lx.LabeledGroup {
 		this.radios().forEach(a=>a.on('change', _handler_onChange));
 		this.labels().forEach(l=>{
 			l.style('cursor', 'pointer');
-			l.on('mousedown', lx.Event.preventDefault);
+			l.on('mousedown', lx.preventDefault);
 			l.on('click', (e)=>{
 				let radio = this.radio(l.index);
 				radio.todgle();

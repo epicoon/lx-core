@@ -180,15 +180,10 @@ class SnippetBuildContext implements ContextTreeInterface
 		$pluginData = CodeConverterHelper::arrayToJsCode($plugin->getBuildData());
 		$snippetData = CodeConverterHelper::arrayToJsCode($snippet->getBuildData());
 
-        $core = [
-            '-R @core/js/commonCore',
-            '-R @core/js/common/tools/',
-            '-R @core/js/server/app/classes/',
-            '-R @core/js/server/tools/',
-        ];
         $modules = $plugin->getModuleDependencies();
 		$pre = "
-			lx.globalContext.App = new lx.Application($appData);
+		    lx.app.start($appData);
+			lx.globalContext.App = lx.app;
 			lx.globalContext.Plugin = new lx.Plugin($pluginData);
 			lx.globalContext.Snippet = new lx.Snippet($snippetData);
 		";
@@ -209,7 +204,6 @@ class SnippetBuildContext implements ContextTreeInterface
             ->setFile($snippet->getFile())
             ->setPrevCode($pre)
             ->setPostCode($post)
-            ->setCore($core)
             ->setModules($modules)
             ->run();
 

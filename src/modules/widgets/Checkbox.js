@@ -59,7 +59,7 @@ class Checkbox extends lx.Box {
 	#lx:client {
 		clientBuild(config) {
 			super.clientBuild(config);
-			this.on('mousedown', lx.Event.preventDefault);
+			this.on('mousedown', lx.preventDefault);
 			this.on('mouseup', self::click);
 		}
 

@@ -122,7 +122,7 @@ class MultiBox extends lx.Box {
 
 		if (this.marks) this.marks.forEach(mark=>{
 			mark.align(lx.CENTER, lx.MIDDLE);
-			mark.on('mousedown', lx.Event.preventDefault);
+			mark.on('mousedown', lx.preventDefault);
 			mark.click(_handler_clickMark);
 		});
 	}
@@ -282,7 +282,7 @@ function __defineMarksConfig(self, config, template) {
 		if (this.condition && !this.condition()) return;
 
 		event = event || window.event;
-		lx.Event.preventDefault(event);
+		lx.preventDefault(event);
 
 		var p = this.parent.parent;
 		if (p.mode == lx.MultiBox.MODE_UNI_SHEET) {

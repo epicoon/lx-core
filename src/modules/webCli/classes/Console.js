@@ -181,7 +181,7 @@ class Console {
 	}
 	
 	static onEnter(e) {
-		lx.Event.preventDefault(e);
+		lx.preventDefault(e);
 		this.command = this.getCurrentInput();
 		this.dropInputMode();
 		this.addText('<br>');
@@ -193,7 +193,7 @@ class Console {
 		this.selected = index;
 		this.onEnter(e);
 		if (this.callbackMap[e.key]) {
-			lx.Event.preventDefault(e);
+			lx.preventDefault(e);
 			var callback = this.callbackMap[e.key];
 			callback[1].call(callback[0]);
 		}
@@ -201,7 +201,7 @@ class Console {
 
 	static onKeydown(e) {
 		if (Console.commandPressed) {
-			lx.Event.preventDefault(e);
+			lx.preventDefault(e);
 			return;
 		}
 
@@ -209,20 +209,20 @@ class Console {
 
 		if (e.key == 'Home') {
 			Console.carret.setRange(Console.carret.anchor, 1);
-			lx.Event.preventDefault(e);
+			lx.preventDefault(e);
 		}
 
 		if ((e.key == 'Backspace' || e.key == 'ArrowLeft')
 			&& Console.carret.anchor.pre().tag.getAttribute('lxwc-type') == 'loc' && Console.carret.anchorOffset == 1
 		) {
-			lx.Event.preventDefault(e);
+			lx.preventDefault(e);
 		}
 
 		if (e.key == 'Enter')
 			Console.onEnter(e);
 
 		if (Console.callbackMap[e.key]) {
-			lx.Event.preventDefault(e);
+			lx.preventDefault(e);
 			var callback = Console.callbackMap[e.key];
 			callback[1].call(callback[0]);
 		}

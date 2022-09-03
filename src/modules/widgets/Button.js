@@ -11,7 +11,7 @@ class Button extends lx.Box {
 	#lx:client clientBuild(config) {
 		super.clientBuild(config);
 		this.align(lx.CENTER, lx.MIDDLE);
-		this.on('mousedown', lx.Event.preventDefault);
+		this.on('mousedown', lx.preventDefault);
 		this.setEllipsisHint({css: this.basicCss.hint});
 	}
 

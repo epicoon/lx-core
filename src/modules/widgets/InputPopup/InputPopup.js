@@ -89,8 +89,8 @@ class InputPopup extends lx.Box {
 
 			popup.show();
 
-			lx.onKeydown(13, __onConfirm);
-			lx.onKeydown(27, __onReject);
+			lx.app.keyboard.onKeydown(13, __onConfirm);
+			lx.app.keyboard.onKeydown(27, __onReject);
 
 			var rows = popup->stream->r;
 			if (lx.isArray(rows)) rows[0]->input.focus();
@@ -175,7 +175,7 @@ class InputPopup extends lx.Box {
 		__getInstance().hide();
 		_confirmCallback = null;
 		_rejectCallback = null;
-		lx.offKeydown(13, __onConfirm);
-		lx.offKeydown(27, __onReject);
+		lx.app.keyboard.offKeydown(13, __onConfirm);
+		lx.app.keyboard.offKeydown(27, __onReject);
 	}
 }

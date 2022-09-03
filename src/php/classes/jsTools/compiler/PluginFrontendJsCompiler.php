@@ -100,7 +100,7 @@ class PluginFrontendJsCompiler extends JsCompiler
     private function compileSnippet(string $name, string $path): string
     {
         $code = $this->compileFile($path);
-        $code = "lx.SnippetMap.registerSnippetMaker('$name', function(Plugin, Snippet){{$code}});";
+        $code = "lx.app.snippetMap.registerSnippetMaker('$name', function(Plugin, Snippet){{$code}});";
         $this->compiledSnippets[] = $snippetPath;
         return $code;
     }

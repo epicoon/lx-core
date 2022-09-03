@@ -1,13 +1,14 @@
-window.lx = {};
+(()=>{
+    const lx = {};
+    Object.defineProperty(lx, 'globalContext', {
+        get: function () {
+            return window;
+        }
+    });
+    lx.globalContext.lx = lx;
 
-Object.defineProperty(lx, "globalContext", {
-    get: function () {
-        return window;
-    }
-});
-
-#lx:require commonCore;
-#lx:require -R common/tools/;
-#lx:require -R client/;
-
-lx.plugins = new lx.Dict();
+    #lx:require app/Application;
+    #lx:require -R classes/common/;
+    #lx:require -R classes/client/;
+    lx.app = new lx.Application();
+})();

@@ -24,19 +24,19 @@ class LanguageSwitcher extends lx.Dropbox {
 
 #lx:client {
 	function __actualizeLang(self) {
-		var lang = lx.Cookie.get('lang');
+		var lang = lx.app.cookie.get('lang');
 		if (lang) {
 			self.value(lang);
 			return;
 		}
 
 		if (self.value() === null) self.select(0);
-		lx.Cookie.set('lang', self.value());
+		lx.app.cookie.set('lang', self.value());
 	}
 
 	function _handler_onChange() {
-		if (lx.Cookie.get('lang') == this.value()) return;
-		lx.Cookie.set('lang', this.value());
+		if (lx.app.cookie.get('lang') == this.value()) return;
+		lx.app.cookie.set('lang', this.value());
 		location.reload();
 	}
 }

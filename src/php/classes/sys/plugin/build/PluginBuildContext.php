@@ -289,7 +289,7 @@ class PluginBuildContext implements ContextTreeInterface
             '#lx:public;' . $code,
             $file->exists() ? $file->getPath() : $this->plugin->directory->getPath()
         );
-        $this->mainJs = '(info,el)=>{let __plugin__=null;' . $code . '__plugin__=new Plugin(info,el);return __plugin__;}';
+        $this->mainJs = '(config)=>{let __plugin__=null;' . $code . '__plugin__=new Plugin(config);return __plugin__;}';
 	}
 
     /**

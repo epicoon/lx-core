@@ -257,8 +257,9 @@ class Dropbox extends lx.Box {
 			parent: lx.body,
 			key: 'dropboxOptions',
 			geom: true,
-			cols: 1
-		}).style('z-index', 1001).hide();
+			cols: 1,
+			depthCluster: lx.DepthClusterMap.CLUSTER_OVER,
+		}).hide();
 		return tab;
 	}
 }

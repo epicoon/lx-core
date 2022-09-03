@@ -1,0 +1,23 @@
+#lx:namespace lx;
+class Module {
+    #lx:client {
+        /**
+         * @param {String} key - ключ вызываемого метода
+         * @param {Array} params - параметры, с которыми нужно вызвать метод
+         */
+        static ajax(key, params = []) {
+            return new lx.ModuleRequest(this.lxFullName(), key, params);
+        }
+
+        /**
+         * @param {lx.CssContext} css
+         */
+        static initCss(css) {
+            // pass
+        }
+
+        newEvent(params = {}) {
+            return new lx.ModuleEvent(this, params);
+        }
+    }
+}
