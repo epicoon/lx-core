@@ -505,7 +505,7 @@ class Rect extends lx.Module {
     }
 
     getCssPreset() {
-        if (this.__cssPreset) return lx.app.cssManager.presetsList.get(this.__cssPreset);
+        if (this.__cssPreset) return lx.app.cssManager.getPreset(this.__cssPreset);
         let ancestor = this.ancestor({hasProperty: '__cssPreset'});
         if (ancestor) return ancestor.getCssPreset();
         return null;

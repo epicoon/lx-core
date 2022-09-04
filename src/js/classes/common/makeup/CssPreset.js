@@ -31,7 +31,7 @@ class CssPreset {
 
     static __afterDefinition() {
         if (__isAbstract(this)) return;
-        lx.app.cssManager.presetsList.register(this.getName(), new this());
+        lx.app.cssManager.registerPreset(this.getName(), new this());
     }
 }
 

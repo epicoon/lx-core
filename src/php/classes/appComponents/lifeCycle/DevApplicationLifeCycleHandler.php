@@ -10,10 +10,10 @@ class DevApplicationLifeCycleHandler extends AbstractApplicationLifeCycleHandler
     {
         $compiler = new AssetCompiler();
 
-        $compiler->compileLxCss();
+        $compiler->compileAppCss();
 
         $coreCode = $compiler->compileJsCore();
-        $file = new File(lx::$conductor->webJs . '/core.js');
+        $file = new File(lx::$conductor->webLx . '/core.js');
         $file->put($coreCode);
     }
 

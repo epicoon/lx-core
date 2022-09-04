@@ -20,7 +20,7 @@ class Plugin {
     }
 
     get cssPreset() {
-        return lx.app.cssManager.presetsList.get(this._cssPreset);
+        return lx.app.cssManager.getPreset(this._cssPreset);
     }
 
     getCssAssetClasses() {

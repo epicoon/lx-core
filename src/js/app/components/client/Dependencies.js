@@ -38,7 +38,7 @@ class Dependencies extends lx.AppComponent {
                 }
 
                 lx.app.functionHelper.createAndCallFunction('', res.data.code);
-                lx.app.cssManager.actualizeModuleCss({
+                lx.app.cssManager.renderModuleCss({
                     modules: res.data.compiledModules
                 });
                 this.depend({modules: need});

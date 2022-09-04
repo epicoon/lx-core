@@ -90,7 +90,7 @@ class LoadContext {
 			modulesRequest.onLoad(function(result) {
 				if (result) {
 					lx.app.functionHelper.createAndCallFunction('', result.data.code);
-					lx.app.cssManager.actualizeModuleCss({
+					lx.app.cssManager.renderModuleCss({
 						modules: result.data.compiledModules
 					});
 				}
@@ -164,20 +164,9 @@ class LoadContext {
 		plugin.beforeRender();
 
 		if (!lx.app.cssManager.isBuilded()) {
-			//TODO if css as file. Context???
-			const cssPreset = plugin.cssPreset;
-			if (plugin.initCss && !lx.app.functionHelper.isEmptyFunction(plugin.initCss)) {
-				let cssName = plugin.name + '-' + cssPreset.name;
-				if (!lx.CssTag.exists(cssName)) {
-					const css = new lx.CssTag({id: cssName});
-					css.usePreset(cssPreset);
-					plugin.initCss(css.getContext());
-					css.commit();
-				}
-			}
-			// Actualize all modules
-			lx.app.cssManager.actualizeModuleCss({
-				presets: [cssPreset]
+			lx.app.cssManager.renderPluginCss(plugin);
+			lx.app.cssManager.renderModuleCss({
+				presets: [plugin.cssPreset]
 			});
 		}
 

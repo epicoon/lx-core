@@ -130,7 +130,7 @@ class CssAssetCompiler
         $code .= 'const result = {};';
         foreach (lx::$app->cssManager->getCssPresets() as $type => $preset) {
             $code .= 'var context = new lx.CssContext();'
-                . 'context.usePreset(lx.app.cssManager.presetsList.get(\'' . $type . '\'));'
+                . 'context.usePreset(lx.app.cssManager.getPreset(\'' . $type . '\'));'
                 . '__plugin__.initCss(context);'
                 . 'result.' . $type . '= context.toString();';
         }

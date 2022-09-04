@@ -87,22 +87,10 @@ class AssetCompiler
         }
     }
 
-    public function copyLxCss(): void
+    public function compileAppCss(): void
     {
-        $coreCssPath = lx::$conductor->core . '/css';
-        $dir = new \lx\Directory($coreCssPath);
-
-        $webCssPath = lx::$conductor->webCss;
-        $dir->clone($webCssPath);
-    }
-
-    public function compileLxCss(): void
-    {
-        $path = lx::$conductor->webCss;
+        $path = lx::$conductor->webLx;
         $cssJsFile = new File($path . '/main.css.js');
-        if (!$cssJsFile->exists()) {
-            $this->copyLxCss();
-        }
 
         $presets = lx::$app->cssManager->getCssPresets();
         $need = [];
@@ -133,7 +121,7 @@ class AssetCompiler
             for (let i in list) {
                 let name = list[i];
                 const css = new lx.CssContext();
-                css.usePreset(lx.app.cssManager.presetsList.get(name));
+                css.usePreset(lx.app.cssManager.getPreset(name));
                 initCss(css);
                 map[name] = css.toString();
             }

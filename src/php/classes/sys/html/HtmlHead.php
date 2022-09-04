@@ -48,20 +48,20 @@ class HtmlHead
         $mainCss = lx::$app->cssManager->isBuildType(CssManager::BUILD_TYPE_SEGREGATED)
             ? 'main-' . lx::$app->cssManager->getDefaultCssPreset() . '.css'
             : 'main.css';
-		return '<link href="' . ($this->getCssPath() . '/' . $mainCss)
+		return '<link href="' . ($this->getWebLxPath() . '/' . $mainCss)
 			. '" name="base_css" type="text/css" rel="stylesheet">';
 	}
 
 	private function getLxJs(): string
 	{
-		$path = $this->getJsPath() . '/core.js';
+		$path = $this->getWebLxPath() . '/core.js';
 		return '<script src="' . $path . '"></script>';
 	}
 
 	private function getIcon(): string
 	{
 		return '<link rel="shortcut icon" href="'
-			. ($this->icon ? $this->icon : ($this->getCssPath() . '/img/icon.png'))
+			. ($this->icon ? $this->icon : ($this->getWebLxPath() . '/icon.png'))
 			. '" type="image/png">';
 	}
 
@@ -97,13 +97,8 @@ class HtmlHead
 		return $result;
 	}
 
-    private function getCssPath(): string
-    {
-        return '/' . lx::$app->conductor->getRelativePath(lx::$conductor->webCss);
-    }
-
-	private function getJsPath(): string
+	private function getWebLxPath(): string
 	{
-		return '/' . lx::$app->conductor->getRelativePath(lx::$conductor->webJs);
+		return '/' . lx::$app->conductor->getRelativePath(lx::$conductor->webLx);
 	}
 }

@@ -75,10 +75,10 @@ class Application {
             this.animation.useAnimation();
 
             // Js-модули
-            if (modulesCode && modulesCode != '') lx.app.functionHelper.createAndCallFunction('', modulesCode);
-            this.cssManager.actualizeModuleCss({
-                modules: moduleNames
-            });
+            if (modulesCode && modulesCode != '') {
+                lx.app.functionHelper.createAndCallFunction('', modulesCode);
+                this.cssManager.renderModuleCss({ modules: moduleNames });
+            }
 
             // Запуск загрузчика
             lx.body = lx.Box.rise(this.domSelector.getBodyElement());
