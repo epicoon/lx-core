@@ -24,7 +24,8 @@ class ModelCollectionGrid extends lx.Box {
             main: 'lx-MCG',
             lPart: 'lx-MCG-lPart',
             head: 'lx-MCG-head',
-            rowBack: 'lx-MCG-rowBack'
+            rowBack: 'lx-MCG-rowBack',
+            ellipsis: 'lx-MCG-ellipsis',
         }
     }
     
@@ -39,6 +40,9 @@ class ModelCollectionGrid extends lx.Box {
         });
         css.addClass('lx-MCG-rowBack', {
             backgroundColor: css.preset.altMainBackgroundColor
+        });
+        css.addClass('lx-MCG-ellipsis', {
+            '@ellipsis': true,
         });
     }
 
@@ -235,7 +239,7 @@ class ModelCollectionGrid extends lx.Box {
             const title = lHeadStream.add(lx.Box, {
                 width: columnModifier.widget.width,
                 text: columnModifier.title,
-                css: 'lx-ellipsis'
+                css: this.basicCss.ellipsis
             });
             title.align(lx.CENTER, lx.MIDDLE);
         }
@@ -248,11 +252,11 @@ class ModelCollectionGrid extends lx.Box {
         this->>lStream.matrix({
             items: this.collection,
             itemBox: [lx.Box, {stream: {direction: lx.HORIZONTAL}}],
-            itemRender: function (row, model) {
+            itemRender: (row, model) => {
                 for (let i=0, l=unlockedIndex; i<l; i++) {
                     let fieldName = sequence[i],
                         columnModifier = _t.getColumnModifier(fieldName);
-                    let config = {width: columnModifier.widget.width, css: 'lx-ellipsis'};
+                    let config = {width: columnModifier.widget.width, css: this.basicCss.ellipsis};
                     if (schema.hasField(fieldName))
                         config.field = fieldName;
                     else config.key = fieldName;
@@ -276,7 +280,7 @@ class ModelCollectionGrid extends lx.Box {
             const title = rHeadStream.add(lx.Box, {
                 width: columnModifier.widget.width,
                 text: columnModifier.title,
-                css: 'lx-ellipsis'
+                css: this.basicCss.ellipsis
             });
             title.align(lx.LEFT, lx.MIDDLE);
         }
@@ -287,11 +291,11 @@ class ModelCollectionGrid extends lx.Box {
         this->>rStream.matrix({
             items: this.collection,
             itemBox: [lx.Box, {stream: {direction: lx.HORIZONTAL}}],
-            itemRender: function (row, model) {
+            itemRender: (row, model) => {
                 for (let i=unlockedIndex, l=sequence.len; i<l; i++) {
                     let fieldName = sequence[i],
                         columnModifier = _t.getColumnModifier(fieldName);
-                    let config = {width: columnModifier.widget.width, css: 'lx-ellipsis'};
+                    let config = {width: columnModifier.widget.width, css: this.basicCss.ellipsis};
                     if (schema.hasField(fieldName))
                         config.field = fieldName;
                     else config.key = fieldName;

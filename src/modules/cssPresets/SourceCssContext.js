@@ -1,12 +1,8 @@
 #lx:module lx.SourceCssContext;
 
-#lx:use lx.CommonProxyCssContext;
-
 #lx:namespace lx;
 class SourceCssContext extends lx.CssContext {
-    init() {
-        this.useContext(new lx.CommonProxyCssContext());
-
+    init(cssPreset) {
         this.addClass('lxbody', {
             position: 'absolute',
             left: '0%',
@@ -16,8 +12,8 @@ class SourceCssContext extends lx.CssContext {
             overflow: 'hidden',
             fontFamily: 'DejaVu Sans Mono, monospace',
             fontSize: 'calc(10px + 1.0vh)',
-            color: css.preset.textColor,
-            backgroundColor: css.preset.mainBackgroundColor
+            color: cssPreset.textColor,
+            backgroundColor: cssPreset.mainBackgroundColor
         });
 
         this.addClass('lx-abspos', {
@@ -35,12 +31,6 @@ class SourceCssContext extends lx.CssContext {
             gridAutoFlow: 'column',
             gridTemplateRows: '1fr',
             gridAutoColumns: 'auto'
-        });
-
-        this.addClass('lx-ellipsis', {
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            textOverflow: 'ellipsis'
         });
 
         this.addStyle('input', {

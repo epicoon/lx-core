@@ -1,7 +1,7 @@
-#lx:module lx.CommonProxyCssContext;
+#lx:module lx.BasicProxyCssContext;
 
 #lx:namespace lx;
-class CommonProxyCssContext extends lx.CssContext {
+class BasicProxyCssContext extends lx.CssContext {
     init(cssPreset) {
         let butShadowSize = Math.floor(cssPreset.shadowSize * 0.33) + 3;
         let butShadowShift = Math.floor(butShadowSize * 0.5);

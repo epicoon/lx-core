@@ -12,6 +12,7 @@
 }
 
 let __settings = {};
+let __onReady = [];
 let prefix = null;
 let idCounter = 1;
 
@@ -44,10 +45,16 @@ function __componentsMap() {
 
 #lx:namespace lx;
 class Application {
-    constructor(data = {}) {
+    constructor(onReady = []) {
         const map = __componentsMap();
-        for (let key in map)
-            this[key] = new map[key](this);
+        this.components = {};
+        for (let key in map) {
+            this.components[key] = new map[key](this);
+            Object.defineProperty(this, key, {
+                get: function() { return this.components[key]; }
+            });
+        }
+        __onReady = onReady;
     }
 
     genId() {
@@ -65,8 +72,8 @@ class Application {
     }
 
     #lx:client {
-        start(settings, modulesCode, moduleNames, pluginInfo) {
-            __settings = settings;
+        start(config, modulesCode, moduleNames, pluginInfo) {
+            __settings = config.settings;
 
             this.domEvent.add(window, 'resize', e=>lx.body.checkResize(e));
             this.keyboard.setWatchForKeypress(true);
@@ -75,14 +82,16 @@ class Application {
             this.animation.useAnimation();
 
             // Js-модули
-            if (modulesCode && modulesCode != '') {
+            if (modulesCode && modulesCode != '')
                 lx.app.functionHelper.createAndCallFunction('', modulesCode);
-                this.cssManager.renderModuleCss({ modules: moduleNames });
-            }
+
+            __applyComponentsData(this, config.components);
 
             // Запуск загрузчика
             lx.body = lx.Box.rise(this.domSelector.getBodyElement());
-            if (pluginInfo) this.loader.run(pluginInfo, lx.body);
+            if (pluginInfo) this.loader.loadPlugin(pluginInfo, lx.body);
+
+            __ready();
 
             #lx:mode-case: dev
                 var elems = document.getElementsByClassName('lx-var-dump');
@@ -96,9 +105,11 @@ class Application {
     }
 
     #lx:server {
-        start(data = {}) {
-            if (data.settings) __settings = data.settings;
+        start(config = {}) {
+            if (config.settings) __settings = config.settings;
+            if (config.components) __applyComponentsData(this, config.components);
             this.i18nArray = {};
+            __ready();
         }
 
         useI18n(config) {
@@ -123,4 +134,18 @@ function __getPrefix() {
         prefix = '' + lx.Math.decChangeNotation(time, 62);
     }
     return prefix;
+}
+
+function __applyComponentsData(self, components) {
+    for (let name in self.components) {
+        const component = self.components[name];
+        if (component.lxHasMethod('applyData') && (name in components))
+            component.applyData(components[name]);
+    }
+}
+
+function __ready() {
+    __onReady.forEach(f=>f());
+    __onReady = [];
+    lx.dropReady();
 }

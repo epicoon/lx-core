@@ -1,5 +1,13 @@
 #lx:namespace lx;
 class Module {
+    static __afterDefinition() {
+        #lx:client {
+            (lx.app && lx.app.cssManager && lx.app.cssManager.isReady())
+                ? lx.app.cssManager.renderModuleCss({ modules: [this.lxFullName()] })
+                : lx.onReady(()=>lx.app.cssManager.renderModuleCss({ modules: [this.lxFullName()] }));
+        }
+    }
+
     #lx:client {
         /**
          * @param {String} key - ключ вызываемого метода

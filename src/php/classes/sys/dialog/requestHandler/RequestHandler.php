@@ -55,8 +55,10 @@ abstract class RequestHandler implements EventListenerInterface
         $this->prepareResponse();
     }
 
-    protected function beforeSendResponse(HttpResponseInterface $response): void
+    protected function beforeSendResponse(Event $event): void
     {
+        /** @var HttpResponseInterface $response */
+        $response = $event->getPayload('response');
         if ($response->getCode() == HttpResponse::OK) {
             $this->beforeSuccessfulSending();
         } else {
@@ -65,8 +67,10 @@ abstract class RequestHandler implements EventListenerInterface
         }
     }
 
-    protected function afterSendResponse(HttpResponseInterface $response): void
+    protected function afterSendResponse(Event $event): void
     {
+        /** @var HttpResponseInterface $response */
+        $response = $event->getPayload('response');
         if ($response->getCode() == HttpResponse::OK) {
             $this->afterSuccessfulSending();
         } else {

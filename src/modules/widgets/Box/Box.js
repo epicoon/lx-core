@@ -1223,7 +1223,7 @@ class Box extends lx.Rect {
             if (!info.attributes) info.attributes = {};
             info.attributes.lxMerge(attributes, true);
         }
-        lx.app.loader.run(info, __getContainer(this), this.getPlugin(), func);
+        lx.app.loader.loadPlugin(info, __getContainer(this), this.getPlugin(), func);
     }
 
     /**

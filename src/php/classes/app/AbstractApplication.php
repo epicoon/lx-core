@@ -102,6 +102,11 @@ abstract class AbstractApplication implements FusionInterface
     {
         return $this->components->getFusionComponent($name);
     }
+
+    public function eachFusionComponent(callable $callback): void
+    {
+        $this->components->eachFusionComponent($callback);
+    }
     
     public function getFusionComponentTypes(): array
     {
@@ -299,8 +304,19 @@ abstract class AbstractApplication implements FusionInterface
 
     public function getBuildData(): array
     {
+        $components = [];
+        $this->eachFusionComponent(function($component, $name) use (&$components) {
+            if ($component instanceof ClientComponentInterface) {
+                $data = $component->getCLientData();
+                if (!empty($data)) {
+                    $components[$name] = $data;
+                }
+            }
+        });
+
         return [
             'settings' => $this->getSettings(),
+            'components' => $components,
         ];
     }
 

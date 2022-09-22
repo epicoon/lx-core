@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class JsModuleMapActualizer
 {
     /**
@@ -12,7 +14,7 @@ class JsModuleMapActualizer
         $list = ServiceBrowser::getServicePathesList();
         $names = [];
         foreach (array_keys($list) as $serviceName) {
-            $service = \lx::$app->getService($serviceName);
+            $service = lx::$app->getService($serviceName);
             if (!$service) {
                 continue;
             }
@@ -24,9 +26,23 @@ class JsModuleMapActualizer
             }
         }
 
-        $path = \lx::$conductor->getSystemPath('jsModulesMap.json');
-        $file = \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
+        $path = lx::$conductor->getSystemPath('jsModulesMap.json');
+        $file = lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
         $file->put($names);
+    }
+
+    public function renewProjectServices(): void
+    {
+        $list = ServiceBrowser::getServicePathesList();
+        $services = [];
+        foreach (array_keys($list) as $serviceName) {
+            $service = lx::$app->getService($serviceName);
+            if (!$service || $service->getCategory() == 'vendor') {
+                continue;
+            }
+            $services[] = $service;
+        }
+        $this->renewServices($services);
     }
 
     /**
@@ -37,7 +53,7 @@ class JsModuleMapActualizer
         $list = ServiceBrowser::getServicePathesList();
         $names = [];
         foreach (array_keys($list) as $serviceName) {
-            $service = \lx::$app->getService($serviceName);
+            $service = lx::$app->getService($serviceName);
             if (!$service) {
                 continue;
             }
@@ -47,9 +63,34 @@ class JsModuleMapActualizer
             }
         }
 
-        $path = \lx::$conductor->getSystemPath('jsModulesMap.json');
-        $file = \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
+        $path = lx::$conductor->getSystemPath('jsModulesMap.json');
+        $file = lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
         $file->put($names);
+    }
+
+    /**
+     * @param array<Service> $services
+     */
+    public function renewServices(array $services): void
+    {
+        $refreshedNames = [];
+        $deprecatedNames = [];
+        foreach ($services as $service) {
+            $this->serviceRenewProcess($service)
+                ? $refreshedNames[] = $service->name
+                : $deprecatedNames[] = $service->name;
+        }
+
+        /** @var DataFileInterface $file */
+        $file = lx::$app->diProcessor->createByInterface(
+            DataFileInterface::class,
+            [lx::$conductor->getSystemPath('jsModulesMap.json')]
+        );
+
+        $list = $file->exists() ? $file->get() : [];
+        $list = array_diff($list, $deprecatedNames);
+        $list = array_unique(array_merge($list, $refreshedNames));
+        $file->put($list);
     }
 
     /**
@@ -150,8 +191,8 @@ class JsModuleMapActualizer
 
     private function addService(string $serviceName): void
     {
-        $path = \lx::$conductor->getSystemPath('jsModulesMap.json');
-        $file = \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
+        $path = lx::$conductor->getSystemPath('jsModulesMap.json');
+        $file = lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
         $data = $file->exists() ? $file->get() : [];
 
         if (!in_array($serviceName, $data)) {
@@ -163,8 +204,8 @@ class JsModuleMapActualizer
 
     private function delService(string $serviceName): void
     {
-        $path = \lx::$conductor->getSystemPath('jsModulesMap.json');
-        $file = \lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
+        $path = lx::$conductor->getSystemPath('jsModulesMap.json');
+        $file = lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
         if (!$file->exists()) {
             return;
         }

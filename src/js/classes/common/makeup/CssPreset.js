@@ -1,7 +1,6 @@
 #lx:namespace lx;
 class CssPreset {
     constructor() {
-        this._proxyContexts = [];
         __init(this);
     }
 
@@ -13,31 +12,15 @@ class CssPreset {
         return {};
     }
 
-    getProxyContexts() {
-        return [];
-    }
-
     get name() {
         return self::getName();
-    }
-
-    get proxyContexts() {
-        return this._proxyContexts;
     }
 
     static getName() {
         return null;
     }
-
-    static __afterDefinition() {
-        if (__isAbstract(this)) return;
-        lx.app.cssManager.registerPreset(this.getName(), new this());
-    }
 }
 
-function __isAbstract(self) {
-    return self.getName() === null;
-}
 
 function __init(self) {
     const map = self.getSettings();
@@ -47,13 +30,6 @@ function __init(self) {
                 return new lx.CssValue(self, name, map[name]);
             }
         });
-    }
-
-    const contexts = self.getProxyContexts();
-    for (let i in contexts) {
-        let context = contexts[i];
-        context.init(self);
-        self._proxyContexts.push(context);
     }
 }
 

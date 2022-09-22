@@ -13,7 +13,10 @@ class Alert extends lx.AppComponent {
 
     print(msg) {
         if (!alerts) initAlerts();
-        lx.app.dependencies.promiseModules(['lx.ActiveBox'], ()=>__print(msg));
+        lx.app.loader.loadModules({
+            modules: ['lx.ActiveBox'],
+            callback: ()=>__print(msg)
+        });
     }
 }
 

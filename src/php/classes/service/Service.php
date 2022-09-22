@@ -214,11 +214,6 @@ class Service implements ObjectInterface, FusionInterface
         }
 	}
 
-    public function getJsModules(): array
-    {
-        return [];
-    }
-
 	public function getMode(): string
 	{
 		return $this->getConfig('mode');

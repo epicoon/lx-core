@@ -32,8 +32,7 @@ lx.isCssClassAbsolute = function (className) {
     return [
         'lx-abspos',
         'lxps-grid-v',
-        'lxps-grid-h',
-        'lx-ellipsis'
+        'lxps-grid-h'
     ].includes(className);
 };
 lx.defineCssClassNames = function(context, names, plugin = null) {

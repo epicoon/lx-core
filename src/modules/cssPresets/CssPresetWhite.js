@@ -1,17 +1,11 @@
 #lx:module lx.CssPresetWhite;
 
-#lx:use lx.CommonProxyCssContext;
+#lx:use lx.BasicProxyCssContext;
 
 #lx:namespace lx;
 class CssPresetWhite extends lx.CssPreset {
     static getName() {
         return 'white';
-    }
-
-    getProxyContexts() {
-        return [
-            new lx.CommonProxyCssContext()
-        ];
     }
 
     getSettings() {

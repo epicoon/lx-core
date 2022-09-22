@@ -1,17 +1,11 @@
 #lx:module lx.CssPresetDark;
 
-#lx:use lx.CommonProxyCssContext;
+#lx:use lx.BasicProxyCssContext;
 
 #lx:namespace lx;
 class CssPresetDark extends lx.CssPreset {
     static getName() {
         return 'dark';
-    }
-
-    getProxyContexts() {
-        return [
-            new lx.CommonProxyCssContext()
-        ];
     }
 
     getSettings() {

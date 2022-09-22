@@ -2,7 +2,11 @@
 
 namespace lx;
 
-class CssManager implements CssManagerInterface, FusionComponentInterface
+class CssManager implements
+    CssManagerInterface,
+    FusionComponentInterface,
+    JsModuleClientInterface,
+    ClientComponentInterface
 {
     use FusionComponentTrait;
     
@@ -10,9 +14,11 @@ class CssManager implements CssManagerInterface, FusionComponentInterface
     const BUILD_TYPE_ALL_TOGETHER = 'all';
     const BUILD_TYPE_SEGREGATED = 'segregated';
 
-    protected string $cssContext = 'lx.CommonProxyCssContext';
+    protected array $cssContexts = [
+        'lx.BasicProxyCssContext',
+    ];
     protected array $cssAssets = [
-        'main' => 'lx.SourceCssContext',
+        'lx.SourceCssContext',
     ];
     protected array $cssPresets = [
         'white' => 'lx.CssPresetWhite',
@@ -20,7 +26,32 @@ class CssManager implements CssManagerInterface, FusionComponentInterface
     ];
     protected string $defaultCssPreset = 'white';
     protected string $buildType = self::BUILD_TYPE_ALL_TOGETHER;
-    
+
+    public function getJsModules(): array
+    {
+        return $this->cssContexts;
+    }
+
+    public function getCLientData(): array
+    {
+        return [
+            'assetBuildType' => $this->getBuildType(),
+            'cssPreset' => $this->getDefaultCssPresetName(),
+            'cssPresets' => $this->getCssPresets(),
+            'cssContexts' => $this->cssContexts,
+        ];
+    }
+
+    public function getCssContexts(): array
+    {
+        return $this->cssContexts;
+    }
+
+    public function getCssAssets(): array
+    {
+        return $this->cssAssets;
+    }
+
     public function getCssPresets(): array
     {
         return $this->cssPresets;
@@ -31,7 +62,7 @@ class CssManager implements CssManagerInterface, FusionComponentInterface
         return $this->cssPresets[$name] ?? null;
     }
     
-    public function getDefaultCssPreset(): string
+    public function getDefaultCssPresetName(): string
     {
         return $this->defaultCssPreset;
     }

@@ -31,6 +31,14 @@ class FusionComponentList
 		return null;
 	}
 
+    public function getNames(): array
+    {
+        return array_merge(
+            array_keys($this->list),
+            array_keys($this->config)
+        );
+    }
+
 	public function has(string $name): bool
 	{
 		return array_key_exists($name, $this->list) || array_key_exists($name, $this->config);

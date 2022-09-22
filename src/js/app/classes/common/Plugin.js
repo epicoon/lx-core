@@ -243,13 +243,14 @@ class Plugin {
             if (!newForPlugin.len) return;
 
             if (!this.dependencies.modules) this.dependencies.modules = [];
-            lx.app.dependencies.promiseModules(
-                newForPlugin,
-                ()=>{
+
+            lx.app.loader.loadModules({
+                modules: newForPlugin,
+                callback: ()=>{
                     newForPlugin.forEach(a=>this.dependencies.modules.push(a));
                     if (callback) callback();
                 }
-            );
+            });
         }
 
         /**

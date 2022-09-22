@@ -369,6 +369,10 @@ class JsCompiler
             return;
         }
 
+        lx::$app->events->trigger(JsModulesComponent::EVENT_BEFORE_COMPILE_MODULE_CODE, [
+            'moduleName' => $moduleName,
+        ]);
+
         $moduleInfo = lx::$app->jsModules->getModuleInfo($moduleName);
         if (!$moduleInfo) {
             \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],

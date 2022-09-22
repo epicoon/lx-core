@@ -81,21 +81,12 @@ class LoadContext {
 			cssTags = [];
 
 		// Запрос на догрузку модулей регистрируется в синхронайзере
-		var modulesRequest = null;
 		if (this.necessaryModules && !this.necessaryModules.lxEmpty()) {
-			modulesRequest = new lx.ServiceRequest('get-modules', {
-				need: this.necessaryModules,
-				have: lx.app.dependencies.getCurrentModules()
+			let modulesRequest = lx.app.loader.loadModules({
+				modules: this.necessaryModules,
+				immediately: false
 			});
-			modulesRequest.onLoad(function(result) {
-				if (result) {
-					lx.app.functionHelper.createAndCallFunction('', result.data.code);
-					lx.app.cssManager.renderModuleCss({
-						modules: result.data.compiledModules
-					});
-				}
-			});
-			synchronizer.register(modulesRequest);
+			if (modulesRequest) synchronizer.register(modulesRequest);
 		}
 
 		// script-ресурсы регистрируются в синхронайзере

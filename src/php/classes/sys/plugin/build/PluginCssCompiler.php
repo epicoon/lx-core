@@ -4,7 +4,7 @@ namespace lx;
 
 use lx;
 
-class CssAssetCompiler
+class PluginCssCompiler
 {
     private Plugin $plugin;
     private bool $force = false;
@@ -24,7 +24,7 @@ class CssAssetCompiler
         $this->force = $force;
         $needMap = $this->getNeedMap();
         $needFiles = $this->getNeedFiles($needMap);
-        $code = $this->getCode($needFiles);
+        $code = $this->getCode();
         if ($code == '') {
             $this->clearFiles($needFiles);
             return;
@@ -35,22 +35,29 @@ class CssAssetCompiler
         $compiler->setBuildModules(true);
         $exec = new NodeJsExecutor($compiler);
         $result = $exec
+            ->configureApplication()
             ->setCode($code)
             ->setPath($plugin->conductor->getFullPath($plugin->getConfig('client')))
             ->run();
+        $css = $result['css'];
+        $presetedClasses = $result['presetedClasses'];
+
+        $cssDir = new Directory($plugin->conductor->getLocalSystemPath('css'));
+        $presetedFile = $cssDir->makeFile('preseted.json');
+        $presetedFile->put(json_encode($presetedClasses));
 
         foreach ($needFiles as $type => $file) {
             if ($type == '__common__') {
-                $this->compileCommonFile($file, $result);
+                $this->compileCommonFile($file, $css);
             } else {
-                $this->compileFile($file, $type, $result);
+                $this->compileFile($file, $type, $css);
             }
         }
     }
 
     private function compileCommonFile(FileInterface $file, array $cssList): void
     {
-        $cssCode = AssetCompiler::getCommonCss($cssList, $this->plugin);
+        $cssCode = AppAssetCompiler::getCommonCss($cssList, $this->plugin);
         $file->put($cssCode);
     }
 
@@ -81,7 +88,7 @@ class CssAssetCompiler
         }
     }
 
-    private function getCode(array $needFiles): string
+    private function getCode(): string
     {
         $plugin = $this->plugin;
 
@@ -116,8 +123,12 @@ class CssAssetCompiler
         }
 
         $code = $requireStr;
-        foreach (lx::$app->cssManager->getCssPresets() as $type => $preset) {
-            $code .= '#lx:use ' . lx::$app->cssManager->getCssPresetModule($type) . ';';
+        $contexts = lx::$app->cssManager->getCssContexts();
+        foreach ($contexts as $context) {
+            $code .= '#lx:use ' . $context . ';';
+        }
+        foreach (lx::$app->cssManager->getCssPresets() as $preset) {
+            $code .= '#lx:use ' . $preset . ';';
         }
         $code .= 'const __plugin__ = (()=>{class Plugin extends lx.Plugin{'
             . "init(){this._cssPreset='$type';}"
@@ -127,14 +138,22 @@ class CssAssetCompiler
             . CodeConverterHelper::arrayToJsCode($plugin->getBuildData())
             . ');})();';
 
-        $code .= 'const result = {};';
+        $code .= '
+            const result = {};
+            const proxyList = [' . implode(',', $contexts) . '];
+            let proxies = [];
+            proxyList.forEach(proxy=>proxies.push(new proxy()));
+        ';
         foreach (lx::$app->cssManager->getCssPresets() as $type => $preset) {
             $code .= 'var context = new lx.CssContext();'
-                . 'context.usePreset(lx.app.cssManager.getPreset(\'' . $type . '\'));'
+                . 'context.configure({'
+                    . 'proxyContexts: proxies,'
+                    . 'preset: lx.app.cssManager.getPreset(\'' . $type . '\')'
+                .'});'
                 . '__plugin__.initCss(context);'
                 . 'result.' . $type . '= context.toString();';
         }
-        $code .= 'return result;';
+        $code .= 'return {css: result, presetedClasses: context.presetedClasses};';
         return $code;
     }
 

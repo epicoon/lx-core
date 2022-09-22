@@ -5,8 +5,10 @@ return [
     'ConsoleApplication' => 'classes/app',
     'HttpApplication' => 'classes/app',
 
-    'AssetCompiler' => 'classes/appComponents/asset',
     'CssManager' => 'classes/appComponents/asset',
+    'WebAssetHelper' => 'classes/appComponents/asset',
+    'AppAssetCompiler' => 'classes/appComponents/asset',
+    'MainCssRenderer' => 'classes/appComponents/asset',
 
     'ApplicationComponents' => 'classes/appComponents',
     'ApplicationLogger' => 'classes/appComponents',
@@ -37,6 +39,7 @@ return [
     'EventListenerTrait' => 'classes/appComponents/event',
     'EventManager' => 'classes/appComponents/event',
     'EventManagerInterface' => 'classes/appComponents/event',
+    'Event' => 'classes/appComponents/event',
     'ApplicationI18nMap' => 'classes/appComponents/i18n',
     'I18nHelper' => 'classes/appComponents/i18n',
     'I18nMap' => 'classes/appComponents/i18n',
@@ -47,7 +50,6 @@ return [
     'ApplicationJsModuleInjector' => 'classes/appComponents/jsModuleInject',
     'PluginJsModuleInjector' => 'classes/appComponents/jsModuleInject',
     'ServiceJsModuleInjector' => 'classes/appComponents/jsModuleInject',
-    'AbstractApplicationLifeCycleHandler' => 'classes/appComponents/lifeCycle',
     'DevApplicationLifeCycleHandler' => 'classes/appComponents/lifeCycle',
     'User' => 'classes/appComponents/user',
     'UserEventsEnum' => 'classes/appComponents/user',
@@ -146,7 +148,7 @@ return [
     'JsScriptAsset' => 'classes/sys/plugin',
     'PluginBrowser' => 'classes/sys/plugin',
     'PluginProvider' => 'classes/sys/plugin',
-    'CssAssetCompiler' => 'classes/sys/plugin/build',
+    'PluginCssCompiler' => 'classes/sys/plugin/build',
     'PluginBuildContext' => 'classes/sys/plugin/build',
     'Snippet' => 'classes/sys/plugin/build',
     'SnippetBuildContext' => 'classes/sys/plugin/build',
@@ -209,6 +211,9 @@ return [
 	/*******************************************************************************************************************
 	 * Interfaces
 	 ******************************************************************************************************************/
+    'JsModuleClientInterface' => 'interfaces',
+    'ClientComponentInterface' => 'interfaces',
+
 	'ConductorInterface' => 'interfaces',
     'RouterInterface' => 'interfaces',
     'ResourceContextInterface' => 'interfaces',
@@ -229,7 +234,9 @@ return [
     'JsCompilerExtensionInterafce' => 'interfaces',
     'JsModuleInjectorInterface' => 'interfaces',
     'CssManagerInterface' => 'interfaces',
-    'ApplicationLifeCycleInterface' => 'interfaces',
+
+    'ApplicationLifeCycleInterface' => 'interfaces/lifeCycle',
+    'HttpApplicationLifeCycleInterface' => 'interfaces/lifeCycle',
 
     'DbConnectorInterface' => 'interfaces/db',
     'DbConnectionFactoryInterface' => 'interfaces/db',

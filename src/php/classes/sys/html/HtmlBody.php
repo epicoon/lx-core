@@ -26,7 +26,7 @@ class HtmlBody
             . 'alerts: \'' . self::LXID_ALERTS . '\','
         .'})';
 
-        $cssClass = 'lxbody-' . \lx::$app->cssManager->getDefaultCssPreset();
+        $cssClass = 'lxbody-' . \lx::$app->cssManager->getDefaultCssPresetName();
 		return
             '<script>' . $script . '</script>'.
 			$this->renderBeginScripts() .

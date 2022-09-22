@@ -19,9 +19,9 @@
         "name": "lx.CodeEditor",
         "path": "modules\/codeEditor\/CodeEditor.js"
     },
-    "lx.CommonProxyCssContext": {
-        "name": "lx.CommonProxyCssContext",
-        "path": "modules\/cssPresets\/CommonProxyCssContext.js"
+    "lx.BasicProxyCssContext": {
+        "name": "lx.BasicProxyCssContext",
+        "path": "modules\/cssPresets\/BasicProxyCssContext.js"
     },
     "lx.CssPresetDark": {
         "name": "lx.CssPresetDark",

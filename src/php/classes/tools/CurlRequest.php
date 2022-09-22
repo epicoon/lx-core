@@ -6,7 +6,7 @@ Class CurlRequest
 {
 	private bool $returnAsString;
 	private ?string $url = null;
-	private string $method = 'post';
+	private string $method = 'get';
 	private array $headers = [];
 	private array $options = [];
 	private array $params = [];

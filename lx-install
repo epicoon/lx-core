@@ -137,8 +137,9 @@ function refreshMaps(): void
     lx::$autoloader->map->reset();
     (new lx\JsModuleMapActualizer())->renewHead();
 
-    $compiler = new lx\AssetCompiler();
-    (new lx\File(lx::$conductor->webLx . '/core.js'))->put($compiler->compileJsCore());
+    $compiler = new lx\AppAssetCompiler();
+    $compiler->compileJsCore();
     $compiler->compileAppCss();
-    $compiler->makePluginsAssetLinks();
+
+    lx\PluginAssetProvider::makePluginsAssetLinks();
 }

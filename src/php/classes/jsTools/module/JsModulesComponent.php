@@ -8,9 +8,17 @@ class JsModulesComponent implements FusionComponentInterface
 {
     use FusionComponentTrait;
 
+    const EVENT_BEFORE_COMPILE_MODULE_CODE = 'beforeCompileModuleCode';
+
     private ?array $map = null;
     private array $list = [];
 
+    public function reset(): void
+    {
+        $this->map = null;
+        $this->list = [];
+    }
+    
     public function getMap(): array
     {
         if ($this->map === null) {

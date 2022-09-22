@@ -9,4 +9,8 @@ class AppComponentSettable extends lx.AppComponent {
         for (let key in list)
             this.settings[key] = list[key];
     }
+
+    applyData(data) {
+        // pass
+    }
 }

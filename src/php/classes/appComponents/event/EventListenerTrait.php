@@ -42,10 +42,7 @@ trait EventListenerTrait
 		$this->eventManager->subscribe($eventName, $this);
 	}
 
-    /**
-     * @param mixed $params
-     */
-	public function trigger(string $eventName, $params = null): void
+	public function trigger(string $eventName, Event $event): void
 	{
 		$map = static::getEventHandlersMap();
 
@@ -57,13 +54,6 @@ trait EventListenerTrait
 			return;
 		}
 
-		if ($params === null) {
-		    call_user_func([$this, $methodName]);
-        } else {
-            if (!is_array($params)) {
-                $params = [$params];
-            }
-            call_user_func_array([$this, $methodName], $params);
-        }
+        $this->$methodName($event);
 	}
 }

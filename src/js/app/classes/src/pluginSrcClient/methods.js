@@ -88,7 +88,7 @@ function __init(self, config) {
     if (config.images) self.images = config.images;
     self._cssPreset = config.cssPreset;
 
-    // Информация о зависимостях от модулей
+    // Информация о зависимостях
     if (config.dep) {
         if (config.dep.m) self.dependencies.modules = config.dep.m;
         if (config.dep.c) self.dependencies.css = config.dep.c;

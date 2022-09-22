@@ -1,24 +1,33 @@
 #lx:namespace lx;
 class CssContext {
     constructor() {
-        this.sequens = [];
+        this.reset();
+    }
 
+    reset() {
+        this.sequens = [];
         this.styles = {};
         this.abstractClasses = {};
         this.classes = {};
         this.mixins = {};
-
         this.preset = null;
         this.proxyContexts = [];
+        this.presetedClasses = [];
     }
 
     init(cssPreset) {
         // pass
     }
-    
+
+    configure(config) {
+        this.reset();
+        this.preset = config.preset;
+        this.proxyContexts = config.proxyContexts;
+        this.prepare();
+    }
+
     usePreset(preset) {
         this.preset = preset;
-        this.useContexts(preset.proxyContexts);
     }
 
     useContext(context) {
@@ -28,6 +37,13 @@ class CssContext {
     useContexts(contexts) {
         for (let i in contexts)
             this.useContext(contexts[i]);
+    }
+
+    prepare() {
+        this.proxyContexts.forEach(context=>{
+            context.reset();
+            context.init(this.preset);
+        });
     }
 
     get cssPreset() {
@@ -215,6 +231,11 @@ class CssClass {
             text += pseudoclassName + '{' + __getContentString(pseudoclass) + '}';
         }
 
+        if (this.isPreseted()) {
+            let className = this.basicName.substr(1);
+            if (!this.context.presetedClasses.includes(className))
+                this.context.presetedClasses.push(className);
+        }
         return text;
     }
 }

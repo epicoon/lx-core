@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class NodeJsExecutor implements FlightRecorderHolderInterface
 {
     use FlightRecorderHolderTrait;
@@ -9,6 +11,7 @@ class NodeJsExecutor implements FlightRecorderHolderInterface
     private ?JsCompiler $compiler;
     private ?I18nMap $i18nMap = null;
     private ?string $code = null;
+    private bool $withApp = false;
     private string $prevCode = '';
     private string $postCode = '';
     private ?string $filePath = null;
@@ -60,6 +63,12 @@ class NodeJsExecutor implements FlightRecorderHolderInterface
     public function setCode(string $code): NodeJsExecutor
     {
         $this->code = $code;
+        return $this;
+    }
+
+    public function configureApplication(): NodeJsExecutor
+    {
+        $this->withApp = true;
         return $this;
     }
 
@@ -133,7 +142,12 @@ class NodeJsExecutor implements FlightRecorderHolderInterface
     public function getFullCode(): string
     {
         $code = $this->getCode() ?? '';
-        return $this->prevCode . $code . $this->postCode;
+        $app = '';
+        if ($this->withApp) {
+            $appData = CodeConverterHelper::arrayToJsCode(lx::$app->getBuildData());
+            $app = "lx.app.start($appData);";
+        }
+        return $app . $this->prevCode . $code . $this->postCode;
     }
 
     /**

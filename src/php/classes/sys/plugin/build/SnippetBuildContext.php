@@ -172,17 +172,12 @@ class SnippetBuildContext implements ContextTreeInterface
 
 	private function runSnippetCode(): void
 	{
-		$app = lx::$app;
 		$plugin = $this->getPlugin();
 		$snippet = $this->snippet;
 
-		$appData = CodeConverterHelper::arrayToJsCode($app->getBuildData());
 		$pluginData = CodeConverterHelper::arrayToJsCode($plugin->getBuildData());
 		$snippetData = CodeConverterHelper::arrayToJsCode($snippet->getBuildData());
-
-        $modules = $plugin->getModuleDependencies();
 		$pre = "
-		    lx.app.start($appData);
 			lx.globalContext.App = lx.app;
 			lx.globalContext.Plugin = new lx.Plugin($pluginData);
 			lx.globalContext.Snippet = new lx.Snippet($snippetData);
@@ -202,9 +197,10 @@ class SnippetBuildContext implements ContextTreeInterface
 		$executor = new NodeJsExecutor($compiler);
 		$res = $executor
             ->setFile($snippet->getFile())
+            ->configureApplication()
             ->setPrevCode($pre)
             ->setPostCode($post)
-            ->setModules($modules)
+            ->setModules($plugin->getModuleDependencies())
             ->run();
 
         if (!$res) {
@@ -214,7 +210,7 @@ class SnippetBuildContext implements ContextTreeInterface
             );
         }
         
-		$app->applyBuildData($res['app']);
+		lx::$app->applyBuildData($res['app']);
 		$snippet->setPluginModifications($res['plugin']);
 		$snippet->applyBuildData($res['snippet']);
 

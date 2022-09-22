@@ -29,10 +29,10 @@ class PluginAssetProvider
             $arr[] = $script->getPath();
         }
 
-        $linksMap = AssetCompiler::getLinksMap($arr);
+        $linksMap = WebAssetHelper::getLinksMap($arr);
         lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
-            $linksMap['origins'],
-            $linksMap['links']
+            'origins' => $linksMap['origins'],
+            'links' => $linksMap['links'],
         ]);
 
         foreach ($linksMap['names'] as $key => $name) {
@@ -49,7 +49,7 @@ class PluginAssetProvider
         }
 
         $plugin = $this->getPlugin();
-        lx::$app->events->trigger(self::EVENT_BEFORE_GET_CSS_ASSETS, $plugin);
+        lx::$app->events->trigger(self::EVENT_BEFORE_GET_CSS_ASSETS, ['plugin' => $plugin]);
 
         $originCss = $plugin->getCssList();
         $list = [];
@@ -65,10 +65,10 @@ class PluginAssetProvider
             }
             $list[] = $path;
         }
-        $linksMap = AssetCompiler::getLinksMap($list);
+        $linksMap = WebAssetHelper::getLinksMap($list);
         lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
-            $linksMap['origins'],
-            $linksMap['links']
+            'origins' => $linksMap['origins'],
+            'links' => $linksMap['links'],
         ]);
 
         return $linksMap['names'];
@@ -77,11 +77,34 @@ class PluginAssetProvider
     public function getImagePaths(): array
     {
         $list = $this->getPlugin()->getImagePathsList();
-        $linksMap = AssetCompiler::getLinksMap($list);
+        $linksMap = WebAssetHelper::getLinksMap($list);
         lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
-            $linksMap['origins'],
-            $linksMap['links']
+            'origins' => $linksMap['origins'],
+            'links' => $linksMap['links'],
         ]);
         return $linksMap['names'];
+    }
+
+    public static function makePluginsAssetLinks(): void
+    {
+        $services = ServiceBrowser::getServicesList();
+        foreach ($services as $service) {
+            $plugins = $service->getStaticPlugins();
+            foreach ($plugins as $plugin) {
+                $origins = $plugin->getScriptsList();
+                $arr = [];
+                foreach ($origins as $value) {
+                    $arr[] = $value['path'];
+                }
+                $linksMap = WebAssetHelper::getLinksMap($arr);
+                WebAssetHelper::createLinks($linksMap['origins'], $linksMap['links']);
+
+                $linksMap = WebAssetHelper::getLinksMap($plugin->getCssList());
+                WebAssetHelper::createLinks($linksMap['origins'], $linksMap['links']);
+
+                $linksMap = WebAssetHelper::getLinksMap($plugin->getImagePathsList());
+                WebAssetHelper::createLinks($linksMap['origins'], $linksMap['links']);
+            }
+        }
     }
 }

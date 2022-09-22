@@ -10,8 +10,5 @@ interface EventListenerInterface
 	public function constructEventListener($eventManager = null): void;
 	public static function getEventHandlersMap(): array;
 	public function subscribe(string $eventName): void;
-    /**
-     * @param mixed $params
-     */
-	public function trigger(string $eventName, $params = null): void;
+	public function trigger(string $eventName, Event $event): void;
 }

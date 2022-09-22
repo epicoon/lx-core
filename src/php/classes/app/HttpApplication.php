@@ -41,7 +41,7 @@ class HttpApplication extends AbstractApplication
 
             $request = $this->request;
             $response = $this->response;
-            $this->events->trigger(self::EVENT_BEFORE_HANDLE_REQUEST, $request);
+            $this->events->trigger(self::EVENT_BEFORE_HANDLE_REQUEST, ['request' => $request]);
             $requestHandler = RequestHandler::create($request, $response);
             $requestHandler->handle();
 
@@ -49,9 +49,9 @@ class HttpApplication extends AbstractApplication
                 header('lx-user-status: guest');
             }
 
-            $this->events->trigger(self::EVENT_BEFORE_SEND_RESPONSE, $response);
+            $this->events->trigger(self::EVENT_BEFORE_SEND_RESPONSE, ['response' => $response]);
             $response->send();
-            $this->events->trigger(self::EVENT_AFTER_SEND_RESPONSE, $response);
+            $this->events->trigger(self::EVENT_AFTER_SEND_RESPONSE, ['response' => $response]);
 
             $this->events->trigger(self::EVENT_AFTER_RUN);
         } catch (\Throwable $exception) {
@@ -92,19 +92,6 @@ class HttpApplication extends AbstractApplication
             }
         }
 	}
-
-    public function getSettings(): array
-    {
-        if (!array_key_exists('cssPreset', $this->settings)) {
-            $this->settings['cssPreset'] = $this->cssManager->getDefaultCssPreset();
-        }
-
-        if (!array_key_exists('assetBuildType', $this->settings)) {
-            $this->settings['assetBuildType'] = $this->cssManager->getBuildType();
-        }
-
-        return $this->settings;
-    }
 
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

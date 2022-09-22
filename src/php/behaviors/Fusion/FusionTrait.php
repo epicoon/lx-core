@@ -41,6 +41,13 @@ trait FusionTrait
 		return null;
 	}
 
+    public function eachFusionComponent(callable $callback): void
+    {
+        foreach ($this->fusionComponentList->getNames() as $name) {
+            $callback($this->getFusionComponent($name), $name);
+        }
+    }
+
     public function getFusionComponentTypes(): array
     {
         return [];
