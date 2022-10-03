@@ -8,8 +8,8 @@ class AppAssetCompiler
 {
     public function compileAppCss(): void
     {
-        $renderer = new MainCssRenderer();
-        $renderer->render();
+        $compiler = new MainCssCompiler();
+        $compiler->compile();
     }
 
     public static function getCommonCss(array $cssList, ?Plugin $context = null): string
@@ -53,18 +53,18 @@ class AppAssetCompiler
         return $commonCssCode;
     }
 
+    public static function getAppPresetedFile(): FileInterface
+    {
+        return new File(lx::$conductor->webLx . '/preseted.json');
+    }
+
     public function compileJsCore(): void
     {
         $path = lx::$conductor->jsClientCore;
         $code = file_get_contents($path);
         $code = (new JsCompiler())->compileCode($code, $path);
 
-        $modules = [];
-        lx::$app->eachFusionComponent(function($component, $name) use (&$modules) {
-            if ($component instanceof JsModuleClientInterface) {
-                $modules = array_merge($modules, $component->getJsModules());
-            }
-        });
+        $modules = lx::$app->jsModules->getCoreModules();
         if (!empty($modules)) {
             $code .= (new JsModuleProvider())->getModulesCode($modules);
         }

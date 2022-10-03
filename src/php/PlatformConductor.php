@@ -57,7 +57,7 @@ class PlatformConductor
 		$this->_lxData = $this->_lxFiles . '/data';
 		$this->_clientConfig = $this->_lxFiles . '/config';
 
-		$this->_devLog = $this->_system . '/dev_log';
+		$this->_devLog = $this->_system . '/_dev_log';
 
 		$this->_defaultServiceConfig = $this->_clientConfig . '/service.php';
 		$this->_defaultPluginConfig = $this->_clientConfig . '/plugin.php';

@@ -40,6 +40,39 @@ class CssManager extends lx.AppComponentSettable {
         return this.presetsList.get(name);
     }
 
+    registerPreseted(preseted) {
+        preseted.forEach(item=>this.settings.preseted.lxPushUnique(item));
+    }
+
+    defineCssClassNames(context, names, plugin = null) {
+        let result = [];
+        names.forEach(name=>{
+            if (name == '') return;
+
+            if (!this.settings.preseted.includes(name)) {
+                result.push(name);
+                return;
+            }
+
+            if (context && context.lxHasMethod('getCssPreset')) {
+                const cssPreset = context.getCssPreset();
+                if (cssPreset) {
+                    result.push(name + '-' + cssPreset.name);
+                    return;
+                }
+            }
+
+            #lx:server { result.push(name + '-#lx:preset:lx#'); }
+            #lx:client {
+                if (plugin === null && context && context.lxHasMethod('getPlugin'))
+                    plugin = context.getPlugin();
+                result.push(name + '-' + (plugin ? plugin.cssPreset.name : lx.app.cssManager.getPresetName()));
+            }
+        });
+
+        return result;
+    }
+
     applyData(data) {
         this.addSettings(data);
         for (let name in data.cssPresets) {
@@ -58,7 +91,39 @@ class CssManager extends lx.AppComponentSettable {
         return list;
     }
 
+    #lx:server renderModuleCss(moduleNames) {
+        let result = {},
+            presets = this.presetsList.getAll();
+
+        for (let i in moduleNames) {
+            let module = moduleNames[i],
+                moduleClass = lx.getClassConstructor(module);
+            if (!moduleClass || !moduleClass.initCss || lx.app.functionHelper.isEmptyFunction(moduleClass.initCss))
+                continue;
+
+            result[module] = {};
+            let presetedClasses = [];
+            for (let j in presets) {
+                let preset = presets[j],
+                    context = new lx.CssContext();
+                context.configure({
+                    proxyContexts: this.getProxyContexts(),
+                    preset
+                });
+                moduleClass.initCss(context);
+                result[module][preset.name] = context.toString();
+                if (!presetedClasses.len)
+                    context.presetedClasses.forEach(name=>presetedClasses.push(name));
+            }
+            result[module].presetedClasses = presetedClasses;
+        }
+
+        return result;
+    }
+
     #lx:client renderModuleCss(config) {
+        if (this.isBuilded()) return;
+
         let modules = config.modules || lx.app.dependencies.getCurrentModules(),
             presets = config.presets || this.presetsList.getAll();
 

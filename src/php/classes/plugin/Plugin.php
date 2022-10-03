@@ -273,7 +273,8 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
     }
 
 	/**
-	 * This method is used by ResourceContext for return Plugin as resource
+	 * This method is used by ResourceContext for return Plugin as HttpResponseInterface
+     * @see ResourceContext::invokePlugin()
 	 */
 	public function render(array $params = [], ?UserInterface $user = null): HttpResponseInterface
 	{

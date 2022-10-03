@@ -30,6 +30,11 @@ class JsModuleInfo
     {
         return $this->path;
     }
+
+    public function getSrcFile(): File
+    {
+        return new File($this->getPath());
+    }
     
     public function getService(): ?Service
     {

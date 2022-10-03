@@ -43,8 +43,15 @@ class WebAssetHelper
     {
         $sitePath = lx::$conductor->sitePath;
         foreach ($linkPathes as $key => $linkPath) {
+            if ($linkPath[0] != '/') {
+                $linkPath = '/' . $linkPath;
+            }
+            $originPath = $originalPathes[$key];
+            if ($originPath[0] != '/') {
+                $originPath = '/' . $originPath;
+            }
             $fullLinkPath = $sitePath . $linkPath;
-            $fullOriginPath = $sitePath . $originalPathes[$key];
+            $fullOriginPath = $sitePath . $originPath;
             if ($fullOriginPath == $fullLinkPath || !file_exists($fullOriginPath)) {
                 continue;
             }

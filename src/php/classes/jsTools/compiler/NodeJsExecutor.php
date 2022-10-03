@@ -252,7 +252,7 @@ class NodeJsExecutor implements FlightRecorderHolderInterface
 		$code = $file->get();
 		$file->remove();
 
-		$dir = new Directory(\lx::$conductor->getSystemPath('node_js_fails'));
+		$dir = new Directory(\lx::$conductor->getSystemPath('_node_js_fails'));
 		$dir->make();
 		$date = new \DateTime();
 		$date = $date->format('Y-m-d');

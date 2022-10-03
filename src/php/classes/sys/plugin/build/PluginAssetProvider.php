@@ -30,10 +30,12 @@ class PluginAssetProvider
         }
 
         $linksMap = WebAssetHelper::getLinksMap($arr);
-        lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
-            'origins' => $linksMap['origins'],
-            'links' => $linksMap['links'],
-        ]);
+        if (!empty($linksMap['origins'])) {
+            lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
+                'origins' => $linksMap['origins'],
+                'links' => $linksMap['links'],
+            ]);
+        }
 
         foreach ($linksMap['names'] as $key => $name) {
             $list[$key]->setPath($name);
@@ -66,10 +68,12 @@ class PluginAssetProvider
             $list[] = $path;
         }
         $linksMap = WebAssetHelper::getLinksMap($list);
-        lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
-            'origins' => $linksMap['origins'],
-            'links' => $linksMap['links'],
-        ]);
+        if (!empty($linksMap['origins'])) {
+            lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
+                'origins' => $linksMap['origins'],
+                'links' => $linksMap['links'],
+            ]);
+        }
 
         return $linksMap['names'];
     }
@@ -78,10 +82,12 @@ class PluginAssetProvider
     {
         $list = $this->getPlugin()->getImagePathsList();
         $linksMap = WebAssetHelper::getLinksMap($list);
-        lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
-            'origins' => $linksMap['origins'],
-            'links' => $linksMap['links'],
-        ]);
+        if (!empty($linksMap['origins'])) {
+            lx::$app->events->trigger(self::EVENT_BEFORE_GET_AUTO_LINKS, [
+                'origins' => $linksMap['origins'],
+                'links' => $linksMap['links'],
+            ]);
+        }
         return $linksMap['names'];
     }
 

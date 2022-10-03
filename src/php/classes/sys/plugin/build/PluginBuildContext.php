@@ -137,6 +137,7 @@ class PluginBuildContext implements ContextTreeInterface
         $this->compileMainJs();
 
         $dependencies = $this->jsCompiler->getDependencies() ?? new JsCompileDependencies();
+
         $cssPresetModule = lx::$app->cssManager->getCssPresetModule($plugin->getCssPreset());
         if ($cssPresetModule) {
             $dependencies->addModule($cssPresetModule);
@@ -153,7 +154,7 @@ class PluginBuildContext implements ContextTreeInterface
         $this->applyCssPreset();
 
         $this->compiled = true;
-        $this->getPlugin()->afterCompile();
+        $plugin->afterCompile();
     }
 
     private function noteModuleDependencies(array $moduleNames): void
@@ -181,19 +182,38 @@ class PluginBuildContext implements ContextTreeInterface
         $assetProvider = new PluginAssetProvider($this->getPlugin());
 		$this->scripts = $assetProvider->getPluginScripts();
 		$this->css = $assetProvider->getPluginCss();
+
 		$dependencies = [];
+        if (!empty($this->moduleDependencies)) {
+            $dependencies['m'] = $this->moduleDependencies;
+            $this->css = array_merge(
+                $this->css,
+                lx::$app->jsModules->getModulesCss($this->moduleDependencies)
+            );
+        }
+
+        $preseted = [];
+        $cssDir = new Directory($this->getPlugin()->conductor->getLocalSystemPath('css'));
+        $presetedFile = $cssDir->get('preseted.json');
+        if ($presetedFile) {
+            $preseted = json_decode($presetedFile->get(), true);
+        }
+        $preseted = array_merge($preseted, lx::$app->jsModules->getPresetedCssClasses($this->moduleDependencies));
+        if (!empty($preseted)) {
+            $info['preseted'] = $preseted;
+        }
+
+        if (!empty($this->css)) {
+            $dependencies['c'] = $this->css;
+        }
+
 		if (!empty($this->scripts)) {
 			$dependencies['s'] = [];
 			foreach ($this->scripts as $script) {
 				$dependencies['s'][] = $script->getPath();
 			}
 		}
-		if (!empty($this->css)) {
-			$dependencies['c'] = $this->css;
-		}
-		if (!empty($this->moduleDependencies)) {
-			$dependencies['m'] = $this->moduleDependencies;
-		}
+
 		if (!ArrayHelper::isDeepEmpty($dependencies)) {
 			$info['dep'] = $dependencies;
 		}

@@ -2,6 +2,8 @@
 
 namespace lx;
 
+use lx;
+
 class CssManager implements
     CssManagerInterface,
     FusionComponentInterface,
@@ -34,11 +36,18 @@ class CssManager implements
 
     public function getCLientData(): array
     {
+        $presetedFile = AppAssetCompiler::getAppPresetedFile();
+        $presetedList = json_decode($presetedFile->get(), true);
+
+        $modules = lx::$app->jsModules->getCoreModules();
+        $presetedList = array_merge($presetedList, lx::$app->jsModules->getPresetedCssClasses($modules));
+
         return [
             'assetBuildType' => $this->getBuildType(),
             'cssPreset' => $this->getDefaultCssPresetName(),
             'cssPresets' => $this->getCssPresets(),
             'cssContexts' => $this->cssContexts,
+            'preseted' => $presetedList,
         ];
     }
 

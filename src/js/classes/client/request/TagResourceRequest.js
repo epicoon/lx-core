@@ -65,7 +65,6 @@ class TagResourceRequest extends lx.Request {
 
 		return this;
 	}
-
 }
 
 function __onLoad() {

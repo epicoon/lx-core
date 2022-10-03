@@ -31,7 +31,7 @@ class TagRenderer {
         }
 
         if (this.classList.len) {
-            let classList = lx.defineCssClassNames(this, this.classList);
+            let classList = lx.app.cssManager.defineCssClassNames(this, this.classList);
             result += ' class="' + classList.join(' ') + '"';
         }
 

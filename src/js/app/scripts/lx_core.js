@@ -25,43 +25,6 @@ Object.defineProperty(lx, "EOL", {
     get: function() { return String.fromCharCode(13) + String.fromCharCode(10); }
 });
 
-/**
- * TODO захардкожено определение внепресетовых классов. Нужно придумать нормальную систему
- */
-lx.isCssClassAbsolute = function (className) {
-    return [
-        'lx-abspos',
-        'lxps-grid-v',
-        'lxps-grid-h'
-    ].includes(className);
-};
-lx.defineCssClassNames = function(context, names, plugin = null) {
-    let result = [];
-    names.forEach(name=>{
-        if (name == '') return;
-
-        result.push(name);
-        if (lx.isCssClassAbsolute(name)) return;
-
-        if (context && context.lxHasMethod('getCssPreset')) {
-            const cssPreset = context.getCssPreset();
-            if (cssPreset) {
-                result.push(name + '-' + cssPreset.name);
-                return;
-            }
-        }
-
-        #lx:server { result.push(name + '-#lx:preset:lx#'); }
-        #lx:client {
-            if (plugin === null && context && context.lxHasMethod('getPlugin'))
-                plugin = context.getPlugin();
-            result.push(name + '-' + (plugin ? plugin.cssPreset.name : lx.app.cssManager.getPresetName()));
-        }
-    });
-
-    return result;
-};
-
 lx.getFirstDefined = function (...args) {
     for (var i = 0, l = args.len; i < l; i++)
         if (args[i] !== undefined) return args[i];

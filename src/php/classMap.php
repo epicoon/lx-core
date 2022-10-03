@@ -8,7 +8,8 @@ return [
     'CssManager' => 'classes/appComponents/asset',
     'WebAssetHelper' => 'classes/appComponents/asset',
     'AppAssetCompiler' => 'classes/appComponents/asset',
-    'MainCssRenderer' => 'classes/appComponents/asset',
+    'MainCssCompiler' => 'classes/appComponents/asset',
+    'ModuleCssCompiler' => 'classes/appComponents/asset',
 
     'ApplicationComponents' => 'classes/appComponents',
     'ApplicationLogger' => 'classes/appComponents',

@@ -17,6 +17,26 @@ class JsCompileDependencies
 		$this->i18n = isset($data['i18n']) ? array_values($data['i18n']) : [];
 	}
 
+    public function getPlugins(): array
+    {
+        return $this->plugins;
+    }
+
+    public function getModules(): array
+    {
+        return $this->modules;
+    }
+
+    public function getScripts(): array
+    {
+        return $this->scripts;
+    }
+
+    public function getI18n(): array
+    {
+        return $this->i18n;
+    }
+
 	public function addPlugin(array $data): void
 	{
 		$this->plugins[] = $data;

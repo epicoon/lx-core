@@ -157,7 +157,7 @@ class ResourceContext implements ResourceContextInterface
 	private function invokePlugin(): void
 	{
 		$plugin = $this->getPlugin();
-		$methodName = Plugin::DEFAULT_RESOURCE_METHOD;
+		$methodName = Resource::DEFAULT_RESOURCE_METHOD;
 		if (!method_exists($plugin, $methodName)) {
             $this->setNotFoundResponse();
             return;

@@ -32,6 +32,13 @@ class Loader extends lx.AppComponent {
 					console.error(res.data);
 					return;
 				}
+
+				lx.app.cssManager.registerPreseted(res.data.preseted);
+				for (let i in res.data.css) {
+					var tagRequest = new lx.TagResourceRequest(res.data.css[i], {name: 'module_asset'});
+					tagRequest.send();
+				}
+
 				lx.app.functionHelper.createAndCallFunction('', res.data.code);
 				if (immediately) lx.app.dependencies.depend({modules: need});
 				if (callback) callback();

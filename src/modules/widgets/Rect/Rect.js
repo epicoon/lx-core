@@ -519,7 +519,7 @@ class Rect extends lx.Module {
     addClass(...args) {
         if (lx.isArray(args[0])) args = args[0];
 
-        args = lx.defineCssClassNames(this, args);
+        args = lx.app.cssManager.defineCssClassNames(this, args);
         args.forEach(name=>{
             if (name == '') return;
             this.domElem.addClass(name);
@@ -535,7 +535,7 @@ class Rect extends lx.Module {
     removeClass(...args) {
         if (lx.isArray(args[0])) args = args[0];
 
-        args = lx.defineCssClassNames(this, args);
+        args = lx.app.cssManager.defineCssClassNames(this, args);
         args.forEach(name=>{
             if (name == '') return;
             this.domElem.removeClass(name);
@@ -2018,30 +2018,6 @@ function __setGeomPriorityV(self, val, val2) {
 
     self.geom.bpv[1] = val;
     return self;
-}
-
-function __defineCssClassNames(self, names) {
-    let result = [];
-    names.forEach(name=>{
-        if (name == '') return;
-
-        result.push(name);
-        if (lx.isCssClassAbsolute(name)) return;
-
-        const cssPreset = self.getCssPreset();
-        if (cssPreset) {
-            result.push(name + '-' + cssPreset.name);
-            return;
-        }
-
-        #lx:server { result.push(name + '-#lx:preset:lx#'); }
-        #lx:client {
-            let plugin = self.getPlugin();
-            result.push(name + '-' + (plugin ? plugin.cssPreset.name : lx.app.cssManager.getPresetName()));
-        }
-    });
-
-    return result;
 }
 
 function __checkDisplay(event) {

@@ -8,6 +8,7 @@
 #lx:namespace lx;
 class Plugin {
     constructor(config = {}) {
+        if (config.preseted) lx.app.cssManager.registerPreseted(config.preseted);
         __construct(this, config);
     }
 

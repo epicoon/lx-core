@@ -43,40 +43,48 @@ class HtmlHead
 	 * PRIVATE
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+    private function getIcon(): string
+    {
+        return '<link rel="shortcut icon" href="'
+            . ($this->icon ? $this->icon : ($this->getWebLxPath() . '/icon.png'))
+            . '" type="image/png">';
+    }
+
 	private function getLxCss(): string
 	{
         $mainCss = lx::$app->cssManager->isBuildType(CssManager::BUILD_TYPE_SEGREGATED)
             ? 'main-' . lx::$app->cssManager->getDefaultCssPresetName() . '.css'
             : 'main.css';
-		return '<link href="' . ($this->getWebLxPath() . '/' . $mainCss)
+        $commonCss = '<link href="' . ($this->getWebLxPath() . '/' . $mainCss)
 			. '" name="base_css" type="text/css" rel="stylesheet">';
+
+        $modules = lx::$app->jsModules->getCoreModules();
+        $cssList = lx::$app->jsModules->getModulesCss($modules);
+        foreach ($cssList as $css) {
+            $commonCss .= '<link href="' . $css . '" name="base_css" type="text/css" rel="stylesheet">';
+        }
+
+        return $commonCss;
 	}
+
+    private function getCss(): string
+    {
+        $result = '';
+        if (!$this->css) {
+            return $result;
+        }
+
+        foreach ($this->css as $css) {
+            $result .= "<link href=\"$css\" name=\"plugin_asset\" type=\"text/css\" rel=\"stylesheet\">";
+        }
+
+        return $result;
+    }
 
 	private function getLxJs(): string
 	{
 		$path = $this->getWebLxPath() . '/core.js';
 		return '<script src="' . $path . '"></script>';
-	}
-
-	private function getIcon(): string
-	{
-		return '<link rel="shortcut icon" href="'
-			. ($this->icon ? $this->icon : ($this->getWebLxPath() . '/icon.png'))
-			. '" type="image/png">';
-	}
-
-	private function getCss(): string
-	{
-		$result = '';
-		if (!$this->css) {
-			return $result;
-		}
-
-		foreach ($this->css as $css) {
-			$result .= "<link href=\"$css\" name=\"plugin_asset\" type=\"text/css\" rel=\"stylesheet\">";
-		}
-
-		return $result;
 	}
 
 	private function getScripts(): string

@@ -20,6 +20,8 @@ class JsModuleProvider extends Resource
                 'data' => [
                     'code' => $modulesCode,
                     'compiledModules' => $modules,
+                    'css' => lx::$app->jsModules->getModulesCss($modules),
+                    'preseted' => lx::$app->jsModules->getPresetedCssClasses($modules),
                 ],
             ]
         ]);

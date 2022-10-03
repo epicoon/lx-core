@@ -19,6 +19,8 @@ class DevApplicationLifeCycleHandler
             PluginAssetProvider::EVENT_BEFORE_GET_AUTO_LINKS => 'beforeGetAutoLinkPathes',
             PluginAssetProvider::EVENT_BEFORE_GET_CSS_ASSETS => 'beforeGetPluginCssAssets',
             JsModulesComponent::EVENT_BEFORE_COMPILE_MODULE_CODE => 'beforeCompileModuleCode',
+            JsModulesComponent::EVENT_BEFORE_GET_AUTO_LINKS => 'beforeGetAutoLinkPathes',
+            JsModulesComponent::EVENT_BEFORE_GET_CSS_ASSETS => 'beforeGetModuleCssAssets',
         ];
     }
 
@@ -69,20 +71,21 @@ class DevApplicationLifeCycleHandler
     {
         $moduleName = $event->getPayload('moduleName');
 
-        if ($moduleName == 'lx.test.TestModule') {
-            $e = 1;
-        }
-
         if (!lx::$app->jsModules->isModuleExist($moduleName)) {
             $actualizer = new JsModuleMapActualizer();
             $actualizer->renewProjectServices();
             lx::$app->jsModules->reset();
         }
+    }
+    
+    public function beforeGetModuleCssAssets(Event $event): void
+    {
+        if (lx::$app->cssManager->isBuildType(CssManager::BUILD_TYPE_NONE)) {
+            return;
+        }
 
-        
-
-
-
-        
+        $moduleNames = $event->getPayload('moduleNames');
+        $compiler = new ModuleCssCompiler();
+        $compiler->compile($moduleNames);
     }
 }

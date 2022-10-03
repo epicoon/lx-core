@@ -4,15 +4,13 @@ namespace lx;
 
 use lx;
 
-class MainCssRenderer
+class MainCssCompiler
 {
-    public function render(): void
+    public function compile(): void
     {
         if (!$this->requireUpdate()) {
             return;
         }
-
-        $path = lx::$conductor->webLx;
 
         $code = $this->getCode();
         $compiler = new JsCompiler();
@@ -24,9 +22,10 @@ class MainCssRenderer
             ->run();
 
         $presetedClasses = $result['presetedClasses'];
-        $presetedFile = new File($path . '/preseted.json');
+        $presetedFile = AppAssetCompiler::getAppPresetedFile();
         $presetedFile->put(json_encode($presetedClasses));
 
+        $path = lx::$conductor->webLx;
         $map = $result['map'];
         $need = ['__main__' => new File($path . '/main.css')];
         if (lx::$app->cssManager->isBuildType(CssManager::BUILD_TYPE_SEGREGATED)) {
