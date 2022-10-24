@@ -12,7 +12,7 @@ class AppAssetCompiler
         $compiler->compile();
     }
 
-    public static function getCommonCss(array $cssList, ?Plugin $context = null): string
+    public static function getCommonCss(array $cssList, ?string $context = null): string
     {
         $map = [];
         foreach ($cssList as $type => $code) {
@@ -36,7 +36,7 @@ class AppAssetCompiler
                 if (array_key_exists($rule, $common) && $common[$rule] != $values) {
                     \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
                         '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-                        'msg' => 'Css compiling mismatch' . ($context ? " for plugin {$context->name}" : '')
+                        'msg' => 'Css compiling mismatch' . ($context ? " for {$context}" : '')
                             . ': compiled - ' . $common[$rule] . ', alternative - ' . $values,
                     ]);
                     continue;

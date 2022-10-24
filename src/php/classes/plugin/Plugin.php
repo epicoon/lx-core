@@ -392,6 +392,15 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 	 * METHODS FOR BUILDER
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+    public function getPresetedCssClasses(): array
+    {
+        $cssDir = new Directory($this->conductor->getLocalSystemPath('css'));
+        $presetedFile = $cssDir->get('preseted.json');
+        return $presetedFile
+            ? json_decode($presetedFile->get(), true)
+            : [];
+    }
+
 	public function getBuildData(): array
 	{
 		$result = [
@@ -413,6 +422,11 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 		if (!empty($widgetBasicCssList)) {
 			$result['widgetBasicCss'] = $widgetBasicCssList;
 		}
+
+        $preseted = $this->getPresetedCssClasses();
+        if (!empty($preseted)) {
+            $result['preseted'] = $preseted;
+        }
 
 		return $result;
 	}

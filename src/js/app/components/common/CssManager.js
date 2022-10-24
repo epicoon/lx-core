@@ -16,10 +16,6 @@ class PresetsList {
 
 #lx:namespace lx;
 class CssManager extends lx.AppComponentSettable {
-    isReady() {
-        return !__list.lxEmpty();
-    }
-
     init() {
         this.presetsList = new PresetsList();
     }

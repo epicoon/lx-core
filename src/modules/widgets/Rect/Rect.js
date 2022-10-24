@@ -1491,7 +1491,7 @@ class Rect extends lx.Module {
     }
 
     move(config={}) {
-        this.off('mousedown', lx.app.dragAndDrop.move);
+        #lx:client { this.off('mousedown', lx.app.dragAndDrop.move); }
         this.moveParams = {};
 
         if (config === false) {

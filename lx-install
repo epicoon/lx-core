@@ -34,9 +34,13 @@ function defineConfig(lx\Directory $site): array
     return $site->contains('lx/config/__map__.php')
         ? []
         : [
-            'servicesMap' => [
-                'vendor',
-                'services',
+            'serviceCategories' => [
+                'project' => [
+                    'services',
+                ],
+                'dependencies' => [
+                    'vendor',
+                ],
             ],
         ];
 }
@@ -135,11 +139,13 @@ function refreshMaps(): void
 {
     (new lx\AutoloadMapBuilder())->createCommonAutoloadMap();
     lx::$autoloader->map->reset();
-    (new lx\JsModuleMapActualizer())->renewHead();
+    (new lx\JsModulesActualizer())->renewHead();
+    //TODO module css
 
     $compiler = new lx\AppAssetCompiler();
     $compiler->compileJsCore();
     $compiler->compileAppCss();
+    //TODO plugin css
 
     lx\PluginAssetProvider::makePluginsAssetLinks();
 }

@@ -1,7 +1,7 @@
 (()=>{
     let __onReady = [];
     const lx = {
-        onReady: callback => __onReady.push(callback),
+        onReady: callback => {(lx && lx.app && lx.app.isReady()) ? callback() : __onReady.push(callback);},
         dropReady: ()=> __onReady=[]
     };
     Object.defineProperty(lx, 'globalContext', {

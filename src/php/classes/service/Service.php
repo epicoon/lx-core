@@ -199,6 +199,11 @@ class Service implements ObjectInterface, FusionInterface
         return $category;
     }
 
+    public function isProjectCategory(): bool
+    {
+        return in_array($this->getCategory(), lx::$app->serviceProvider->getProjectCategories());
+    }
+    
 	public function getFilePath(string $name): string
 	{
 		return $this->conductor->getFullPath($name);

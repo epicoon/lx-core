@@ -26,14 +26,14 @@ class ModuleCssCompiler
         /** @var File $cssFile */
         foreach ($deprecatedCssFiles as $moduleName => $cssFile) {
             $cssList = $result[$moduleName];
+
             $presetedClasses = $cssList['presetedClasses'];
             unset($cssList['presetedClasses']);
-
             $dir = $cssFile->getParentDir();
             $presetedFile = new File($dir->getPath() . '/preseted.json');
             $presetedFile->put(json_encode($presetedClasses));
 
-            $cssFile->put(AppAssetCompiler::getCommonCss($cssList));
+            $cssFile->put(AppAssetCompiler::getCommonCss($cssList, $moduleName));
             foreach ($cssList as $presetName => $css) {
                 $cssPresetedFile = new File($dir->getPath() . "/asset-{$presetName}.css");
                 $cssPresetedFile->put($css);
@@ -64,7 +64,7 @@ class ModuleCssCompiler
 
     private function getDeprecatedModuleNames(array $modulesInfo): array
     {
-        $sysDir = new Directory(lx::$conductor->getSystemPath('modules'));
+        $sysDir = lx::$app->jsModules->conductor->getCommonSystemDirectory();
         if (!$sysDir->exists()) {
             $sysDir->make();
         }
@@ -74,6 +74,7 @@ class ModuleCssCompiler
         foreach ($modulesInfo as $name => $info) {
             $srcFile = $info->getSrcFile();
             $code = $srcFile->get();
+            //TODO можно оптимизировать - чтобы не читать здесь код, записывать информацию о наличии метода и дату актуализации в инфо
             if (!preg_match('/static\s+initCss\s*\([^)]+?\)\s*\{/', $code)) {
                 continue;
             }

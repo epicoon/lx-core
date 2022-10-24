@@ -1,0 +1,220 @@
+{
+    "lx.Color": {
+        "name": "lx.Color",
+        "path": "src\/modules\/Color.js"
+    },
+    "lx.Date": {
+        "name": "lx.Date",
+        "path": "src\/modules\/Date.js"
+    },
+    "lx.TableManager": {
+        "name": "lx.TableManager",
+        "path": "src\/modules\/TableManager.js"
+    },
+    "lx.BitMap": {
+        "name": "lx.BitMap",
+        "path": "src\/modules\/bitMap\/BitMap.js"
+    },
+    "lx.CodeEditor": {
+        "name": "lx.CodeEditor",
+        "path": "src\/modules\/codeEditor\/CodeEditor.js"
+    },
+    "lx.BasicProxyCssContext": {
+        "name": "lx.BasicProxyCssContext",
+        "path": "src\/modules\/cssPresets\/BasicProxyCssContext.js"
+    },
+    "lx.CssPresetDark": {
+        "name": "lx.CssPresetDark",
+        "path": "src\/modules\/cssPresets\/CssPresetDark.js"
+    },
+    "lx.CssPresetWhite": {
+        "name": "lx.CssPresetWhite",
+        "path": "src\/modules\/cssPresets\/CssPresetWhite.js"
+    },
+    "lx.SourceCssContext": {
+        "name": "lx.SourceCssContext",
+        "path": "src\/modules\/cssPresets\/SourceCssContext.js"
+    },
+    "lx.MdHighlighter": {
+        "name": "lx.MdHighlighter",
+        "path": "src\/modules\/mdHighlighter\/MdHighlighter.js"
+    },
+    "lx.AlignPositioningStrategy": {
+        "name": "lx.AlignPositioningStrategy",
+        "path": "src\/modules\/positioningStrategies\/AlignPositioningStrategy.js"
+    },
+    "lx.GridPositioningStrategy": {
+        "name": "lx.GridPositioningStrategy",
+        "path": "src\/modules\/positioningStrategies\/GridPositioningStrategy.js"
+    },
+    "lx.IndentData": {
+        "name": "lx.IndentData",
+        "path": "src\/modules\/positioningStrategies\/IndentData.js"
+    },
+    "lx.MapPositioningStrategy": {
+        "name": "lx.MapPositioningStrategy",
+        "path": "src\/modules\/positioningStrategies\/MapPositioningStrategy.js"
+    },
+    "lx.PositioningStrategy": {
+        "name": "lx.PositioningStrategy",
+        "path": "src\/modules\/positioningStrategies\/PositioningStrategy.js"
+    },
+    "lx.SlotPositioningStrategy": {
+        "name": "lx.SlotPositioningStrategy",
+        "path": "src\/modules\/positioningStrategies\/SlotPositioningStrategy.js"
+    },
+    "lx.StreamPositioningStrategy": {
+        "name": "lx.StreamPositioningStrategy",
+        "path": "src\/modules\/positioningStrategies\/StreamPositioningStrategy.js"
+    },
+    "lx.WebCli": {
+        "name": "lx.WebCli",
+        "path": "src\/modules\/webCli\/WebCli.js",
+        "data": {
+            "backend": "lx\\WebCli"
+        }
+    },
+    "lx.ActiveBox": {
+        "name": "lx.ActiveBox",
+        "path": "src\/modules\/widgets\/ActiveBox.js"
+    },
+    "lx.Box": {
+        "name": "lx.Box",
+        "path": "src\/modules\/widgets\/Box\/Box.js"
+    },
+    "lx.BoxSlider": {
+        "name": "lx.BoxSlider",
+        "path": "src\/modules\/widgets\/BoxSlider.js"
+    },
+    "lx.Button": {
+        "name": "lx.Button",
+        "path": "src\/modules\/widgets\/Button.js"
+    },
+    "lx.Calendar": {
+        "name": "lx.Calendar",
+        "path": "src\/modules\/widgets\/Calendar\/Calendar.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
+    },
+    "lx.Checkbox": {
+        "name": "lx.Checkbox",
+        "path": "src\/modules\/widgets\/Checkbox.js"
+    },
+    "lx.CheckboxGroup": {
+        "name": "lx.CheckboxGroup",
+        "path": "src\/modules\/widgets\/CheckboxGroup.js"
+    },
+    "lx.ColorPicker": {
+        "name": "lx.ColorPicker",
+        "path": "src\/modules\/widgets\/ColorPicker\/ColorPicker.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
+    },
+    "lx.ConfirmPopup": {
+        "name": "lx.ConfirmPopup",
+        "path": "src\/modules\/widgets\/ConfirmPopup\/ConfirmPopup.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
+    },
+    "lx.Dropbox": {
+        "name": "lx.Dropbox",
+        "path": "src\/modules\/widgets\/Dropbox.js"
+    },
+    "lx.EggMenu": {
+        "name": "lx.EggMenu",
+        "path": "src\/modules\/widgets\/EggMenu.js"
+    },
+    "lx.Form": {
+        "name": "lx.Form",
+        "path": "src\/modules\/widgets\/Form.js"
+    },
+    "lx.Html": {
+        "name": "lx.Html",
+        "path": "src\/modules\/widgets\/Html.js"
+    },
+    "lx.Image": {
+        "name": "lx.Image",
+        "path": "src\/modules\/widgets\/Image.js"
+    },
+    "lx.ImageSlider": {
+        "name": "lx.ImageSlider",
+        "path": "src\/modules\/widgets\/ImageSlider.js"
+    },
+    "lx.Input": {
+        "name": "lx.Input",
+        "path": "src\/modules\/widgets\/Input.js"
+    },
+    "lx.InputPopup": {
+        "name": "lx.InputPopup",
+        "path": "src\/modules\/widgets\/InputPopup\/InputPopup.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
+    },
+    "lx.JointMover": {
+        "name": "lx.JointMover",
+        "path": "src\/modules\/widgets\/JointMover.js"
+    },
+    "lx.LabeledGroup": {
+        "name": "lx.LabeledGroup",
+        "path": "src\/modules\/widgets\/LabeledGroup.js"
+    },
+    "lx.LanguageSwitcher": {
+        "name": "lx.LanguageSwitcher",
+        "path": "src\/modules\/widgets\/LanguageSwitcher.js"
+    },
+    "lx.ModelCollectionGrid": {
+        "name": "lx.ModelCollectionGrid",
+        "path": "src\/modules\/widgets\/ModelCollectionGrid.js"
+    },
+    "lx.MultiBox": {
+        "name": "lx.MultiBox",
+        "path": "src\/modules\/widgets\/MultiBox.js"
+    },
+    "lx.Paginator": {
+        "name": "lx.Paginator",
+        "path": "src\/modules\/widgets\/Paginator\/Paginator.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
+    },
+    "lx.Radio": {
+        "name": "lx.Radio",
+        "path": "src\/modules\/widgets\/Radio.js"
+    },
+    "lx.RadioGroup": {
+        "name": "lx.RadioGroup",
+        "path": "src\/modules\/widgets\/RadioGroup.js"
+    },
+    "lx.Rect": {
+        "name": "lx.Rect",
+        "path": "src\/modules\/widgets\/Rect\/Rect.js"
+    },
+    "lx.Scroll": {
+        "name": "lx.Scroll",
+        "path": "src\/modules\/widgets\/Scroll.js"
+    },
+    "lx.Slider": {
+        "name": "lx.Slider",
+        "path": "src\/modules\/widgets\/Slider.js"
+    },
+    "lx.Table": {
+        "name": "lx.Table",
+        "path": "src\/modules\/widgets\/Table.js"
+    },
+    "lx.TextBox": {
+        "name": "lx.TextBox",
+        "path": "src\/modules\/widgets\/TextBox.js"
+    },
+    "lx.Textarea": {
+        "name": "lx.Textarea",
+        "path": "src\/modules\/widgets\/Textarea.js"
+    },
+    "lx.TreeBox": {
+        "name": "lx.TreeBox",
+        "path": "src\/modules\/widgets\/TreeBox.js"
+    }
+}

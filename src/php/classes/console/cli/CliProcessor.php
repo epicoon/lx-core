@@ -141,7 +141,7 @@ class CliProcessor
                 'description' => 'Reset js-modules autoload map',
                 'arguments' => [
                     $this->initArgument(['mode', 'm'])
-                        ->setEnum(['core', 'head', 'all'])
+                        ->setEnum(['head', 'all'])
                         ->setDescription('Reset mode: "head" (reset common map) or "all" (reset services map)'),
                     $this->initArgument(['service', 's'])
                         ->setType(CommandArgument::TYPE_STRING)
@@ -357,6 +357,11 @@ class CliProcessor
         return array_key_exists($name, $this->params);
     }
 
+    public function dropParam(string $name): void
+    {
+        unset($this->params[$name]);
+    }
+
 	public function getResult(): array
 	{
 		$result = [
@@ -404,6 +409,9 @@ class CliProcessor
 
 	public function in(string $needParam, string $text, array $decor = [], $password = false): void
 	{
+        if ($this->hasParam($needParam)) {
+            return;
+        }
 		$this->needParam = $needParam;
 		$this->consoleMap[] = ['in', $text, $decor, $password];
 	}
@@ -661,19 +669,14 @@ class CliProcessor
 	private function resetJsAutoloadMap(): void
 	{
 	    switch ($this->args->get('mode')) {
-            case 'core':
-                $this->outln('Creating core map...');
-                (new JsModuleMapActualizer())->renewCore();
-                $this->outln('Done');
-                return;
             case 'head':
                 $this->outln('Updating modules list...');
-                (new JsModuleMapActualizer())->renewHead();
+                (new JsModulesActualizer())->renewHead();
                 $this->outln('Done');
                 return;
             case 'all':
                 $this->outln('Updating modules list...');
-                (new JsModuleMapActualizer())->renewAllServices();
+                (new JsModulesActualizer())->renewProjectServices();
                 $this->outln('Done');
                 return;
         }
@@ -698,7 +701,7 @@ class CliProcessor
         }
 
 		$this->outln('Creating map for service "' . $service->name . '"...');
-		(new JsModuleMapActualizer())->renewService($service);
+		(new JsModulesActualizer())->renewService($service);
 		$this->outln('Done');
 	}
 
@@ -794,13 +797,13 @@ class CliProcessor
 
 	private function createService(): void
 	{
-		$dirs = lx::$app->getConfig('servicesMap');
+		$dirs = lx::$app->serviceProvider->getCategories();
 		if ($dirs) {
 			$dirs = (array)$dirs;
 		}
 
 		if (!is_array($dirs) || empty($dirs)) {
-			$this->outln("Application configuration 'servicesMap' not found");
+			$this->outln("Is application configuration 'serviceCategories' empty?");
 			$this->done();
 			return;
 		}
@@ -815,6 +818,7 @@ class CliProcessor
 		}
 		$name = $this->getParam('name');
 		if (!preg_match('/^[a-zA-Z0-9][a-zA-Z0-9-]*?(?:\/[a-zA-Z-])?[a-zA-Z0-9-]*$/', $name)) {
+            $this->dropParam('name');
 			$this->in(
 				'name',
 				'Entered service name is incorrect, enter correct name: ',
@@ -871,6 +875,7 @@ class CliProcessor
 		}
 		$name = $this->getParam('name');
 		if (!preg_match('/^[a-zA-Z_][\w-]*$/', $name)) {
+            $this->dropParam('name');
 			$this->in(
 				'name',
 				'Entered plugin name is incorrect, enter correct name: ',
@@ -1093,7 +1098,9 @@ class CliProcessor
         }
 
 	    $executor = $command->getExecutor();
-        if (is_string($executor)) {
+        if (is_callable($executor)) {
+            $executor($this);
+        } elseif (is_string($executor)) {
             if (method_exists($this, $executor)) {
                 $this->{$executor}();
             } elseif (ClassHelper::implements($executor, ServiceCliExecutorInterface::class)) {
@@ -1114,7 +1121,7 @@ class CliProcessor
                 $object->{$method}();
             }
         } elseif ($executor instanceof CommandExecutorInterface) {
-            $executor->run();
+            $executor->exec();
         }
 	}
 

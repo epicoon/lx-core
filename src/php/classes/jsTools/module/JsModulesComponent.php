@@ -4,6 +4,9 @@ namespace lx;
 
 use lx;
 
+/**
+ * @property-read JsModulesConductor $conductor
+ */
 class JsModulesComponent implements FusionComponentInterface
 {
     use FusionComponentTrait;
@@ -12,8 +15,28 @@ class JsModulesComponent implements FusionComponentInterface
     const EVENT_BEFORE_GET_AUTO_LINKS = 'moduleEventBeforeGetAutoLinks';
     const EVENT_BEFORE_GET_CSS_ASSETS = 'moduleEventBeforeGetCssAssets';
 
+    private ?JsModulesConductor $_conductor = null;
     private ?array $map = null;
     private array $list = [];
+
+    /**
+     * @return mixed|null
+     */
+    public function __get(string $name)
+    {
+        if ($name == 'conductor') {
+            return $this->getConductor();
+        }
+        return $this->__objectGet($name);
+    }
+
+    public function getConductor(): JsModulesConductor
+    {
+        if ($this->_conductor === null) {
+            $this->_conductor = new JsModulesConductor();
+        }
+        return $this->_conductor;
+    }
 
     public function reset(): void
     {
@@ -73,7 +96,7 @@ class JsModulesComponent implements FusionComponentInterface
 
         $list = [];
         foreach ($moduleNames as $moduleName) {
-            $sysDir = new Directory(lx::$conductor->getSystemPath('modules/' . $moduleName));
+            $sysDir = $this->conductor->getModuleSystemDirectory($moduleName);
             if (!$sysDir->exists()) {
                 continue;
             }
@@ -113,7 +136,7 @@ class JsModulesComponent implements FusionComponentInterface
     {
         $list = [];
         foreach ($moduleNames as $moduleName) {
-            $sysDir = new Directory(lx::$conductor->getSystemPath('modules/' . $moduleName));
+            $sysDir = $this->conductor->getModuleSystemDirectory($moduleName);
             if (!$sysDir->exists()) {
                 continue;
             }

@@ -338,7 +338,23 @@ class JsCompiler
             $this->checkModule($moduleName, $modulesForBuild, $filePathes);
 		}
 
+        if (lx::$app->cssManager->isBuildType(CssManager::BUILD_TYPE_NONE)) {
+            $preseted = [];
+        } else {
+            lx::$app->events->trigger(JsModulesComponent::EVENT_BEFORE_GET_CSS_ASSETS, [
+                'moduleNames' => $modulesForBuild,
+            ]);
+            $preseted = lx::$app->jsModules->getPresetedCssClasses($modulesForBuild);
+        }
+
 		$modulesCode = $this->compileFileGroup($filePathes, DataObject::create(), $rootPath);
+        if (!empty($preseted)) {
+            foreach ($preseted as &$item) {
+                $item = "'$item'";
+            }
+            unset($item);
+            $modulesCode .= 'lx.onReady(()=>lx.app.cssManager.registerPreseted([' . implode(',', $preseted) . ']));';
+        }
 		$code = $modulesCode . $code;
         foreach ($modulesForBuild as $name) {
             if (!in_array($name, $this->compiledModules)) {

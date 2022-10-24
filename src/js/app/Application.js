@@ -12,6 +12,7 @@
 }
 
 let __settings = {};
+let __ready = false;
 let __onReady = [];
 let prefix = null;
 let idCounter = 1;
@@ -57,6 +58,10 @@ class Application {
         __onReady = onReady;
     }
 
+    isReady() {
+        return __ready;
+    }
+
     genId() {
         var id = __getPrefix() + '_' + lx.Math.decChangeNotation(idCounter, 62);
         idCounter++;
@@ -91,7 +96,7 @@ class Application {
             lx.body = lx.Box.rise(this.domSelector.getBodyElement());
             if (pluginInfo) this.loader.loadPlugin(pluginInfo, lx.body);
 
-            __ready();
+            __setReady();
 
             #lx:mode-case: dev
                 var elems = document.getElementsByClassName('lx-var-dump');
@@ -109,7 +114,7 @@ class Application {
             if (config.settings) __settings = config.settings;
             if (config.components) __applyComponentsData(this, config.components);
             this.i18nArray = {};
-            __ready();
+            __setReady();
         }
 
         useI18n(config) {
@@ -144,8 +149,9 @@ function __applyComponentsData(self, components) {
     }
 }
 
-function __ready() {
+function __setReady() {
     __onReady.forEach(f=>f());
     __onReady = [];
     lx.dropReady();
+    __ready = true;
 }

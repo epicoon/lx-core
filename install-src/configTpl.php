@@ -7,10 +7,15 @@ return [
     // 'localConfig' => '@site/config/main.php',
 
 	// Directories for services
-	'servicesMap' => [
-		'vendor',
-		'services',
-	],
+    'serviceCategories' => [
+        'project' => [
+            'app',
+            'services',
+        ],
+        'dependencies' => [
+            'vendor',
+        ],
+    ],
 
 	// Application aliases
 	'aliases' => [

@@ -26,6 +26,7 @@ class ServiceBrowser
 		$list = self::getServicePathesList();
 		foreach ($list as $name => &$value) {
 			$value = \lx::$app->getService($name);
+            //TODO dev_log if !$value
 		}
 		unset($value);
 

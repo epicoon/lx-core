@@ -57,7 +57,7 @@ class PluginCssCompiler
 
     private function compileCommonFile(FileInterface $file, array $cssList): void
     {
-        $cssCode = AppAssetCompiler::getCommonCss($cssList, $this->plugin);
+        $cssCode = AppAssetCompiler::getCommonCss($cssList, $this->plugin->name);
         $file->put($cssCode);
     }
 

@@ -4,7 +4,7 @@ namespace lx;
 
 use lx;
 
-class JsModuleMapActualizer
+class JsModulesActualizer
 {
     /**
      * Renew application list of services which has modules
@@ -19,28 +19,24 @@ class JsModuleMapActualizer
                 continue;
             }
 
-            $modulesDirectory = $service->conductor->getModuleMapDirectory();
-            $mapFile = new File($modulesDirectory->getPath() . '/jsModulesMap.json');
+            $mapFile = lx::$app->jsModules->conductor->getServiceMapFile($service);
             if ($mapFile->exists()) {
                 $names[] = $serviceName;
             }
         }
 
-        $path = lx::$conductor->getSystemPath('jsModulesMap.json');
-        $file = lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
+        $file = lx::$app->jsModules->conductor->getHeadListFile();
         $file->put($names);
     }
 
     public function renewProjectServices(): void
     {
-        $list = ServiceBrowser::getServicePathesList();
+        $list = ServiceBrowser::getServicesList();
         $services = [];
-        foreach (array_keys($list) as $serviceName) {
-            $service = lx::$app->getService($serviceName);
-            if (!$service || $service->getCategory() == 'vendor') {
-                continue;
+        foreach ($list as $service) {
+            if ($service->isProjectCategory()) {
+                $services[] = $service;
             }
-            $services[] = $service;
         }
         $this->renewServices($services);
     }
@@ -50,22 +46,7 @@ class JsModuleMapActualizer
      */
     public function renewAllServices(): void
     {
-        $list = ServiceBrowser::getServicePathesList();
-        $names = [];
-        foreach (array_keys($list) as $serviceName) {
-            $service = lx::$app->getService($serviceName);
-            if (!$service) {
-                continue;
-            }
-
-            if ($this->serviceRenewProcess($service)) {
-                $names[] = $serviceName;
-            }
-        }
-
-        $path = lx::$conductor->getSystemPath('jsModulesMap.json');
-        $file = lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$path]);
-        $file->put($names);
+        $this->renewServices(ServiceBrowser::getServicesList());
     }
 
     /**
@@ -75,18 +56,14 @@ class JsModuleMapActualizer
     {
         $refreshedNames = [];
         $deprecatedNames = [];
+
         foreach ($services as $service) {
             $this->serviceRenewProcess($service)
                 ? $refreshedNames[] = $service->name
                 : $deprecatedNames[] = $service->name;
         }
 
-        /** @var DataFileInterface $file */
-        $file = lx::$app->diProcessor->createByInterface(
-            DataFileInterface::class,
-            [lx::$conductor->getSystemPath('jsModulesMap.json')]
-        );
-
+        $file = lx::$app->jsModules->conductor->getHeadListFile();
         $list = $file->exists() ? $file->get() : [];
         $list = array_diff($list, $deprecatedNames);
         $list = array_unique(array_merge($list, $refreshedNames));
@@ -96,7 +73,7 @@ class JsModuleMapActualizer
     /**
      * Renew modules meta-data in the service
      */
-    public function renewService($service): Service
+    public function renewService(Service $service): Service
     {
         if ($this->serviceRenewProcess($service)) {
             $this->addService($service->name);
@@ -123,9 +100,9 @@ class JsModuleMapActualizer
 
     private function serviceRenewProcess(Service $service): bool
     {
+        $mapFile = lx::$app->jsModules->conductor->getServiceMapFile($service);
+
         $map = $this->makeMap($service->directory);
-        $modulesDirectory = $service->conductor->getModuleMapDirectory();
-        $mapFile = $modulesDirectory->makeFile('jsModulesMap.json', DataFileInterface::class);
         if (empty($map)) {
             if ($mapFile->exists()) {
                 $mapFile->remove();
@@ -148,9 +125,11 @@ class JsModuleMapActualizer
                 return;
             }
 
+            $moduleName = $matches[1];
+
             //TODO нужна компиляция, список определенных классов, их расширения, зависимости от других модулей...
             $info = [
-                'name' => $matches[1],
+                'name' => $moduleName,
                 'path' => $file->getRelativePath($dir->getPath()),
                 //classes
             ];
@@ -160,7 +139,7 @@ class JsModuleMapActualizer
                 $info['data'] = $moduleData;
             }
 
-            $map[$matches[1]] = $info;
+            $map[$moduleName] = $info;
         });
 
         return $map;

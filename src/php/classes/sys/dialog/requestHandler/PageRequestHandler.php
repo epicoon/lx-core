@@ -11,7 +11,6 @@ class PageRequestHandler extends RequestHandler
 
     protected function defineResponse(): void
     {
-        //TODO костыльно (1/2)
         if ($this->resourceContext->isPlugin()) {
             $plugin = $this->resourceContext->getPlugin();
             $this->title = $plugin->getTitle();
@@ -51,32 +50,15 @@ class PageRequestHandler extends RequestHandler
     private function renderPlugin(): void
     {
         $pluginData = $this->response->getData();
+
+        $pageData = $this->extractPageData($pluginData);
         $pluginInfo = addcslashes($pluginData['pluginInfo'], '\\`');
-
-        $modulesCode = '';
-        $moduleNames = '';
-        if (!empty($pluginData['modules'])) {
-            $moduleProvider = new JsModuleProvider();
-            list ($modulesCode, $modules) = $moduleProvider->compile($pluginData['modules']);
-            $modulesCode = addcslashes($modulesCode, '\\`');
-            $moduleNames = "'" . implode("','", $modules) . "'";
-        }
-
+        list ($moduleNames, $modulesCode) = $this->extractModulesCode($pluginData);
         $appConfig = CodeConverterHelper::arrayToJsCode(lx::$app->getBuildData());
         $js = "lx.app.start($appConfig, `$modulesCode`, [$moduleNames], `$pluginInfo`);";
 
         /** @var HtmlRendererInterface $renderer */
         $renderer = lx::$app->diProcessor->createByInterface(HtmlRendererInterface::class);
-
-        //TODO костыльно (2/2)
-        $pageData = $pluginData['page'] ?? [];
-        if ($this->title) {
-            $pageData['title'] = $this->title;
-        }
-        if ($this->icon) {
-            $pageData['icon'] = $this->icon;
-        }
-
         $result = $renderer
             ->setTemplateType(HttpResponse::OK)
             ->setParams([
@@ -85,5 +67,31 @@ class PageRequestHandler extends RequestHandler
             ])->render();
 
         $this->response->setData($result);
+    }
+
+    private function extractModulesCode(array $pluginData): array
+    {
+        $moduleNames = $pluginData['modules'];
+        $modulesCode = '';
+        $compiledModuleNames = '';
+        if (!empty($moduleNames)) {
+            $moduleProvider = new JsModuleProvider();
+            list ($modulesCode, $modules) = $moduleProvider->compile($moduleNames);
+            $modulesCode = addcslashes($modulesCode, '\\`');
+            $compiledModuleNames = "'" . implode("','", $modules) . "'";
+        }
+        return [$compiledModuleNames, $modulesCode];
+    }
+
+    private function extractPageData(array $pluginData): array
+    {
+        $pageData = $pluginData['page'] ?? [];
+        if ($this->title) {
+            $pageData['title'] = $this->title;
+        }
+        if ($this->icon) {
+            $pageData['icon'] = $this->icon;
+        }
+        return $pageData;
     }
 }

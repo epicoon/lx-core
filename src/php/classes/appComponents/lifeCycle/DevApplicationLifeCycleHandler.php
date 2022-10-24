@@ -72,7 +72,7 @@ class DevApplicationLifeCycleHandler
         $moduleName = $event->getPayload('moduleName');
 
         if (!lx::$app->jsModules->isModuleExist($moduleName)) {
-            $actualizer = new JsModuleMapActualizer();
+            $actualizer = new JsModulesActualizer();
             $actualizer->renewProjectServices();
             lx::$app->jsModules->reset();
         }

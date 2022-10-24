@@ -12,13 +12,13 @@ class AutoloadMapBuilder
 
 	/**
 	 * Makes file 'autoload.json'
-	 * Crowls all service directories (from application configuration with key 'servicesMap')
+	 * Crowls all service directories
 	 * Finds recursively in these directories for services
 	 * Package is a directory with special configuration file
 	 */
 	public function createCommonAutoloadMap(): void
 	{
-		$map = \lx::$app->getConfig('servicesMap');
+		$map = \lx::$app->serviceProvider->getCategories();
 
 		foreach ($map as $dirPath) {
 			$fullDirPath = \lx::$app->conductor->getFullPath($dirPath);

@@ -192,17 +192,6 @@ class PluginBuildContext implements ContextTreeInterface
             );
         }
 
-        $preseted = [];
-        $cssDir = new Directory($this->getPlugin()->conductor->getLocalSystemPath('css'));
-        $presetedFile = $cssDir->get('preseted.json');
-        if ($presetedFile) {
-            $preseted = json_decode($presetedFile->get(), true);
-        }
-        $preseted = array_merge($preseted, lx::$app->jsModules->getPresetedCssClasses($this->moduleDependencies));
-        if (!empty($preseted)) {
-            $info['preseted'] = $preseted;
-        }
-
         if (!empty($this->css)) {
             $dependencies['c'] = $this->css;
         }
@@ -220,7 +209,7 @@ class PluginBuildContext implements ContextTreeInterface
 
 		$this->pluginInfo = json_encode($info);
 	}
-    
+
     private function getPluginInfo(): array
     {
         $plugin = $this->getPlugin();
@@ -245,6 +234,11 @@ class PluginBuildContext implements ContextTreeInterface
         }
 
         $info['cssPreset'] = $plugin->getCssPreset();
+
+        $preseted = $plugin->getPresetedCssClasses();
+        if (!empty($preseted)) {
+            $info['preseted'] = $preseted;
+        }
 
         return $info;
     }

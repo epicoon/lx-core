@@ -9,6 +9,36 @@ class ServiceProvider
     private ?string $serviceName = null;
     private ?string $fileName = null;
     private ?FileInterface $file = null;
+    private ?array $projectCategories = null;
+    private ?array $dependencyCategories = null;
+
+    public function getCategories(): array
+    {
+        return array_merge(
+            $this->getProjectCategories(),
+            $this->getDependencyCategories()
+        );
+    }
+
+    public function getProjectCategories(): array
+    {
+        if ($this->projectCategories === null) {
+            $categories = lx::$app->getConfig('serviceCategories') ?? [];
+            $this->projectCategories = $categories['project'] ?? [];
+            $this->dependencyCategories = $categories['dependencies'] ?? [];
+        }
+        return $this->projectCategories;
+    }
+
+    public function getDependencyCategories(): array
+    {
+        if ($this->dependencyCategories === null) {
+            $categories = lx::$app->getConfig('serviceCategories') ?? [];
+            $this->projectCategories = $categories['project'] ?? [];
+            $this->dependencyCategories = $categories['dependencies'] ?? [];
+        }
+        return $this->dependencyCategories;
+    }
 
     public function setServiceName(string $name): ServiceProvider
     {
