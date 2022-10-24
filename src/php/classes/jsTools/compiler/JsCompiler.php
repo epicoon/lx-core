@@ -14,6 +14,7 @@ class JsCompiler
 
 	private string $context;
 	private bool $buildModules;
+    private bool $buildModulesCss;
 	private array $ignoreModules;
 	private array $allCompiledFiles;
 	private array $compiledFiles;
@@ -31,7 +32,8 @@ class JsCompiler
 		$this->syntaxExtender = new SyntaxExtender($this);
 
 		$this->context = self::CONTEXT_CLIENT;
-		$this->buildModules = false;
+		$this->buildModules = true;
+        $this->buildModulesCss = true;
 		$this->ignoreModules = [];
 		$this->allCompiledFiles = [];
 		$this->compiledFiles = [];
@@ -59,6 +61,11 @@ class JsCompiler
 	{
 		$this->buildModules = $value;
 	}
+
+    public function setBuildModulesCss(bool $value): void
+    {
+        $this->buildModulesCss = $value;
+    }
 
 	public function ignoreModules(array $list): void
     {
@@ -338,7 +345,7 @@ class JsCompiler
             $this->checkModule($moduleName, $modulesForBuild, $filePathes);
 		}
 
-        if (lx::$app->cssManager->isBuildType(CssManager::BUILD_TYPE_NONE)) {
+        if (!$this->buildModulesCss || lx::$app->cssManager->isBuildType(CssManager::BUILD_TYPE_NONE)) {
             $preseted = [];
         } else {
             lx::$app->events->trigger(JsModulesComponent::EVENT_BEFORE_GET_CSS_ASSETS, [

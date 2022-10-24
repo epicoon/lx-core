@@ -33,7 +33,6 @@ class JsModuleProvider extends Resource
             $modulesCode .= '#lx:use ' . $moduleName . ';';
         }
         $compiler = new JsCompiler();
-        $compiler->setBuildModules(true);
         $compiler->ignoreModules($except);
         $modulesCode = $compiler->compileCode($modulesCode);
         $modulesCode = I18nHelper::localize($modulesCode, lx::$app->i18nMap);

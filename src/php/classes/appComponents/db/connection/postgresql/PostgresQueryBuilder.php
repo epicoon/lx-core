@@ -247,7 +247,7 @@ class PostgresQueryBuilder extends DbQueryBuilder
             return null;
         }
 
-        $schema = $this->getTableSchema($tableName);
+        $schema = $this->getConnection()->getTableSchema($tableName);
         $pks = [];
         foreach ($sampleRow as $key => $value) {
             if (!$schema->hasField($key)) {

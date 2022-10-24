@@ -14,7 +14,6 @@ class MainCssCompiler
 
         $code = $this->getCode();
         $compiler = new JsCompiler();
-        $compiler->setBuildModules(true);
         $exec = new NodeJsExecutor($compiler);
         $result = $exec
             ->configureApplication()

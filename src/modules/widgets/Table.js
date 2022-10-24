@@ -22,7 +22,7 @@ class Table extends lx.Box  {
 			borderRadius: css.preset.borderRadius
 		});
 		css.addClass('lx-Table-row', {
-			borderTop: '1px solid ' + css.preset.widgetBorderColor
+			borderTop: css.preset.createProperty('1px', 'solid', css.preset.widgetBorderColor)
 		}, {
 			'first-child': 'border: 0px',
 			'nth-child(2n)': 'background-color: ' + css.preset.bodyBackgroundColor,
@@ -30,7 +30,7 @@ class Table extends lx.Box  {
 		});
 		css.addClass('lx-Table-cell', {
 			height: '100%',
-			borderRight: '1px solid ' + css.preset.widgetBorderColor
+			borderRight: css.preset.createProperty('1px', 'solid', css.preset.widgetBorderColor)
 		}, {
 			'last-child': 'border: 0px'
 		});
@@ -113,7 +113,7 @@ class Table extends lx.Box  {
 		if (r1 === null || r1 >= rows) r1 = rows - 1;
 
 		if (r0 == 0 && r1 == rows - 1) return c.add(this->r);
-	
+
 		for (var i=r0; i<=r1; i++) c.add( this.row(i) );
 		return c;
 	}

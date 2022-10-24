@@ -30,6 +30,7 @@ class PluginBuildContext implements ContextTreeInterface
 		$this->plugin = $config['plugin'];
 		$this->compiled = false;
 		$this->jsCompiler = new PluginFrontendJsCompiler($this->getPlugin());
+        $this->jsCompiler->setBuildModules(false);
 
 		$moduleDependencies = $this->plugin->getModuleDependencies();
 		if (!empty($moduleDependencies)) {

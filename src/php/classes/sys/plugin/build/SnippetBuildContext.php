@@ -193,7 +193,6 @@ class SnippetBuildContext implements ContextTreeInterface
 		};';
 
 		$compiler = new JsCompiler($plugin->conductor, $plugin->moduleInjector);
-		$compiler->setBuildModules(true);
 		$executor = new NodeJsExecutor($compiler);
 		$res = $executor
             ->setFile($snippet->getFile())

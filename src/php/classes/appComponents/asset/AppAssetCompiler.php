@@ -62,7 +62,9 @@ class AppAssetCompiler
     {
         $path = lx::$conductor->jsClientCore;
         $code = file_get_contents($path);
-        $code = (new JsCompiler())->compileCode($code, $path);
+        $compiler = new JsCompiler();
+        $compiler->setBuildModules(false);
+        $code = $compiler->compileCode($code, $path);
 
         $modules = lx::$app->jsModules->getCoreModules();
         if (!empty($modules)) {

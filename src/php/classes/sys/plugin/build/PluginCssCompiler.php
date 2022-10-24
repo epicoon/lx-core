@@ -32,7 +32,6 @@ class PluginCssCompiler
 
         $plugin = $this->plugin;
         $compiler = new PluginFrontendJsCompiler($plugin);
-        $compiler->setBuildModules(true);
         $exec = new NodeJsExecutor($compiler);
         $result = $exec
             ->configureApplication()

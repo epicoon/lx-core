@@ -16,7 +16,7 @@ class ModuleCssCompiler
 
         $code = $this->getCode(array_keys($deprecatedCssFiles));
         $compiler = new JsCompiler();
-        $compiler->setBuildModules(true);
+        $compiler->setBuildModulesCss(false);
         $exec = new NodeJsExecutor($compiler);
         $result = $exec
             ->configureApplication()
