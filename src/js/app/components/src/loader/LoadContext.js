@@ -36,8 +36,8 @@ class LoadContext {
 			// Определяем какие ресурсы потребуют отдельной дозагрузки
 			if (info.modules) this.necessaryModules = lx.app.dependencies.defineNecessaryModules(info.modules);
 			if (info.page) {
-				if (info.page.css)
-					this.necessaryCss = lx.app.dependencies.defineNecessaryCss(info.page.css);
+				if (info.page.pluginCss)
+					this.necessaryCss = lx.app.dependencies.defineNecessaryCss(info.page.pluginCss);
 				if (info.page.scripts)
 					this.necessaryScripts = lx.app.dependencies.defineNecessaryScripts(info.page.scripts);
 			}
@@ -104,7 +104,10 @@ class LoadContext {
 		// css-ресурсы регистрируются в синхронайзере
 		if (this.necessaryCss) {
 			for (var i=0; i<this.necessaryCss.len; i++) {
-				var tagRequest = new lx.TagResourceRequest(this.necessaryCss[i], {name: 'plugin_asset'});
+				var tagRequest = new lx.TagResourceRequest(
+					this.necessaryCss[i],
+					{name: 'plugin_asset'}
+				);
 				synchronizer.register(tagRequest);
 			}
 		}

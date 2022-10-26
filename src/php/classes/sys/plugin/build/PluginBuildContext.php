@@ -20,7 +20,8 @@ class PluginBuildContext implements ContextTreeInterface
 	private string $commonData;
     /** @var JsScriptAsset[] */
 	private array $scripts = [];
-	private array $css = [];
+	private array $pluginCss = [];
+    private array $moduleCss = [];
 	private JsCompiler $jsCompiler;
 	private array $moduleDependencies = [];
 	private array $commonModuleDependencies = [];
@@ -64,8 +65,10 @@ class PluginBuildContext implements ContextTreeInterface
 		];
 
 		$allScripts = [];
-		$allCss = [];
-		$this->eachContext(function (PluginBuildContext $context) use (&$result, &$allScripts, &$allCss) {
+		$allPluginCss = [];
+        $allModuleCss = [];
+		$this->eachContext(function (PluginBuildContext $context)
+        use (&$result, &$allScripts, &$allPluginCss, &$allModuleCss) {
 			$key = $context->getKey();
 			$result['pluginInfo'] .= "<plugin $key>{$context->commonData}</plugin $key>";
 
@@ -73,9 +76,12 @@ class PluginBuildContext implements ContextTreeInterface
 				$allScripts = array_merge($allScripts, $context->scripts);
 			}
 
-			if (!empty($context->css)) {
-				$allCss = array_merge($allCss, $context->css);
+			if (!empty($context->pluginCss)) {
+				$allPluginCss = array_merge($allPluginCss, $context->pluginCss);
 			}
+            if (!empty($context->moduleCss)) {
+                $allModuleCss = array_merge($allModuleCss, $context->moduleCss);
+            }
 		});
 
         $plugin = $this->getPlugin();
@@ -86,7 +92,8 @@ class PluginBuildContext implements ContextTreeInterface
             ),
 			'icon' => $plugin->icon,
 			'scripts' => $this->collapseScripts($allScripts),
-			'css' => $this->collapseCss($allCss),
+			'pluginCss' => $this->collapseCss($allPluginCss),
+            'moduleCss' => $this->collapseCss($allModuleCss),
 		];
 
 		return $result;
@@ -134,6 +141,9 @@ class PluginBuildContext implements ContextTreeInterface
         $plugin = $this->getPlugin();
 
         $plugin->beforeCompile();
+        $assetProvider = new PluginAssetProvider($plugin);
+        $this->scripts = $assetProvider->getPluginScripts();
+        $this->pluginCss = $assetProvider->getPluginCss();
         $this->compileSnippet();
         $this->compileMainJs();
 
@@ -180,21 +190,15 @@ class PluginBuildContext implements ContextTreeInterface
 		$info['rsk'] = $this->getPlugin()->getRootSnippetKey();
 
 		// All plugin dependencies
-        $assetProvider = new PluginAssetProvider($this->getPlugin());
-		$this->scripts = $assetProvider->getPluginScripts();
-		$this->css = $assetProvider->getPluginCss();
-
 		$dependencies = [];
         if (!empty($this->moduleDependencies)) {
             $dependencies['m'] = $this->moduleDependencies;
-            $this->css = array_merge(
-                $this->css,
-                lx::$app->jsModules->getModulesCss($this->moduleDependencies)
-            );
+            $this->moduleCss = lx::$app->jsModules->getModulesCss($this->moduleDependencies);
         }
 
-        if (!empty($this->css)) {
-            $dependencies['c'] = $this->css;
+        $css = array_merge($this->pluginCss, $this->moduleCss);
+        if (!empty($css)) {
+            $dependencies['c'] = $css;
         }
 
 		if (!empty($this->scripts)) {

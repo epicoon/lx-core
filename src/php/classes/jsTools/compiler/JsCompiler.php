@@ -112,6 +112,10 @@ class JsCompiler
 	{
 		$this->dependencies = new JsCompileDependencies();
 
+        if (!$this->checkCodeContext($code)) {
+            return '';
+        }
+
 		$code = $this->compileCodeInnerDirectives($code, $path);
 		$code = $this->compileCodeOuterDirectives($code, $path);
         $code = $this->compileExtensions($code, $path);
@@ -126,6 +130,17 @@ class JsCompiler
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * PRIVATE
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+    private function checkCodeContext(string $code): bool
+    {
+        if ($this->contextIsClient() && preg_match('/#lx:server;/', $code)) {
+            return false;
+        }
+        if ($this->contextIsServer() && preg_match('/#lx:client;/', $code)) {
+            return false;
+        }
+        return true;
+    }
 
 	private function checkFileCompileAvailable(string $path, bool $force = false): bool
     {
@@ -453,6 +468,9 @@ class JsCompiler
 			if (!file_exists($fileName)) continue;
 
 			$originalCode = file_get_contents($fileName);
+            if (!$this->checkCodeContext($originalCode)) {
+                continue;
+            }
 
             preg_match_all('/#lx:require [\'"]?(.+)\b/', $originalCode, $requiredFiles);
             $required = array_merge($required, $requiredFiles[1]);
@@ -617,6 +635,8 @@ class JsCompiler
 	private function cutCoordinationDirectives(string $code): string
 	{
 		$regexps = [
+            '/#lx:client;/',
+            '/#lx:server;/',
 			'/#lx:module\s+[^;]+?;/',
 			'/#lx:module-data\s+{[^}]*?}/'
 		];

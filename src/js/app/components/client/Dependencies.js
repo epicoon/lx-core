@@ -10,7 +10,7 @@ const __data = {
 #lx:namespace lx;
 class Dependencies extends lx.AppComponent {
     init() {
-        this.cache = false;
+        this.cache = true;
     }
 
     getCurrentModules() {
@@ -51,7 +51,7 @@ class Dependencies extends lx.AppComponent {
     }
 
     defineNecessaryCss(list) {
-        if (__data.css == {}) return list;
+        if (__data.css.lxEmpty()) return list;
         var result = [];
         for (let i=0, l=list.len; i<l; i++)
             if (!(list[i] in __data.css))
@@ -98,6 +98,10 @@ function __dropZeroCss() {
             var asset = lx.app.domSelector.getElementByAttrs({
                 href: name,
                 name: 'plugin_asset'
+            });
+            if (!asset) asset = lx.app.domSelector.getElementByAttrs({
+                href: name,
+                name: 'module_asset'
             });
             asset.parentNode.removeChild(asset);
             delete __data.css[name];

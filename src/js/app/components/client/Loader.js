@@ -33,8 +33,13 @@ class Loader extends lx.AppComponent {
 					return;
 				}
 
-				for (let i in res.data.css) {
-					var tagRequest = new lx.TagResourceRequest(res.data.css[i], {name: 'module_asset'});
+				let necessaryCss = lx.app.dependencies.defineNecessaryCss(res.data.css);
+				for (let i in necessaryCss) {
+					var tagRequest = new lx.TagResourceRequest(
+						necessaryCss[i],
+						{name: 'module_asset'},
+						'head-top'
+					);
 					tagRequest.send();
 				}
 

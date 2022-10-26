@@ -8,7 +8,8 @@ class HtmlHead
 {
 	private string $title = 'lx';
 	private ?string $icon = null;
-	private ?array $css = null;
+	private array $pluginCss = [];
+    private array $moduleCss = [];
 	private ?array $scripts = null;
 
 	public function __construct(array $config)
@@ -20,9 +21,12 @@ class HtmlHead
 		if ($config->icon) {
 			$this->icon = $config->icon;
 		}
-		if ($config->css) {
-			$this->css = $config->css;
+		if ($config->pluginCss) {
+			$this->pluginCss = $config->pluginCss;
 		}
+        if ($config->moduleCss) {
+            $this->moduleCss = $config->moduleCss;
+        }
 		if ($config->scripts) {
 			$this->scripts = $config->scripts;
 		}
@@ -70,14 +74,12 @@ class HtmlHead
     private function getCss(): string
     {
         $result = '';
-        if (!$this->css) {
-            return $result;
+        foreach ($this->moduleCss as $css) {
+            $result .= "<link href=\"$css\" name=\"module_asset\" type=\"text/css\" rel=\"stylesheet\">";
         }
-
-        foreach ($this->css as $css) {
+        foreach ($this->pluginCss as $css) {
             $result .= "<link href=\"$css\" name=\"plugin_asset\" type=\"text/css\" rel=\"stylesheet\">";
         }
-
         return $result;
     }
 

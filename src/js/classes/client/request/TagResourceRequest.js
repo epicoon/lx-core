@@ -1,11 +1,11 @@
 #lx:namespace lx;
 class TagResourceRequest extends lx.Request {
-	constructor(url = '', attributes = {}) {
+	constructor(url = '', attributes = {}, loaction = 'head') {
 		super();
 
 		this.url = url;
 		this.attributes = attributes;
-		this.location = 'head';
+		this.location = loaction;
 	}
 
 	static createByConfig(config) {
@@ -47,6 +47,13 @@ class TagResourceRequest extends lx.Request {
 		tag.onerror = __onError.bind(this);
 
 		switch (this.location) {
+			case 'head-top':
+				var head = document.getElementsByTagName('head')[0];
+				if (head.children.length)
+					head.insertBefore(tag, head.children[0]);
+				else head.appendChild(tag);
+				break;
+			case 'head-bottom':
 			case 'head':
 				var head = document.getElementsByTagName('head')[0];
 				head.appendChild(tag);
