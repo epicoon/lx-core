@@ -81,7 +81,7 @@ class FusionComponentList
 				continue;
 			}
 
-            $lazy = $data['lazy'] ?? true;
+            $lazy = $data['lazyReadable'] ?? true;
 			if (!$lazy || is_subclass_of($data['class'], EventListenerInterface::class)) {
 			    $this->createInstance($name, $data);
             } else {

@@ -193,15 +193,14 @@ trait ObjectTrait
                     $contextClass = static::class;
                     \lx::devLog(['_'=>[__FILE__,__CLASS__,__TRAIT__,__METHOD__,__LINE__],
                         '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-                        'msg' => "Class '$contextClass' has received dependency '$paramName' with wrong type. Type '$config' expected.",
+                        'msg' => "Class '$contextClass' has received dependency '$paramName' with wrong type. Type '$class' expected.",
                     ]);
                     return false;
                 }
-                $config[$paramName] = $param;
                 continue;
             }
 
-            if ($paramDescr['lazy'] ?? false) {
+            if ($paramDescr['lazyReadable'] ?? false) {
                 $class = $paramDescr['class'] ?? null;
                 if (!$class) {
                     continue;
@@ -260,8 +259,7 @@ trait ObjectTrait
             ? ['class' => $definition]
             : $definition;
 
-        //TODO неочевидно, что ленивая загрузка обязательно делает зависимость читаемым полем
-        if ($definition['lazy'] ?? false) {
+        if ($definition['lazyReadable'] ?? false) {
             $definition['readable'] = true;
         }
 
@@ -278,7 +276,7 @@ trait ObjectTrait
         }
 
         $definition = $this->getDependencyDefinition($name);
-        if ($definition && ($definition['lazy'] ?? false)) {
+        if ($definition && ($definition['lazyReadable'] ?? false)) {
             $param = $this->createDependencyInstance($name, $this->lazyStrongDependencies, $this->lazyWeakDependencies);
             if ($param !== null) {
                 $this->setParameter($name, $param);
