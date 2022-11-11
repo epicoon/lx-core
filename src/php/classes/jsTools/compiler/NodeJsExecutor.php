@@ -214,7 +214,7 @@ class NodeJsExecutor implements FlightRecorderHolderInterface
         $file = \lx::$conductor->getTempFile('js');
         $file->put($code);
         $command = 'node ' . $this->getExecJs() . ' "' . $file->getPath() . '"';
-        $result = \lx::exec($command);
+        $result = (new CommandExecutor(['command' => $command]))->run();
         $result = preg_replace('/\s$/', '', $result);
         $result = json_decode($result, true);
 

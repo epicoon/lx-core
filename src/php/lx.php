@@ -52,57 +52,6 @@ class lx
 		self::$dump = '';
 	}
 
-    /**
-     * @param string|array $command
-     * @param bool|array $async
-     * @return string|null
-     */
-	public static function exec($command, $async = false): ?string
-    {
-        if (is_array($command)) {
-            $str = $command['executor'] . ' ' . $command['script'];
-            if (array_key_exists('args', $command)) {
-                $args = [];
-                foreach ($command['args'] as $arg) {
-                    $args[] = '"' . addcslashes($arg, '"\\') . '"';
-                }
-                $str .= ' ' . implode(' ', $args);
-            }
-            $command = $str;
-        }
-        
-        if ($async) {
-            $msgLogPath = '/dev/null';
-            $errorLogPath = '/dev/null';
-
-            if (is_array($async)) {
-                if (array_key_exists('message_log_file', $async)) {
-                    $file = new \lx\File($async['message_log_file']);
-                    $file->getParentDir()->make();
-                    $msgLogPath = $file->getPath();
-                } elseif (array_key_exists('message_log', $async)) {
-                    $msgLogPath = $async['message_log'];
-                }
-
-                if (array_key_exists('error_log_file', $async)) {
-                    $file = new \lx\File($async['error_log_file']);
-                    $file->getParentDir()->make();
-                    $errorLogPath = $file->getPath();
-                } elseif (array_key_exists('error_log', $async)) {
-                    $errorLogPath = $async['error_log'];
-                }
-            }
-
-            $command .= " > $msgLogPath 2>$errorLogPath &";
-        }
-
-        if (self::$app->getParam('showCommand')) {
-            self::$app->setParam('showCommand', $command);
-        }
-
-        return shell_exec($command);
-    }
-
 	/**
 	 * Advanced way to dump some information in browser
 	 *

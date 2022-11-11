@@ -161,6 +161,7 @@ return [
     'ServiceProvider' => 'classes/sys/service',
     'ServicesMap' => 'classes/sys/service',
 
+    'CommandExecutor' => 'classes/tools',
     'CascadeReport' => 'classes/tools',
     'CurlRequest' => 'classes/tools',
     'DataObject' => 'classes/tools',
