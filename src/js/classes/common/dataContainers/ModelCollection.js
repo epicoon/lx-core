@@ -76,8 +76,8 @@ class ModelCollection extends lx.Collection {
 
 	static create(config) {
 		class _am_ extends lx.BindableModel {
-			static __setSchema() {
-				this.initSchema(config.schema);
+			static __getSchema() {
+				return config.schema;
 			}
 		}
 		let c = new lx.ModelCollection();

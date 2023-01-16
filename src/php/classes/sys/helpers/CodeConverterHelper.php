@@ -38,7 +38,15 @@ class CodeConverterHelper
                         return $val;
                     }
                 }
-                if ($val[0] != '\'') return "'$val'";
+                if (preg_match('/^#lx:/', $val)) {
+                    return $val;
+                }
+                if ($val[0] == '\'') {
+                    return $val;
+                } else {
+                    $val = addcslashes($val, "'");
+                    return "'$val'";
+                }
             }
             if ($val === true) return 'true';
             if ($val === false) return 'false';

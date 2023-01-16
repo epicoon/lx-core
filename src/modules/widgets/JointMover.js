@@ -26,8 +26,8 @@ class JointMover extends lx.Rect {
             config.geom = [
                 config.left,
                 0,
-                100,
-                config.size || config.width || self::DEFAULT_SIZE
+                config.size || config.width || self::DEFAULT_SIZE,
+                100
             ];
             config.direction = lx.HORIZONTAL;
             delete config.left;

@@ -188,8 +188,9 @@ class Box extends lx.Rect {
         }
 
         checkResize(e) {
-            if (super.checkResize(e))
-                this.children.forEach(c=>c.checkResize(e));
+            let resized = super.checkResize(e);
+            if (resized) this.children.forEach(c=>c.checkResize(e));
+            return resized;
         }
 
         checkContentResize(e) {
@@ -231,7 +232,7 @@ class Box extends lx.Rect {
         }
     }
 
-    getCommonEventNames() {
+    static getCommonEventNames() {
         return ['beforeAddChild', 'afterAddChild'];
     }
 
@@ -254,6 +255,8 @@ class Box extends lx.Rect {
     }
 
     overflow(val) {
+        if (val === undefined)
+            return this.style('overflow');
         __eachContainer(this, c=>super.overflow.call(c, val));
     }
     /* 1. Constructor */
@@ -262,6 +265,24 @@ class Box extends lx.Rect {
 
     //==================================================================================================================
     /* 2. Content managment */
+
+    renderHtml() {
+        const renderContent = function(node) {
+            if (!node.children || node.children.isEmpty()) return node.domElem.content;
+            let arr = [];
+            node.eachChild(child=>{
+                if (child.domElem.rendered()) arr.push(child.domElem.outerHtml());
+                else arr.push(render(child));
+            });
+            return arr.join('');
+        }
+
+        const render = function(node) {
+            return node.domElem.getHtmlStringBegin() + renderContent(node) + node.domElem.getHtmlStringEnd();
+        }
+
+        return renderContent(this);
+    }
 
     #lx:server {
 		setSnippet(config, attributes = null) {
@@ -374,7 +395,7 @@ class Box extends lx.Rect {
                 return;
             }
 
-            var text = __renderContent(this);
+            var text = this.renderHtml();
             this.domElem.html(text);
             __refreshAfterRender(this);
             this.startPositioning();
@@ -818,7 +839,7 @@ class Box extends lx.Rect {
         };
     }
 
-    setEllipsisHint(config = {}) {
+    #lx:client setEllipsisHint(config = {}) {
         config.condition = config.condition || function(box) {
             const elem = box->text;
             if (!elem) return false;
@@ -1340,22 +1361,6 @@ function __get(self, path) {
         self.renderCache++;
     }
 
-    function __renderContent(self) {
-        var arr = [];
-
-        if (!self.children || self.children.isEmpty()) return self.domElem.content;
-
-        self.eachChild((child)=>{
-            if (child.domElem.rendered()) arr.push(child.domElem.outerHtml());
-            else arr.push(__render(child));
-        });
-        return arr.join('');
-    }
-
-    function __render(self) {
-        return self.domElem.getHtmlStringBegin() + __renderContent(self) + self.domElem.getHtmlStringEnd();
-    }
-
     function __refreshAfterRender(self) {
         if ( ! self.children) return;
 
@@ -1373,6 +1378,7 @@ function __get(self, path) {
             child = self.child(++childNum);
         }
 
+        self.startPositioning();
         delete self.renderCacheStatus;
         delete self.renderCache;
     }

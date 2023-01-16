@@ -126,8 +126,8 @@ class CommandExecutor
         $command = implode(' ', $command);
 
         if ($this->async) {
-            $msgLogPath = $this->messageOutput;
-            $errorLogPath = $this->errorOutput;
+            $msgLogPath = lx::$app->conductor->getFullPath($this->messageOutput);
+            $errorLogPath = lx::$app->conductor->getFullPath($this->errorOutput);
 
             if ($this->createOutputFiles) {
                 if ($msgLogPath !== '/dev/null') {
@@ -142,7 +142,7 @@ class CommandExecutor
                 }
             }
 
-            $command .= " > $msgLogPath 2>$errorLogPath &";
+            $command .= " >$msgLogPath 2>$errorLogPath &";
         }
 
         return shell_exec($command);

@@ -147,13 +147,14 @@ class JsModulesActualizer
 
     private function readModuleData(string $code): array
     {
-        $reg = '/#lx:module-data\s+{([^}]*?)}/';
+        $reg = '/#lx:module-data\s*(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
         preg_match_all($reg, $code, $matches);
         if (empty($matches[0])) {
             return [];
         }
 
-        $dataStr = $matches[1][0];
+        $dataStr = trim($matches['therec'][0], '{}');
+        $dataStr = preg_replace('/(^[\s\r\n]+|[\s\r\n]+$)/', '', $dataStr);
         $dataArr = preg_split('/\s*,\s*/', $dataStr);
         $result = [];
         foreach ($dataArr as $item) {

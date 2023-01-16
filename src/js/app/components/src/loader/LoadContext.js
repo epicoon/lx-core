@@ -63,6 +63,7 @@ class LoadContext {
 					pluginInfo.info.attributes.lxMerge(rootAttr, true);
 				}
 			}
+
 			this.plugins[pluginInfo.info.anchor] = pluginInfo;
 		}
 	}

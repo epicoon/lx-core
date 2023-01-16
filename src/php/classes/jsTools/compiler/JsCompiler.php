@@ -208,8 +208,8 @@ class JsCompiler
         $code = $this->parseMd($code, $path);
         $code = $this->processMacroses($code);
         $code = $this->applyContext($code);
-        $code = $this->syntaxExtender->applyExtendedSyntax($code, $path);
         $code = $this->loadConfig($code, $path);
+        $code = $this->syntaxExtender->applyExtendedSyntax($code, $path);
         $code = $this->plugScripts($code);
         $code = $this->checkMode($code);
 
@@ -638,7 +638,7 @@ class JsCompiler
             '/#lx:client;/',
             '/#lx:server;/',
 			'/#lx:module\s+[^;]+?;/',
-			'/#lx:module-data\s+{[^}]*?}/'
+            '/#lx:module-data\s*(?P<therec>{((?>[^{}]+)|(?P>therec))*})/'
 		];
 
 		foreach ($regexps as $regexp) {
@@ -714,6 +714,7 @@ class JsCompiler
 		$pattern = '/(?<!\/ )(?<!\/)#lx:load\s*\(\s*[\'"]?(.*?)[\'"]?\)/';
 		$code = preg_replace_callback($pattern, function ($matches) use ($parentDir) {
 			$path = $matches[1];
+
 			$fullPath = $this->conductor->getFullPath($path, $parentDir);
 			$file = lx::$app->diProcessor->createByInterface(DataFileInterface::class, [$fullPath]);
 			if (!$file->exists()) {

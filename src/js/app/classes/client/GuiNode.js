@@ -29,6 +29,14 @@ class GuiNode {
         return this._box;
     }
 
+    get(path) {
+        return this._box.get(path);
+    }
+
+    find(key, all=true) {
+        return this._box.find(key, all);
+    }
+
     triggerPluginEvent(eventName, data) {
         this.getPlugin().trigger(eventName, data);
     }

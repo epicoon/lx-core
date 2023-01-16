@@ -201,6 +201,10 @@
         "name": "lx.Slider",
         "path": "modules\/widgets\/Slider.js"
     },
+    "lx.StreamItemRelocator": {
+        "name": "lx.StreamItemRelocator",
+        "path": "modules\/widgets\/StreamItemRelocator.js"
+    },
     "lx.Table": {
         "name": "lx.Table",
         "path": "modules\/widgets\/Table.js"

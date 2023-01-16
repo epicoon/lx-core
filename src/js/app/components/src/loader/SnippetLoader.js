@@ -10,14 +10,14 @@ class SnippetLoader {
 		this.plugin = plugin;
 		this.elem = elem;
 		this.info = this.loadContext.getSnippetInfo(this.plugin, infoIndex);
-
 		this.elems = [];
 		this.currentElement = 0;
 		this.node = new SnippetJsNode(
 			this.loadContext,
 			this.plugin,
 			new lx.Snippet(this.elem, this.info),
-			parentLoader ? parentLoader.node : null);
+			parentLoader ? parentLoader.node : null
+		);
 	}
 
 	/**
@@ -167,6 +167,7 @@ class SnippetLoader {
 
 			// Функции, навешанные на момент загрузки
 			this.callOnload(el);
+
 			// Если виджет виден - вызов функции на обработчике displayin, в т.ч. displayOnce
 			if (el.isDisplay()) el.trigger('displayin');
 		}

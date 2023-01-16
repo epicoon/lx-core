@@ -255,6 +255,23 @@ class PluginConductor implements ConductorInterface
 
         return null;
     }
+    
+    public function defineClientPluginRequires(array $list): array
+    {
+        $clientPath = $this->getPlugin()->getConfig('client');
+        $clientFile = $this->getFile($clientPath);
+
+        foreach ($list as &$item) {
+            $arr = explode(' ', $item);
+            $index = count($arr) == 1 ? 0 : 1;
+            $file = $this->getFile($arr[$index]);
+            $arr[$index] = $file->getRelativePath($clientFile->getParentDir())
+                ?? '@site/' . lx::$app->conductor->getRelativePath($file->getPath());
+            $item = implode(' ', $arr);
+        }
+        unset($item);
+        return $list;
+    }
 
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

@@ -132,6 +132,10 @@ class Plugin {
             this.eventDispatcher.subscribe(eventName, callback);
         }
 
+        onEvent(callback) {
+            this.eventCallbacks.push(callback);
+        }
+
         trigger(eventName, data = {}) {
             if (eventName == 'focus') {
                 if (this._onFocus) this._onFocus();
@@ -142,8 +146,9 @@ class Plugin {
                 return;
             }
 
-            var event = new lx.PluginEvent(this, data);
+            var event = new lx.PluginEvent(this, eventName, data);
             this.eventDispatcher.trigger(eventName, event);
+            this.eventCallbacks.forEach(c=>c(event));
         }
 
         focus() {

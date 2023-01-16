@@ -133,11 +133,7 @@ class CssManager extends lx.AppComponentSettable {
                 let preset = presets[j],
                     cssName = module + '-' + preset.name;
                 if (lx.CssTag.exists(cssName)) continue;
-                const css = new lx.CssTag({id: cssName});
-                css.getContext().configure({
-                    proxyContexts: this.getProxyContexts(),
-                    preset
-                });
+                const css = new lx.CssTag({id: cssName, preset});
                 moduleClass.initCss(css.getContext());
                 css.commit();
             }
@@ -150,11 +146,7 @@ class CssManager extends lx.AppComponentSettable {
         const cssPreset = plugin.cssPreset;
         let cssName = plugin.name + '-' + cssPreset.name;
         if (!lx.CssTag.exists(cssName)) {
-            const css = new lx.CssTag({id: cssName});
-            css.getContext().configure({
-                proxyContexts: this.getProxyContexts(),
-                preset: cssPreset
-            });
+            const css = new lx.CssTag({id: cssName, preset: cssPreset});
             plugin.initCss(css.getContext());
             css.commit();
         }

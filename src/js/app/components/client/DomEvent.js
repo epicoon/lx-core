@@ -51,7 +51,11 @@ class DomEvent extends lx.AppComponent {
             for ( var handle in handlers ) {
                 delete el.events[type][handle];
             }
-        } else delete handlers[handler.guid];
+        } else {
+            if (handler.guid in handlers)
+                delete handlers[handler.guid].context;
+            delete handlers[handler.guid];
+        }
         for (var any in handlers) return;
 
         removeEventListener(el, type);

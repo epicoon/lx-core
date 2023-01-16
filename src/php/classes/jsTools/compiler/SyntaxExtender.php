@@ -255,13 +255,13 @@ class SyntaxExtender
 						ccc << arr[0],
 						ddd << arr[1] : {type:'string', default: 'ee'};
 
-					static __setSchema() {
-						this.initSchema({
+					static __getSchema() {
+						return {
 							aaa:{type:'integer', default: 11},
 							bbb:{},
 							ccc:{ref:'arr[0]'},
 							ddd:{type:'string', default: 'ee',ref:'arr[1]'};
-						});
+						};
 					}
 				*/
 				$implementResult = preg_replace_callback(
@@ -307,7 +307,7 @@ class SyntaxExtender
                             $schemaCode = '{' . implode(',', $fields) . '}';
                         }
 
-                        $code = 'static __setSchema(){this.initSchema(' . $schemaCode . ');}';
+                        $code = 'static __getSchema(){let data=super.__getSchema(); return data.lxMerge(' . $schemaCode . ');}';
                         return $matches[1] . $code;
                     },
                     $implementResult

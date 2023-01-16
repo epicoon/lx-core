@@ -2,6 +2,10 @@
 class CssTag {
 	constructor(config) {
 		this._context = new lx.CssContext();
+		let contextConfig = {};
+		contextConfig.proxyContexts = config.proxyContexts || lx.app.cssManager.getProxyContexts();
+		contextConfig.preset = config.preset || lx.app.cssManager.getPresetName();
+		this._context.configure(contextConfig);
 
 		this.domElem = null;
 		if (config.id) {

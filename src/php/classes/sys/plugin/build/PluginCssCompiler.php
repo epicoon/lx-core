@@ -24,6 +24,9 @@ class PluginCssCompiler
         $this->force = $force;
         $needMap = $this->getNeedMap();
         $needFiles = $this->getNeedFiles($needMap);
+        if (empty($needFiles)) {
+            return;
+        }
         $code = $this->getCode();
         if ($code == '') {
             $this->clearFiles($needFiles);
@@ -52,6 +55,8 @@ class PluginCssCompiler
                 $this->compileFile($file, $type, $css);
             }
         }
+
+        (new PluginCacheManager($plugin))->renewCache();
     }
 
     private function compileCommonFile(FileInterface $file, array $cssList): void
@@ -116,6 +121,7 @@ class PluginCssCompiler
         $require = $plugin->getConfig('require');
         $requireStr = '';
         if ($require) {
+            $require = $plugin->conductor->defineClientPluginRequires($require);
             foreach ($require as $item) {
                 $requireStr .= "#lx:require $item;";
             }

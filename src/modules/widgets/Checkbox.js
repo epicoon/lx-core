@@ -21,7 +21,8 @@ class Checkbox extends lx.Box {
 			width: '16px',
 			height: '16px',
 			borderRadius: '4px',
-			backgroundColor: 'white'
+			backgroundColor: 'white',
+			cursor: 'pointer'
 		}, {
 			hover: {
 				boxShadow: '0 0 6px ' + css.preset.widgetIconColor,

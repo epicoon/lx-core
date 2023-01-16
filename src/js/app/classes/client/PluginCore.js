@@ -28,6 +28,10 @@ class PluginCore {
         return this.plugin;
     }
 
+    getRootBox() {
+        return this.getPlugin().root;
+    }
+    
     getGuiNode(name) {
         return this.getPlugin().getGuiNode(name);
     }

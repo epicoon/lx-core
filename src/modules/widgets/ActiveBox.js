@@ -103,7 +103,7 @@ class ActiveBox extends lx.Box {
 		this.setBuildMode(true);
 
 		__setHeader(this, config);
-		__setBody(this, config.body || lx.Box);
+		__setBody(this, config);
 
 		if (lx.getFirstDefined(config.resize, self::DEFAULT_RESIZE)) this.setResizer(config);
 		this.adhesive = lx.getFirstDefined(config.adhesive, self::DEFAULT_ADHESIVE);
@@ -218,13 +218,11 @@ function __setHeader(self, config) {
 
 	var text = headerConfig.text || config.header || '';
 	delete headerConfig.text;
-	headerConfig.geom = [
-		lx.ActiveBox.INDENT + 'px',
-		lx.ActiveBox.INDENT + 'px',
-		null,
-		lx.ActiveBox.HEADER_HEIGHT + 'px',
-		lx.ActiveBox.INDENT + 'px',
-	];
+	headerConfig.height = lx.ActiveBox.HEADER_HEIGHT + 'px';
+	headerConfig.style = {
+		position: 'relative',
+		margin: lx.ActiveBox.INDENT + 'px'
+	};
 
 	var header = new lx.Box(headerConfig);
 	header.addClass(self.basicCss.header);
@@ -251,26 +249,35 @@ function __setHeader(self, config) {
 	}
 }
 
-function __setBody(self, constructor) {
-	var config = {};
+function __setBody(self, config) {
+	let constructor = config.body || lx.Box,
+		bodyConfig = {};
 	if (lx.isArray(constructor)) {
-		config = constructor[1];
+		bodyConfig = constructor[1];
 		constructor = constructor[0];
 	}
-	config.parent = self;
-	config.key = 'body';
-	config.geom = [
-		lx.ActiveBox.INDENT + 'px',
-		self.contains('header')
-			? lx.ActiveBox.INDENT * 2 + lx.ActiveBox.HEADER_HEIGHT + 'px'
-			: lx.ActiveBox.INDENT + 'px',
-		null,
-		null,
-		lx.ActiveBox.INDENT + 'px',
-		lx.ActiveBox.INDENT + 'px'
-	];
+	bodyConfig.parent = self;
+	bodyConfig.key = 'body';
+	let geom = lx.PositioningStrategy.geomFromConfig(config);
+	if (geom.h === 'auto') {
+		bodyConfig.style = {
+			position: 'relative',
+			margin: lx.ActiveBox.INDENT + 'px'
+		};
+	} else {
+		bodyConfig.geom = [
+			lx.ActiveBox.INDENT + 'px',
+			self.contains('header')
+				? lx.ActiveBox.INDENT * 2 + lx.ActiveBox.HEADER_HEIGHT + 'px'
+				: lx.ActiveBox.INDENT + 'px',
+			null,
+			null,
+			lx.ActiveBox.INDENT + 'px',
+			lx.ActiveBox.INDENT + 'px'
+		];
+	}
 
-	var body = new constructor(config);
+	var body = new constructor(bodyConfig);
 	body.addClass(self.basicCss.body);
 }
 

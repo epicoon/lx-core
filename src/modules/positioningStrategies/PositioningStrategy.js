@@ -174,10 +174,14 @@ class PositioningStrategy {
 		return this.indents.get(this.owner, format);
 	}
 
+	geomFromConfig(config) {
+		return self::geomFromConfig(config);
+	}
+
 	/**
 	 * Извлекает из конфигурации позиционные параметры
 	 */
-	geomFromConfig(config) {
+	static geomFromConfig(config) {
 		if (lx.isArray(config)) return this.geomFromConfig({
 			left: config[0],
 			right: config[1],

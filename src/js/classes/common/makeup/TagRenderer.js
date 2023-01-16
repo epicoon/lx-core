@@ -3,10 +3,21 @@ class TagRenderer {
     constructor(config) {
         this.plugin = config.plugin || null;
         this.tag = config.tag || 'div';
+        this.id = config.id || null;
+        this.name = config.name || null;
         this.attributes = config.attributes || {};
         this.classList = config.classList || [];
         this.style = config.style || {};
         this.content = config.content || '';
+        this.data = config.data || {};
+    }
+
+    static renderHtml(func) {
+        let temp = new lx.Box({parent:null});
+        temp.begin();
+        func();
+        temp.end();
+        return temp.renderHtml();
     }
 
     getPlugin() {
@@ -22,6 +33,14 @@ class TagRenderer {
     getOpenString() {
         var result = '<' + this.tag;
 
+        if (this.id) {
+            result += ' id="' + this.id + '"';
+        }
+
+        if (this.name) {
+            result += ' name="' + this.name + '"';
+        }
+
         for (var name in this.attributes) {
             result += ' ' + name + (
                 (this.attributes[name] === null || this.attributes[name] === '')
@@ -35,7 +54,7 @@ class TagRenderer {
             result += ' class="' + classList.join(' ') + '"';
         }
 
-        if ( ! this.style.lxEmpty()) {
+        if (!this.style.lxEmpty()) {
             result += ' style="';
             for (var name in this.style) {
                 var val = this.style[name];
@@ -44,6 +63,13 @@ class TagRenderer {
                 result += propName + ':' + val + ';';
             }
             result += '"';
+        }
+
+        if (!this.data.lxEmpty()) {
+            for (let name in this.data) {
+                let value = this.data[name];
+                result += ' data-' + name + '="' + value + '"';
+            }
         }
 
         return result + '>';

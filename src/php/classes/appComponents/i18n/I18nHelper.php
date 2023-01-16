@@ -83,7 +83,9 @@ class I18nHelper
 			$pare = preg_split('/\s*:\s*/', $item);
 			$key = $pare[0];
 			$value = count($pare) > 1 ? $pare[1] : $pare[0];
-			$result[$key] = $value;
+            $key = preg_replace('/(^[\s\r\n]+|[\s\r\n]+$)/', '', $key);
+            $value = preg_replace('/(^[\s\r\n]+|[\s\r\n]+$)/', '', $value);
+            $result[$key] = $value;
 		}
 		return $result;
 	}

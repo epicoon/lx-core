@@ -177,9 +177,11 @@ function __actualizeHandleSize(self) {
         scrollSize = self.target.getScrollSize();
     if (self.isVertical()) {
         let h = Math.floor((c.height('px') * self.height('px')) / scrollSize.height);
+        if (h < 25) h = 25;
         self->handle.height(h + 'px');
     } else {
         let w = Math.floor((c.width('px') * self.width('px')) / scrollSize.width);
+        if (w < 25) w = 25;
         self->handle.width(w + 'px');
     }
 }

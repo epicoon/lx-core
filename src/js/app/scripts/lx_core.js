@@ -124,6 +124,7 @@ lx.getNamespace = function (namespace) {
 };
 
 lx.getClassConstructor = function (fullClassName) {
+    if (this.isFunction(fullClassName)) return fullClassName;
     var arr = fullClassName.split(/[.\\]/),
         name = arr.pop(),
         nmsp = lx.getNamespace(arr);

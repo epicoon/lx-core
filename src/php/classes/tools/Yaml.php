@@ -243,6 +243,10 @@ class Yaml
             if ($len < $min) $min = $len;
         }
 
+        if (is_infinite($min)) {
+            return 4;
+        }
+
         return $min;
     }
 

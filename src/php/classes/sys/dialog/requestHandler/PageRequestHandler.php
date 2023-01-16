@@ -53,9 +53,14 @@ class PageRequestHandler extends RequestHandler
 
         $pageData = $this->extractPageData($pluginData);
         $pluginInfo = addcslashes($pluginData['pluginInfo'], '\\`');
-        list ($moduleNames, $modulesCode) = $this->extractModulesCode($pluginData);
+        list ($compiledModules, $modulesCode) = $this->extractModulesCode($pluginData);
+        $moduleNames = (!empty($compiledModules))
+            ? "'" . implode("','", $compiledModules) . "'"
+            : '';
         $appConfig = CodeConverterHelper::arrayToJsCode(lx::$app->getBuildData());
         $js = "lx.app.start($appConfig, `$modulesCode`, [$moduleNames], `$pluginInfo`);";
+        //TODO костыль, т.к. в PluginBuildContext собираются зависимости от модулей без дерева взаимозависимостей самих модулей
+        $pageData['moduleCss'] = lx::$app->jsModules->getModulesCss($compiledModules);
 
         /** @var HtmlRendererInterface $renderer */
         $renderer = lx::$app->diProcessor->createByInterface(HtmlRendererInterface::class);
@@ -73,14 +78,14 @@ class PageRequestHandler extends RequestHandler
     {
         $moduleNames = $pluginData['modules'];
         $modulesCode = '';
-        $compiledModuleNames = '';
+        $modules = [];
         if (!empty($moduleNames)) {
             $moduleProvider = new JsModuleProvider();
             list ($modulesCode, $modules) = $moduleProvider->compile($moduleNames);
             $modulesCode = addcslashes($modulesCode, '\\`');
             $compiledModuleNames = "'" . implode("','", $modules) . "'";
         }
-        return [$compiledModuleNames, $modulesCode];
+        return [$modules, $modulesCode];
     }
 
     private function extractPageData(array $pluginData): array

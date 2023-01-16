@@ -8,6 +8,7 @@ function __construct(self, config) {
     self.widgetBasicCssList = {};
     self._cssPreset = null;
 
+    self.eventCallbacks = [];
     self.destructCallbacks = [];
     self.namespaces = [];
     self.dependencies = {};
@@ -60,6 +61,8 @@ function __destruct(self) {
 
     // Удаление из списка плагинов
     lx.app.plugins.remove(self);
+
+    self.eventCallbacks = [];
 }
 
 function __init(self, config) {

@@ -68,7 +68,7 @@ class TreeBox extends lx.Box {
 	 *
 	 * @param [config] {Object: {
 	 *     #merge(lx.Rect::constructor::config),
-	 *     [data] {lx.Tree},
+	 *     [tree] {lx.Tree},
 	 *     [indent = 10] {Number},
 	 *     [step = 5] {Number},
 	 *     [leafHeight = 18] {Number},
@@ -96,7 +96,7 @@ class TreeBox extends lx.Box {
 
 		this.beforeAddLeafHandler = config.befroeAddLeaf || null;
 		this.leafRenderer = config.leaf || null;
-		this.data = config.data || new lx.Tree();
+		this.tree = config.tree || new lx.Tree();
 		this.onAddHold = false;
 
 		var w = this.step * 2 + this.leafHeight + this.labelWidth;
@@ -116,7 +116,7 @@ class TreeBox extends lx.Box {
 	}
 
 	#lx:server beforePack() {
-		if (this.data) this.data = (new lx.TreeConverter).treeToJson(this.data);
+		if (this.tree) this.tree = (new lx.TreeConverter).treeToJson(this.tree);
 		if (this.leafRenderer)
 			this.leafRenderer = this.packFunction(this.leafRenderer);
 	}
@@ -142,8 +142,8 @@ class TreeBox extends lx.Box {
 		postUnpack(config) {
 			super.postUnpack(config);
 
-			if (this.data && lx.isString(this.data))
-				this.data = (new lx.TreeConverter).jsonToTree(this.data);
+			if (this.tree && lx.isString(this.tree))
+				this.tree = (new lx.TreeConverter).jsonToTree(this.tree);
 
 			if (this.leafRenderer && lx.isString(this.leafRenderer))
 				this.leafRenderer = this.unpackFunction(this.leafRenderer);
@@ -170,8 +170,8 @@ class TreeBox extends lx.Box {
 			return match;
 		}
 
-		setData(data, forse = false) {
-			this.data = data;
+		setTree(tree, forse = false) {
+			this.tree = tree;
 			this.renew(forse);
 			return this;
 		}
@@ -245,7 +245,7 @@ class TreeBox extends lx.Box {
 		}
 
 		prepareRoot() {
-			this.createLeafs(this.data);
+			this.createLeafs(this.tree);
 			var work = this->work;
 
 			if (this.rootAddAllowed && !work.contains('submenu')) {
@@ -261,8 +261,8 @@ class TreeBox extends lx.Box {
 			}
 		}
 
-		createLeafs(data, before) {
-			if (!data || !(data instanceof lx.Tree)) return;
+		createLeafs(tree, before) {
+			if (!tree || !(tree instanceof lx.Tree)) return;
 
 			var config = {
 				parent: this->work,
@@ -271,9 +271,9 @@ class TreeBox extends lx.Box {
 			};
 			if (before) config.before = before;
 
-			var result = TreeLeaf.construct(data.count(), config, {
+			var result = TreeLeaf.construct(tree.count(), config, {
 				preBuild:(config,i)=>{
-					config.node = data.getNth(i);
+					config.node = tree.getNth(i);
 					return config;
 				},
 				postBuild:elem=>{
@@ -476,7 +476,7 @@ function __handlerToggleOpened(event) {
 function __handlerAddNode() {
 	const tw = this.ancestor({is: lx.TreeBox}),
 		isRootAdding = (this.key == 'add'),
-		pNode = isRootAdding ? tw.data : this.parent.node;
+		pNode = isRootAdding ? tw.tree : this.parent.node;
 
 	let obj = null;
 	if (tw.beforeAddLeafHandler)

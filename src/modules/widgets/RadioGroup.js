@@ -26,20 +26,19 @@ class RadioGroup extends lx.LabeledGroup {
 			let radio = w.add(lx.Radio, {key: 'radio'});
 			w.align(lx.CENTER, lx.MIDDLE);
 		});
+		this._value = 0;
 		this.value(config.defaultValue || 0);
 	}
 
 	#lx:client clientBuild(config) {
 		super.clientBuild(config);
-		this.radios().forEach(a=>a.on('change', _handler_onChange));
+		this.radios().forEach(r=>{
+			r.on('click', ()=>_handler_onChange(this, r));
+		});
 		this.labels().forEach(l=>{
 			l.style('cursor', 'pointer');
 			l.on('mousedown', lx.preventDefault);
-			l.on('click', (e)=>{
-				let radio = this.radio(l.index);
-				radio.todgle();
-				_handler_onChange.call(radio, e);
-			});
+			l.on('click', ()=>_handler_onChange(this, this.radio(l.index)));
 		});
 	}
 
@@ -52,41 +51,34 @@ class RadioGroup extends lx.LabeledGroup {
 	}
 
 	value(num) {
-		if (num === undefined) {
-			var result = null;
-			this.radios().forEach(function(a) {
-				if (a.value()) {
-					result = a.parent.index;
-					this.stop();
-				}
-			});
-			return result;
-		}
+		if (num === undefined) return this._value;
 
 		if (!num) num = 0;
-
 		this.radios().forEach(a=>a.value(false));
 		this.radio(num).value(true);
+		this._value = num;
 	}
 }
 
 
-/***********************************************************************************************************************
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * PRIVATE
- **********************************************************************************************************************/
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #lx:client {
-	function _handler_onChange(e) {
-		// если клик пытается снять выделение - для группы радио так нельзя
-		// только переместить выделение на другой элемент
-		if (!this.value()) {
-			this.value(true);
+	function _handler_onChange(group, radio) {
+		let index = radio.parent.index;
+		if (index == group.value()) {
+			radio.value(true);
 			return;
 		}
 
-		var group = this.parent.parent,
-			index = this.parent.index;
-		this.value(false);
+		let oldValue = group.value();
+		radio.value(false);
 		group.value(index);
+		group.trigger('change', group.newEvent({
+			oldValue,
+			newValue: index
+		}));
 	}
 }

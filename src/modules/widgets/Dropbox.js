@@ -92,14 +92,14 @@ class Dropbox extends lx.Box {
 				css: this.basicCss.button,
 			});
 
-		this.data = config.options || [];
+		this._options = config.options || [];
 		this.value(config.value !== undefined ? config.value : null);
 	}
 
 	#lx:client {
 		clientBuild(config) {
 			super.clientBuild(config);
-			this.data = lx.Dict.create(this.data);
+			this._options = lx.Dict.create(this._options);
 			this.click(_handler_open);
 			if (this.contains('button'))
 				this->button.click(_handler_toggle);
@@ -107,7 +107,7 @@ class Dropbox extends lx.Box {
 
 		postUnpack(config) {
 			super.postUnpack(config);
-			this.data = lx.Dict.create(this.data);
+			this._options = lx.Dict.create(this._options);
 		}
 
 		close() {
@@ -119,7 +119,7 @@ class Dropbox extends lx.Box {
 		}
 
 		option(index) {
-			return this.data.nth(index)
+			return this._options.nth(index)
 		}
 
 		static getOpened() {
@@ -131,20 +131,20 @@ class Dropbox extends lx.Box {
 	 * Выбор по индексу, даже если опции - ассоциативный массив
 	 * */
 	select(index) {
-		this.value(this.data.nthKey(index));
+		this.value(this._options.nthKey(index));
 	}
 
-	options(data) {
-		if (data === undefined) return this.data;
-		#lx:server { this.data = data; }
-		#lx:client { this.data = lx.Dict.create(data); }
+	options(options) {
+		if (options === undefined) return this._options;
+		#lx:server { this._options = options; }
+		#lx:client { this._options = lx.Dict.create(options); }
 		return this;
 	}
 
 	selectedText() {
 		if (this.valueKey === null || this.valueKey === '') return '';
 
-		return this.data[this.valueKey];
+		return this._options[this.valueKey];
 	}
 
 	value(key) {
@@ -211,26 +211,26 @@ class Dropbox extends lx.Box {
 	 * Инициализируем таблицу данными выделенного дропбокса
 	 * */
 	function __initOptions(self) {
-		var options = __getOptions();
+		var optionsTable = __getOptions();
 
-		options.width( self.width('px')+'px' );
+		optionsTable.width( self.width('px')+'px' );
 
-		var data = [];
-		for (var key in self.data) {
-			data.push(self.data[key]);
+		var options = [];
+		for (var key in self._options) {
+			options.push(self._options[key]);
 		}
 
-		options.resetContent(data, true);
+		optionsTable.resetContent(options, true);
 
-		options.cells().forEach(child=>{
+		optionsTable.cells().forEach(child=>{
 			child.align(lx.CENTER, lx.MIDDLE);
 			child.click(_handler_choose);
 			child.addClass(self.basicCss.option);
 		});
 
-		options.satelliteTo(self);
+		optionsTable.satelliteTo(self);
 
-		return options;
+		return optionsTable;
 	}
 
 	/**

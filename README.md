@@ -353,13 +353,13 @@ Of all the elements of the architecture a service and a plugin are configurable 
     {
       path: 'pathToSnippet1',
       widget: lx.ActiveBox,
-      // ... конфигурирование виджета
+      // ... widget configuring
       attributes: {/*...*/}
     },
     {
       path: 'pathToSnippet2',
       widget: lx.ActiveBox,
-      // ... конфигурирование виджета
+      // ... widget configuring
       attributes: {/*...*/}
     }
   ]);

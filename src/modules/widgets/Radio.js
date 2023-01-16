@@ -21,7 +21,8 @@ class Radio extends lx.Checkbox {
 			width: '16px',
 			height: '16px',
 			borderRadius: '50%',
-			backgroundColor: 'white'
+			backgroundColor: 'white',
+			cursor: 'pointer'
 		}, {
 			hover: {
 				boxShadow: '0 0 6px ' + css.preset.widgetIconColor,

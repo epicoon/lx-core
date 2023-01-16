@@ -17,6 +17,8 @@ class Snippet {
         this.plugins = [];  // зависимости от плагинов
     }
 
+    #lx:require ../src/Snippet;
+
     get widget() {
         return this._widget;
     }
@@ -31,57 +33,6 @@ class Snippet {
         data = re(data);
 
         this.plugins.push(data);
-    }
-
-    addSnippet(snippetPath, config = {}) {
-        var widgetClass = config.widget || lx.Box;
-        var attributes = config.lxExtract('attributes') || {};
-        var config = (config.config) ? config.config : config;
-        if (!config.key) {
-            // слэши заменяются, т.к. в имени задается путь и может их содержать, а ключ должен быль одним словом
-            config.key = lx.isString(snippetPath)
-                ? snippetPath.replace('/', '_')
-                : snippetPath.snippet.replace('/', '_');
-        }
-
-        var widget = new widgetClass(config);
-
-        widget.setSnippet({
-            path: snippetPath,
-            attributes
-        });
-        return widget.snippet;
-    }
-
-    addSnippets(list, commonPath = '') {
-        var result = [];
-        for (var key in list) {
-            var snippetConfig = list[key],
-                path = '';
-
-            if (lx.isNumber(key)) {
-                if (lx.isObject(snippetConfig)) {
-                    if (!snippetConfig.path) continue;
-                    path = snippetConfig.path;
-                } else if (lx.isString(snippetConfig)) {
-                    path = snippetConfig;
-                    snippetConfig = {};
-                } else continue;
-            } else if (lx.isString(key)) {
-                path = key;
-                if (!lx.isObject(snippetConfig)) snippetConfig = {};
-            }
-
-            if (snippetConfig.config) snippetConfig.config.key = path;
-            else snippetConfig.key = path;
-
-            var snippetPath = lx.isString(path)
-                ? commonPath + path
-                : path;
-            result.push(this.addSnippet(snippetPath, snippetConfig));
-        }
-
-        return result;
     }
 
     onLoad(code) {

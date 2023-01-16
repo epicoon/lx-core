@@ -204,6 +204,10 @@ function __bindMatrix(c, widget, type=BIND_TYPE_FULL) {
 		c.beforeMethod('reset', ()=>widget.useRenderCache());
 		c.afterMethod('reset', ()=>widget.applyRenderCache());
 	}
+	if (widget.positioning().lxClassName() == 'StreamPositioningStrategy') {
+		widget.on('beforeStreamContentRelocation', __beforeStreamContentRelocation);
+		widget.on('afterStreamContentRelocation', __afterStreamContentRelocation);
+	}
 }
 
 function __unbindMatrix(widget) {
@@ -484,7 +488,7 @@ function __matrixInsertNewBox(w, obj, index, type) {
 }
 
 function __matrixHandlerOnAdd(obj = null) {
-	if (this._lxMatrixBindId === undefined) return;
+	if (this._lxMatrixBindId === undefined || this._lxMatrixBindLocked) return;
 	var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
 	widgets.forEach(w=>__matrixNewBox(w, this.last(), __matrixBinds[this._lxMatrixBindId].type));
 }
@@ -505,7 +509,7 @@ function __matrixHandlerOnRemove(i) {
 }
 
 function __matrixHandlerOnClear() {
-	if (this._lxMatrixBindId === undefined) return;
+	if (this._lxMatrixBindId === undefined || this._lxMatrixBindLocked) return;
 
 	var widgets = __matrixBinds[this._lxMatrixBindId].widgets;
 	widgets.forEach(w=>{
@@ -527,4 +531,22 @@ function __matrixHandlerOnSet(i, obj) {
 	widgets.lxForEachRevert((w)=>{
 		__bind(this.at(i), w.getAll('r').at(i), type);
 	});
+}
+
+function __beforeStreamContentRelocation() {
+	let c = __getMatrixCollection(this);
+	c._lxMatrixBindLocked = true;
+	this.getChildren(child=>{
+		child._lxMatrixModel = child.matrixModel();
+	});
+}
+
+function __afterStreamContentRelocation() {
+	let c = __getMatrixCollection(this);
+	c.clear();
+	this.getChildren(child=>{
+		c.add(child._lxMatrixModel);
+		delete child._lxMatrixModel;
+	});
+	delete c._lxMatrixBindLocked;
 }

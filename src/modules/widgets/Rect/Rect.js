@@ -166,8 +166,8 @@ class Rect extends lx.Module {
             return;
         }
 
-        var tag = config.tag || self::getStaticTag();
-        this.domElem = new lx.DomElementDefinition(this, tag);
+        config.tag = config.tag || self::getStaticTag();
+        this.domElem = new lx.DomElementDefinition(this, config);
 
         if (config.key) this.key = config.key;
         else if (config.field) this.key = config.field;
@@ -185,6 +185,7 @@ class Rect extends lx.Module {
      *	move | parentResize | parentMove
      * */
     applyConfig(config={}) {
+        if (config.data) this.data = data;
         if (config.field) this._field = config.field;
         if (config.html) this.html(config.html);
 
@@ -294,14 +295,13 @@ class Rect extends lx.Module {
             el.domElem = new lx.DomElementDefinition(el);
             el.domElem.setElem(elem);
 
-            var data = elem.getAttribute('lx-data');
-            if (data) {
-                var arr = data.split(/\s*,\s*/);
-                arr.forEach(pare=>{
-                    pare = pare.split(/\s*:\s*/);
-                    if (!(pare[0] in el)) el[pare[0]] = pare[1];
-                });
+            let data = {};
+            for (let i = 0, n = elem.attributes.length; i < n; i++) {
+                let name = elem.attributes[i].nodeName;
+                if (name.match(/^data-/)) data[name.replace(/^data-/, '')] = elem.attributes[i].nodeValue
             }
+            if (!data.lxEmpty()) el.data = data;
+
             return el;
         }
     }
@@ -338,6 +338,10 @@ class Rect extends lx.Module {
 
     static resetAutoParent() {
         __autoParentStack = [];
+    }
+
+    renderHtml() {
+        return this.domElem.content;
     }
 
     bind(model, type=lx.app.binder.BIND_TYPE_FULL) {
@@ -600,6 +604,8 @@ class Rect extends lx.Module {
     }
 
     overflow(val) {
+        if (val === undefined)
+            return this.style('overflow');
         this.domElem.style('overflow', val);
         return this;
     }
@@ -1141,14 +1147,32 @@ class Rect extends lx.Module {
     isDisplay() {
         if (!this.visibility()) return false;
 
-        var r = this.getGlobalRect(),
-            w = document.documentElement.scrollWidth,
-            h = document.documentElement.scrollHeight;
+        let r = this.getGlobalRect(), w, h,
+            temp = this.parent,
+            box = null;
+        while (temp) {
+            if (temp.overflow() == 'auto') {
+                box = temp;
+                break;
+            }
+            temp = temp.parent;
+        }
 
-        if (r.top > h) return false;
-        if (r.bottom > h) return false;
-        if (r.left > w) return false;
-        if (r.right > w) return false;
+        if (box) {
+            let rect = box.getGlobalRect();
+            if (r.top > rect.top + rect.height) return false;
+            if (r.top + r.height < rect.top) return false;
+            if (r.left > rect.left + rect.width) return false;
+            if (r.left + r.width < rect.left) return false;
+        } else {
+            w = document.documentElement.scrollWidth;
+            h = document.documentElement.scrollHeight;
+            if (r.top > h) return false;
+            if (r.bottom > h) return false;
+            if (r.left > w) return false;
+            if (r.right > w) return false;
+        }
+
         return true;
     }
 
@@ -1288,10 +1312,10 @@ class Rect extends lx.Module {
             this.innerValue = valFunc;
 
             // Определяем - может ли переданная функция возвращать значение (кроме как устанавливать)
-            var str = func.toString(),
+            let str = func.toString(),
                 argName = (str[0] == '(')
                     ? str.match(/^\((.*?)(?:,|\))/)[1]
-                    : str.match(/(?:^([\w\d_]+?)=>|^function\s*\((.*?)(?:,|\)))/)[1],
+                    : str.match(/(?:^([\w\d_]+?)=>|^function\s*[^\(]*\((.*?)(?:,|\)))/)[1],
                 reg = new RegExp('if\\s*\\(\\s*' + argName + '\\s*===\\s*undefined'),
                 isCallable = (str.match(reg) !== null);
 
@@ -1623,21 +1647,28 @@ class Rect extends lx.Module {
                 return res;
             }
 
-            if (this.getCommonEventNames().includes(eventName)) {
+            if (self::getCommonEventNames().includes(eventName)) {
                 var events = this.elem ? this.elem.events : this.domElem.events;
                 if (!events || !(eventName in events)) return;
                 return runEventHandlers(this, events[eventName], event);
             }
 
-            var elem = this.getDomElem();
+            let elem = this.getDomElem();
             if (!elem) return;
-            if (this.disabled() || !elem.events || !(eventName in elem.events)) return;
+            let disabled = (self::getEnabledEventNames().includes(eventName))
+                ? false
+                : this.disabled();
+            if (disabled || !elem.events || !(eventName in elem.events)) return;
 
             return runEventHandlers(this, elem.events[eventName], event);
         }
     }
 
-    getCommonEventNames() {
+    static getEnabledEventNames() {
+        return ['display', 'displayin', 'displayout'];
+    }
+
+    static getCommonEventNames() {
         return [];
     }
 
@@ -1902,10 +1933,11 @@ function __getWidth(self, format) {
     var elem = self.getDomElem();
     if (!elem) return null;
 
-    if (!self.domElem.parent) {
+    if (!self.domElem.parent || !self.domElem.parent.getDomElem()) {
         if (format == '%') return 100;
         return elem.offsetWidth;
     }
+
     return __calcGeomParam(format, elem.style.width,
         elem.offsetWidth, self.domElem.parent.getDomElem().offsetWidth);
 }
@@ -1916,7 +1948,7 @@ function __getHeight(self, format) {
     var elem = self.getDomElem();
     if (!elem) return null;
 
-    if (!self.domElem.parent) {
+    if (!self.domElem.parent || !self.domElem.parent.getDomElem()) {
         if (format == '%') return 100;
         return elem.offsetHeight;
     }

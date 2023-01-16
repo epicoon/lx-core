@@ -158,11 +158,15 @@ class Model extends lx.Object {
 	static defaultBooleanFieldValue() { return false; }
 	static defaultUntypedFieldValue() { return 0; }
 
+	static __getSchema() {
+		return {};
+	}
+	
 	/**
 	 * Метод, автоматически вызываемый после определения класса
 	 * */
 	static __afterDefinition() {
-		if (this.lxHasMethod('__setSchema')) this.__setSchema();
+		this.initSchema(this.__getSchema());
 		super.__afterDefinition();
 	}
 

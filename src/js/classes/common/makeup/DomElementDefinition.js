@@ -1,12 +1,13 @@
 #lx:namespace lx;
 class DomElementDefinition {
-	constructor(owner, tag) {
+	constructor(owner, config = {}) {
 		this.owner = owner;
 		this.elem = null;
 		this.parent = null;
 
-		if (tag === undefined) return;
-		this.tag = tag;
+		this.tag = config.tag || 'div';
+		this.id = config.id || null;
+		this.name = config.name || null;
 		this.classList = [];
 		this.attributes = {};
 		this.styleList = {};
@@ -15,6 +16,10 @@ class DomElementDefinition {
 		this.events = {};
 		this.actions = [];
 		this.next = null;
+
+		if (config.data)
+			for (let i in config.data)
+				this.attributes['data-' + i] = config.data[i];
 	}
 
 	#lx:client {
@@ -227,6 +232,8 @@ class DomElementDefinition {
 	getHtmlStringBegin() {
 		var tag = new lx.TagRenderer({
 			tag: this.tag,
+			id: this.id,
+			name: this.name,
 			attributes: this.attributes,
 			classList: this.classList,
 			style: this.styleList
@@ -251,9 +258,9 @@ class DomElementDefinition {
 	}
 
 	
-	/*******************************************************************************************************************
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * CLIENT ONLY
-	 ******************************************************************************************************************/
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 	#lx:client {
 		rendered() {
 			return this.elem !== null;

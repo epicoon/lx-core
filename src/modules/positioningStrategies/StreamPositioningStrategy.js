@@ -27,6 +27,7 @@ class StreamPositioningStrategy extends lx.PositioningStrategy {
 	 *         lx.HORIZONTAL,
 	 *         lx.VERTICAL
 	 *     )} [direction = lx.VERTICAL],
+	 *     {String} [css],
 	 *     {String} [width = lx.StreamPositioningStrategy.COLUMN_DEFAULT_WIDTH],
 	 *     {String} [height = lx.StreamPositioningStrategy.ROW_DEFAULT_HEIGHT],
 	 *     {String} [minWidth = lx.StreamPositioningStrategy.COLUMN_MIN_WIDTH],
@@ -67,6 +68,7 @@ class StreamPositioningStrategy extends lx.PositioningStrategy {
 			}
 		}
 
+		this.css = lx.getFirstDefined(config.css, null);
 		this.minWidth = lx.getFirstDefined(config.minWidth, null);
 		this.minHeight = lx.getFirstDefined(config.minHeight, null);
 		this.maxWidth = lx.getFirstDefined(config.maxWidth, null);
@@ -76,9 +78,9 @@ class StreamPositioningStrategy extends lx.PositioningStrategy {
 
 	#lx:server packProcess() {
 		var str = ';t:' + this.type + ';d:' + this.direction;
-		if (this.rowDefaultHeight)
+		if (this.rowDefaultHeight !== undefined)
 			str += ';rdh:' + this.rowDefaultHeight;
-		if (this.columnDefaultWidth)
+		if (this.columnDefaultWidth !== undefined)
 			str += ';rdc:' + this.columnDefaultWidth;
 		if (this.minWidth !== null)
 			str += ';mw:' + this.minWidth;
@@ -88,18 +90,25 @@ class StreamPositioningStrategy extends lx.PositioningStrategy {
 			str += ';maw:' + this.maxWidth;
 		if (this.maxHeight !== null)
 			str += ';mah:' + this.maxHeight;
+		if (this.css !== null)
+			str += ';css:' + this.css;
 		return str;
 	}
 
 	#lx:client unpackProcess(config) {
 		this.type = +config.t || self::TYPE_SIMPLE;
 		this.direction = +config.d;
-		if (config.rdh) this.rowDefaultHeight = config.rdh;
-		if (config.rdc) this.columnDefaultWidth = config.rdc;
+		if (config.rdh) this.rowDefaultHeight == 'null'
+			? this.rowDefaultHeight = null
+			: this.rowDefaultHeight = config.rdh;
+		if (config.rdc) this.columnDefaultWidth == 'null'
+			? this.columnDefaultWidth = null
+			: this.columnDefaultWidth = config.rdc;
 		if (config.mw !== undefined) this.minWidth = config.mw;
 		if (config.mh !== undefined) this.minHeight = config.mh;
 		if (config.maw !== undefined) this.maxWidth = config.maw;
 		if (config.mah !== undefined) this.maxHeight = config.mah;
+		if (config.css !== undefined) this.css = config.css;
 		this.sequense = Sequense.create(this);
 	}
 
@@ -133,6 +142,7 @@ class StreamPositioningStrategy extends lx.PositioningStrategy {
 		var geom = this.geomFromConfig(config, elem);
 		if (geom.h) this.tryReposition(elem, lx.HEIGHT, geom.h);
 		else if (geom.w) this.tryReposition(elem, lx.WIDTH, geom.w);
+		if (this.css) elem.addClass(this.css);
 	}
 
 	onDel() {

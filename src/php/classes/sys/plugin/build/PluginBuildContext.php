@@ -142,10 +142,10 @@ class PluginBuildContext implements ContextTreeInterface
 
         $plugin->beforeCompile();
         $assetProvider = new PluginAssetProvider($plugin);
-        $this->scripts = $assetProvider->getPluginScripts();
         $this->pluginCss = $assetProvider->getPluginCss();
         $this->compileSnippet();
         $this->compileMainJs();
+        $this->scripts = $assetProvider->getPluginScripts();
 
         $dependencies = $this->jsCompiler->getDependencies() ?? new JsCompileDependencies();
 
@@ -266,14 +266,18 @@ class PluginBuildContext implements ContextTreeInterface
             return;
         }
 
-        $require = $plugin->getConfig('require');
+        $require = array_merge(
+            $plugin->getConfig('require') ?? [],
+            $plugin->getConfig('requireForClient') ?? []
+        );
         $core = $plugin->getConfig('core');
         $cssAssets = (lx::$app->cssManager->getBuildType() === CssManager::BUILD_TYPE_NONE)
             ? $plugin->getConfig('cssAssets')
             : null;
         $guiNodes = $plugin->getConfig('guiNodes');
 
-        if ($require) {
+        if (!empty($require)) {
+            $require = $plugin->conductor->defineClientPluginRequires($require);
             $requireStr = '';
             foreach ($require as $item) {
                 $requireStr .= "#lx:require $item;";

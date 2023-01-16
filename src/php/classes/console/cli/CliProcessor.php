@@ -592,6 +592,10 @@ class CliProcessor
         }
 
         $plugin = lx::$app->getPlugin($name);
+        if (!$plugin && $this->service !== null) {
+            $name = $this->service->name . ':' . $name;
+            $plugin = lx::$app->getPlugin($name);
+        }
         if ($plugin) {
             $this->service = $plugin->getService();
             $this->plugin = $plugin;

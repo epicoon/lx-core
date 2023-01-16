@@ -108,13 +108,14 @@ class Timer {
 	 * Используется системой - вызывается при каждом обновлении фрейма
 	 * */
 	go() {
-		this._action();
+		this._action.call(this);
 		var action = __action(this);
 		if (lx.isFunction(action)) action.call(this);
+		if (!this.inAction) return;
 
 		if (this.periodEnds()) {
 			this.periodCounter++;
-			this._iteration();
+			this._iteration.call(this);
 
 			if (this.periodDuration && lx.isArray(this.periodDuration)) {
 				this.periodIndex++;

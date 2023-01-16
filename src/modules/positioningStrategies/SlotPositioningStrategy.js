@@ -22,10 +22,6 @@ todo - можно добавить фиксированную высоту, чт
 class SlotPositioningStrategy extends lx.PositioningStrategy {
 	constructor(owner, config) {
 		super(owner);
-
-		this.innerFormat = lx.PositioningStrategy.FORMAT_PX;
-		this.defaultFormat = lx.PositioningStrategy.FORMAT_PX;
-
 		if (config) this.init(config);
 	}
 
@@ -65,6 +61,7 @@ class SlotPositioningStrategy extends lx.PositioningStrategy {
 		type.construct(count, { key:'s', parent:this.owner });
 
 		#lx:server{ this.needJsActualize = 1; }
+		#lx:client{ this.actualize(); }
 	}
 
 	#lx:server packProcess() {
