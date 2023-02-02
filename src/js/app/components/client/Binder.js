@@ -520,7 +520,7 @@ function __matrixHandlerOnClear() {
 			this.next();
 		}
 		w.del('r');
-		if (w.isEmpty()) w.positioning().reset();
+		if (w.isEmpty()) w.positioning().onClearOwner();
 	});
 }
 

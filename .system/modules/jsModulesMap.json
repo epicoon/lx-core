@@ -166,6 +166,10 @@
         "name": "lx.LanguageSwitcher",
         "path": "src\/modules\/widgets\/LanguageSwitcher.js"
     },
+    "lx.Marks": {
+        "name": "lx.Marks",
+        "path": "src\/modules\/widgets\/Marks.js"
+    },
     "lx.ModelCollectionGrid": {
         "name": "lx.ModelCollectionGrid",
         "path": "src\/modules\/widgets\/ModelCollectionGrid.js"

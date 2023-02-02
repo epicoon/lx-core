@@ -14,6 +14,7 @@
  * @content-disallowed
  * 
  * @events [
+ *     change,
  *     opened,
  *     closed
  * ]
@@ -159,9 +160,9 @@ class Dropbox extends lx.Box {
 	}
 }
 
-/***********************************************************************************************************************
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * PRIVATE
- **********************************************************************************************************************/
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #lx:client {
 	function _handler_open(event) {
@@ -209,14 +210,14 @@ class Dropbox extends lx.Box {
 
 	/**
 	 * Инициализируем таблицу данными выделенного дропбокса
-	 * */
+	 */
 	function __initOptions(self) {
 		var optionsTable = __getOptions();
 
 		optionsTable.width( self.width('px')+'px' );
 
 		var options = [];
-		for (var key in self._options) {
+		for (let key in self._options) {
 			options.push(self._options[key]);
 		}
 
@@ -235,7 +236,7 @@ class Dropbox extends lx.Box {
 
 	/**
 	 * Находим или создаем верстку для таблицы опций
-	 * */
+	 */
 	function __getOptions() {
 		if (__options) return __options;
 
@@ -251,7 +252,7 @@ class Dropbox extends lx.Box {
 
 	/**
 	 * Создаем верстку для таблицы опций
-	 * */
+	 */
 	function __createOptions() {
 		var tab = new lx.Table({
 			parent: lx.body,

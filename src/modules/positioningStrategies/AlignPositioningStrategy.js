@@ -27,7 +27,7 @@ class AlignPositioningStrategy extends lx.PositioningStrategy {
 	 *     #merge(lx.IndentData::constructor::config)
 	 * }}
 	 */
-	init(config = {}) {
+	applyConfig(config = {}) {
 		this.direction = config.direction || lx.HORIZONTAL;
 		this.horizontal = config.horizontal || lx.CENTER;
 		this.vertical = config.vertical || lx.MIDDLE;

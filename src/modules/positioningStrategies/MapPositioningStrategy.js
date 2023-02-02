@@ -17,18 +17,18 @@ class MapPositioningStrategy extends lx.PositioningStrategy {
 	 * @param [config = {}] {
 	 *     String&Enum('%', 'px')
 	 *     |Object: {
-	 *         {String&Enum('%', 'px')} format
+	 *         format {String&Enum('%', 'px')}
 	 *     }
 	 *     |Object: {
-	 *         {Number&Enum(
+	 *         format {Number&Enum(
 	 *             lx.MapPositioningStrategy.FORMAT_PERCENT,
 	 *             lx.MapPositioningStrategy.FORMAT_PX,
 	 *             lx.MapPositioningStrategy.FORMAT_FREE
-	 *         )} format
+	 *         )}
 	 *     }
 	 * }
 	 */
-	init(config = {}) {
+	applyConfig(config = {}) {
 		if (!lx.isObject(config))
 			config = {format: config};
 		if (config.format == '%') config.format = self::FORMAT_PERCENT;
@@ -139,9 +139,13 @@ function __setParam(self, container, elem, param, val, format) {
  */
 function __getFormatText(self, format) {
 	if (format == lx.MapPositioningStrategy.FORMAT_FREE)
-		format = self.format == lx.MapPositioningStrategy.FORMAT_FREE
+		format = (self.format == lx.MapPositioningStrategy.FORMAT_FREE)
 			? self.defaultFormat
 			: self.format;
+	return __formatToText(format);
+}
+
+function __formatToText(format) {
 	if (format == lx.MapPositioningStrategy.FORMAT_PERCENT) return '%';
 	if (format == lx.MapPositioningStrategy.FORMAT_PX) return 'px';
 	return '';

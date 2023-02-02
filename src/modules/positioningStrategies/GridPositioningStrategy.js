@@ -92,7 +92,7 @@ class GridPositioningStrategy extends lx.PositioningStrategy {
 	 *     #merge(lx.IndentData::constructor::config)
 	 * }}
 	 */
-	init(config={}) {
+	applyConfig(config={}) {
 		//TODO direction?
 		this.type = config.type || self::TYPE_SIMPLE;
 		if (this.type !== self::TYPE_ADAPTIVE)
@@ -177,7 +177,7 @@ class GridPositioningStrategy extends lx.PositioningStrategy {
 				: lx.BitMap.createFromString(config.m);
 	}
 
-	reset() {
+	onClearOwner() {
 		if (this.map) this.map.fullReset();
 	}
 

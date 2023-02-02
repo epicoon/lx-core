@@ -1,6 +1,8 @@
 #lx:module lx.MultiBox;
 
 #lx:use lx.Box;
+#lx:use lx.Marks;
+#lx:use lx.JointMover;
 
 /**
  * @widget lx.MultiBox
@@ -11,33 +13,28 @@
  *     unselected,
  *     sheetOpened,
  *     sheetClosed,
- *     selectionChange
+ *     selectionChange,
+ *     markAppended,
+ *     beforeDropMark,
+ *     markDropped
  * ]
  */
 #lx:namespace lx;
 class MultiBox extends lx.Box {
 	#lx:const
-		MODE_UNI_SHEET = 1,
-		MODE_MULTI_SHEET = 2,
-		MARK_HEIGHT = 40,
-		MARK_WIDTH = 200,
-		INDENT = 10;
+		STYLE_JUSTIFY = 1,
+		STYLE_STREAM = 2,
+		MARKS_HEIGHT = 60,
+		MARKS_WIDTH = 200;
 
 	getBasicCss() {
 		return {
 			main: 'lx-MultiBox',
-			mark: 'lx-MultiBox-mark',
-			active: 'lx-MultiBox-active'
 		};
 	}
 
 	static initCss(css) {
 		css.inheritClass('lx-MultiBox', 'AbstractBox');
-		css.inheritClass('lx-MultiBox-mark', 'ActiveButton');
-		css.addClass('lx-MultiBox-active', {
-			backgroundColor: css.preset.checkedDarkColor,
-			color: css.preset.checkedSoftColor
-		});
 	}
 
 	/**
@@ -45,326 +42,270 @@ class MultiBox extends lx.Box {
 	 *
 	 * @param [config] {Object: {
 	 *     #merge(lx.Rect::constructor::config),
-	 *     [mode = lx.MultiBox.MODE_UNI_SHEET] {Number&Enum(
-	 *         lx.MultiBox.MODE_UNI_SHEET,
-	 *         lx.MultiBox.MODE_MULTI_SHEET
-	 *     )}
-	 *     [markWidth = lx.MultiBox.MARK_WIDTH] {Number},
-	 *     [markHeight = lx.MultiBox.MARK_HEIGHT] {Number},
-	 *     [indent = lx.MultiBox.INDENT] {Number},
-	 *     [marks] {Array<lx.Box>|lx.Collection},
-	 *     [template] {Object: {
-	 *         [position = lx.TOP] {Number&Enum(
-	 *             lx.TOP,
-	 *             lx.BOTTOM,
-	 *             lx.LEFT,
-	 *             lx.RIGHT
-	 *         )},
-	 *         [rows = 1] {Number},
-	 *         [cols] {Number}
-	 *     }},
-	 *     [sheets] {lx.Rect, lx.Collection} (:
-	 *         if lx.Rect is the parent for the sheets,
-	 *         if lx.Collection is the sheets
-	 *     :),
+	 *     [marksStyle = lx.MultiBox.STYLE_JUSTIFY] {Number&Enum(
+	 *         lx.MultiBox.STYLE_JUSTIFY,
+	 *         lx.MultiBox.STYLE_STREAM
+	 *     )},
+	 *     [marks] {Array<String>|Object: #schema(lx.Marks::build::config)},
+	 *     [marksPosition = lx.TOP] {Number&Enum(
+	 *         lx.TOP,
+	 *         lx.BOTTOM,
+	 *         lx.LEFT,
+	 *         lx.RIGHT
+	 *     )},
+	 *     [marksWidth = lx.MultiBox.MARKS_WIDTH] {Number} (: for marks position lx.LEFT and lx.RIGHT :),
+	 *     [marksHeight = lx.MultiBox.MARKS_HEIGHT] {Number} (: for marks position lx.TOP and lx.BOTTOM :),
+	 *     [appendAllowed = false] {Boolean} (: Opportunity to add single marks :),
+	 *     [dropAllowed = false] {Boolean} (: Opportunity to remove single marks :),
 	 *     [animation = false] {Boolean|Number} (: if Number is milliseconds :)
+	 *     [joint = false] {Boolean} (: add lx.JointMover between :)
 	 * }}
 	 */
 	build(config) {
-		this.mode = config.mode || self::MODE_UNI_SHEET;
+		super.build(config);
 
-		var marks = config.marks;
-		if (!marks) return;
+		let marksConfig = config.marks || [];
+		if (lx.isArray(marksConfig)) marksConfig = {marks:marksConfig};
+		if (config.appendAllowed) marksConfig.appendAllowed = config.appendAllowed;
+		if (config.dropAllowed) marksConfig.dropAllowed = config.dropAllowed;
+		if (config.animation) marksConfig.animation = config.animation;
 
-		var template = __defineTemplate(config);
-		var configArr = __defineMarksConfig(this, config, template);
+		this.marksWidth = config.marksWidth || lx.MultiBox.MARKS_WIDTH + 'px';
+		this.marksHeight = config.marksHeight || lx.MultiBox.MARKS_HEIGHT + 'px';
 
-		var marksBox = new lx.Box(configArr.marksBoxCofig);
-		var step = config.indent || self::INDENT;
-		marksBox.gridProportional({
-			cols: template.cols,
-			rows: template.rows,
-			indent: step + 'px'
-		});
-		this.marks = lx.Box.construct(marks.len, {parent:marksBox, key:'mark'}, {postBuild:(a, i)=>a.text(marks[i])});
-		this.marks.forEach(mark=>{
-			mark.addClass(this.basicCss.mark);
-			mark.checked = false;
-		});
+		let marksBox = this.add(lx.Box, {key:'marksBox'});
+		marksConfig.key = 'marks';
+		marksConfig.geom = true;
+		marksConfig.autopositioning = false;
 
-		if (config.sheets) {
-			if (config.sheets instanceof lx.Rect)
-				this.sheets = lx.Box.construct(marks.len, {parent: config.sheets, key: 'sheet', geom: true});
-			else if (config.sheets instanceof lx.Collection)
-				this.sheets = config.sheets;
-		}
+		let marks = marksBox.add(lx.Marks, marksConfig);
+		this.add(lx.Box, {key:'sheets'});
+		marks.setSheets(this->sheets);
 
-		if (!this.sheets) {
-			var sheetsBox = new lx.Box({parent: this, key: 'sheets', geom: configArr.sheetsGeom});
-			this.sheets = lx.Box.construct(marks.len, {parent: sheetsBox, key: 'sheet', geom: true});
-		}
+		this.marksPosition = undefined;
+		this.marksStyle = undefined;
+		this.joint = undefined;
+		this.setMarksPosition(config);
+		this.inMove = false;
 
-		this.sheets.forEach(child=>child.hide());
-
-		if (this.mode == self::MODE_UNI_SHEET) this.select(0);
-		if (config.animation) this.animation = config.animation;
+		if (marks.mode == lx.Marks.MODE_UNI_SHEET) marks.open(0);
 	}
 
 	#lx:client clientBuild(config) {
 		super.clientBuild(config);
 
-		if (this.animation) {
-			var duration = lx.isNumber(this.animation) ? this.animation : 300;
-			this.setAnimationOnOpen(duration, _handler_defaultAnimationOnOpen);
-			this.setAnimationOnClose(duration, _handler_defaultAnimationOnClose);
-			delete this.animation;
-		}
+		const marks = this->marksBox->marks;
+		let events = [
+			'selected',
+			'unselected',
+			'sheetOpened',
+			'sheetClosed',
+			'selectionChange',
+			'markAppended',
+			'beforeDropMark',
+			'markDropped'
+		];
+		events.forEach(eName=>marks.on(eName, e=>this.trigger(eName, e)));
 
-		if (this.marks) this.marks.forEach(mark=>{
-			mark.align(lx.CENTER, lx.MIDDLE);
-			mark.on('mousedown', lx.preventDefault);
-			mark.click(_handler_clickMark);
-		});
+		const marksBox = this->marksBox;
+		marksBox.overflow('hidden');
+		__checkSize(this);
+		marks.on('resize', ()=>__checkSize(this));
 	}
 
-	#lx:server beforePack() {
-		var marks = [];
-		if (this.marks) this.marks.forEach(mark=>{
-			let data = {i: mark.renderIndex};			
-			if (mark.condition) data.condition = mark.packFunction(mark.condition);
-			marks.push(data);
-		});
-
-		var sheets = [];
-		if (this.sheets) this.sheets.forEach(sheet=>sheets.push(sheet.renderIndex));
-
-		this.marks = marks;
-		this.sheets = sheets;
+	setMarksPosition(config = {}) {
+		let side = lx.getFirstDefined(config.marksPosition, this.marksStyle, lx.TOP);
+		let marksStyle = lx.getFirstDefined(config.marksStyle, this.marksStyle, self::STYLE_JUSTIFY);
+		let joint = lx.getFirstDefined(config.joint, this.joint, false);
+		__setInnerStructure(this, side, joint);
+		__setMarksPositioning(this, side, marksStyle);
 	}
 
-	#lx:client restoreLinks(loader) {
-		this.marks = loader.getCollection(this.marks, {
-			index: 'i',
-			fields: {
-				condition: {
-					type: 'function',
-					name: 'condition'
-				}
-			}
-		});
-		this.sheets = loader.getCollection(this.sheets);
+	#lx:client appendMark(markText) {
+		return this->marksBox->marks.appendMark(markText);
+	}
+
+	#lx:client dropMark(num) {
+		this->marksBox->marks.dropMark(num, true);
 	}
 
 	mark(num) {
-		return this.marks.at(num);
+		return this->marksBox->marks.mark(num);
 	}
 
 	sheet(num) {
-		return this.sheets.at(num);
+		return this->marksBox->marks.sheet(num);
 	}
 
 	getActiveIndex() {
-		let index = null;
-		this.marks.forEach(function (mark) {
-			if (mark.checked) {
-				index = mark.index;
-				this.stop();
-			}
-		});
-		return index;
+		return this->marksBox->marks.getActiveIndex();
 	}
 
 	select(num) {
-		var mark = this.mark(num);
-		mark.checked = true;
-		mark.addClass(this.basicCss.active);
-
-		var sheet = this.sheet(num);
-		if (this.animationOnOpen) {
-			var timer = __initTimerOnOpen(this);
-			timer.on(sheet);
-		} else sheet.show();
-
-		#lx:client {
-			this.trigger('selected', this.newEvent({mark, sheet}));
-		}
+		this->marksBox->marks.select(num);
 	}
 
 	unselect(num = null) {
-		if (num === null) num = this.getActiveIndex();
-		var mark = this.mark(num);
-		mark.checked = false;
-		mark.removeClass(this.basicCss.active);
-
-		var sheet = this.sheet(num);
-		if (this.animationOnClose) {
-			var timer = __initTimerOnClose(this);
-			timer.on(sheet);
-		} else sheet.hide();
-
-		#lx:client {
-			this.trigger('unselected', this.newEvent({mark, sheet}));
-		}
+		this->marksBox->marks.unselect(num);
 	}
 
 	setCondition(num, func) {
-		this.mark(num).condition = func;
-	}
-
-	#lx:client {
-		setAnimationOnOpen(duration, callback) {
-			callback = callback || _handler_defaultAnimationOnOpen;
-			this.animationOnOpen = {duration, callback};
-		}
-
-		setAnimationOnClose(duration, callback) {
-			callback = callback || _handler_defaultAnimationOnClose;
-			this.animationOnClose = {duration, callback};
-		}
+		this->marksBox->marks.setCondition(num, func);
 	}
 }
 
 
-/***********************************************************************************************************************
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * PRIVATE
- **********************************************************************************************************************/
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-function __defineTemplate(config) {
-	var template = config.template || {};
-	if (!template.position) template.position = lx.TOP;
-	if (!template.cols && !template.rows) template.rows = 1;
-	if (template.rows && !template.cols) {
-		template.cols = Math.floor((config.marks.len - 1) / template.rows) + 1;
-	} else if (!template.rows && template.cols) {
-		template.rows = Math.floor((config.marks.len - 1) / template.cols) + 1;
+function __setInnerStructure(self, side, joint) {
+	if (self.marksPosition == side && self.joint == joint) return;
+
+	let sheets = self->sheets;
+	let marksBox = self->marksBox;
+	let jointConfig = {key: 'joint'};
+	self.dropPositioning();
+
+	if (side == lx.TOP) {
+		jointConfig.before = sheets;
+		jointConfig.top = self.marksHeight;
+		if (sheets.nextSibling() == marksBox)
+			marksBox.setParent({before: sheets});
+	} else if (side == lx.BOTTOM) {
+		jointConfig.after = sheets;
+		jointConfig.bottom = self.marksHeight;
+		if (marksBox.nextSibling() == sheets)
+			sheets.setParent({before: marksBox});
 	}
-	return template;
+	if (side == lx.TOP || side == lx.BOTTOM) {
+		if (joint) {
+			sheets.style('position', 'absolute');
+			marksBox.style('position', 'absolute');
+			marksBox.height(self.marksHeight);
+			sheets.setGeom([0, 0, 100, 100]);
+			new lx.JointMover(jointConfig);
+		} else {
+			self.streamProportional({direction: lx.VERTICAL});
+			marksBox.style('position', 'relative');
+			marksBox.height(self.marksHeight);
+			sheets.setGeom([0, 0, null, null, 0, 0]);
+			sheets.setGeom([null, null, null, null, null, null]);
+			sheets.style('position', 'relative');
+			sheets.height(1);
+		}
+	}
+
+	if (side == lx.LEFT) {
+		jointConfig.before = sheets;
+		jointConfig.left = self.marksWidth;
+		if (sheets.nextSibling() == marksBox)
+			marksBox.setParent({before: sheets});
+	} else if (side == lx.RIGHT) {
+		jointConfig.after = sheets;
+		jointConfig.right = self.marksWidth;
+		if (marksBox.nextSibling() == sheets)
+			sheets.setParent({before: marksBox});
+	}
+	if (side == lx.LEFT || side == lx.RIGHT) {
+		if (joint) {
+			sheets.style('position', 'absolute');
+			marksBox.style('position', 'absolute');
+			marksBox.width(self.marksWidth);
+			sheets.setGeom([0, 0, 100, 100]);
+			new lx.JointMover(jointConfig);
+		} else {
+			self.streamProportional({direction: lx.HORIZONTAL});
+			marksBox.style('position', 'relative');
+			marksBox.width(self.marksWidth);
+			sheets.setGeom([0, 0, null, null, 0, 0]);
+			sheets.setGeom([null, null, null, null, null, null]);
+			sheets.style('position', 'relative');
+			sheets.width(1);
+		}
+	}
+
+	self.marksPosition = side;
+	self.joint = joint;
 }
 
-function __defineMarksConfig(self, config, template) {	
-	var marksBoxCofig = {parent:self};
-	var sheetsGeom = [];
-	var markWidth = config.markWidth || lx.MultiBox.MARK_WIDTH;
-	var markHeight = config.markHeight || lx.MultiBox.MARK_HEIGHT;
-	var step = config.indent || lx.MultiBox.INDENT;
-	if (config.sheets) {
-		marksBoxCofig.geom = true;
-		return {marksBoxCofig, sheetsGeom};
+function __setMarksPositioning(self, side, marksStyle) {
+	let streamConfig = __getMarksStreamConfig(self, side, marksStyle);
+	self->marksBox->marks[streamConfig.method](streamConfig.config);
+	self.marksStyle = marksStyle;
+}
+
+function __getMarksStreamConfig(self, side, marksStyle) {
+	if (side == lx.TOP || side == lx.BOTTOM) {
+		if (marksStyle == lx.MultiBox.STYLE_JUSTIFY) {
+			return {
+				method: 'streamProportional',
+				config: {
+					direction: lx.HORIZONTAL,
+					indent: '10px',
+					minWidth: '100px',
+					maxWidth: '1000px'
+				}
+			};
+		}
+		if (marksStyle == lx.MultiBox.STYLE_STREAM) {
+			return {
+				method: 'stream',
+				config: {
+					direction: lx.HORIZONTAL,
+					indent: '10px',
+					minWidth: '100px',
+					maxWidth: '300px',
+					width: 'auto'
+				}
+			}
+		}
 	}
 
-	var sheetsStep = step + 'px';
-	switch (template.position) {
-		case lx.TOP:
-			marksBoxCofig.height = markHeight * template.rows + (step*2) + 'px';
-			sheetsGeom = [sheetsStep, marksBoxCofig.height, null, null, sheetsStep, sheetsStep];
-			break;
-		case lx.BOTTOM:
-			marksBoxCofig.height = (markHeight + step) * template.rows + step + 'px';
-			marksBoxCofig.bottom = 0;
-			sheetsGeom = [sheetsStep, sheetsStep, null, null, sheetsStep, marksBoxCofig.height];
-			break;
-		case lx.LEFT:
-			marksBoxCofig.width = (markWidth + step) * template.cols + step + 'px';
-			sheetsGeom = [marksBoxCofig.width, sheetsStep, null, null, sheetsStep, sheetsStep];
-			break;
-		case lx.RIGHT:
-			marksBoxCofig.width = (markWidth + step) * template.cols + step + 'px';
-			marksBoxCofig.height = 'auto';
-			marksBoxCofig.right = 0;
-			sheetsGeom = [sheetsStep, sheetsStep, null, null, marksBoxCofig.width, sheetsStep];
-			break;
+	if (side == lx.LEFT || side == lx.RIGHT) {
+		if (marksStyle == lx.MultiBox.STYLE_JUSTIFY) {
+			return {
+				method: 'streamProportional',
+				config: {
+					direction: lx.VERTICAL,
+					indent: '10px',
+					minWidth: '100px',
+					maxWidth: '200px'
+				}
+			};
+		}
+		if (marksStyle == lx.MultiBox.STYLE_STREAM) {
+			return {
+				method: 'stream',
+				config: {
+					direction: lx.VERTICAL,
+					indent: '10px',
+					minWidth: '100px',
+					maxWidth: '200px',
+					width: 'auto'
+				}
+			}
+		}
 	}
-	return {marksBoxCofig, sheetsGeom};
 }
 
 #lx:client {
-	function _handler_clickMark(event) {
-		if (this.condition && !this.condition()) return;
+	function __checkSize(self) {
+		const marks = self->marksBox->marks;
+		const marksBox = self->marksBox;
+		let needMove = (self.marksPosition == lx.TOP || self.marksPosition == lx.BOTTOM)
+			? marks.width('px') > marksBox.width('px')
+			: marks.height('px') > marksBox.height('px');
+		if (needMove === self.inMove) return;
 
-		event = event || window.event;
-		lx.preventDefault(event);
-
-		var p = this.parent.parent;
-		if (p.mode == lx.MultiBox.MODE_UNI_SHEET) {
-			if (this.checked) return;
-
-			var oldActive = null;
-			p.marks.forEach(function(mark, i) {
-				if (mark.checked) {
-					oldActive = i;
-					this.stop();
-				}
-			});
-
-			if (oldActive !== null) p.unselect(oldActive);
-			p.select(this.index);
-			event.oldSheet = oldActive;
-			event.newSheet = this.index;
-			p.trigger('sheetOpened', event);
-			p.trigger('sheetClosed', event);
-			p.trigger('selectionChange', event);
-			return;
-		}
-
-		if (this.checked) {
-			event.oldSheet = this.index;
-			p.unselect(this.index);
-			p.trigger('sheetClosed', event);
+		if (needMove) {
+			marks.move();
+			self.inMove = true;
 		} else {
-			event.newSheet = this.index;
-			p.select(this.index);
-			p.trigger('sheetOpened', event);
+			marks.move(false);
+			marks.left(0);
+			marks.top(0);
+			self.inMove = false;
 		}
-	}
-
-	function _handler_defaultAnimationOnOpen(timeShift, sheet) {
-		sheet.opacity(timeShift);
-	}
-
-	function _handler_defaultAnimationOnClose(timeShift, sheet) {
-		sheet.opacity(1 - timeShift);
-	}
-
-	function __initTimerOnOpen(self) {
-		if (self.timerOnOpen) return;
-		var timer = new lx.Timer();
-		timer.on = function(sheet) {
-			if (this.inAction) return;
-			this.sheet = sheet;
-			this.sheet.show();
-			this.start();
-		};
-		timer.whileCycle(function() {
-			var k = this.shift();
-			this.callback(k, this.sheet);
-			if (this.periodEnds()) {
-				this.stop();
-				this.sheet = null;
-			}
-		});
-		timer.periodDuration = self.animationOnOpen.duration;
-		timer.callback = self.animationOnOpen.callback;
-		return timer;
-	}
-
-	function __initTimerOnClose(self) {
-		var timer = new lx.Timer();
-		timer.on = function(sheet) {
-			if (this.inAction) return;
-			this.sheet = sheet;
-			this.start();
-		};
-		timer.whileCycle(function() {
-			var k = this.shift();
-			this.callback(k, this.sheet);
-			if (this.periodEnds()) {
-				this.stop();
-				this.sheet.hide();
-				this.sheet = null;
-			}
-		});
-		timer.periodDuration = self.animationOnClose.duration;
-		timer.callback = self.animationOnClose.callback;
-		return timer;
 	}
 }

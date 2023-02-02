@@ -66,6 +66,7 @@ class Rect extends lx.Module {
      *     [html] {String},
      *     [cssPreset] {String|lx.CssPreset},
      *     [css] {String|Array<String>},
+     *     [basicCss] {String|Dict<String>},
      *     [depthCluster] {String|Number&Enum(
      *         lx.DepthClusterMap.CLUSTER_DEEP,
      *         lx.DepthClusterMap.CLUSTER_PRE_MIDDLE,
@@ -76,6 +77,13 @@ class Rect extends lx.Module {
      *         lx.DepthClusterMap.CLUSTER_OVER,
      *         lx.DepthClusterMap.CLUSTER_URGENT
      *     )},
+     *     [fill] {String},
+     *     [border] {Boolean|Object: {
+     *         [width = 1] {Number},
+     *         [color = '#000000'] {String},
+     *         [style = 'solid'] {String},
+     *         [side = 'ltrb'] {String}
+     *     }},
      *     [picture] {String},
      *     [style] {Dict<String|Number>},
      *     [click] {Function},
@@ -176,14 +184,21 @@ class Rect extends lx.Module {
     }
 
     /**
-     *	field
-     *	html
-     *	basicCss
-     *	cssClass
-     *	style
-     *	click
-     *	move | parentResize | parentMove
-     * */
+     * data
+     * field
+     * html
+     * cssPreset
+     * basicCss
+     * css
+     * style
+     * fill
+     * border
+     * picture
+     * click
+     * blur
+     * move | parentResize | parentMove
+     * depthCluster
+     */
     applyConfig(config={}) {
         if (config.data) this.data = data;
         if (config.field) this._field = config.field;
@@ -199,6 +214,8 @@ class Rect extends lx.Module {
                 this.domElem.style(i, config.style[i]);
         }
 
+        if (config.fill) this.fill(config.fill);
+        if (config.border) this.border(config.border);
         if (config.picture) this.picture(config.picture);
 
         if (config.click) this.click( config.click );
@@ -466,12 +483,10 @@ class Rect extends lx.Module {
     }
 
     applyBasicCss(config) {
-        var basicCss = config.basicCss;
+        let basicCss = config.basicCss;
         if (!basicCss) {
-            var plugin = this.getPlugin();
-            if (plugin) {
-                basicCss = plugin.getWidgetBasicCss(this.lxFullClassName());
-            }
+            let plugin = this.getPlugin();
+            if (plugin) basicCss = plugin.getWidgetBasicCss(this.lxFullClassName());
         }
         if (!basicCss) basicCss = this.getBasicCss();
         if (basicCss) {
@@ -492,7 +507,7 @@ class Rect extends lx.Module {
      * Можно переопределять у виджетов для установки стилей по умолчанию
      */
     getBasicCss() {
-        return false;
+        return null;
     }
 
     /**
@@ -525,7 +540,7 @@ class Rect extends lx.Module {
 
         args = lx.app.cssManager.defineCssClassNames(this, args);
         args.forEach(name=>{
-            if (name == '') return;
+            if (name === null || name == '') return;
             this.domElem.addClass(name);
         });
         return this;
@@ -852,12 +867,12 @@ class Rect extends lx.Module {
         if (priorityH.len < 3) __setGeomPriorityH(this, priorityH[0], priorityH[1]);
         if (priorityV.len < 3) __setGeomPriorityV(this, priorityV[0], priorityV[1]);
 
-        if (geom[0] !== null && geom[0] !== undefined) this.left(geom[0]);
-        if (geom[1] !== null && geom[1] !== undefined) this.top(geom[1]);
-        if (geom[2] !== null && geom[2] !== undefined) this.width(geom[2]);
-        if (geom[3] !== null && geom[3] !== undefined) this.height(geom[3]);
-        if (geom[4] !== null && geom[4] !== undefined) this.right(geom[4]);
-        if (geom[5] !== null && geom[5] !== undefined) this.bottom(geom[5]);
+        if (geom[0] !== undefined) this.left(geom[0]);
+        if (geom[1] !== undefined) this.top(geom[1]);
+        if (geom[2] !== undefined) this.width(geom[2]);
+        if (geom[3] !== undefined) this.height(geom[3]);
+        if (geom[4] !== undefined) this.right(geom[4]);
+        if (geom[5] !== undefined) this.bottom(geom[5]);
 
         #lx:client{ this.checkResize(); }
     }
@@ -876,7 +891,7 @@ class Rect extends lx.Module {
 
     /**
      * Копия "как есть" - с приоритетами, без адаптаций под старые соответствующие значения
-     * */
+     */
     copyGeom(geomMask, units = undefined) {
         if (geomMask instanceof lx.Rect) geomMask = geomMask.getGeomMask(units);
 
@@ -1648,7 +1663,7 @@ class Rect extends lx.Module {
             }
 
             if (self::getCommonEventNames().includes(eventName)) {
-                var events = this.elem ? this.elem.events : this.domElem.events;
+                var events = this.domElem.elem ? this.domElem.elem.events : this.domElem.events;
                 if (!events || !(eventName in events)) return;
                 return runEventHandlers(this, events[eventName], event);
             }

@@ -57,7 +57,6 @@
  * eachChild(func, all=false)
  *
  * * 4. PositioningStrategies
- * preparePositioningStrategy(strategy)
  * align(hor, vert, els)
  * stream(config)
  * streamProportional(config={})
@@ -115,7 +114,6 @@ class Box extends lx.Rect {
      * @param [config] {Object: {
      *     #merge(lx.Rect::constructor::config),
      *     [text] {String},
-     *     [positioning] {lx.PositioningStrategy},
      *     [stream]             {Object: #schema(lx.StreamPositioningStrategy::init::config)},
      *     [streamProportional] {Object: #schema(lx.StreamPositioningStrategy::init::config)},
      *     [grid]             {Object: #schema(lx.GridPositioningStrategy::init::config)},
@@ -130,9 +128,7 @@ class Box extends lx.Rect {
 
         if ( config.text ) this.text( config.text );
 
-        if (config.positioning)
-            this.setPositioning(config.positioning, config);
-        else if (config.stream)
+        if (config.stream)
             this.stream(lx.isObject(config.stream) ? config.stream : {});
         else if (config.streamProportional)
             this.streamProportional(lx.isObject(config.streamProportional) ? config.streamProportional : {});
@@ -609,7 +605,7 @@ class Box extends lx.Rect {
 
         container.children.reset();
         container.childrenByKeys = {};
-        container.positioning().reset();
+        container.positioning().onClearOwner();
         #lx:client{ this.checkContentResize(); }
     }
 
@@ -658,7 +654,7 @@ class Box extends lx.Rect {
             container.children.remove(el);
             #lx:client{ lx.DepthClusterMap.checkFrontMap(); }
             container.positioning().actualize({from: pre, deleted: [el]});
-            container.positioning().onDel();
+            container.positioning().onElemDel();
             result.add(el);
             #lx:client{ this.checkContentResize(); }
             return result;
@@ -678,7 +674,7 @@ class Box extends lx.Rect {
             #lx:client{ lx.DepthClusterMap.checkFrontMap(); }
             delete container.childrenByKeys[key];
             container.positioning().actualize({from: pre, deleted: [elem]});
-            container.positioning().onDel();
+            container.positioning().onElemDel();
             result.add(elem);
             #lx:client{ this.checkContentResize(); }
             return result;
@@ -714,7 +710,7 @@ class Box extends lx.Rect {
             delete container.childrenByKeys[key]._index;
         }
         container.positioning().actualize({from: pre, deleted});
-        container.positioning().onDel();
+        container.positioning().onElemDel();
         result.add(deleted);
         #lx:client{ this.checkContentResize(); }
         return result;
@@ -799,23 +795,23 @@ class Box extends lx.Rect {
     }
 
     scrollTo(adr) {
+        if (!lx.isObject(adr)) adr = {y:adr};
         const c = this.getContainer();
-        if (lx.isObject(adr)) {
-            if (adr.x !== undefined) c.domElem.param('scrollLeft', +adr.x);
-            if (adr.y !== undefined) c.domElem.param('scrollTop', +adr.y);
 
-            if (adr.xShift !== undefined) {
-                let size = c.getScrollSize();
-                let shift = Math.round((size.width - c.width('px')) * adr.xShift);
-                c.domElem.param('scrollLeft', shift);
-            }
-            if (adr.yShift !== undefined) {
-                let size = c.getScrollSize();
-                let shift = Math.round((size.height - c.height('px')) * adr.yShift);
-                c.domElem.param('scrollTop', shift);
-            }
+        if (adr.x !== undefined) c.domElem.param('scrollLeft', +adr.x);
+        if (adr.y !== undefined) c.domElem.param('scrollTop', +adr.y);
 
-        } else c.domElem.param('scrollTop', adr);
+        if (adr.xShift !== undefined) {
+            let size = c.getScrollSize();
+            let shift = Math.round((size.width - c.width('px')) * adr.xShift);
+            c.domElem.param('scrollLeft', shift);
+        }
+        if (adr.yShift !== undefined) {
+            let size = c.getScrollSize();
+            let shift = Math.round((size.height - c.height('px')) * adr.yShift);
+            c.domElem.param('scrollTop', shift);
+        }
+
         this.trigger('scroll');
         return this;
     }
@@ -1057,11 +1053,6 @@ class Box extends lx.Rect {
 
     //==================================================================================================================
     /* 4. PositioningStrategies */
-    setPositioning(constructor, config) {
-        var container = __getContainer(this);
-        container.positioningStrategy = new constructor(container, config);
-    }
-
     positioning() {
         var container = __getContainer(this);
         if (container.positioningStrategy) return container.positioningStrategy;
@@ -1081,30 +1072,16 @@ class Box extends lx.Rect {
         }
     }
 
-    preparePositioningStrategy(strategy) {
-        var container = __getContainer(this);
-        if (container.positioningStrategy) {
-            if (container.positioningStrategy.lxFullClassName() == strategy.lxFullName())
-                return container.positioningStrategy;
-            container.positioningStrategy.clear();
-        }
-        container.positioningStrategy = (strategy === lx.PositioningStrategy)
-            ? null
-            : new strategy(container);
-        return container.positioningStrategy;
-    }
-
     /**
      * @positioning lx.AlignPositioningStrategy
      * @param horizontal {Number&Enum(lx.LEFT, lx.CENTER, lx.RIGHT)}
      * @param vertical {Number&Enum(lx.TOP, lx.MIDDLE, lx.BOTTOM)}
      */
     align(horizontal, vertical) {
-        var pos = this.preparePositioningStrategy(lx.AlignPositioningStrategy);
-        if (!pos) return this;
-
-        if (vertical === undefined && lx.isObject(horizontal)) pos.init(horizontal);
-        else pos.init({horizontal, vertical});
+        let config = (vertical === undefined && lx.isObject(horizontal))
+            ? horizontal
+            : {horizontal, vertical};
+        __preparePositioningStrategy(this, lx.AlignPositioningStrategy, config);
         return this;
     }
 
@@ -1113,8 +1090,7 @@ class Box extends lx.Rect {
      * @param [config] {Object: #schema(lx.MapPositioningStrategy::init::config)}
      */
     map(config) {
-        var pos = this.preparePositioningStrategy(lx.MapPositioningStrategy);
-        if (pos) pos.init(config);
+        __preparePositioningStrategy(this, lx.MapPositioningStrategy, config);
         return this;
     }
 
@@ -1123,8 +1099,7 @@ class Box extends lx.Rect {
      * @param [config] {Object: #schema(lx.StreamPositioningStrategy::init::config)}
      */
     stream(config) {
-        var pos = this.preparePositioningStrategy(lx.StreamPositioningStrategy);
-        if (pos) pos.init(config);
+        __preparePositioningStrategy(this, lx.StreamPositioningStrategy, config);
         return this;
     }
 
@@ -1148,8 +1123,7 @@ class Box extends lx.Rect {
      * @param [config] {Object: #schema(lx.GridPositioningStrategy::init::config)}
      */
     grid(config) {
-        var pos = this.preparePositioningStrategy(lx.GridPositioningStrategy);
-        if (pos) pos.init(config);
+        __preparePositioningStrategy(this, lx.GridPositioningStrategy, config);
         return this;
     }
 
@@ -1185,8 +1159,7 @@ class Box extends lx.Rect {
      * @param [config] {Object: #schema(lx.SlotPositioningStrategy::init::config)}
      */
     slot(config) {
-        var pos = this.preparePositioningStrategy(lx.SlotPositioningStrategy);
-        if (pos) pos.init(config);
+        __preparePositioningStrategy(this, lx.SlotPositioningStrategy, config);
         return this;
     }
 
@@ -1196,6 +1169,14 @@ class Box extends lx.Rect {
         container.positioningStrategy.setIndents(config);
         container.positioningStrategy.actualize();
         return this;
+    }
+
+    dropPositioning() {
+        let container = __getContainer(this);
+        if (container.positioningStrategy) {
+            container.positioningStrategy.clear();
+            container.positioningStrategy = null;
+        }
     }
 
     tryChildReposition(elem, param, val) {
@@ -1310,9 +1291,28 @@ class Box extends lx.Rect {
 lx.Box.defaultMatrixItemBox = lx.Box;
 
 
-/***********************************************************************************************************************
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * PRIVATE
- **********************************************************************************************************************/
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+function __preparePositioningStrategy(self, strategy, config) {
+    var container = __getContainer(self);
+    if (container.positioningStrategy) {
+        container.positioningStrategy.clear();
+        if (container.positioningStrategy.lxFullClassName() == strategy.lxFullName()) {
+            container.positioningStrategy.init(config);
+            return container.positioningStrategy;
+        }
+    }
+    container.positioningStrategy = (strategy === lx.PositioningStrategy)
+        ? null
+        : new strategy(container);
+    if (container.positioningStrategy)
+        container.positioningStrategy.init(config);
+    return container.positioningStrategy;
+}
+
+
 function __getContainer(self) {
     if (self.__buildMode) return self;
     return self.getContainer();

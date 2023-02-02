@@ -69,7 +69,12 @@ class DependencyProcessor
             }
         }
 
-        $instance = $this->createProcess($re, $params, $strongDependencies, $weakDependencies);
+        try {
+            $instance = $this->createProcess($re, $params, $strongDependencies, $weakDependencies);
+        } catch (\Throwable $exception) {
+            throw new \Exception($exception->getMessage());
+        }
+
         if ($isSingleton) {
             $this->instances[$classOrInterface] = $instance;
         }

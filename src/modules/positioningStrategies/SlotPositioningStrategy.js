@@ -43,7 +43,7 @@ class SlotPositioningStrategy extends lx.PositioningStrategy {
 	 *     #merge(lx.IndentData::constructor::config)
 	 * }}
 	 */
-	init(config = {}) {
+	applyConfig(config = {}) {
 		this.k = config.k || 1;
 		this.cols = config.cols || 1;
 		if (config.align !== undefined) this.align = config.align;

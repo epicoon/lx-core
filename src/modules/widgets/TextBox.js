@@ -29,7 +29,7 @@ class TextBox extends lx.Rect {
 
 	static initCss(css) {
 		css.addClass('lx-TextBox', {
-			padding: '0px 5px',
+			padding: '0px 10px',
 			width: 'auto',
 			height: 'auto',
 

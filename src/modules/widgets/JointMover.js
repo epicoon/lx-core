@@ -22,6 +22,17 @@ class JointMover extends lx.Rect {
             ];
             config.direction = lx.VERTICAL;
             delete config.top;
+        } else if (config.bottom) {
+            config.geom = [
+                0,
+                null,
+                100,
+                config.size || config.height || self::DEFAULT_SIZE,
+                null,
+                config.bottom
+            ];
+            config.direction = lx.VERTICAL;
+            delete config.bottom;
         } else if (config.left) {
             config.geom = [
                 config.left,
@@ -31,6 +42,16 @@ class JointMover extends lx.Rect {
             ];
             config.direction = lx.HORIZONTAL;
             delete config.left;
+        } else if (config.right) {
+            config.geom = [
+                null,
+                0,
+                config.size || config.width || self::DEFAULT_SIZE,
+                100,
+                config.right
+            ];
+            config.direction = lx.HORIZONTAL;
+            delete config.right;
         }
         return config;
     }
@@ -72,8 +93,8 @@ class JointMover extends lx.Rect {
         });
 
         var context = this;
-        this.parent.on('afterAddChild', function(child) {
-            context.check(child);
+        this.parent.on('afterAddChild', function(e) {
+            context.check(e.child);
         });
     }
 
@@ -124,10 +145,10 @@ class JointMover extends lx.Rect {
 
         if (this.getDirection() == lx.VERTICAL) {
             elem.setGeomPriority(lx.TOP, lx.HEIGHT);
-            elem.setGeom([0, 0, null, this.top('px') - elem.top('px') + 'px', 0]);
+            elem.setGeom([0, 0, undefined, this.top('px') - elem.top('px') + 'px', 0]);
         } else {
             elem.setGeomPriority(lx.LEFT, lx.WIDTH);
-            elem.setGeom([0, 0, this.left('px') - elem.left('px') + 'px', null, null, 0]);
+            elem.setGeom([0, 0, this.left('px') - elem.left('px') + 'px', undefined, undefined, 0]);
         }
     }
 
@@ -139,11 +160,13 @@ class JointMover extends lx.Rect {
         if (this.getDirection() == lx.VERTICAL) {
             var newH = elem.height('px') + elem.top('px') - (this.top('px') + this.height('px')) + 'px';
             elem.setGeomPriority(lx.TOP, lx.HEIGHT);
-            elem.setGeom([0, this.top('px') + this.height('px') + 'px', null, newH, 0]);
+            elem.setGeom([0, this.top('px') + this.height('px') + 'px', undefined, newH, 0]);
+
+
         } else {
             var newW = elem.width('px') + elem.left('px') - (this.left('px') + this.width('px')) + 'px';
             elem.setGeomPriority(lx.LEFT, lx.WIDTH);
-            elem.setGeom([this.left('px') + this.width('px') + 'px', 0, newW, null, null, 0]);
+            elem.setGeom([this.left('px') + this.width('px') + 'px', 0, newW, undefined, undefined, 0]);
         }
     }
 

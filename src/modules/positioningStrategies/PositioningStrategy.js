@@ -16,7 +16,16 @@ class PositioningStrategy {
 	 * @param {Object} [config = {}]
 	 */
 	init(config = {}) {
-		// abstract
+		this.applyConfig(config);
+		this.actualizeOnInit();
+	}
+
+	applyConfig(config) {
+		// pass
+	}
+
+	actualizeOnInit() {
+		// pass
 	}
 
 	#lx:server {
@@ -62,7 +71,20 @@ class PositioningStrategy {
 		if (this.autoActualize) this.actualizeProcess(info);
 	}
 
-	onDel() {}
+	/**
+	 * Сброс данных стратегии при очистке контейнера
+	 */
+	clear() {}
+
+	/**
+	 * При удалении какого-то елемента из контейнера
+	 */
+	onElemDel() {}
+
+	/**
+	 * При очистке контейнера
+	 */
+	onClearOwner() {}
 
 	/**
 	 * Для позиционирования нового элемента, добавленного в контейнер
@@ -112,17 +134,7 @@ class PositioningStrategy {
 	/**
 	 * Актуализация позиций элементов в контейнере
 	 */
-	actualizeProcess() {}
-
-	/**
-	 * Сброс данных стратегии при очистке контейнера
-	 */
-	reset() {}
-
-	/**
-	 * Сброс данных и влияний на владельца при смене им стратегии
-	 */
-	clear() { this.reset(); }
+	actualizeProcess(info) {}
 
 	/**
 	 * Запрос на изменение позиционного параметра для конкретного элемента
