@@ -12,6 +12,7 @@ class Timer {
 
 		this.inAction = false;
 		this.startTime = (new Date).getTime();
+		this.countPeriods = lx.getFirstDefined(config.countPeriods, true);
 		this.periodCounter = 0;
 		this.periodIndex = 0;
 		this.actionIndex = 0;
@@ -114,7 +115,7 @@ class Timer {
 		if (!this.inAction) return;
 
 		if (this.periodEnds()) {
-			this.periodCounter++;
+			if (this.countPeriods) this.periodCounter++;
 			this._iteration.call(this);
 
 			if (this.periodDuration && lx.isArray(this.periodDuration)) {

@@ -117,33 +117,38 @@ class Scroll extends lx.Box {
             this.target.on('wheel', (e)=>{
                 let pos = this.target.getScrollPos();
                 this.target.scrollTo({y: pos.y + e.deltaY});
-                __actualizeHandlePos(this);
             });
         }
 
         this->back.on('mousedown', (e)=>{
             if (e.target !== this->back.getDomElem()) return;
+
+            let left, top;
             if (this.isVertical()) {
                 let h = this->handle.height('px'),
-                    h05 = Math.round(h * 0.5),
-                    top = e.offsetY - h05;
+                    h05 = Math.round(h * 0.5);
+                top = e.offsetY - h05;
                 if (top < 0) top = 0;
                 else if (top + h > this.height('px')) top = this.height('px') - h;
-                this->handle.top(top + 'px');
             } else {
                 let w = this->handle.width('px'),
-                    w05 = Math.round(w * 0.5),
-                    left = e.offsetX - w05;
+                    w05 = Math.round(w * 0.5);
+                left = e.offsetX - w05;
                 if (left < 0) left = 0;
                 else if (left + w > this.width('px')) left = this.width('px') - w;
-                this->handle.left(left + 'px');
             }
-            __actualizeByHandle(this);
+
+            let scrollSize = this.target.getScrollSize();
+            if (this.isVertical())
+                this.target.scrollTo({y: Math.round((top * scrollSize.height) / this.height('px'))});
+            else
+                this.target.scrollTo({x: Math.round((left * scrollSize.width) / this.width('px'))});
         });
 
         __handler_onResize(this);
         this.target.getContainer().on('contentResize', ()=>__handler_onResize(this));
         this.target.getContainer().on('resize', ()=>__handler_onResize(this));
+        this.target.getContainer().on('scroll', ()=>__actualizeHandlePos(this));
     }
 
     #lx:server beforePack() {
@@ -163,7 +168,6 @@ class Scroll extends lx.Box {
             this.target.scrollTo({y: pos});
         else
             this.target.scrollTo({x: pos});
-        __actualizeHandlePos(this);
     }
 }
 
@@ -196,14 +200,6 @@ function __actualizeHandlePos(self) {
         let w = Math.floor((self.width('px') * scrollPos.x) / scrollSize.width);
         self->handle.left(w + 'px');
     }
-}
-
-function __actualizeByHandle(self) {
-    let scrollSize = self.target.getScrollSize();
-    if (self.isVertical())
-        self.target.scrollTo({y: Math.round((self->handle.top('px') * scrollSize.height) / self.height('px'))});
-    else
-        self.target.scrollTo({x: Math.round((self->handle.left('px') * scrollSize.width) / self.width('px'))});
 }
 
 function __handler_onResize(self) {

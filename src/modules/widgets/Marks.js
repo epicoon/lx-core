@@ -322,7 +322,7 @@ function __buildMark(self, mark, text) {
 	if (self.dropAllowed) {
 		but.streamProportional({ direction: lx.HORIZONTAL, minWidth: '20px' });
 
-		let t = but.add(lx.Box, {css:self.basicCss.text});
+		let t = but.add(lx.Box, {key:'label', css:self.basicCss.text});
 		t.text(text);
 		t.align(lx.CENTER, lx.MIDDLE);
 
@@ -446,5 +446,9 @@ function __buildMark(self, mark, text) {
 class lxMark extends lx.Box {
 	removeDelButton() {
 		this->>delBut.parent.del();
+	}
+
+	setLabel(label) {
+		this->>label.text(label);
 	}
 }

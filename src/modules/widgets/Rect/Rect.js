@@ -1166,7 +1166,7 @@ class Rect extends lx.Module {
             temp = this.parent,
             box = null;
         while (temp) {
-            if (temp.overflow() == 'auto') {
+            if (temp.overflow() == 'auto' || temp.overflow() == 'hidden') {
                 box = temp;
                 break;
             }
@@ -1591,20 +1591,6 @@ class Rect extends lx.Module {
         };
 
         return this;
-    }
-
-    triggerDisplay(event) {
-        if (!this.isDisplay()) {
-            if (this.displayNow) {
-                this.trigger('displayout', event);
-                this.displayNow = false;
-            }
-        } else {
-            if (!this.displayNow) {
-                this.displayNow = true;
-                this.trigger('displayin', event);
-            } else this.trigger('display', event);
-        }
     }
 
     mouseover(handler) {
@@ -2068,7 +2054,7 @@ function __setGeomPriorityV(self, val, val2) {
 }
 
 function __checkDisplay(event) {
-    this.triggerDisplay(event);
+    __triggerDisplay(this, event);
 
     if (this.setBuildMode) this.setBuildMode(true);
     if (this.childrenCount) for (var i=0; i<this.childrenCount(); i++) {
@@ -2077,4 +2063,18 @@ function __checkDisplay(event) {
         __checkDisplay.call(child, event);
     }
     if (this.setBuildMode) this.setBuildMode(false);
+}
+
+function __triggerDisplay(self, event) {
+    if (!self.isDisplay()) {
+        if (self.displayNow) {
+            self.trigger('displayout', event);
+            self.displayNow = false;
+        }
+    } else {
+        if (!self.displayNow) {
+            self.displayNow = true;
+            self.trigger('displayin', event);
+        } else self.trigger('display', event);
+    }
 }
