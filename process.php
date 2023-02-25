@@ -17,6 +17,6 @@ try {
     /** @var \lx\process\ProcessApplication $app */
     $app = new $processClassName($config);
     $app->run();
-} catch (\Exception $exception) {
+} catch (\Throwable $exception) {
     echo PHP_EOL . ErrorHelper::renderErrorString($exception);
 }

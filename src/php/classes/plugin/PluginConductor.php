@@ -9,6 +9,7 @@ class PluginConductor implements ConductorInterface
     private Plugin $plugin;
 	private array $imageMap;
 	private array $cssMap;
+    private ?array $imagePathsInSite = null;
 
     public function setPlugin(Plugin $plugin): void
     {
@@ -217,25 +218,29 @@ class PluginConductor implements ConductorInterface
 	 */
 	public function getImagePathsInSite(): array
 	{
-		$images = $this->getPlugin()->getConfig('images');
-		if ($images === null) {
-			return [];
-		}
-
-		if (is_string($images)) {
-			$images = ['default' => $images];
-		}
-
-        foreach ($images as $key => $path) {
-            if (preg_match('/^(http:|https:)/', $path)) {
-                $images[$key] = $path;
-            } else {
-                $relPath = '/' . lx::$app->conductor->getRelativePath($this->getFullPath($path));
-                $images[$key] = $relPath;
+        if ($this->imagePathsInSite === null) {
+            $images = $this->getPlugin()->getConfig('images');
+            if ($images === null) {
+                return [];
             }
+
+            if (is_string($images)) {
+                $images = ['default' => $images];
+            }
+
+            foreach ($images as $key => $path) {
+                if (preg_match('/^(http:|https:)/', $path)) {
+                    $images[$key] = $path;
+                } else {
+                    $relPath = '/' . lx::$app->conductor->getRelativePath($this->getFullPath($path));
+                    $images[$key] = $relPath;
+                }
+            }
+
+            $this->imagePathsInSite = $images;
         }
 
-		return $images;
+        return $this->imagePathsInSite;
 	}
 
     public static function defineSnippetPath(string $path): ?string

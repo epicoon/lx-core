@@ -53,4 +53,9 @@ class FlightRecorder implements FlightRecorderInterface
     {
         return empty($this->records);
     }
+
+    public function reset(): void
+    {
+        $this->records = [];
+    }
 }

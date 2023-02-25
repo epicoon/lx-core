@@ -13,6 +13,7 @@ interface ArrayInterface extends \ArrayAccess, \IteratorAggregate
 	public function isEmpty(): bool;
 	public function count(): int;
 	public function clear(): void;
+    public function dropPointer(): void;
 	/**
 	 * @return mixed
 	 */
@@ -29,6 +30,18 @@ interface ArrayInterface extends \ArrayAccess, \IteratorAggregate
 	 * @return mixed
 	 */
 	public function getLast();
+    /**
+     * @return mixed|null
+     */
+    public function getCurrent();
+    /**
+     * @return mixed|null
+     */
+    public function getNext();
+    /**
+     * @return mixed|null
+     */
+    public function getPrev();
 	/**
 	 * @param mixed $value
 	 * @return mixed

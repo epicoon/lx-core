@@ -78,8 +78,15 @@ trait FlightRecorderHolderTrait
         $this->getFlightRecorder()->addRecords($records);
     }
     
-    public function mergeFlightRecords(FlightRecorderHolderInterface $holder)
+    public function mergeFlightRecords(FlightRecorderHolderInterface $holder): void
     {
         $this->addFlightRecords($holder->getFlightRecords());
+    }
+
+    public function resetFlightRecords(): void
+    {
+        if ($this->flightRecorder) {
+            $this->flightRecorder->reset();
+        }
     }
 }

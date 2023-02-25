@@ -16,7 +16,7 @@ addSnippet(snippetPath, config = {}) {
     let widget, head;
     if (backLock) {
         const wrapper = new lx.Box({ key: config.key + 'Wrapper', geom: true });
-        const back = wrapper.add(lx.Box, {geom:true});
+        const back = wrapper.add(lx.Box, {key:'backLock', geom:true});
         back.fill('black');
         back.opacity(0.5);
         widget = wrapper.add(widgetClass, config);

@@ -169,6 +169,7 @@ return [
     'Undefined' => 'classes/tools',
     'Vector' => 'classes/tools',
     'Yaml' => 'classes/tools',
+    'ObjectMapper' => 'classes/tools',
     'MdBlocksBuilder' => 'classes/tools/mdConverter',
     'MdBlockTypeEnum' => 'classes/tools/mdConverter',
     'MdConverter' => 'classes/tools/mdConverter',

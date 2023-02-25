@@ -91,6 +91,18 @@ class PluginAssetProvider
         return $linksMap['names'];
     }
 
+    public function getImageLink(string $imageName): ?string
+    {
+        $imagePaths = $this->getImagePaths();
+        foreach ($imagePaths as $path) {
+            $filePath = lx::$app->sitePath . $path . '/' . $imageName;
+            if (file_exists($filePath)) {
+                return $path . '/' . $imageName;
+            }
+        }
+        return null;
+    }
+    
     public static function makePluginsAssetLinks(): void
     {
         $services = ServiceBrowser::getServicesList();

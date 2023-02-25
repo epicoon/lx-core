@@ -78,6 +78,7 @@ class Rect extends lx.Module {
      *         lx.DepthClusterMap.CLUSTER_URGENT
      *     )},
      *     [fill] {String},
+     *     [opacity] {Number},
      *     [border] {Boolean|Object: {
      *         [width = 1] {Number},
      *         [color = '#000000'] {String},
@@ -192,6 +193,7 @@ class Rect extends lx.Module {
      * css
      * style
      * fill
+     * opacity
      * border
      * picture
      * click
@@ -215,6 +217,7 @@ class Rect extends lx.Module {
         }
 
         if (config.fill) this.fill(config.fill);
+        if (config.opacity) this.opacity(config.opacity);
         if (config.border) this.border(config.border);
         if (config.picture) this.picture(config.picture);
 

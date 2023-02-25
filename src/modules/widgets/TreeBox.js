@@ -33,7 +33,6 @@ class TreeBox extends lx.Box {
 
 	static initCss(css) {
 		css.addClass('lx-TreeBox', {
-			backgroundColor: css.preset.altBodyBackgroundColor,
 			borderRadius: '10px'
 		});
 		css.inheritAbstractClass('lx-TW-Button', 'ActiveButton', {
@@ -174,6 +173,11 @@ class TreeBox extends lx.Box {
 			this.tree = tree;
 			this.renew(forse);
 			return this;
+		}
+
+		dropTree() {
+			this.tree = new lx.Tree();
+			this->work.clear();
 		}
 
 		/**

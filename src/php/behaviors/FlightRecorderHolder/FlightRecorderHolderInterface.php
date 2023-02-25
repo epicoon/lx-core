@@ -20,5 +20,6 @@ interface FlightRecorderHolderInterface
      */
     public function addFlightRecord($record): void;
     public function addFlightRecords(array $records): void;
-    public function mergeFlightRecords(FlightRecorderHolderInterface $holder);
+    public function mergeFlightRecords(FlightRecorderHolderInterface $holder): void;
+    public function resetFlightRecords(): void;
 }

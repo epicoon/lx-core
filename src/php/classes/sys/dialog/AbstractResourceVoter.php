@@ -21,5 +21,5 @@ abstract class AbstractResourceVoter implements ResourceVoterInterface
 		return $params;
 	}
 
-	abstract public function run(UserInterface $user, string $actionName, array $params): bool;
+	abstract public function run(UserInterface $user, string $actionName, array $params = []): bool;
 }

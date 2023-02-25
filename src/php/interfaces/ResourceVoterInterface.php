@@ -15,6 +15,6 @@ interface ResourceVoterInterface
 	public function run(
 	    UserInterface $user,
         string $actionName,
-        array $params
+        array $params = []
     ): bool;
 }

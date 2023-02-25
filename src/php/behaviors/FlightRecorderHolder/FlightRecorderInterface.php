@@ -17,4 +17,5 @@ interface FlightRecorderInterface
      */
     public function getFirstRecord();
     public function isEmpty(): bool;
+    public function reset(): void;
 }

@@ -9,6 +9,7 @@ trait ArrayTrait
 {
 	protected int $arrayNumericIndexCounter = 0;
 	protected array $arrayValue = [];
+    protected ?int $arrayPointer = null;
 	protected bool $arrayIsAssoc = true;
 
 	public function __constructArray(iterable $array = [])
@@ -103,6 +104,11 @@ trait ArrayTrait
 		return array_shift($this->arrayValue);
 	}
 
+    public function dropPointer(): void
+    {
+        $this->arrayPointer = null;
+    }
+    
 	/**
 	 * @return mixed
 	 */
@@ -111,6 +117,8 @@ trait ArrayTrait
 		if ($this->isEmpty()) {
 			return null;
 		}
+
+        $this->arrayPointer = 0;
 
 		if ($this->isAssoc()) {
 			$keys = array_keys($this->arrayValue);
@@ -131,11 +139,65 @@ trait ArrayTrait
 
 		if ($this->isAssoc()) {
 			$keys = array_keys($this->arrayValue);
-			return $this->arrayValue[$keys[count($keys) - 1]];
+            $this->arrayPointer = count($keys) - 1;
+			return $this->arrayValue[$keys[$this->arrayPointer]];
 		}
 
+        $this->arrayPointer = $this->count() - 1;
 		return $this->arrayValue[$this->count() - 1];
 	}
+
+    /**
+     * @return mixed|null
+     */
+    public function getCurrent()
+    {
+        if ($this->arrayPointer === null) {
+            return null;
+        }
+
+        if ($this->isAssoc()) {
+            $keys = array_keys($this->arrayValue);
+            return $this->arrayValue[$keys[$this->arrayPointer]];
+        }
+
+        return $this->arrayValue[$this->arrayPointer];
+
+    }
+
+    /**
+     * @return mixed|null
+     */
+    public function getNext()
+    {
+        if ($this->arrayPointer === null) {
+            return $this->getFirst();
+        }
+
+        $this->arrayPointer++;
+        if ($this->arrayPointer >= $this->count()) {
+            $this->dropPointer();
+        }
+
+        return $this->getCurrent();
+    }
+
+    /**
+     * @return mixed|null
+     */
+    public function getPrev()
+    {
+        if ($this->arrayPointer === null) {
+            return $this->getLast();
+        }
+
+        $this->arrayPointer--;
+        if ($this->arrayPointer < 0) {
+            $this->dropPointer();
+        }
+
+        return $this->getCurrent();
+    }
 
 	/**
 	 * @param mixed $value
