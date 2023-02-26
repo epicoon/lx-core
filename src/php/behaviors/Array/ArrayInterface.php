@@ -12,6 +12,7 @@ interface ArrayInterface extends \ArrayAccess, \IteratorAggregate
 	public function isAssoc(): bool;
 	public function isEmpty(): bool;
 	public function count(): int;
+    public function getKeys(): array;
 	public function clear(): void;
     public function dropPointer(): void;
 	/**
@@ -55,6 +56,7 @@ interface ArrayInterface extends \ArrayAccess, \IteratorAggregate
 	 * @param mixed $value
 	 */
 	public function contains($value): bool;
+    public function hasKey(string $key): bool;
 	public function merge(iterable $array): void;
 	public function toArray(): array;
 }

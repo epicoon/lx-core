@@ -73,6 +73,11 @@ trait ArrayTrait
 		return count($this->arrayValue);
 	}
 
+    public function getKeys(): array
+    {
+        return array_keys($this->arrayValue);
+    }
+
 	public function clear(): void
 	{
 		$this->arrayValue = [];
@@ -236,6 +241,11 @@ trait ArrayTrait
 	{
 		return $this->getKeyByValue($value) !== null;
 	}
+
+    public function hasKey(string $key): bool
+    {
+        return array_key_exists($key, $this->arrayValue);
+    }
 
     public function merge(iterable $iterable): void
     {

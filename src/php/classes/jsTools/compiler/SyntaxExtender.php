@@ -175,9 +175,26 @@ class SyntaxExtender
                     $implementTemp
                 );
 
-				// 1. #lx:const NAME = value;
+                // #lx:const-import [class\name] CONST_NAME_1, CONST_NAME_2 [another\name] CONST_NAME_1, CONST_NAME_2;
+                $implementResult = preg_replace_callback($this->inClassReg('const-import'), function ($matches) {
+                    $constString = $matches[1];
+                    $reg = '/\[([^\]]+?)\]\s*/';
+                    $list = preg_split($reg, $constString, null, PREG_SPLIT_DELIM_CAPTURE);
+                    $constArr = [];
+                    for ($i = 1; $i < count($list); $i += 2) {
+                        $className = $list[$i];
+                        $constString = $list[$i + 1];
+                        $arr = preg_split('/\s*,\s*/', $constString);
+                        foreach ($arr as $item) {
+                            $constArr[] = $item . '=' . $className . '::' . $item;
+                        }
+                    }
+                    return '#lx:const ' . implode(',', $constArr) . ';';
+                }, $implementResult);
+
+				// #lx:const NAME = value;
 				$implementResult = preg_replace_callback($this->inClassReg('const'), function ($matches) {
-					$constString = $matches[2];
+					$constString = $matches[1];
 
 					$constPareArray = StringHelper::smartSplit($constString, [
 						'delimiter' => ',',
@@ -201,10 +218,10 @@ class SyntaxExtender
 						$code .= "static get $name(){return $value;}";
 					}
 
-					return $matches[1] . $code;
+					return $code;
 				}, $implementResult);
 				
-				// 2. #lx:server methodName() {}  |  #lx:client methodName() {}
+				// #lx:server methodName() {}  |  #lx:client methodName() {}
 				$regexpTail = '\s*[^\(]+?\([^\)]*?\)\s*(?P<re>{((?>[^{}]+)|(?P>re))*})/';
 				if ($this->compiler->contextIsClient()) {
 					$regexp = '/#lx:client/';
@@ -267,16 +284,16 @@ class SyntaxExtender
 				$implementResult = preg_replace_callback(
                     $this->inClassReg('schema'),
                     function ($matches) use ($path) {
-                        $schema = $matches[2];
+                        $schema = $matches[1];
                         if ($schema == '') {
-                            return $matches[1];
+                            return '';
                         }
 
                         if ($schema[0] == '<') {
                             $schema = trim($schema, '><');
                             $schemaCode = $this->getModelSchemaString($schema, $path);
                             if ($schemaCode === null) {
-                                return $matches[1];
+                                return '';
                             }
                         } else {
                             $regexp = '/(?P<therec>{((?>[^{}]+)|(?P>therec))*})/';
@@ -308,7 +325,7 @@ class SyntaxExtender
                         }
 
                         $code = 'static __getSchema(){let data=super.__getSchema(); return data.lxMerge(' . $schemaCode . ');}';
-                        return $matches[1] . $code;
+                        return $code;
                     },
                     $implementResult
                 );
@@ -320,14 +337,14 @@ class SyntaxExtender
 				классы, отнаследованные от lx.Behavior
 				*/
 				$implementResult = preg_replace_callback($this->inClassReg('behaviors?'), function ($matches) {
-					$behaviors = preg_split('/[\s\r]*,[\s\r]*/', $matches[2]);
+					$behaviors = preg_split('/[\s\r]*,[\s\r]*/', $matches[1]);
 					foreach ($behaviors as &$behavior) {
 						$behavior .= '.injectInto(this);';
 					}
 					unset($behavior);
 					$behaviorsCode = 'static __injectBehaviors(){' . implode(',', $behaviors) . '}';
 
-					return $matches[1] . $behaviorsCode;
+					return $behaviorsCode;
 				}, $implementResult);
 
 				$code = str_replace($implement, $implementResult, $code);
@@ -339,7 +356,7 @@ class SyntaxExtender
 
 	private function inClassReg(string $keyword): string
     {
-		return '/(}|;|{)\s*#lx:'.$keyword.'[\s\r]+([^;]+)?[\s\r]*;/';
+		return '/#lx:'.$keyword.'[\s\r]+([^;]+)?[\s\r]*;/';
 	}
 
 	private function getCurrentService(?string $path): ?Service
