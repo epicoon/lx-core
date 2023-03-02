@@ -5,4 +5,8 @@ class PluginEvent {
 		this.name = name;
 		this.data = data;
 	}
+
+	getData() {
+		return this.data;
+	}
 }

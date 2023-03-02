@@ -71,10 +71,19 @@ class ArrayHelper
 		$result = [];
 
 		foreach ($array as $value) {
-			if (!(is_iterable($value)) || !isset($value[$field])) {
-			    continue;
+            if (is_iterable($value) && isset($value[$field])) {
+                $result[$value[$field]] = $value;
+                continue;
             }
-			$result[$value[$field]] = $value;
+
+            if (is_object($value) && property_exists($value, $field)) {
+                $result[$value->$field] = $value;
+                continue;
+            }
+
+            if ($value instanceof ModelInterface && $value->hasField($field)) {
+                $result[$value->$field] = $value;
+            }
 		}
 
 		return $result;

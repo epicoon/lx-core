@@ -9,6 +9,7 @@ class ObjectMapper
 {
     /** @var mixed */
     private $object;
+    private array $ignoredInstances = [];
     private array $propertiesForSkip = [];
     private array $parsed = [];
 
@@ -21,6 +22,12 @@ class ObjectMapper
         return $this;
     }
 
+    public function ignoreInstanses(array $list): ObjectMapper
+    {
+        $this->ignoredInstances = $list;
+        return $this;
+    }
+    
     public function skipProperties(array $list): ObjectMapper
     {
         $this->propertiesForSkip = $list;
@@ -52,11 +59,10 @@ class ObjectMapper
             $prop->setAccessible(true);
             $val = $prop->getValue($object);
             if (is_object($val)) {
-                if (in_array($val, $this->parsed)) {
+                if ($this->checkSkip($val)) {
                     continue;
-                } else {
-                    $this->parsed[] = $val;
                 }
+                $this->parsed[] = $val;
             }
 
             $result[$propName] = $this->parseItem($propName, $val, $propertiesForSkip, $prop->getType());
@@ -72,13 +78,14 @@ class ObjectMapper
             if (in_array($key, $forSkip)) {
                 continue;
             }
+
             if (is_object($value)) {
-                if (in_array($value, $this->parsed)) {
+                if ($this->checkSkip($value)) {
                     continue;
-                } else {
-                    $this->parsed[] = $value;
                 }
+                $this->parsed[] = $value;
             }
+
             $result[$key] = $this->parseItem($key, $value, $forSkip);
         }
         return $result;
@@ -165,5 +172,34 @@ class ObjectMapper
         }
 
         return 'string';
+    }
+
+    /**
+     * @param mixed $object
+     */
+    private function checkSkip($object): bool
+    {
+        return $this->checkParsed($object) || $this->checkIgnore($object);
+    }
+
+    /**
+     * @param mixed $object
+     */
+    private function checkParsed($object): bool
+    {
+        return in_array($object, $this->parsed);
+    }
+
+    /**
+     * @param mixed $object
+     */
+    private function checkIgnore($object): bool
+    {
+        foreach ($this->ignoredInstances as $instance) {
+            if ($object instanceof $instance) {
+                return true;
+            }
+        }
+        return false;
     }
 }

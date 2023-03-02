@@ -5,6 +5,11 @@
 /**
  * @widget lx.StreamItemRelocator
  * @content-disallowed
+ *
+ * @events [
+ *     beforeStreamContentRelocation,
+ *     afterStreamItemRelocation
+ * ]
  */
 #lx:namespace lx;
 class StreamItemRelocator extends lx.Box {
@@ -17,6 +22,7 @@ class StreamItemRelocator extends lx.Box {
             parent: null,
             holder: null,
             depthCluster: null,
+            baseIndex: null,
             list: []
         };
         this.on('mousedown', ()=>__onMouseDown(this));
@@ -28,6 +34,7 @@ class StreamItemRelocator extends lx.Box {
         let item = __getItem(self);
         if (!item) return;
 
+        self.trigger('beforeStreamItemRelocation');
         item.parent.trigger('beforeStreamContentRelocation');
         item.trigger('beforeStreamItemRelocation');
 
@@ -37,6 +44,7 @@ class StreamItemRelocator extends lx.Box {
             height: item.height('px') + 'px'
         };
         self.__env.zIndex = item.style('z-index');
+        self.__env.baseIndex = item.index;
         self.__env.width = item.width();
         self.__env.height = item.height();
         self.__env.next = item.nextSibling();
@@ -115,6 +123,7 @@ class StreamItemRelocator extends lx.Box {
         item.height(self.__env.height);
         item.depthCluster = self.__env.depthCluster;
 
+        let needTrigger = (self.__env.baseIndex != item.index);
         self.__env.holder.del();
         self.__env = {
             width: null,
@@ -123,14 +132,18 @@ class StreamItemRelocator extends lx.Box {
             parent: null,
             holder: null,
             depthCluster: null,
+            baseIndex: null,
             list: []
         };
 
         item.off('moveEnd');
         item.off('move');
         item.move(false);
-        item.trigger('afterStreamItemRelocation');
-        item.parent.trigger('afterStreamContentRelocation');
+        if (needTrigger) {
+            self.trigger('afterStreamItemRelocation');
+            item.trigger('afterStreamItemRelocation');
+            item.parent.trigger('afterStreamContentRelocation');
+        }
     }
 
     function __getItem(self) {

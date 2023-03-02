@@ -5,6 +5,7 @@ class CollectionSelector {
 		this.propertyExistance = new lx.Collection();
 		this.propertyValues = {};
 		this.filters = new lx.Collection();
+		this.strict = true;
 	}
 
 	setCollection(collection) {
@@ -32,6 +33,10 @@ class CollectionSelector {
 	addFilter(func) {
 		this.filters.add(func);
 		return this;
+	}
+
+	setStrict(strict = true) {
+		this.strict = strict;
 	}
 
 	ifHasProperty(propertyName) {
@@ -68,7 +73,9 @@ class CollectionSelector {
 
 			for (let propName in this.propertyValues) {
 				if (!(propName in elem)) return;
-				if (elem[propName] !== this.propertyValues[propName]) return;
+				if (this.strict)
+					if (elem[propName] !== this.propertyValues[propName]) return;
+				if (elem[propName] != this.propertyValues[propName]) return;
 			}
 
 			this.filters.forEach(function(filter) {

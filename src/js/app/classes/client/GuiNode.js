@@ -29,6 +29,14 @@ class GuiNode {
         return this._box;
     }
 
+    show() {
+        this.getWidget().show();
+    }
+
+    hide() {
+        this.getWidget().hide();
+    }
+
     get(path) {
         return this._box.get(path);
     }

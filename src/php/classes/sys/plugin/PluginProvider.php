@@ -88,6 +88,22 @@ class PluginProvider
         $this->onLoad = $config['onLoad'] ?? null;
         return $this->getPlugin();
     }
+
+    /**
+     * @return array<Plugin>
+     */
+    public function getAllPlugins(): array
+    {
+        $services = ServiceBrowser::getServicesList();
+        $plugins = [];
+        foreach ($services as $service) {
+            $servicePlugins = $service->getStaticPlugins();
+            foreach ($servicePlugins as $name => $plugin) {
+                $plugins[$plugin->name] = $plugin;
+            }
+        }
+        return $plugins;
+    }
     
     
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
