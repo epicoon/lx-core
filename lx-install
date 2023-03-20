@@ -114,25 +114,43 @@ function genConfig(lx\Directory $siteDirectory): void
     }
 
     $config = $lx->makeDirectory('config');
+
     /**
-     * @var $configMainCode
-     * @var $configRoutesCode
-     * @var $configPluginCode
-     * @var $configServiceCode
+     * @var $__map__
+     * @var $local
+     * @var $common
+     * @var $console
+     * @var $web
+     * @var $common_components
+     * @var $common_diMap
+     * @var $common_plugin
+     * @var $common_service
+     * @var $console_components
+     * @var $console_commands
+     * @var $web_components
+     * @var $web_routes
      */
     require(__DIR__ . '/install-src/configTpl.php');
 
-    $configMain = $config->makeFile('main.php');
-    $configMain->put($configMainCode);
+    ($config->makeFile('__map__.php'))->put($__map__);
+    ($config->makeFile('_local.example.php'))->put($local);
+    ($config->makeFile('common.php'))->put($common);
+    ($config->makeFile('console.php'))->put($console);
+    ($config->makeFile('web.php'))->put($web);
 
-    $configRoutes = $config->makeFile('routes.php');
-    $configRoutes->put($configRoutesCode);
+    $commonDir = $config->makeDirectory('common');
+    ($commonDir->makeFile('components.php'))->put($common_components);
+    ($commonDir->makeFile('diMap.php'))->put($common_diMap);
+    ($commonDir->makeFile('plugin.php'))->put($common_plugin);
+    ($commonDir->makeFile('service.php'))->put($common_service);
 
-    $configPlugin = $config->makeFile('plugin.php');
-    $configPlugin->put($configPluginCode);
+    $consoleDir = $config->makeDirectory('console');
+    ($consoleDir->makeFile('components.php'))->put($console_components);
+    ($consoleDir->makeFile('commands.php'))->put($console_commands);
 
-    $configService = $config->makeFile('service.php');
-    $configService->put($configServiceCode);
+    $webDir = $config->makeDirectory('web');
+    ($webDir->makeFile('components.php'))->put($web_components);
+    ($webDir->makeFile('routes.php'))->put($web_routes);
 }
 
 function refreshMaps(): void
