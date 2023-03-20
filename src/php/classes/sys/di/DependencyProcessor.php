@@ -98,7 +98,7 @@ class DependencyProcessor
         if ($interface === null) {
             $classForInterface = $defaultClass;
         } else {
-            $classForInterface = $this->findClassForInterface(
+            $classForInterface = $this->getClassForInterface(
                 $interface,
                 $contextClass,
                 $contextStrongDependencies,
@@ -106,7 +106,7 @@ class DependencyProcessor
             );
             if (!$classForInterface) {
                 $this->useServiceByInterface($interface);
-                $classForInterface = $this->findClassForInterface(
+                $classForInterface = $this->getClassForInterface(
                     $interface,
                     $contextClass,
                     $contextStrongDependencies,
@@ -296,7 +296,7 @@ class DependencyProcessor
         return true;
     }
 
-    private function findClassForInterface(
+    private function getClassForInterface(
         ?string $interfaceName,
         ?string $contextClassName,
         array $contextStrongDependencies,
