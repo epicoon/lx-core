@@ -1090,7 +1090,7 @@ class Box extends lx.Rect {
     }
 
     startPositioning() {
-        var container = __getContainer(this);
+        const container = __getContainer(this);
         if (container.positioningStrategy) {
             container.positioningStrategy.autoActualize = true;
             container.positioningStrategy.actualize();

@@ -69,6 +69,7 @@ class StreamPositioningStrategy extends lx.PositioningStrategy {
 		this._baseDisplay = null;
 		this._baseGeom = this.owner.getGeomMask();
 		this.owner.addClass(this.direction == lx.VERTICAL ? 'lxps-grid-v' : 'lxps-grid-h');
+		__actualize(this);
 		if (this.type == self::TYPE_SIMPLE) {
 			if (this.direction == lx.VERTICAL) {
 				if (this.owner.top() !== null && this.owner.bottom() !== null) this.owner.bottom(null);
@@ -169,12 +170,7 @@ class StreamPositioningStrategy extends lx.PositioningStrategy {
 	}
 
 	onElemDel() {
-		var styleParam = this.direction == lx.VERTICAL
-				? 'grid-template-rows'
-				: 'grid-template-columns',
-			arr = [];
-		this.owner.getChildren().forEach(c=>arr.push(c.streamSize));
-		this.owner.style(styleParam, arr.join(' '));
+		__actualize(this);
 	}
 
 	/**
@@ -283,7 +279,9 @@ class SequenseProportional extends Sequense {
 	}
 
 	setParam(elem, param, val) {
+		if (val === null) val = 1;
 		if (lx.isNumber(val)) val = val + 'fr';
+
 		let needBuild = ((elem.streamSize !== undefined) || elem.nextSibling());
 		elem.streamSize = val;
 		let styleParam = this.owner.direction == lx.VERTICAL
@@ -299,7 +297,28 @@ class SequenseProportional extends Sequense {
 			this.owner.owner.style(
 				styleParam,
 				tpl + elem.streamSize
-			); 
+			);
 		}
 	}
+}
+
+function __actualize(self) {
+	let styleParam = (self.direction == lx.VERTICAL)
+			? 'grid-template-rows'
+			: 'grid-template-columns';
+	if (self.type == lx.StreamPositioningStrategy.TYPE_SIMPLE) {
+		self.owner.style(styleParam, null);
+		return;
+	}
+	let arr = [];
+	self.owner.getChildren().forEach(c=>{
+		if (c.streamSize === undefined) {
+			let size = (self.direction == lx.VERTICAL) ? c.height() : c.width();
+			if (size === null) size = 1;
+			if (lx.isNumber(size)) size += 'fr';
+			c.streamSize = size;
+		}
+		arr.push(c.streamSize);
+	});
+	self.owner.style(styleParam, arr.join(' '));
 }
