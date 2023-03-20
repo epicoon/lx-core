@@ -24,7 +24,7 @@ class CssManager extends lx.AppComponentSettable {
         return this.settings.cssPreset;
     }
 
-    isBuilded() {
+    isBuilt() {
         return this.settings.assetBuildType != 'none';
     }
 
@@ -118,7 +118,7 @@ class CssManager extends lx.AppComponentSettable {
     }
 
     #lx:client renderModuleCss(config) {
-        if (this.isBuilded()) return;
+        if (this.isBuilt()) return;
 
         let modules = config.modules || lx.app.dependencies.getCurrentModules(),
             presets = config.presets || this.presetsList.getAll();

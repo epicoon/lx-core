@@ -7,50 +7,55 @@
 #lx:use lx.Button;
 
 #lx:client {
-	let instance = null,
-		_confirmCallback = null,
-		_rejectCallback = null,
-		_extraButtons = null,
-		_extraCallbacks = {},
-		callbackHolder = {
-			confirm: function(callback) {
-				_confirmCallback = callback;
-				return this;
-			},
-			reject: function(callback) {
-				_rejectCallback = callback;
-				return this;
-			}
+	function __getHolder(popup) {
+		let holder = {
+			_popup: popup,
+			_confirmCallback: null,
+			_rejectCallback: null,
+			_extraButtons: null,
+			_extraCallbacks: {}
 		};
+		holder.confirm = function(callback) {
+			this._confirmCallback = callback;
+			return this;
+		}
+		holder.reject = function(callback) {
+			this._rejectCallback = callback;
+			return this;
+		}
+		return holder;
+	}
 
-	function __applyExtraButtons(extraButtons, colsWithExtra) {
+	function __applyExtraButtons(holder, extraButtons, colsCount) {
 		if (extraButtons.lxEmpty()) return;
 
-		_extraButtons = extraButtons;
-		let buttonsWrapper = __getInstance()->>buttons;
-		buttonsWrapper.positioning().setCols(colsWithExtra);
+		holder._extraButtons = extraButtons;
+		let buttonsWrapper = holder._popup->>buttons;
+		buttonsWrapper.positioning().setCols(colsCount);
 		for (let name in extraButtons) {
 			let text = extraButtons[name];
-			buttonsWrapper.add(lx.Button, {key:'extra', width:1, text, click:()=>__onExtra(name)});
-			callbackHolder[name] = function(callback) {
-				_extraCallbacks[name] = callback;
+			buttonsWrapper.add(lx.Button, {key:'extra', width:1, text, click:()=>__onExtra(holder, name)});
+			holder[name] = function(callback) {
+				this._extraCallbacks[name] = callback;
 				return this;
 			};
 		}
 	}
+	function __clearExtraButtons(holder) {
+		if (holder._extraButtons === null) return;
 
-	function __clearExtraButtons() {
-		if (_extraButtons === null) return;
-
-		let buttonsWrapper = __getInstance()->>buttons;
+		let buttonsWrapper = holder._popup->>buttons;
 		buttonsWrapper.del('extra');
 		buttonsWrapper.positioning().setCols(2);
 
-		for (let name in _extraButtons)
-			delete callbackHolder[name];
-		_extraButtons = null;
-		_extraCallbacks = {};
+		for (let name in holder._extraButtons)
+			delete holder[name];
+		holder._extraButtons = null;
+		holder._extraCallbacks = {};
 	}
+
+	let __instance = null,
+		__active = null;
 }
 
 /**
@@ -63,7 +68,12 @@ class ConfirmPopup extends lx.Box {
 
     modifyConfigBeforeApply(config) {
     	config.key = config.key || 'confirmPopup';
-    	config.style = {display: 'none'};
+		config.geom = config.geom || ['0%', '0%', '100%', '100%'];
+		config.depthCluster = lx.DepthClusterMap.CLUSTER_OVER;
+
+		//TODO ???
+		// style: { position: 'fixed' }
+
         return config;
     }
 
@@ -82,118 +92,130 @@ class ConfirmPopup extends lx.Box {
 	}
 
 	/**
-	 * @widget-init
-	 *
 	 * @param [config] {Object: {
-	 *     #merge(lx.Rect::constructor::config),
-	 *     [extraCols = lx.ConfirmPopup.COLS_FOR_EXTRA_BUTTONS] {Number}
+	 *     #merge(lx.Box::build::config),
+	 *     [customButtons = false] {Boolean}
 	 * }}
 	 */
-    build(config) {
-    	this.extraCols = config.extraCols || self::COLS_FOR_EXTRA_BUTTONS;
-    }
+	build(config) {
+		if (config.customButtons !== undefined)
+			this.customButtons = config.customButtons;
+	}
 
     #lx:client {
-	    open(message, extraButtons = {}) {
-	    	let popup = __getInstance(this);
-			popup->stream->message.text(message);
-			popup->stream->message.height(
-				popup->stream->message->text.height('px') + 10 + 'px'
+		clientBuild(config) {
+			this.holder = __getHolder(this);
+			__render(this);
+		}
+
+		static open(message, extraButtons = {}, buttonColsCount = 2) {
+			if (!__instance)
+				__instance = new lx.ConfirmPopup({parent: lx.body});
+			return __instance.open(message, extraButtons, buttonColsCount);
+		}
+
+		static close() {
+			if (__instance)
+				__close(__instance);
+		}
+
+	    open(message, extraButtons = {}, buttonColsCount = 2) {
+			this->stream->message.text(message);
+			this->stream->message.height(
+				this->stream->message->text.height('px') + 10 + 'px'
 			);
 
-			var top = (popup.height('px') - popup->stream.height('px')) * 0.5;
+			var top = (this.height('px') - this->stream.height('px')) * 0.5;
 			if (top < 0) top = 0;
-			popup->stream.top(top + 'px');
+			this->stream.top(top + 'px');
 
-			popup.show();
+			__active = this;
+			this.show();
 
 			lx.app.keyboard.onKeydown(13, __onConfirm);
 			lx.app.keyboard.onKeydown(27, __onReject);
-			__applyExtraButtons(extraButtons, this.extraCols + 2);
-			return callbackHolder;
+			__applyExtraButtons(this.holder, extraButtons, buttonColsCount);
+			return this.holder;
 	    }
 
 	    close() {
-	    	__close();
+	    	__close(this);
 	    }
     }
 }
 
 #lx:client {
-	function __getInstance(self = null) {
-		if (instance === null) {
-			instance = new lx.Box({
-				parent: lx.body,
-				geom: ['0%', '0%', '100%', '100%'],
-				depthCluster: lx.DepthClusterMap.CLUSTER_OVER,
-				style: { position: 'fixed' }
-			});
-			instance.overflow('auto');
-	    	instance.useRenderCache();
-	    	instance.begin();
-	    	__renderContent(self);
-	    	instance.end();
-	    	instance.applyRenderCache();
-	    	instance.hide();
-		}
-
-		return instance;
+	function __render(self) {
+		self.overflow('auto');
+		self.useRenderCache();
+		self.begin();
+		__renderContent(self);
+		self.end();
+		self.applyRenderCache();
+		self.hide();
 	}
 
 	function __renderContent(self) {
 		(new lx.Rect({geom:true})).fill('black').opacity(0.5);
 
-		var inputPopupStream = new lx.Box({key:'stream', geom:['30%', '40%', '40%', '0%'], css:self.basicCss.back});
-		inputPopupStream.stream({indent:'10px'});
+		var confirmPopupStream = new lx.Box({key:'stream', geom:['30%', '40%', '40%', '0%'], css:self.basicCss.back});
+		confirmPopupStream.stream({indent:'10px'});
 
-		inputPopupStream.begin();
+		confirmPopupStream.begin();
 			(new lx.Box({key:'message'})).align(lx.CENTER, lx.MIDDLE);
 
 			var buttons = new lx.Box({key:'buttons', height:'35px'});
 			buttons.grid({step:'10px', cols:2});
 
-			new lx.Button({parent:buttons, key:'confirm', width:1, text:#lx:i18n(Yes)});
-			new lx.Button({parent:buttons, key:'reject', width:1, text:#lx:i18n(No)});
-		inputPopupStream.end();
-
-		inputPopupStream->>confirm.click(__onConfirm);
-		inputPopupStream->>reject.click(__onReject);
+			if (!self.customButtons) {
+				new lx.Button({parent:buttons, key:'confirm', width:1, text:#lx:i18n(Yes)});
+				new lx.Button({parent:buttons, key:'reject', width:1, text:#lx:i18n(No)});
+				confirmPopupStream->>confirm.click(__onConfirm);
+				confirmPopupStream->>reject.click(__onReject);
+			}
+		confirmPopupStream.end();
 	}
 
 	function __onConfirm() {
-		if (_confirmCallback) {
-			if (lx.isFunction(_confirmCallback)) _confirmCallback();
-			else if (lx.isArray(_confirmCallback))
-				_confirmCallback[1].call(_confirmCallback[0]);
-		} 
-		__close();
-	}
-
-	function __onReject() {
-		if (_rejectCallback) {
-			if (lx.isFunction(_rejectCallback)) _rejectCallback();
-			else if (lx.isArray(_rejectCallback))
-				_rejectCallback[1].call(_rejectCallback[0]);
-		} 
-		__close();
-	}
-
-	function __onExtra(name) {
-		let callback = _extraCallbacks[name];
+		if (!__active) return;
+		let callback = __active.holder._confirmCallback;
 		if (callback) {
 			if (lx.isFunction(callback)) callback();
 			else if (lx.isArray(callback))
 				callback[1].call(callback[0]);
 		} 
-		__close();
+		__close(__active);
 	}
 
-	function __close() {
-		__getInstance().hide();
-		_confirmCallback = null;
-		_rejectCallback = null;
-		__clearExtraButtons();
+	function __onReject() {
+		if (!__active) return;
+		let callback = __active.holder._rejectCallback;
+		if (callback) {
+			if (lx.isFunction(callback)) callback();
+			else if (lx.isArray(callback))
+				callback[1].call(callback[0]);
+		} 
+		__close(__active);
+	}
+
+	function __onExtra(holder, name) {
+		let callback = holder._extraCallbacks[name];
+		if (callback) {
+			if (lx.isFunction(callback)) callback();
+			else if (lx.isArray(callback))
+				callback[1].call(callback[0]);
+		} 
+		__close(holder._popup);
+	}
+
+	function __close(popup) {
+		if (!__active) return;
+		popup.hide();
+		popup.holder._confirmCallback = null;
+		popup.holder._rejectCallback = null;
+		__clearExtraButtons(popup.holder);
 		lx.app.keyboard.offKeydown(13, __onConfirm);
 		lx.app.keyboard.offKeydown(27, __onReject);
+		__active = null;
 	}
 }

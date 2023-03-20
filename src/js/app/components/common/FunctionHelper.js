@@ -9,16 +9,16 @@ class FunctionHelper extends lx.AppComponent {
 
     // По переданным строкам аргументов и кода создает функцию и сразу ее запускает
     createAndCallFunction(args, code, context=null, params=[]) {
-        var f = this.createFunction(args, code);
+        let f = this.createFunction(args, code);
         return f.apply(context, params);
     }
 
     createAndCallFunctionWithArguments(args, code, context=null) {
         code = code.replace(/(^[^{]+?{|}\s*$)/g, '');
-        var kstl = '}';
-        var argsArr = [];
-        var argNamesArr = [];
-        for (var name in args) {
+        let kstl = '}',
+            argsArr = [],
+            argNamesArr = [];
+        for (let name in args) {
             argsArr.push(args[name]);
             argNamesArr.push(name);
         }
@@ -27,7 +27,8 @@ class FunctionHelper extends lx.AppComponent {
 
     // Превращает функцию в строку в формате '(arg1, arg2) => ...function code'
     functionToString(func) {
-        var funcText = null;
+        if (lx.isString(func)) return func;
+        let funcText = null;
         if (lx.isFunction(func)) {
             funcText = func.toString();
             if (funcText.match(/^\s*\(/))
@@ -36,7 +37,7 @@ class FunctionHelper extends lx.AppComponent {
                 funcText = funcText.replace(/^\s*function\s*\(([^\)]*?)\)\s*{\s*/, '($1)=>');
             funcText = funcText.replace(/\s*}\s*$/, '');
             var a = '}'; //TODO костыль для регулярок с рекурсивной подмаской
-        } else if (lx.isString(func)) funcText = func;
+        }
         return funcText;
     }
 
@@ -45,20 +46,23 @@ class FunctionHelper extends lx.AppComponent {
     // 'function code'
     // 'function (arg1, arg2) { ...function code }'
     stringToFunction(str) {
-        var arr = this.parseFunctionString(str);
+        let arr = this.parseFunctionString(str);
         return this.createFunction(arr[0], arr[1]);
     }
 
     parseFunctionString(str) {
         if (str[0] == '(') {
-            var reg = /^\(\s*([\w\W]*?)\s*\)\s*=>\s*{?([\w\W]*?)}?\s*$/,
+            let reg = /^\(\s*([\w\W]*?)\s*\)\s*=>\s*({?[\w\W]*?}?)\s*$/,
                 arr = reg.exec(str);
             if (!arr.len) return null;
-            return [arr[1], arr[2]];
+            let code = arr[2];
+            if (code[0] == '{' && code[code.length - 1] == '}')
+                code = code.replace(/(^{|}$)/, '');
+            return [arr[1], code];
         }
 
         if (str.match(/^function/)) {
-            var reg = /^function[^(]*\(\s*([\w\W]*?)\s*\)\s*{\s*([\w\W]*)\s*}\s*$/,
+            let reg = /^function[^(]*\(\s*([\w\W]*?)\s*\)\s*{\s*([\w\W]*)\s*}\s*$/,
                 arr = reg.exec(str);
             if (!arr.len) return null;
             return [arr[1], arr[2]];

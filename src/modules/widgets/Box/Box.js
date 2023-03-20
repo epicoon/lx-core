@@ -24,6 +24,8 @@
  * end()
  *
  * * 2. Content managment
+ * imagePath(name)
+ * renderHtml()
  * addChild(elem, config = {})
  * modifyNewChildConfig(config)
  * insert(c, next, config={})
@@ -172,7 +174,9 @@ class Box extends lx.Rect {
 
         destruct() {
             var container = __getContainer(this);
-            container.dropPlugin();
+            #lx:client {
+                container.dropPlugin();
+            }
 
             this.setBuildMode(true);
             this.eachChild((child)=>{
@@ -261,6 +265,27 @@ class Box extends lx.Rect {
 
     //==================================================================================================================
     /* 2. Content managment */
+
+    imagePath(name) {
+        if (name[0] == '/') return name;
+
+        #lx:server {
+            return this.getPlugin().getImage(name);
+        }
+
+        #lx:client {
+            if (this.imagesMap) return lx.Plugin.resolveImage(this.imagesMap, name);
+
+            const c = __getContainer(this);
+            if (c.plugin)
+                return c.plugin.getImage(name);
+
+            if (this.parent)
+                return this.parent.imagePath(name);
+
+            return name;
+        }
+    }
 
     renderHtml() {
         const renderContent = function(node) {
@@ -1217,7 +1242,7 @@ class Box extends lx.Rect {
     //==================================================================================================================
     /* 5. Load */
     /**
-     * Загружает уже полученные данные о модуле в элемент
+     * Загружает уже полученные данные о плагине в элемент
      */
     setPlugin(info, attributes = {}, func = null) {
         this.dropPlugin();
@@ -1232,9 +1257,10 @@ class Box extends lx.Rect {
      * Удаляет плагин из элемента, из реестра плагинов и всё, что связано с плагином
      */
     dropPlugin() {
-        if (this.plugin) {
-            this.plugin.del();
-            delete this.plugin;
+        const c = __getContainer(this);
+        if (c.plugin) {
+            c.plugin.del();
+            delete c.plugin;
         }
     }
 

@@ -187,7 +187,7 @@ class ObjectMapper
      */
     private function checkParsed($object): bool
     {
-        return in_array($object, $this->parsed);
+        return in_array($object, $this->parsed, true);
     }
 
     /**

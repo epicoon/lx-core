@@ -147,7 +147,7 @@ class Marks extends lx.Box {
 	setMarks(marks) {
 		this.del('mark');
 		this.useRenderCache();
-		this.marks = this.add(lxMark, marks.len, {key:'mark'});
+		this.marks = this.add(lx.Mark, marks.len, {key:'mark'});
 		if (this.marks instanceof lx.Rect)
 			this.marks = new lx.Collection(this.marks);
 		this.marks.forEach(mark=>__buildMark(this, mark, marks[mark.index]));
@@ -181,7 +181,7 @@ class Marks extends lx.Box {
 		}
 		sheet.hide();
 
-		let mark = this.add(lxMark, {key:'mark'});
+		let mark = this.add(lx.Mark, {key:'mark'});
 		__buildMark(this, mark, markText);
 		__clientBuildMark(this, mark);
 		mark.checked = false;
@@ -346,6 +346,8 @@ function __buildMark(self, mark, text) {
 		mark.click(_handler_clickMark);
 		mark.setEllipsisHint({css: self.basicCss.hint});
 		if (self.dropAllowed) {
+			let but = mark.findOne('delBut');
+			if (!but) return;
 			mark->>delBut.click(function (e) {
 				e.stopPropagation();
 				const marks = this.ancestor({is:lx.Marks});
@@ -443,7 +445,8 @@ function __buildMark(self, mark, text) {
 	}
 }
 
-class lxMark extends lx.Box {
+#lx:namespace lx;
+class Mark extends lx.Box {
 	removeDelButton() {
 		this->>delBut.parent.del();
 	}

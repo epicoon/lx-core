@@ -4,6 +4,7 @@ addSnippet(snippetPath, config = {}) {
     let widgetClass = config.widget || lx.Box,
         attributes = config.lxExtract('attributes') || {},
         backLock = lx.getFirstDefined(config.backLock, false),
+        backLockClickable = lx.getFirstDefined(config.backLockClickable, true),
         hidden = lx.getFirstDefined(config.hidden, false);
     config = (config.config) ? config.config : config;
     if (!config.key) {
@@ -20,10 +21,14 @@ addSnippet(snippetPath, config = {}) {
         back.fill('black');
         back.opacity(0.5);
         widget = wrapper.add(widgetClass, config);
+        wrapper.backLockClickable = backLockClickable;
         wrapper.onLoad(function() {
             this.child(1).show = () => this.show();
             this.child(1).hide = () => this.hide();
-            this.child(0).click(() => this.hide());
+            if (this.backLockClickable) {
+                this.child(0).click(() => this.hide());
+                delete this.backLockClickable;
+            }
         });
         head = wrapper;
     } else {

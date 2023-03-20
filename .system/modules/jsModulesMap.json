@@ -1,4 +1,8 @@
 {
+    "lx.HashMd5": {
+        "name": "lx.HashMd5",
+        "path": "src\/js\/classes\/server\/hash\/HashMd5.js"
+    },
     "lx.Color": {
         "name": "lx.Color",
         "path": "src\/modules\/Color.js"

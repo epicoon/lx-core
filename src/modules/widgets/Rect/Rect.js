@@ -267,13 +267,17 @@ class Rect extends lx.Module {
      * Метод для освобождения ресурсов
      * */
     destructProcess() {
-        this.trigger('beforeDestruct');
-        this.unbind();
+        #lx:client {
+            this.trigger('beforeDestruct');
+            this.unbind();
+        }
         this.destruct();
         this.parent = null;
         if (this.domElem) this.domElem.clear();
         this.domElem = null;
-        this.trigger('afterDestruct');
+        #lx:client {
+            this.trigger('afterDestruct');
+        }
     }
 
     destruct() {}
@@ -382,32 +386,26 @@ class Rect extends lx.Module {
     }
 
     /**
-     * Путь для запроса изображений (идея единого хранилища изображений в рамках модуля)
-     * */
+     * Путь для запроса изображений (идея единого хранилища изображений в рамках плагина)
+     */
     imagePath(name) {
         if (name[0] == '/') return name;
 
         #lx:server {
-            var plugin = this.getPlugin();
-            return plugin.getImage(name);
+            return this.getPlugin().getImage(name);
         }
 
         #lx:client {
-            let temp = this;
-            while (true) {
-                if (temp.imagesMap) return lx.Plugin.resolveImage(temp.imagesMap, name);
-                if (temp.plugin) return temp.plugin.getImage(name);
-                if (!temp.parent) break;
-                temp = temp.parent;
-            }
-
+            if (this.imagesMap) return lx.Plugin.resolveImage(this.imagesMap, name);
+            if (this.parent)
+                return this.parent.imagePath(name);
             return name;
         }
     }
 
     /**
      * Управление активностью элемента
-     * */
+     */
     disabled(bool) {
         if (bool === undefined) return this.domElem.getAttribute('disabled') !== null;
 

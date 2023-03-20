@@ -8,22 +8,24 @@
 #lx:use lx.Input;
 
 #lx:client {
-	let instance = null,
-
-		onEnterCallback = null,
-
-		_confirmCallback = null,
-		_rejectCallback = null,		
-		callbackHolder = {
-			confirm: function(callback) {
-				_confirmCallback = callback;
-				return this;
-			},
-			reject: function(callback) {
-				_rejectCallback = callback;
-				return this;
-			}
+	function __getHolder() {
+		let holder = {
+			_confirmCallback: null,
+			_rejectCallback: null,
 		};
+		holder.confirm = function(callback) {
+			this._confirmCallback = callback;
+			return this;
+		}
+		holder.reject = function(callback) {
+			this._rejectCallback = callback;
+			return this;
+		}
+		return holder;
+	}
+
+	let __instance = null,
+		__active = null;
 }
 
 /**
@@ -34,7 +36,12 @@
 class InputPopup extends lx.Box {
     modifyConfigBeforeApply(config) {
     	config.key = config.key || 'inputPopup';
-    	config.style = {display: 'none'};
+		config.geom = config.geom || ['0%', '0%', '100%', '100%'];
+		config.depthCluster = lx.DepthClusterMap.CLUSTER_OVER;
+
+		//TODO ???
+		// style: { position: 'fixed' }
+
         return config;
     }
 
@@ -53,14 +60,29 @@ class InputPopup extends lx.Box {
 	}
 
     #lx:client {
+		clientBuild(config) {
+			this.holder = __getHolder();
+			__render(this);
+		}
+
+		static open(captions, defaults = {}) {
+			if (!__instance)
+				__instance = new lx.InputPopup({parent: lx.body});
+			return __instance.open(captions, defaults);
+		}
+
+		static close() {
+			if (__instance)
+				__close(__instance);
+		}
+
 	    open(captions, defaults = {}) {
 			if (!lx.isArray(captions)) captions = [captions];
 
-			var popup = __getInstance(this);
-			var buttons = popup->stream->buttons;
+			let buttons = this->stream->buttons;
 
-			popup->stream.del('r');
-			popup.useRenderCache();
+			this->stream.del('r');
+			this.useRenderCache();
 			captions.forEach(caption=>{
 				var row = new lx.Box({
 					key: 'r',
@@ -81,49 +103,40 @@ class InputPopup extends lx.Box {
 
 				row.height( textBox->text.height('px') + 10 + 'px' );
 			});
-			popup.applyRenderCache();
+			this.applyRenderCache();
 
-			var top = (popup.height('px') - popup->stream.height('px')) * 0.5;
+			var top = (this.height('px') - this->stream.height('px')) * 0.5;
 			if (top < 0) top = 0;
-			popup->stream.top(top + 'px');
+			this->stream.top(top + 'px');
 
-			popup.show();
+			__active = this;
+			this.show();
 
 			lx.app.keyboard.onKeydown(13, __onConfirm);
 			lx.app.keyboard.onKeydown(27, __onReject);
 
-			var rows = popup->stream->r;
+			var rows = this->stream->r;
 			if (lx.isArray(rows)) rows[0]->input.focus();
 			else rows->input.focus();
 
-			return callbackHolder;
+			return this.holder;
 	    }
 
 	    close() {
-	    	__close();
+	    	__close(this);
 	    }
     }
 }
 
 #lx:client {
-	function __getInstance(self = null) {
-		if (instance === null) {
-			instance = new lx.Box({
-				parent: lx.body,
-				geom: ['0%', '0%', '100%', '100%'],
-				depthCluster: lx.DepthClusterMap.CLUSTER_OVER,
-				style: { position: 'fixed' }
-			});
-			instance.overflow('auto');
-	    	instance.useRenderCache();
-	    	instance.begin();
-	    	__renderContent(self);
-	    	instance.end();
-	    	instance.applyRenderCache();
-	    	instance.hide();
-		}
-
-		return instance;
+	function __render(self) {
+		self.overflow('auto');
+		self.useRenderCache();
+		self.begin();
+		__renderContent(self);
+		self.end();
+		self.applyRenderCache();
+		self.hide();
 	}
 
 	function __renderContent(self) {
@@ -144,37 +157,40 @@ class InputPopup extends lx.Box {
 	}
 
 	function __onConfirm() {
-		if (_confirmCallback) {
-			var popup = __getInstance();
-			var values = [];
-			if (popup->stream.contains('r')) {
-				var rows = popup->stream->r;
+		if (!__active) return;
+		let callback = __active.holder._confirmCallback;
+		if (callback) {
+			let values = [];
+			if (__active->stream.contains('r')) {
+				let rows = __active->stream->r;
 				if (rows) {
 					if (!lx.isArray(rows)) rows = [rows];
 					rows.forEach(a=>values.push(a->input.value()));
 				}
 			}
 			if (values.len == 1) values = values[0];
-			if (lx.isFunction(_confirmCallback)) _confirmCallback(values);
-			else if (lx.isArray(_confirmCallback))
-				_confirmCallback[1].call(_confirmCallback[0], values);
+			if (lx.isFunction(callback)) callback(values);
+			else if (lx.isArray(callback))
+				callback[1].call(callback[0], values);
 		} 
-		__close();
+		__close(__active);
 	}
 
 	function __onReject() {
-		if (_rejectCallback) {
-			if (lx.isFunction(_rejectCallback)) _rejectCallback();
-			else if (lx.isArray(_rejectCallback))
-				_rejectCallback[1].call(_rejectCallback[0]);
+		if (!__active) return;
+		let callback = __active.holder._rejectCallback;
+		if (callback) {
+			if (lx.isFunction(callback)) callback();
+			else if (lx.isArray(callback))
+				callback[1].call(callback[0]);
 		} 
-		__close();
+		__close(__active);
 	}
 
-	function __close() {
-		__getInstance().hide();
-		_confirmCallback = null;
-		_rejectCallback = null;
+	function __close(popup) {
+		popup.hide();
+		popup.holder._confirmCallback = null;
+		popup.holder._rejectCallback = null;
 		lx.app.keyboard.offKeydown(13, __onConfirm);
 		lx.app.keyboard.offKeydown(27, __onReject);
 	}

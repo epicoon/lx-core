@@ -1,3 +1,5 @@
+#lx:module lx.HashMd5;
+
 #lx:namespace lx;
 class HashMd5 {
 	static hex(s) {

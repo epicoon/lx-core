@@ -158,7 +158,7 @@ class LoadContext {
 		// Run js-code before plugin render
 		plugin.beforeRender();
 
-		if (!lx.app.cssManager.isBuilded()) {
+		if (!lx.app.cssManager.isBuilt()) {
 			lx.app.cssManager.renderPluginCss(plugin);
 			lx.app.cssManager.renderModuleCss({
 				presets: [plugin.cssPreset]
