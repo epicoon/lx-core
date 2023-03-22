@@ -60,7 +60,10 @@ class Dropbox extends lx.Box {
 		});
 		css.addClass('lx-Dropbox-cell', {
 		}, {
-			hover: 'background-color:' + css.preset.checkedMainColor
+			hover: {
+				color: css.preset.checkedSoftColor,
+				backgroundColor: css.preset.checkedDarkColor
+			}
 		});
 	}
 
