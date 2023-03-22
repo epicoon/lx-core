@@ -112,7 +112,7 @@ class PostgresConnection extends DbConnection
                 if (preg_match('/^nextval\(.*seq/', $default)) {
                     $definition['type'] = DbTableField::TYPE_SERIAL;
                 } else {
-                    if (preg_match('/\'(.+?)\'::[\w]+$/', $default, $matches)) {
+                    if (preg_match('/\'(.+?)\'::[\w ]+$/', $default, $matches)) {
                         $default = $matches[1];
                     }
 
