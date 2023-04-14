@@ -116,7 +116,7 @@ class JsModulesActualizer
 
     private function makeMap(DirectoryInterface $dir): array
     {
-        $files = $dir->getAllFiles('*.js');
+        $files = $dir->getAllFiles(['mask' => '*.js']);
         $map = [];
         $files->each(function ($file) use ($dir, &$map) {
             $code = $file->get();

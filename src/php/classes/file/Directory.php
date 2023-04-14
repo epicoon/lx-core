@@ -134,9 +134,11 @@ class Directory extends BaseFile implements DirectoryInterface
      *  'fileClass' : string
 	 *	'sort'      : SCANDIR_SORT_DESCENDING | SCANDIR_SORT_NONE - sort type
 	 *	'mask'      : string - example '*.(php|js)'
+     *	'fileMask'  : string - example '*.(php|js)'
+     *	'dirMask'   : string - example 'name???'
 	 * 	'all'       : bool - recursuve search
-	 *	'files'     : bool - return only files
-	 *	'dirs'      : bool - return only directories
+	 *	'files'     : bool - return files
+	 *	'dirs'      : bool - return directories
 	 *	'ext'       : bool - return names with/without extensions (for name returning only)
 	 *	'fullname'  : bool - return full/self file names (for name returning only)
 	 * ]
@@ -145,13 +147,14 @@ class Directory extends BaseFile implements DirectoryInterface
 	 */
 	public function getContent(array $rules = []): Vector
 	{
-        $files = new Vector();
         if (!$this->exists()) {
-            return $files;
+            return new Vector();
         }
-        
-		$rules = DataObject::create($rules);
+
+        $files = [];
+		$rules = $this->prepareRules($rules);
 		$this->getContentRe($this->path, $rules, $files);
+        $files = new Vector($files);
 
 		if ($rules->findType != self::FIND_OBJECT) {
 			if ($rules->ext === false) {
@@ -173,6 +176,28 @@ class Directory extends BaseFile implements DirectoryInterface
 
 		return $files;
 	}
+
+    /**
+     * Files and directories wich are located in this directory as associative array
+     *
+     * $rules = [
+     *	'findType'  : Directory::FIND_OBJECT | Directory::FIND_NAME - return objects or names
+     *  'fileClass' : string
+     *	'sort'      : SCANDIR_SORT_DESCENDING | SCANDIR_SORT_NONE - sort type
+     *	'mask'      : string - example '*.(php|js)'
+     *	'fileMask'  : string - example '*.(php|js)'
+     *	'dirMask'   : string - example 'name???'
+     *	'ext'       : bool - return names with/without extensions (for name returning only)
+     * ]
+     */
+    public function getContentTree(array $rules = []): array
+    {
+        $rules['asTree'] = true;
+        $rules = $this->prepareRules($rules);
+        $tree = [];
+        $this->getContentRe($this->path, $rules, $tree);
+        return $tree;
+    }
 
 	public function get(string $name): ?CommonFileInterface
 	{
@@ -213,73 +238,69 @@ class Directory extends BaseFile implements DirectoryInterface
     /**
      * @return Vector<FileInterface>
      */
-	public function getFiles(?string $pattern = null): Vector
+	public function getFiles(array $rules = []): Vector
 	{
-		return $this->getContent([
-            'findType' => self::FIND_OBJECT,
-            'mask' => $pattern,
-            'files' => true,
-        ]);
+        unset($rules['tree']);
+        $rules['findType'] = self::FIND_OBJECT;
+        $rules['files'] = true;
+        return $this->getContent($rules);
 	}
 
     /**
      * @return Vector<string>
      */
-    public function getFileNames(?string $pattern = null): Vector
+    public function getFileNames(array $rules = []): Vector
     {
-        return $this->getContent([
-            'findType' => self::FIND_NAME,
-            'mask' => $pattern,
-            'files' => true,
-        ]);
+        unset($rules['tree']);
+        $rules['findType'] = self::FIND_NAME;
+        $rules['files'] = true;
+        return $this->getContent($rules);
     }
 
 	/**
 	 * @return Vector<FileInterface>
 	 */
-	public function getAllFiles(?string $pattern = null): Vector
+	public function getAllFiles(array $rules = []): Vector
 	{
-		return $this->getContent([
-            'findType' => self::FIND_OBJECT,
-            'mask' => $pattern,
-            'files' => true,
-            'all' => true,
-        ]);
+        unset($rules['tree']);
+        $rules['findType'] = self::FIND_OBJECT;
+        $rules['files'] = true;
+        $rules['all'] = true;
+        return $this->getContent($rules);
 	}
 
     /**
      * @return Vector<string>
      */
-    public function getAllFileNames(?string $pattern = null): Vector
+    public function getAllFileNames(array $rules = []): Vector
     {
-        return $this->getContent([
-            'findType' => self::FIND_NAME,
-            'mask' => $pattern,
-            'files' => true,
-            'all' => true,
-        ]);
+        unset($rules['tree']);
+        $rules['findType'] = self::FIND_NAME;
+        $rules['files'] = true;
+        $rules['all'] = true;
+        return $this->getContent($rules);
     }
 
 	/**
 	 * @return Vector<DirectoryInterface>
 	 */
-	public function getDirectories(): Vector
+	public function getDirectories(array $rules = []): Vector
 	{
-		return $this->getContent([
-            'findType' => self::FIND_OBJECT,
-            'dirs' => true,
-        ]);
+        unset($rules['tree']);
+        $rules['findType'] = self::FIND_OBJECT;
+        $rules['dirs'] = true;
+        return $this->getContent($rules);
 	}
 
     /**
      * @return Vector<string>
      */
-    public function getDirectoryNames(): Vector
+    public function getDirectoryNames(array $rules = []): Vector
     {
-        return $this->getContent([
-            'findType' => self::FIND_NAME,
-            'dirs' => true,
-        ]);
+        unset($rules['tree']);
+        $rules['findType'] = self::FIND_NAME;
+        $rules['dirs'] = true;
+        return $this->getContent($rules);
     }
 
 	/**
@@ -287,7 +308,7 @@ class Directory extends BaseFile implements DirectoryInterface
 	 */
 	public function getFilesByCallback(string $fileMask, callable $func): Vector
 	{
-		$arr = $this->getAllFiles($fileMask);
+		$arr = $this->getAllFiles(['mask' => $fileMask]);
 		$v = new Vector();
 		$arr->each(function($file) use (&$v, $func) {
 			if (!$func($file)) return;
@@ -360,7 +381,7 @@ class Directory extends BaseFile implements DirectoryInterface
 		return null;
 	}
 
-	private function getContentRe(string $dirPath, DataObject $rules, Vector &$list): void
+	private function getContentRe(string $dirPath, DataObject $rules, array &$list): void
 	{
 		$findType = $rules->findType ?? self::FIND_OBJECT;
 
@@ -372,34 +393,54 @@ class Directory extends BaseFile implements DirectoryInterface
 		if ($dirPath[-1] != '/') {
 			$dirPath .= '/';
 		}
-		
-		$masks = $rules->mask ? $this->parseMask($rules->mask) : null;
-		$files = new Vector();
-		foreach ($arr as $value) {
-			if ($value == '.' || $value == '..') continue;
 
-			$path = $dirPath . $value;
-			if (is_dir($path)) {
-				if (!$rules->files && $this->checkMasks($value, $masks)) {
-					$files->push($this->getItem($value, $path, $findType, $rules->fileClass));
-				}
-				if ($rules->all) {
-					$this->getContentRe($path, $rules, $files);
-				}
-			} else {
-				if (!$rules->dirs && $this->checkMasks($value, $masks)) {
-					$files->push($this->getItem($value, $path, $findType, $rules->fileClass));
-				}
-			}
-		}
+        $dirs = [];
+        $files = [];
+        $allFileDirs = [];
+        foreach ($arr as $value) {
+            if ($value == '.' || $value == '..') {
+                continue;
+            }
 
-		$list->merge($files);
+            $path = $dirPath . $value;
+            if (is_dir($path)) {
+                if ($rules->asTree || (!$rules->files && $this->checkMasks($value, $rules->dirMask))) {
+                    $dirs[] = $path;
+                }
+                if ($rules->all) {
+                    $allFileDirs[] = $path;
+                }
+            } else {
+                if (!$rules->dirs && $this->checkMasks($value, $rules->fileMask)) {
+                    $files[] = $path;
+                }
+            }
+        }
+
+        $localList = [];
+        foreach ($dirs as $path) {
+            if ($rules->asTree) {
+                $ff = [];
+                $this->getContentRe($path, $rules, $ff);
+                $localList[basename($path)] = $ff;
+            } else {
+                $localList[] = $this->getItem($rules, $path, $findType, $rules->fileClass);
+            }
+        }
+        foreach ($files as $path) {
+            $localList[] = $this->getItem($rules, $path, $findType, $rules->fileClass);
+        }
+        foreach ($allFileDirs as $path) {
+            $this->getContentRe($path, $rules, $localList);
+        }
+
+        $list = array_merge($list, $localList);
 	}
 
 	/**
 	 * @return BaseFile|string|null
 	 */
-	private function getItem(string $name, string $fullPath, int $type, ?string $fileClass)
+	private function getItem(DataObject $rules, string $fullPath, int $type, ?string $fileClass)
 	{
 		if ($type == self::FIND_OBJECT) {
 		    if ($fileClass) {
@@ -408,6 +449,10 @@ class Directory extends BaseFile implements DirectoryInterface
                 return BaseFile::construct($fullPath);
             }
 		}
+
+        if ($rules->asTree) {
+            return basename($fullPath);
+        }
 
 		$thisPath = $this->path;
 		if ($thisPath[-1] != '/') $thisPath .= '/';
@@ -427,4 +472,28 @@ class Directory extends BaseFile implements DirectoryInterface
 
 		return false;
 	}
+
+    private function prepareRules(?array $rules = []): DataObject
+    {
+        $rules = DataObject::create($rules);
+        if ($rules->fileMask) {
+            $rules->fileMask = $this->parseMask($rules->fileMask);
+        }
+        if ($rules->dirMask) {
+            $rules->dirMask = $this->parseMask($rules->dirMask);
+        }
+        if ($rules->mask) {
+            $rules->mask = $this->parseMask($rules->mask);
+            if (!$rules->fileMask) {
+                $rules->fileMask = $rules->mask;
+            }
+            if (!$rules->dirMask) {
+                $rules->dirMask = $rules->mask;
+            }
+        }
+        if ($rules->asTree) {
+            $rules->all = null;
+        }
+        return $rules;
+    }
 }

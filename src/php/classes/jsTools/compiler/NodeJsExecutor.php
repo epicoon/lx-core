@@ -256,7 +256,7 @@ class NodeJsExecutor implements FlightRecorderHolderInterface
 		$dir->make();
 		$date = new \DateTime();
 		$date = $date->format('Y-m-d');
-		$ff = $dir->getFileNames($date . '*.js')->toArray();
+		$ff = $dir->getFileNames(['mask' => $date . '*.js'])->toArray();
 		$lastFileIndex = -1;
 		foreach ($ff as $name) {
 			preg_match('/_(\d+?)\./', $name, $match);

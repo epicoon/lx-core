@@ -201,7 +201,7 @@ class PluginConductor implements ConductorInterface
 			}
 
 			$relativePath = lx::$app->conductor->getRelativePath($path);
-			$files = $d->getFiles('*.css');
+			$files = $d->getFiles(['mask' => '*.css']);
 			$list = [];
 			foreach ($files as $file) {
 				$list[] = '/' . $relativePath . '/' . $file->getName();

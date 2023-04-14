@@ -21,27 +21,27 @@ interface DirectoryInterface extends CommonFileInterface
     /**
      * @return Vector<FileInterface>
      */
-    public function getFiles(?string $pattern = null): Vector;
+    public function getFiles(array $rules = []): Vector;
     /**
      * @return Vector<string>
      */
-    public function getFileNames(?string $pattern = null): Vector;
+    public function getFileNames(array $rules = []): Vector;
     /**
      * @return Vector<FileInterface>
      */
-    public function getAllFiles(?string $pattern = null): Vector;
+    public function getAllFiles(array $rules = []): Vector;
     /**
      * @return Vector<string>
      */
-    public function getAllFileNames(?string $pattern = null): Vector;
+    public function getAllFileNames(array $rules = []): Vector;
     /**
      * @return Vector<DirectoryInterface>
      */
-    public function getDirectories(): Vector;
+    public function getDirectories(array $rules = []): Vector;
     /**
      * @return Vector<string>
      */
-    public function getDirectoryNames(): Vector;
+    public function getDirectoryNames(array $rules = []): Vector;
     /**
      * @return Vector<FileInterface>
      */

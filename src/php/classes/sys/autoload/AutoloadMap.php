@@ -144,7 +144,7 @@ class AutoloadMap
 				if (!$d->exists()) {
 					continue;
 				}
-				$ff = $d->getAllFileNames('*.php');
+				$ff = $d->getAllFileNames(['mask' => '*.php']);
 				$ff = $ff->toArray();
 
 				foreach ($ff as $f) {

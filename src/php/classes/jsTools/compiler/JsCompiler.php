@@ -324,9 +324,8 @@ class JsCompiler
 			}
 
 			$dir = new Directory($this->conductor->getFullPath($dirPath, $parentDir));
-			$files = $dir->getContent([
+			$files = $dir->getFileNames([
 				'mask' => '*.js',
-				'findType' => Directory::FIND_NAME,
 				'fullname' => true,
 				'all' => $flags->recursive,
 			]);

@@ -218,7 +218,7 @@ class PluginCssCompiler
 
             //TODO возможно ли придумать что-то более тонкое для проверки, что нужно пересобрать css-файлы?
             /** @var CommonFileInterface $file */
-            foreach ($this->plugin->directory->getAllFiles('*.js') as $file) {
+            foreach ($this->plugin->directory->getAllFiles(['mask' => '*.js']) as $file) {
                 $updated = $file->updatedAt();
                 if ($this->pluginLastUpdate < $updated) {
                     $this->pluginLastUpdate = $updated;

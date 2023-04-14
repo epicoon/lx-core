@@ -10,10 +10,10 @@
  * @events [
  *     leafOpen,
  *     leafClose,
- *     beforeAdd,
- *     afterAdd,
- *     beforeDel,
- *     afterDel
+ *     beforeAddLeaf,
+ *     afterAddLeaf,
+ *     beforeDropLeaf,
+ *     afterDropLeaf
  * ]
  */
 #lx:namespace lx;
@@ -47,7 +47,10 @@ class TreeBox extends lx.Box {
 			'lx-TW-Button-add'   :
 				{ '@icon': ['\\271A', {fontSize:10, paddingBottom:'0px'}] },
 			'lx-TW-Button-del'   :
-				{ '@icon': ['\\2716', {fontSize:10, paddingBottom:'0px'}] },
+				{
+					backgroundColor: css.preset.hotMainColor,
+					'@icon': ['\\2716', {fontSize:10, paddingBottom:'0px'}] 
+				},
 		}, 'lx-TW-Button');
 		css.inheritClass('lx-TW-Button-empty', 'Button', {
 			backgroundColor: css.preset.checkedMainColor,
@@ -75,7 +78,8 @@ class TreeBox extends lx.Box {
 	 *     [addAllowed = false] {Boolean},
 	 *     [rootAddAllowed = false] {Boolean},
 	 *     [leaf] {Function} (: argument - leaf {TreeLeaf} :),
-	 *     [befroeAddLeaf] {Function} (: argument - node {lx.Tree} :)
+	 *     [beforeAddLeaf] {Function} (: argument - node {lx.Tree} :),
+	 *     [beforeDropLeaf] {Function} (: argument - leaf {TreeLeaf} :)
 	 * }}
 	 */
 	build(config) {
@@ -93,17 +97,19 @@ class TreeBox extends lx.Box {
 			? this.addAllowed
 			: config.rootAddAllowed;
 
-		this.beforeAddLeafHandler = config.befroeAddLeaf || null;
+		this.beforeAddLeafHandler = config.beforeAddLeaf || null;
+		this.beforeDropLeafHandler = config.beforeDropLeaf || null;
 		this.leafRenderer = config.leaf || null;
 		this.tree = config.tree || new lx.Tree();
 		this.onAddHold = false;
+		this.onDelHold = false;
 
-		var w = this.step * 2 + this.leafHeight + this.labelWidth;
-		var el = new lx.Box({
-			parent: this,
-			key: 'work',
-			width: w + 'px'
-		});
+		let w = this.step * 2 + this.leafHeight + this.labelWidth,
+			el = new lx.Box({
+				parent: this,
+				key: 'work',
+				width: w + 'px'
+			});
 
 		new lx.Rect({
 			parent: this,
@@ -159,7 +165,7 @@ class TreeBox extends lx.Box {
 		}
 
 		leafByNode(node) {
-			var match = null;
+			let match = null;
 			this.leafs().forEach(function(a) {
 				if (a.node === node) {
 					match = a;
@@ -186,14 +192,14 @@ class TreeBox extends lx.Box {
 		setStateMemoryKey(key) {
 			// На открытие ветки
 			this.on('leafOpen', function(e) {
-				var opened = this.getOpenedInfo();
+				let opened = this.getOpenedInfo();
 				opened.push(e.leaf.index);
 				lx.app.cookie.set(key, opened.join(','));
 			});
 
 			// На закрытие ветки
 			this.on('leafClose', function(e) {
-				var opened = this.getOpenedInfo();
+				let opened = this.getOpenedInfo();
 				lx.app.cookie.set(key, opened.join(','));
 			});
 
@@ -207,8 +213,8 @@ class TreeBox extends lx.Box {
 		renew(forse = false) {
 			if (!forse && !this.isDisplay()) return;
 
-			var scrollTop = this.domElem.param('scrollTop');
-			var opened = [];
+			let scrollTop = this.domElem.param('scrollTop'),
+				opened = [];
 			this.leafs().forEach(a=>{
 				if (a->open.opened)
 					opened.push(a.node);
@@ -216,9 +222,9 @@ class TreeBox extends lx.Box {
 
 			this->work.clear();
 			this.prepareRoot();
-			for (var i in opened) {
+			for (let i in opened) {
 				// todo - неэффективно
-				var leaf = this.leafByNode(opened[i]);
+				let leaf = this.leafByNode(opened[i]);
 				if (!leaf) continue;
 				this.openBranch(leaf);
 			}
@@ -230,7 +236,7 @@ class TreeBox extends lx.Box {
 		 * Выдает массив индексов открытых листьев
 		 * */
 		getOpenedInfo() {
-			var opened = [];
+			let opened = [];
 			this.leafs().forEach((a, i)=> {
 				if (a->open.opened)
 					opened.push(i);
@@ -242,7 +248,7 @@ class TreeBox extends lx.Box {
 		 * Раскрывает листья согласно массиву, сформированному в .getOpenedInfo()
 		 * */
 		useOpenedInfo(info) {
-			for (var i=0, l=info.len; i<l; i++) {
+			for (let i=0, l=info.len; i<l; i++) {
 				let leaf = this.leaf(info[i]);
 				if (leaf) this.openBranch(leaf);
 			}
@@ -250,10 +256,10 @@ class TreeBox extends lx.Box {
 
 		prepareRoot() {
 			this.createLeafs(this.tree);
-			var work = this->work;
+			let work = this->work;
 
 			if (this.rootAddAllowed && !work.contains('submenu')) {
-				var menu = new lx.Box({parent: work, key: 'submenu', height: this.leafHeight+'px'});
+				let menu = new lx.Box({parent: work, key: 'submenu', height: this.leafHeight+'px'});
 				new lx.Rect({
 					key: 'add',
 					parent: menu,
@@ -268,14 +274,14 @@ class TreeBox extends lx.Box {
 		createLeafs(tree, before) {
 			if (!tree || !(tree instanceof lx.Tree)) return;
 
-			var config = {
+			let config = {
 				parent: this->work,
 				key: 'leaf',
 				height: this.leafHeight + 'px'
 			};
 			if (before) config.before = before;
 
-			var result = TreeLeaf.construct(tree.count(), config, {
+			let result = TreeLeaf.construct(tree.count(), config, {
 				preBuild:(config,i)=>{
 					config.node = tree.getNth(i);
 					return config;
@@ -291,7 +297,7 @@ class TreeBox extends lx.Box {
 		openBranch(leaf, event) {
 			event = event || this.newEvent();
 			event.leaf = leaf;
-			var node = leaf.node;
+			let node = leaf.node;
 
 			if ( node.fill !== undefined && node.fill ) {
 				//TODO точка для расширения логики - данных на фронте ещё нет, но узел знает, что не пуст
@@ -301,15 +307,15 @@ class TreeBox extends lx.Box {
 			if (!node.keys.len) return;
 
 			this.useRenderCache();
-			var leafs = this.createLeafs(node, leaf.nextSibling());
+			let leafs = this.createLeafs(node, leaf.nextSibling());
 			leafs.forEach(a=>{
-				var shift = this.step + (this.step + this.leafHeight) * (node.deep());
+				let shift = this.step + (this.step + this.leafHeight) * (node.deep());
 				a->open.left(shift + 'px');
 				a->label.left(shift + this.step + this.leafHeight + 'px');
 			});
 			this.applyRenderCache();
 
-			var b = leaf->open;
+			let b = leaf->open;
 			b.opened = true;
 			b.removeClass(this.basicCss.buttonClosed);
 			b.addClass(this.basicCss.buttonOpened);
@@ -318,15 +324,15 @@ class TreeBox extends lx.Box {
 		closeBranch(leaf, event) {
 			event = event || this.newEvent();
 			event.leaf = leaf;
-			var i = leaf.index,
+			let i = leaf.index,
 				deep = leaf.node.deep(),
 				next = this.leaf(++i);
 			while (next && next.node.deep() > deep) next = this.leaf(++i);
 
-			var count = next ? next.index - leaf.index - 1 : Infinity;
+			let count = next ? next.index - leaf.index - 1 : Infinity;
 
 			leaf.parent.del('leaf', leaf.index + 1, count);
-			var b = leaf->open;
+			let b = leaf->open;
 			b.opened = false;
 			b.removeClass(this.basicCss.buttonOpened);
 			b.addClass(this.basicCss.buttonClosed);
@@ -341,25 +347,10 @@ class TreeBox extends lx.Box {
 			this.onAddHold = false;
 		}
 
-		resumeAdding(data = {}) {
+		resumeAdding(newNodeAttributes = {}) {
 			const node = this.onAddHold;
 			this.onAddHold = false;
-			return this.addProcess(node, data);
-		}
-
-		/*
-		 * Непосредственно создание нового узла
-		 */
-		addProcess(parentNode, data = {}) {
-			// поля, которые будут добавлены новому узлу
-			if (!data.newNodeAttributes) data.newNodeAttributes = {};
-			data.parentNode = parentNode;
-			const e = this.newEvent(data);
-			if ( this.trigger('beforeAdd', e) === false ) return null;
-			const newNode = this.add(parentNode, data.newNodeAttributes);
-			e.newNode = newNode;
-			this.trigger('afterAdd', e);
-			return newNode;
+			return __addProcess(this, node, newNodeAttributes);
 		}
 
 		/**
@@ -368,18 +359,42 @@ class TreeBox extends lx.Box {
 		 */
 		add(parentNode, newNodeAttributes) {
 			if (parentNode.root) this.leafByNode(parentNode)->open.opened = true;
-			var key = newNodeAttributes.key || parentNode.genKey(),
+			let key = newNodeAttributes.key || parentNode.genKey(),
 				node = parentNode.add(key);
-			for (var f in newNodeAttributes)
+			for (let f in newNodeAttributes)
 				if (f == 'data' || !(f in node)) node[f] = newNodeAttributes[f];
 
 			this.renew();
 			return node;
 		}
+
+		holdDropping() {
+			this.onDelHold = true;
+		}
+
+		breakDropping() {
+			this.onDelHold = false;
+		}
+
+		resumeDropping() {
+			const leaf = this.onDelHold;
+			this.onDelHold = false;
+			__delProcess(this, leaf);
+		}
+		
+		drop(leaf) {
+			let node = leaf.node;
+			node.del();
+			this.renew();
+		}
 	}
 
 	beforeAddLeaf(func) {
 		this.beforeAddLeafHandler = func;
+	}
+
+	beforeDropLeaf(func) {
+		this.beforeDropLeafHandler = func;
 	}
 
 	setLeafRenderer(func) {
@@ -392,6 +407,10 @@ class TreeBox extends lx.Box {
 			w = this.width('px') - val;
 		work.width(w + 'px');
 		move.left(w + 'px');
+	}
+
+	setLeafsRightForButtons(count) {
+		this.setLeafsRight(this.step * (count + 1) + this.leafHeight * count);
 	}
 }
 
@@ -410,7 +429,7 @@ class TreeBox extends lx.Box {
 		}
 
 		create() {
-			var tw = this.box,
+			let tw = this.box,
 				but = new lx.Rect({
 					parent: this,
 					key: 'open',
@@ -422,7 +441,7 @@ class TreeBox extends lx.Box {
 				);
 			but.opened = false;
 
-			var lbl = new lx.Box({
+			let lbl = new lx.Box({
 				parent: this,
 				key: 'label',
 				left: tw.leafHeight + tw.step + 'px',
@@ -433,14 +452,14 @@ class TreeBox extends lx.Box {
 		}
 
 		createChild(config={}) {
-			var tw = this.box;
+			let tw = this.box;
 			if (config.width === undefined) config.width = tw.leafHeight + 'px';
 			if (config.height === undefined) config.height = tw.leafHeight + 'px';
 
 			config.parent = this;
 			config.right = -(tw.step + tw.leafHeight) * (this.childrenCount() - 1) + 'px';
 
-			var type = config.widget || lx.Box;
+			let type = config.widget || lx.Box;
 
 			return new type(config);
 		}
@@ -453,17 +472,19 @@ class TreeBox extends lx.Box {
 			return this.createChild(config);
 		}
 
-		createAddButton(config) {
-			var b = this.createButton(config);
+		createAddButton(config = {}) {
+			let b = this.createButton(config);
 			b.click(__handlerAddNode);
-			b.addClass(this.box.basicCss.buttonAdd);
+			if (!config.css)
+				b.addClass(this.box.basicCss.buttonAdd);
 			return b;
 		}
 
-		createDelButton(config) {
-			var b = this.createButton(config);
+		createDropButton(config = {}) {
+			let b = this.createButton(config);
 			b.click(__handlerDelNode);
-			b.addClass(this.box.basicCss.buttonDel);
+			if (!config.css)
+				b.addClass(this.box.basicCss.buttonDel);
 			return b;
 		}
 	}
@@ -471,7 +492,7 @@ class TreeBox extends lx.Box {
 
 
 function __handlerToggleOpened(event) {
-	var tw = this.ancestor({is: lx.TreeBox}),
+	let tw = this.ancestor({is: lx.TreeBox}),
 		l = this.parent;
 	if (this.opened) tw.closeBranch(l, event);
 	else tw.openBranch(l, event);
@@ -484,23 +505,55 @@ function __handlerAddNode() {
 
 	let obj = null;
 	if (tw.beforeAddLeafHandler)
-		obj = tw.beforeAddLeafHandler(pNode);
+		obj = tw.beforeAddLeafHandler.call(this, pNode);
 	if (tw.onAddHold) {
 		tw.onAddHold = pNode;
 		return;
 	}
 
-	tw.addProcess(pNode, obj || {});
+	__addProcess(tw, pNode, obj || {});
 }
 
 function __handlerDelNode() {
-	var leaf = this.parent,
-		node = leaf.node,
+	let leaf = this.parent,
 		tw = leaf.box;
 
-	if (tw.trigger('beforeDel', tw.newEvent({leaf, node})) === false) return;
+	if (tw.beforeDropLeafHandler)
+		tw.beforeDropLeafHandler.call(this, leaf);
+	if (tw.onDelHold) {
+		tw.onDelHold = leaf;
+		return;
+	}
 
-	node.del();
-	tw.trigger('afterDel');
-	tw.renew();
+	__delProcess(tw, leaf);
+}
+
+/*
+ * Непосредственно создание нового узла
+ */
+function __addProcess(self, parentNode, newNodeAttributes = {}) {
+	const e = self.newEvent({parentNode, newNodeAttributes});
+
+	if (self.trigger(
+		'beforeAddLeaf',
+		e) === false
+	) return null;
+	
+	const newNode = self.add(parentNode, newNodeAttributes);
+	e.newNode = newNode;
+	self.trigger('afterAddLeaf', e);
+	return newNode;
+}
+
+function __delProcess(self, leaf) {
+	let node = leaf.node;
+
+	if (self.trigger(
+		'beforeDropLeaf',
+		self.newEvent({leaf, node})
+	) === false) return;
+
+	self.drop(leaf);
+
+	self.trigger('afterDropLeaf');
 }

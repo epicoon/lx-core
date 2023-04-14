@@ -138,7 +138,7 @@ abstract class I18nMap implements FusionComponentInterface
 		if ($fileName[-1] == '/') {
 			$result = [];
 			$dir = new Directory($path);
-			$ff = $dir->getFileNames('*.*');
+			$ff = $dir->getFileNames(['mask' => '*.*']);
 			foreach ($ff as $f) {
 				$fPath = "$path$f";
 				/** @var DataFileInterface $file */
