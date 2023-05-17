@@ -58,6 +58,11 @@ class RadioGroup extends lx.LabeledGroup {
 		this.radio(num).value(true);
 		this._value = num;
 	}
+
+	disabled(val) {
+		this.radios().forEach(r=>r.disabled(val));
+		this.labels().forEach(l=>l.disabled(val));
+	}
 }
 
 

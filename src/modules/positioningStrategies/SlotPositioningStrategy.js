@@ -64,6 +64,11 @@ class SlotPositioningStrategy extends lx.PositioningStrategy {
 		#lx:client{ this.actualize(); }
 	}
 
+	setK(k) {
+		this.k = k;
+		#lx:client { this.actualizeProcess(); }
+	}
+	
 	#lx:server packProcess() {
 		var str = ';k:' + this.k + ';c:' + this.cols;
 		if (this.align) str += ';a:' + this.align;

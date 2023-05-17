@@ -67,17 +67,21 @@ lx.Math = {
      *	});
      * }
      * */
-    halfDivisionMethod: function(min, max, condition, precision) {
-        precision = precision || 0.001;
-
-        var result = ( max - min ) * 0.5;
+    halfDivisionMethod: function(min, max, condition, precision = 0.001, attempts = 1000) {
+        let result = ( max - min ) * 0.5,
+            counter = 0,
+            prev = result;
 
         while (true) {
-            var cond = condition(result, precision);
+            counter++;
+            if (counter === attempts) break;
+            let cond = condition(result);
             if (cond == 0) break;
             if (cond == 1) max = result;
             else if (cond == -1) min = result;
             result = min + ( max - min ) * 0.5;
+            if (Math.abs(prev - result) <= precision) break;
+            prev = result;
         }
 
         return result;

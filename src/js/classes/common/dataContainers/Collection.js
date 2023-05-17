@@ -267,6 +267,7 @@ class Collection extends lx.Object {
 			if (arg === null) continue;
 
 			if (lx.isArray(arg)) {
+				if (!arg.length) continue;
 				this.map.push(arg);
 			} else if ( arg.lxClassName() == 'Collection' ) {
 				if (arg.isCopy) this.add(arg.elements);

@@ -29,6 +29,10 @@ class GuiNode {
         return this._box;
     }
 
+    getElem(key) {
+        return this.getWidget().findOne(key);
+    }
+    
     show() {
         this.getWidget().show();
     }

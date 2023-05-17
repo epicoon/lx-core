@@ -116,13 +116,14 @@ class Box extends lx.Rect {
      * @param [config] {Object: {
      *     #merge(lx.Rect::constructor::config),
      *     [text] {String},
-     *     [stream]             {Object: #schema(lx.StreamPositioningStrategy::init::config)},
-     *     [streamProportional] {Object: #schema(lx.StreamPositioningStrategy::init::config)},
-     *     [grid]             {Object: #schema(lx.GridPositioningStrategy::init::config)},
-     *     [gridProportional] {Object: #schema(lx.GridPositioningStrategy::init::config)},
-     *     [gridStream]       {Object: #schema(lx.GridPositioningStrategy::init::config)},
-     *     [gridAdaptive]     {Object: #schema(lx.GridPositioningStrategy::init::config)},
-     *     [slot]             {Object: #schema(lx.SlotPositioningStrategy::init::config)}
+     *     [align]              {Object: #schema(lx.AlignPositioningStrategy::applyConfig::config)},
+     *     [stream]             {Object: #schema(lx.StreamPositioningStrategy::applyConfig::config)},
+     *     [streamProportional] {Object: #schema(lx.StreamPositioningStrategy::applyConfig::config)},
+     *     [grid]             {Object: #schema(lx.GridPositioningStrategy::applyConfig::config)},
+     *     [gridProportional] {Object: #schema(lx.GridPositioningStrategy::applyConfig::config)},
+     *     [gridStream]       {Object: #schema(lx.GridPositioningStrategy::applyConfig::config)},
+     *     [gridAdaptive]     {Object: #schema(lx.GridPositioningStrategy::applyConfig::config)},
+     *     [slot]             {Object: #schema(lx.SlotPositioningStrategy::applyConfig::config)}
      * }}
      */
     build(config) {
@@ -130,6 +131,10 @@ class Box extends lx.Rect {
 
         if ( config.text ) this.text( config.text );
 
+        if (config.align)
+            lx.isArray(config.align)
+                ? this.align.call(this, ...config.align)
+                : this.align(lx.isObject(config.align) ? config.align : {});
         if (config.stream)
             this.stream(lx.isObject(config.stream) ? config.stream : {});
         else if (config.streamProportional)

@@ -35,7 +35,10 @@ class CheckboxGroup extends lx.LabeledGroup {
 
 	#lx:client clientBuild(config) {
 		super.clientBuild(config);
-		this.checkboxes().forEach(a=>a.on('change', _handler_onChange));
+		this.checkboxes().forEach(a=>a.on('change', function (e) {
+			_handler_onChange.call(this, e);
+			this.parent.parent.trigger('change', e);
+		}));
 		this.labels().forEach(l=>{
 			l.style('cursor', 'pointer');
 			l.on('mousedown', lx.preventDefault);
@@ -59,7 +62,7 @@ class CheckboxGroup extends lx.LabeledGroup {
 		if (nums === undefined) {
 			var result = [];
 			this.checkboxes().forEach(function(a) {
-				if (a.value()) result.push(a.index);
+				if (a.value()) result.push(a.parent.index);
 			});
 
 			return result;
@@ -74,17 +77,16 @@ class CheckboxGroup extends lx.LabeledGroup {
 }
 
 
-/***********************************************************************************************************************
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * PRIVATE
- **********************************************************************************************************************/
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #lx:client {
 	function _handler_onChange(e) {
-		var group = this.parent.parent;
+		let group = this.parent.parent;
 		e = e || group.newEvent();
 		e.changedIndex = this.parent.index;
 		e.currentValue = this.value();
 		e.currentValues = this.ancestor({is:lx.CheckboxGroup}).value();
-		group.trigger('change', e);
 	}
 }

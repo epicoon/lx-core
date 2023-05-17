@@ -59,6 +59,8 @@ class Timer {
 		lx.app.animation.removeTimer(this);
 		this.startTime = 0;
 		this.inAction = false;
+		this.periodIndex = 0;
+		this.actionIndex = 0;
 	}
 
 	/**

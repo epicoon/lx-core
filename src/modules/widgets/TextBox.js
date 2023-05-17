@@ -78,47 +78,38 @@ class TextBox extends lx.Rect {
 	}
 
 	#lx:client {
-
-		//TODO работает неправильно
 		adapt() {
 			if (!this.parent) return this;
 
-			var ctx = this.parent,
-				text = this;
+			let ctx = this.parent,
+				text = this,
+				hor = text.domElem.param('clientWidth') > text.domElem.param('clientHeight');
 
-			text.domElem.style('top', 0);
-			text.domElem.style('left', 0);
-
-			var cH = ctx.domElem.param('clientHeight');
-			var lastSz = window.screen.height,
-				res = lx.Math.halfDivisionMethod(0, lastSz, function(res) {
-					text.domElem.style('fontSize', Math.floor(res) + 'px');
-					var tH = text.domElem.param('clientHeight');
-					if ( Math.floor(lastSz) == Math.floor(res) ) return 0;
-					lastSz = res;
-
-					if ( tH > cH ) return 1;
-					if ( ( Math.abs(tH - cH) <= 1 ) ) return 0;
-					return -1;
-				});
-
-			var tH = text.domElem.param('clientHeight'),
-				cH = ctx.domElem.param('clientHeight');
-
-			if (tH + lx.textPadding > cH) {
-				var fs = parseInt(text.domElem.style('fontSize'));
-				text.domElem.style('fontSize', Math.floor(parseInt(text.domElem.style('fontSize')) * cH / tH) + 'px');
+			if (hor) {
+				let cW = ctx.domElem.param('clientWidth'),
+					maxW = window.screen.width,
+					resW = lx.Math.halfDivisionMethod(0, maxW, function(res) {
+						text.domElem.style('fontSize', Math.floor(res) + 'px');
+						let tW = text.domElem.param('clientWidth');
+						if ( Math.floor(cW) == Math.floor(tW) ) return 0;
+						if ( tW > cW ) return 1;
+						if ( ( Math.abs(tW - cW) <= 5 ) ) return 0;
+						return -1;
+					}, 0.1, 50);
+			} else {
+				let cH = ctx.domElem.param('clientHeight'),
+					lastH = window.screen.height,
+					resH = lx.Math.halfDivisionMethod(0, lastH, function(res) {
+						text.domElem.style('fontSize', Math.floor(res) + 'px');
+						let tH = text.domElem.param('clientHeight');
+						if ( Math.floor(cH) == Math.floor(tH) ) return 0;
+						if ( tH > cH ) return 1;
+						if ( ( Math.abs(tH - cH) <= 1 ) ) return 0;
+						return -1;
+					}, 0.1, 50);
 			}
 
-			if ( text.domElem.param('offsettWidth') <= this.domElem.param('clientWidth') ) return this;
-
-			while ( text.domElem.param('offsetWidth') - 5 > this.domElem.param('clientWidth') )
-				text.domElem.style.param('fontSize', parseInt(text.domElem.style('fontSize')) - 1 + 'px');
-
-			text.domElem.style('top', null);
-			text.domElem.style('left', null);
 			ctx.childHasAutoresized(text);
-
 			return this;
 		}
 
@@ -129,9 +120,9 @@ class TextBox extends lx.Rect {
 		static adaptTextByMin(c) {
 			c = lx.Collection.cast(c);
 			c.forEach(child=>child.adapt());
-			var min = Infinity;
+			let min = Infinity;
 			c.forEach(a=>{
-				var s = parseFloat(a.domElem.style('fontSize'));
+				let s = parseFloat(a.domElem.style('fontSize'));
 				if (min > s) min = s;
 			});
 			min = min + 'px';

@@ -78,9 +78,19 @@ lx.isArray = function (value) {
     return value.constructor === Array;
 };
 
-lx.isObject = function (value) {
+lx.isCleanObject = function (value) {
     if (value === undefined || value === null) return false;
     return (value.constructor === Object || value.lxClassName() == 'Object');
+};
+
+lx.isObject = function (value) {
+    if (value === undefined || value === null) return false;
+
+    return (value.constructor === Object || value.lxClassName() == 'Object'
+        || (typeof value === 'object'
+            && Object.prototype.toString.call(value) === '[object Object]'
+        )
+    );
 };
 
 lx.isFunction = function (value) {

@@ -8,6 +8,21 @@ class CssPreset {
         return new lx.CssValue(this, '', args.join(' '));
     }
 
+    gradient(...args) {
+        let dir, color0, color1;
+        if (args.length == 2) {
+            dir = 'to top';
+            color0 = args[0];
+            color1 = args[1];
+        } else {
+            dir = args[0];
+            color0 = args[1];
+            color1 = args[2];
+        }
+        if (!dir.match(/^to /)) dir = 'to ' + dir;
+        return new lx.CssValue(this, '', 'linear-gradient(' + dir + ',' + color0 + ',' + color1 + ')');
+    }
+    
     getSettings() {
         return {};
     }

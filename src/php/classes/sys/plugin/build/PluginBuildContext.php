@@ -145,7 +145,6 @@ class PluginBuildContext implements ContextTreeInterface
         $this->pluginCss = $assetProvider->getPluginCss();
         $this->compileSnippet();
         $this->compileMainJs();
-        $this->scripts = $assetProvider->getPluginScripts();
 
         $dependencies = $this->jsCompiler->getDependencies() ?? new JsCompileDependencies();
 
@@ -154,6 +153,7 @@ class PluginBuildContext implements ContextTreeInterface
             $dependencies->addModule($cssPresetModule);
         }
         $this->applayDependencies($dependencies->toArray());
+        $this->scripts = $assetProvider->getPluginScripts();
 
         $this->compilePluginInfo();
 

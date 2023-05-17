@@ -36,6 +36,7 @@ function __componentsMap() {
             snippetMap: lx.SnippetMap,
             alert: lx.Alert,
             tost: lx.Tost,
+            mouse: lx.Mouse,
             keyboard: lx.Keyboard,
             dragAndDrop: lx.DragAndDrop,
             animation: lx.Animation,
@@ -96,7 +97,7 @@ class Application {
             lx.body = lx.Box.rise(this.domSelector.getBodyElement());
             if (pluginInfo) this.loader.loadPlugin(pluginInfo, lx.body);
 
-            __setReady();
+            __setReady(this);
 
             #lx:mode-case: dev
                 var elems = document.getElementsByClassName('lx-var-dump');
@@ -114,7 +115,7 @@ class Application {
             if (config.settings) __settings = config.settings;
             if (config.components) __applyComponentsData(this, config.components);
             this.i18nArray = {};
-            __setReady();
+            __setReady(this);
         }
 
         useI18n(config) {
@@ -149,9 +150,15 @@ function __applyComponentsData(self, components) {
     }
 }
 
-function __setReady() {
+function __setReady(app) {
     __onReady.forEach(f=>f());
     __onReady = [];
     lx.dropReady();
+
+    for (let name in app.components) {
+        const component = app.components[name];
+        component.onReady();
+    }
+
     __ready = true;
 }

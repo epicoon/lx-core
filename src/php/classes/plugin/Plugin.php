@@ -396,9 +396,17 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
     {
         $cssDir = new Directory($this->conductor->getLocalSystemPath('css'));
         $presetedFile = $cssDir->get('preseted.json');
-        return $presetedFile
-            ? json_decode($presetedFile->get(), true)
-            : [];
+
+        if (!$presetedFile) {
+            return [];
+        }
+
+        $preseted = $presetedFile->get();
+        if ($preseted === 'null') {
+            throw new \Exception('Preseted file ' . $presetedFile->getPath() . 'is broken');
+        }
+
+        return json_decode($preseted, true);
     }
 
 	public function getBuildData(): array
