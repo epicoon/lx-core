@@ -1,5 +1,10 @@
 #lx:namespace lx;
 class Timer {
+	/**
+	 * @param config {Number|Array<Number>|Object {
+	 *     period {Number}
+	 * }}
+	 */
 	constructor(config=0) {
 		if (lx.isNumber(config) || lx.isArray(config)) config = {period: config};
 
@@ -16,7 +21,9 @@ class Timer {
 		this.periodCounter = 0;
 		this.periodIndex = 0;
 		this.actionIndex = 0;
-		
+
+
+		this.task = null;
 		this._action = function(){};
 		this._iteration = function(){};
 	}
@@ -29,7 +36,7 @@ class Timer {
 	/**
 	 * Метод, вызываемый при очередном завершении периода
 	 * */
-	onCycleEnds(func) { this._iteration = func; }
+	onCycleEnd(func) { this._iteration = func; }
 
 	/**
 	 * Реализованы параллельно друг другу метод ._action() и поле .actions
@@ -44,12 +51,20 @@ class Timer {
 	/**
 	 * Запуск, можно переопределить длительность периода
 	 * */
-	start(p) {
+	start() {
 		if (this.inAction) return;
-		if (p !== undefined) this.periodDuration = p;
 		this.startTime = (new Date).getTime();
 		lx.app.animation.addTimer(this);
 		this.inAction = true;
+	}
+
+	syncStart(queueName = null) {
+		this.task = new lx.Task(queueName);
+		this.task.onChangeStatus(()=>{
+			if (this.task.isPending())
+				this.startTime = (new Date).getTime();
+		});
+		this.start();
 	}
 
 	/**
@@ -61,6 +76,10 @@ class Timer {
 		this.inAction = false;
 		this.periodIndex = 0;
 		this.actionIndex = 0;
+		if (this.task) {
+			this.task.setCompleted();
+			this.task = null;
+		}
 	}
 
 	/**
@@ -95,7 +114,7 @@ class Timer {
 	/**
 	 * Проверка на то, что текущий период завершен
 	 * */
-	periodEnds() {
+	isCycleEnd() {
 		// Если период не выставлен - постоянное срабатывание
 		if (!this.periodDuration) return true;
 
@@ -111,12 +130,16 @@ class Timer {
 	 * Используется системой - вызывается при каждом обновлении фрейма
 	 * */
 	go() {
+		if (this.task) {
+			if (!this.task.isPending()) return;
+		}
+
 		this._action.call(this);
 		var action = __action(this);
 		if (lx.isFunction(action)) action.call(this);
 		if (!this.inAction) return;
 
-		if (this.periodEnds()) {
+		if (this.isCycleEnd()) {
 			if (this.countPeriods) this.periodCounter++;
 			this._iteration.call(this);
 

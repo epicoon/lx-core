@@ -5,9 +5,12 @@ class Task {
         STATUS_PENDING = 2,
         STATUS_COMPLETED = 3;
 
-    constructor(queue, callback = null) {
-        this.setCallback(callback);
+    constructor(queue = null, callback = null) {
+        this.callback = null;
+        this._onChangeStatus = null;
         this.status = self::STATUS_NEW;
+        this.setCallback(callback);
+        if (queue === null) queue = '_lxstd_';
         if (queue) this.setQueue(queue);
     }
 
@@ -20,6 +23,10 @@ class Task {
     setCallback(callback) {
         this.callback = callback;
         return this;
+    }
+
+    onChangeStatus(callback) {
+        this._onChangeStatus = callback;
     }
 
     run() {
@@ -45,6 +52,8 @@ class Task {
 
     setStatus(status) {
         this.status = status;
+        if (this._onChangeStatus)
+            this._onChangeStatus();
     }
 
     setPending() {

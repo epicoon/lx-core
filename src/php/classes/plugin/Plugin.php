@@ -403,7 +403,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 
         $preseted = $presetedFile->get();
         if ($preseted === 'null') {
-            throw new \Exception('Preseted file ' . $presetedFile->getPath() . 'is broken');
+            throw new \Exception('Preseted file ' . $presetedFile->getPath() . ' is broken');
         }
 
         return json_decode($preseted, true);

@@ -413,7 +413,7 @@ function __buildMark(self, mark, text) {
 		timer.whileCycle(function() {
 			let k = this.shift();
 			this.callback(k, this.sheet);
-			if (this.periodEnds()) {
+			if (this.isCycleEnd()) {
 				this.stop();
 				this.sheet = null;
 			}
@@ -433,7 +433,7 @@ function __buildMark(self, mark, text) {
 		timer.whileCycle(function() {
 			let k = this.shift();
 			this.callback(k, this.sheet);
-			if (this.periodEnds()) {
+			if (this.isCycleEnd()) {
 				this.stop();
 				this.sheet.hide();
 				this.sheet = null;

@@ -910,7 +910,7 @@ class Rect extends lx.Module {
 
     /**
      * Копия "как есть" - с приоритетами, без адаптаций под старые соответствующие значения
-     * */
+     */
     copyGlobalGeom(geomMask, units = undefined) {
         if (geomMask instanceof lx.Rect) geomMask = __getGlobalGeomMask(geomMask, units);
 

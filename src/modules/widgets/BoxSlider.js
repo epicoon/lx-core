@@ -247,7 +247,7 @@ class BoxSlider extends lx.Box {
 				}
 			}
 
-			if ( this.periodEnds() ) {
+			if ( this.isCycleEnd() ) {
 				if (!this.auto) this.setShow(true);
 				else {
 					if (this.show) this.swapSlides(1);

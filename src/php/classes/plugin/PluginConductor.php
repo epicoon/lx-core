@@ -32,6 +32,10 @@ class PluginConductor implements ConductorInterface
 			$fileName = $this->decodeAlias($fileName);
 		}
 
+        if (preg_match('/^\.\//', $fileName)) {
+            $fileName = preg_replace('/^\./', '{plugin:' . $this->getPlugin()->name . '}', $fileName);
+        }
+
 		if ($relativePath === null) {
 			$relativePath = $this->getPath();
 		}
