@@ -5,6 +5,9 @@
 /**
  * @widget lx.Image
  * @content-disallowed
+ *
+ * @event load
+ * @event scale
  */
 #lx:namespace lx;
 class Image extends lx.Rect {
@@ -35,10 +38,6 @@ class Image extends lx.Rect {
 
 	static getStaticTag() {
 		return 'img';
-	}
-
-	load(func) {
-		this.on('load', func);
 	}
 
 	source(url) {
@@ -82,6 +81,7 @@ class Image extends lx.Rect {
 				this.width(sizes[1] + 'px');
 				this.height(sizes[0] + 'px');
 				this.off('load', scale);
+				this.trigger('scale');
 			};
 			
 			if (this.isLoaded()) scale.call(this);

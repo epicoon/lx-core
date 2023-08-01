@@ -205,8 +205,8 @@ function __bindMatrix(c, widget, type=BIND_TYPE_FULL) {
 		c.afterMethod('reset', ()=>widget.applyRenderCache());
 	}
 	if (widget.positioning().lxClassName() == 'StreamPositioningStrategy') {
-		widget.on('beforeStreamContentRelocation', __beforeStreamContentRelocation);
-		widget.on('afterStreamContentRelocation', __afterStreamContentRelocation);
+		widget.on('beforeStreamItemRelocation', __beforeStreamContentRelocation);
+		widget.on('afterStreamItemRelocation', __afterStreamContentRelocation);
 	}
 }
 

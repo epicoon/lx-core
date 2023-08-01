@@ -1,8 +1,5 @@
 #lx:namespace lx;
 class BackupedModelBehavior extends lx.Behavior {
-	/**
-	 *
-	 * */
 	static injectInto(supportedClass, config=null) {
 		super.injectInto(supportedClass);
 
@@ -17,16 +14,10 @@ class BackupedModelBehavior extends lx.Behavior {
 		supportedClass.backupClass = Backup;
 	}
 
-	/**
-	 *
-	 * */
 	static overridedMethods() {
 		return ['initSchema'];
 	}
 
-	/**
-	 *
-	 * */
 	static initSchema(config) {
 		Object.getPrototypeOf(this).initSchema.call(this, config);
 
@@ -41,24 +32,15 @@ class BackupedModelBehavior extends lx.Behavior {
 		this.backupClass.initSchema(schema);
 	}
 
-	/**
-	 *
-	 * */
-	onAfterConstruct(supportedObject) {
-		supportedObject.backup = new supportedObject.constructor.backupClass();
-		supportedObject.commit();
+	behaviorConstructor(supportedObject) {
+		this.backup = new this.constructor.backupClass();
+		this.commit();
 	}
 
-	/**
-	 *
-	 * */
 	static backupedFields() {
 		return this.getFieldNames();
 	}
 
-	/**
-	 *
-	 * */
 	commit() {
 		this.backup.getSchema().getFieldNames().forEach(key=>{
 			var val = this[key];
@@ -68,9 +50,6 @@ class BackupedModelBehavior extends lx.Behavior {
 		this.onCommit();
 	}
 
-	/**
-	 *
-	 * */
 	reset() {
 		this.backup.getSchema().getFieldNames().forEach(key=>{
 			var val = this.backup.getField(key);
@@ -80,9 +59,6 @@ class BackupedModelBehavior extends lx.Behavior {
 		this.onReset();
 	}
 
-	/**
-	 *
-	 * */
 	differences() {
 		var result = [],
 			fields = this.backup.getSchema().getFieldNames();
@@ -92,20 +68,11 @@ class BackupedModelBehavior extends lx.Behavior {
 		return result;
 	}
 
-	/**
-	 *
-	 * */
 	changed() {
 		return differences.len > 0;
 	}
 
-	/**
-	 *
-	 * */
 	onCommit() {}
 
-	/**
-	 *
-	 * */
 	onReset() {}
 }

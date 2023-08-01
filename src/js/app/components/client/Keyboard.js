@@ -110,7 +110,8 @@ class Keyboard extends lx.AppComponent {
 
 	keyPressed(key) {
 		if (lx.isString(key)) key = key.charCodeAt(0);
-		if (__pressedKeys) return __pressedKeys[key]; return false;
+		if (__pressedKeys) return __pressedKeys[key];
+		return false;
 	}
 
 	shiftPressed() { return this.keyPressed(16); }

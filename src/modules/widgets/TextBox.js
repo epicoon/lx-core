@@ -83,7 +83,8 @@ class TextBox extends lx.Rect {
 
 			let ctx = this.parent,
 				text = this,
-				hor = text.domElem.param('clientWidth') > text.domElem.param('clientHeight');
+				hor = text.domElem.param('clientWidth') > text.domElem.param('clientHeight'),
+				horFailed = false;
 
 			if (hor) {
 				let cW = ctx.domElem.param('clientWidth'),
@@ -96,9 +97,13 @@ class TextBox extends lx.Rect {
 						if ( ( Math.abs(tW - cW) <= 5 ) ) return 0;
 						return -1;
 					}, 0.1, 50);
-			} else {
+
+				horFailed = text.domElem.param('clientHeight') > ctx.domElem.param('clientHeight');
+			}
+
+			if (!hor || horFailed) {
 				let cH = ctx.domElem.param('clientHeight'),
-					lastH = window.screen.height,
+					lastH = horFailed ? parseInt(text.domElem.style('fontSize'), 10) : window.screen.height,
 					resH = lx.Math.halfDivisionMethod(0, lastH, function(res) {
 						text.domElem.style('fontSize', Math.floor(res) + 'px');
 						let tH = text.domElem.param('clientHeight');

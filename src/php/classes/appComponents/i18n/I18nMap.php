@@ -13,6 +13,16 @@ abstract class I18nMap implements FusionComponentInterface
 	protected ?array $map = null;
 	protected ?array $tags = null;
 
+    public function localizeText(string $data, ?string $lang = null): string
+    {
+        return I18nHelper::localizeText($data, $this, $lang);
+    }
+
+    public function localizeKey(string $key, array $params = [], ?string $lang = null): string
+    {
+        return I18nHelper::localizeKey($key, $this, $params, $lang);
+    }
+
 	public function getMap(): array
 	{
 		if ($this->map === null) {

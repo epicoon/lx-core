@@ -119,11 +119,8 @@ class Rect extends lx.Module {
         this.build(config);
         #lx:client { this.clientBuild(config); };
 
-        if (this.style('z-index') === null) {
-            let zIndex = lx.DepthClusterMap.calculateZIndex(this.getDepthCluster());
-            if (zIndex !== 0)
-                this.style('z-index', zIndex);
-        }
+        if (this.style('z-index') === null)
+            this.applyDepthCluster();
         this._type = this.lxClassName();
         var namespace = this.lxNamespace();
         if (namespace != 'lx') this._namespace = namespace;
@@ -422,6 +419,19 @@ class Rect extends lx.Module {
         if (this.depthCluster === undefined)
             return this.getDefaultDepthCluster();
         return this.depthCluster;
+    }
+
+    setDepthCluster(value) {
+        if (value == this.getDefaultDepthCluster())
+            delete this.depthCluster;
+        else this.depthCluster = value;
+        this.applyDepthCluster();
+    }
+
+    applyDepthCluster() {
+        let zIndex = lx.DepthClusterMap.calculateZIndex(this.getDepthCluster());
+        if (zIndex === 0) this.style('z-index', null);
+        else this.style('z-index', zIndex);
     }
 
     emerge() {
@@ -895,8 +905,7 @@ class Rect extends lx.Module {
      */
     copyGeom(geomMask, units = undefined) {
         if (geomMask instanceof lx.Rect) geomMask = geomMask.getGeomMask(units);
-
-        var pH = geomMask.pH,
+        let pH = geomMask.pH,
             pV = geomMask.pV;
         this.setGeomParam(pH[1], units ? geomMask[pH[1]] + units : geomMask[pH[1]]);
         this.setGeomParam(pH[0], units ? geomMask[pH[0]] + units : geomMask[pH[0]]);
@@ -912,7 +921,8 @@ class Rect extends lx.Module {
      * Копия "как есть" - с приоритетами, без адаптаций под старые соответствующие значения
      */
     copyGlobalGeom(geomMask, units = undefined) {
-        if (geomMask instanceof lx.Rect) geomMask = __getGlobalGeomMask(geomMask, units);
+        //TODO units не работает - __getGlobalGeomMask возвращает пиксели
+        if (geomMask instanceof lx.Rect) geomMask = __getGlobalGeomMask(geomMask);
 
         var pH = geomMask.pH,
             pV = geomMask.pV;
@@ -1958,12 +1968,11 @@ function __getHeight(self, format) {
         elem.offsetHeight, self.domElem.parent.getDomElem().offsetHeight);
 }
 
-function __getGlobalGeomMask(self, units = undefined) {
-    var result = {};
+function __getGlobalGeomMask(self) {
+    let result = {};
     result.pH = __getGeomPriorityH(self).lxClone();
     result.pV = __getGeomPriorityV(self).lxClone();
-    //TODO - возвращает только в пикселях, units - не работает
-    var rect = self.getGlobalRect();
+    let rect = self.getGlobalRect();
     result[result.pH[0]] = rect[lx.Geom.geomName(result.pH[0])];
     result[result.pH[1]] = rect[lx.Geom.geomName(result.pH[1])];
     result[result.pV[0]] = rect[lx.Geom.geomName(result.pV[0])];

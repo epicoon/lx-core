@@ -1,38 +1,22 @@
 #lx:namespace lx;
 class Object {
-
-	/**
-	 *
-	 * */
-	afterConstruct() {
-		self::behaviorMap.forEach(beh=>beh.prototype.onAfterConstruct(this));
+	constructor() {
+		self::behaviorMap.forEach(beh=>beh.prototype.behaviorConstructor.call(this));
 	}
 
-	/**
-	 *
-	 * */
 	get behaviorMap() {
 		return new lx.BehaviorMap(this);
 	}
 
-	/**
-	 *
-	 * */
 	static get behaviorMap() {
 		return new lx.BehaviorMap(this);
 	}
 
-	/**
-	 *
-	 * */
 	addBehavior(behavior, config=null) {
 		if (this.behaviorMap.has(behavior) || self::behaviorMap.has(behavior)) return;
 		behavior.injectInto(this, config);
 	}
 
-	/**
-	 *
-	 * */
 	hasBehavior(behavior) {
 		return this.behaviorMap.has(behavior) || self::behaviorMap.has(behavior);
 	}
@@ -54,18 +38,23 @@ class Object {
 		}
 	}
 	
-	/**
-	 *
-	 * */
 	static addBehavior(behavior, config=null) {
 		if (this.behaviorMap.has(behavior)) return;
 		behavior.injectInto(this, config);
 	}
 
 	/**
+	 * Method to be redefined in child classes
+	 */
+	static afterDefinition() {
+		// pass
+	}
+
+	/**
 	 * Метод, автоматически вызываемый после определения класса
-	 * */
+	 */
 	static __afterDefinition() {
+		this.afterDefinition();
 		if (this.lxHasMethod('__injectBehaviors')) this.__injectBehaviors();
 	}
 }

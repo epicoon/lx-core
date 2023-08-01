@@ -52,6 +52,11 @@ class Vector implements ArrayInterface
         return true;
 	}
 
+    public function reverse(): void
+    {
+        $this->arrayValue = array_reverse($this->arrayValue);
+    }
+
 	public function merge(iterable $elems): void
 	{
         $this->insert($this->count(), $elems);

@@ -86,8 +86,7 @@ class PluginBuildContext implements ContextTreeInterface
 
         $plugin = $this->getPlugin();
 		$result['page'] = [
-			'title' => I18nHelper::localizePlugin(
-                $plugin, 
+			'title' => $plugin->i18nMap->localizeText(
                 $plugin->title ? $plugin->title : self::DEFAULT_PLUGIN_TITLE
             ),
 			'icon' => $plugin->icon,
@@ -161,7 +160,7 @@ class PluginBuildContext implements ContextTreeInterface
         $data = "<mi $key>{$this->pluginInfo}</mi $key>"
             . "<bl $key>{$this->snippetData}</bl $key>"
             . "<mj $key>{$this->mainJs}</mj $key>";
-        $this->commonData = I18nHelper::localizePlugin($this->getPlugin(), $data);
+        $this->commonData = $this->getPlugin()->i18nMap->localizeText($data);
         $this->applyCssPreset();
 
         $this->compiled = true;
@@ -335,7 +334,7 @@ class PluginBuildContext implements ContextTreeInterface
 	{
 		$result = [];
 		foreach ($css as $value) {
-			if (array_search($value, $result) === false) {
+			if (array_search($value, $result, true) === false) {
 				$result[] = $value;
 			}
 		}

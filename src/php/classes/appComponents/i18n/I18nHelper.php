@@ -4,7 +4,7 @@ namespace lx;
 
 class I18nHelper
 {
-	public static function localize(string $data, I18nMap $map): string
+	public static function localizeText(string $data, I18nMap $map, ?string $lang = null): string
 	{
         $map = $map->getFullMap();
 
@@ -20,7 +20,7 @@ class I18nHelper
 				$params = self::parseParams(trim($arr[2], ' {}'));
 			}
 
-			$translation = self::translate($key, $map);
+			$translation = self::localizeKey($key, $map, [], $lang);
 			if (!empty($params)) {
                 foreach ($params as $paramName => $paramValue) {
                     $translation = str_replace(
@@ -37,15 +37,10 @@ class I18nHelper
 		return $data;
 	}
 
-	public static function localizePlugin(Plugin $plugin, string $data): string
-	{
-	    return self::localize($data, $plugin->i18nMap);
-	}
-
 	/**
 	 * @param I18nMap|array $map - map of translates
 	 */
-	public static function translate(string $key, $map, array $params = [], ?string $lang = null): string
+	public static function localizeKey(string $key, $map, array $params = [], ?string $lang = null): string
 	{
 	    if ($map instanceof I18nMap) {
 	        $map = $map->getFullMap();
@@ -58,7 +53,7 @@ class I18nHelper
             if (!empty($params)) {
                 foreach ($params as $paramName => $paramValue) {
                     if (strpos($str, '^{' . $paramName . '}') !== false) {
-                        $paramValue = self::translate($paramValue, $map, [], $lang);
+                        $paramValue = self::localizeKey($paramValue, $map, [], $lang);
                         $str = str_replace('^{' . $paramName . '}', $paramValue, $str);
                     } else {
                         $str = str_replace('${' . $paramName . '}', $paramValue, $str);

@@ -31,7 +31,7 @@ class DataFile extends File implements DataFileInterface
 		preg_match_all('/\.([^.\/]+)$/', $this->path, $matches);
 		if (!empty($matches[1])) {
 			$extension = $matches[1][0];
-			if (array_search($extension, $extensions) !== false) {
+			if (array_search($extension, $extensions, true) !== false) {
 				$this->extension = $extension;
 			} else {
 				\lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
@@ -68,15 +68,15 @@ class DataFile extends File implements DataFileInterface
 
 	protected static function defineType(string $extension): ?int
 	{
-		if (array_search($extension, self::EXTENSIONS_PHP) !== false) {
+		if (array_search($extension, self::EXTENSIONS_PHP, true) !== false) {
 			return self::TYPE_PHP;
 		}
 
-		if (array_search($extension, self::EXTENSIONS_JSON) !== false) {
+		if (array_search($extension, self::EXTENSIONS_JSON, true) !== false) {
 			return self::TYPE_JSON;
 		}
 
-		if (array_search($extension, self::EXTENSIONS_YAML) !== false) {
+		if (array_search($extension, self::EXTENSIONS_YAML, true) !== false) {
 			return self::TYPE_YAML;
 		}
 

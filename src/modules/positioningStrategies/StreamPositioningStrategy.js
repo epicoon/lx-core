@@ -153,6 +153,11 @@ class StreamPositioningStrategy extends lx.PositioningStrategy {
 	}
 
 	#lx:client unpackProcess(config) {
+		this.css = null;
+		this.minWidth = null;
+		this.minHeight = null;
+		this.maxWidth = null;
+		this.maxHeight = null;
 		this.type = +config.t || self::TYPE_SIMPLE;
 		this.direction = +config.d;
 		if (config.rdh) this.rowDefaultHeight == 'null'

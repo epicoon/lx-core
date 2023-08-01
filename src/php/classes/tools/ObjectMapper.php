@@ -11,7 +11,9 @@ class ObjectMapper
     private $object;
     private array $ignoredInstances = [];
     private array $propertiesForSkip = [];
-    private array $parsed = [];
+    private array $parsedObjects = [];
+    private array $parsedKeys = [];
+    private RecursiveTree $tree;
 
     /**
      * @param mixed $object
@@ -34,22 +36,84 @@ class ObjectMapper
         return $this;
     }
 
-    public function getResult(): array
+    public function getResult(): RecursiveTree
     {
-        $this->parsed[] = $this->object;
-        $result = [
+        $this->tree = RecursiveTree::create();
+        $this->tree->setData([
             'name' => '__head__',
             'type' => 'object: ' . get_class($this->object),
-            'fields' => $this->parseObjectProperties($this->object, $this->propertiesForSkip),
-        ];
-        return $result;
+        ]);
+        $this->parsedObjects[] = $this->object;
+        $this->parsedKeys[] = $this->tree->getKey();
+
+        $this->parseObjectProperties($this->object, $this->tree, $this->propertiesForSkip);
+        return $this->tree;
     }
 
-    private function parseObjectProperties($object, array $propertiesForSkip): array
+    private function parseItem(
+        string $key,
+        /* mixed */ $val,
+        RecursiveTree $node,
+        array $propertiesForSkip,
+        ?ReflectionNamedType $type = null
+    ): void
+    {
+        switch (true) {
+            case is_object($val):
+                $this->processObject($key, $val, $node, $propertiesForSkip);
+                break;
+            case is_array($val):
+                $this->processArray($key, $val, $node, $propertiesForSkip);
+                break;
+            default:
+                if ($type === null) {
+                    $type = $this->defineType($val);
+                } else {
+                    $type = $type->getName();
+                }
+                $valNode = $node->add();
+                $valNode->setData([
+                    'name' => $key,
+                    'type' => $type,
+                    'value' => $this->getScalarValue($val),
+                ]);
+        }
+    }
+
+    private function processObject(
+        string $key,
+        /* mixed */ $val,
+        RecursiveTree $node,
+        array $propertiesForSkip
+    ): void
+    {
+        $index = array_search($val, $this->parsedObjects, true);
+        if ($index !== false) {
+            $nodeKey = $this->parsedKeys[$index];
+            $valNode = $node->getNode($nodeKey);
+            $node->add($valNode);
+            return;
+        }
+
+        $valNode = $node->add();
+        $valNode->setData([
+            'name' => $key,
+            'type' => 'object: ' . get_class($val),
+        ]);
+        $this->parsedObjects[] = $val;
+        $this->parsedKeys[] = $valNode->getKey();
+
+        $forSkip = [];
+        if (array_key_exists($key, $propertiesForSkip) && is_array($propertiesForSkip[$key])) {
+            $forSkip = $propertiesForSkip[$key];
+        }
+        $this->parseObjectProperties($val, $valNode, $forSkip);
+    }
+
+    private function parseObjectProperties($object, RecursiveTree $node, array $propertiesForSkip): void
     {
         $reflect = new ReflectionClass($object);
         $props = $reflect->getProperties();
-        $result = [];
         foreach ($props as $prop) {
             $propName = $prop->getName();
             if (in_array($propName, $propertiesForSkip)) {
@@ -58,75 +122,42 @@ class ObjectMapper
 
             $prop->setAccessible(true);
             $val = $prop->getValue($object);
-            if (is_object($val)) {
-                if ($this->checkSkip($val)) {
-                    continue;
-                }
-                $this->parsed[] = $val;
-            }
-
-            $result[$propName] = $this->parseItem($propName, $val, $propertiesForSkip, $prop->getType());
-        }
-
-        return $result;
-    }
-
-    private function parseArrayItems(array $arr, array $forSkip): array
-    {
-        $result = [];
-        foreach ($arr as $key => $value) {
-            if (in_array($key, $forSkip)) {
+            if ($this->checkIgnore($val)) {
                 continue;
             }
 
-            if (is_object($value)) {
-                if ($this->checkSkip($value)) {
-                    continue;
-                }
-                $this->parsed[] = $value;
-            }
-
-            $result[$key] = $this->parseItem($key, $value, $forSkip);
+            $this->parseItem($propName, $val, $node, $propertiesForSkip, $prop->getType());
         }
-        return $result;
     }
 
-    private function parseItem(string $key, $val, array $propertiesForSkip, ?ReflectionNamedType $type = null): array
+    private function processArray(
+        string $key,
+        /* mixed */ $val,
+        RecursiveTree $node,
+        array $propertiesForSkip
+    ): void
     {
-        if (is_object($val)) {
-            $forSkip = [];
-            if (array_key_exists($key, $propertiesForSkip) && is_array($propertiesForSkip[$key])) {
-                $forSkip = $propertiesForSkip[$key];
-            }
-            return [
-                'name' => $key,
-                'type' => 'object: ' . get_class($val),
-                'fields' => $this->parseObjectProperties($val, $forSkip),
-            ];
-        }
-
-        if (is_array($val)) {
-            $forSkip = [];
-            if (array_key_exists($key, $propertiesForSkip) && is_array($propertiesForSkip[$key])) {
-                $forSkip = $propertiesForSkip[$key];
-            }
-            return [
-                'name' => $key,
-                'type' => 'array',
-                'fields' => $this->parseArrayItems($val, $forSkip),
-            ];
-        }
-
-        if ($type === null) {
-            $type = $this->defineType($val);
-        } else {
-            $type = $type->getName();
-        }
-        return [
+        $valNode = $node->add();
+        $valNode->setData([
             'name' => $key,
-            'type' => $type,
-            'value' => $this->getScalarValue($val),
-        ];
+            'type' => 'array',
+        ]);
+        $forSkip = [];
+        if (array_key_exists($key, $propertiesForSkip) && is_array($propertiesForSkip[$key])) {
+            $forSkip = $propertiesForSkip[$key];
+        }
+        $this->parseArrayItems($val, $valNode, $forSkip);
+    }
+
+    private function parseArrayItems(array $arr, RecursiveTree $node, array $forSkip): void
+    {
+        foreach ($arr as $key => $value) {
+            if (in_array($key, $forSkip) || $this->checkIgnore($value)) {
+                continue;
+            }
+
+            $this->parseItem($key, $value, $node, $forSkip);
+        }
     }
 
     /**
@@ -177,29 +208,18 @@ class ObjectMapper
     /**
      * @param mixed $object
      */
-    private function checkSkip($object): bool
-    {
-        return $this->checkParsed($object) || $this->checkIgnore($object);
-    }
-
-    /**
-     * @param mixed $object
-     */
-    private function checkParsed($object): bool
-    {
-        return in_array($object, $this->parsed, true);
-    }
-
-    /**
-     * @param mixed $object
-     */
     private function checkIgnore($object): bool
     {
+        if (!is_object($object)) {
+            return false;
+        }
+
         foreach ($this->ignoredInstances as $instance) {
             if ($object instanceof $instance) {
                 return true;
             }
         }
+
         return false;
     }
 }

@@ -165,7 +165,7 @@ class NodeJsExecutor implements FlightRecorderHolderInterface
         }
 
         if ($this->i18nMap) {
-            $code = I18nHelper::localize($code, $this->i18nMap);
+            $code = I18nHelper::localizeText($code, $this->i18nMap);
         }
 
         return $this->runCode($code);

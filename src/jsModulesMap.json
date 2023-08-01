@@ -82,10 +82,6 @@
         "name": "lx.ActiveBox",
         "path": "modules\/widgets\/ActiveBox.js"
     },
-    "lx.Box": {
-        "name": "lx.Box",
-        "path": "modules\/widgets\/Box\/Box.js"
-    },
     "lx.BoxSlider": {
         "name": "lx.BoxSlider",
         "path": "modules\/widgets\/BoxSlider.js"
@@ -94,13 +90,6 @@
         "name": "lx.Button",
         "path": "modules\/widgets\/Button.js"
     },
-    "lx.Calendar": {
-        "name": "lx.Calendar",
-        "path": "modules\/widgets\/Calendar\/Calendar.js",
-        "data": {
-            "i18n": "i18n.yaml"
-        }
-    },
     "lx.Checkbox": {
         "name": "lx.Checkbox",
         "path": "modules\/widgets\/Checkbox.js"
@@ -108,20 +97,6 @@
     "lx.CheckboxGroup": {
         "name": "lx.CheckboxGroup",
         "path": "modules\/widgets\/CheckboxGroup.js"
-    },
-    "lx.ColorPicker": {
-        "name": "lx.ColorPicker",
-        "path": "modules\/widgets\/ColorPicker\/ColorPicker.js",
-        "data": {
-            "i18n": "i18n.yaml"
-        }
-    },
-    "lx.ConfirmPopup": {
-        "name": "lx.ConfirmPopup",
-        "path": "modules\/widgets\/ConfirmPopup\/ConfirmPopup.js",
-        "data": {
-            "i18n": "i18n.yaml"
-        }
     },
     "lx.Dropbox": {
         "name": "lx.Dropbox",
@@ -151,13 +126,6 @@
         "name": "lx.Input",
         "path": "modules\/widgets\/Input.js"
     },
-    "lx.InputPopup": {
-        "name": "lx.InputPopup",
-        "path": "modules\/widgets\/InputPopup\/InputPopup.js",
-        "data": {
-            "i18n": "i18n.yaml"
-        }
-    },
     "lx.JointMover": {
         "name": "lx.JointMover",
         "path": "modules\/widgets\/JointMover.js"
@@ -182,13 +150,6 @@
         "name": "lx.MultiBox",
         "path": "modules\/widgets\/MultiBox.js"
     },
-    "lx.Paginator": {
-        "name": "lx.Paginator",
-        "path": "modules\/widgets\/Paginator\/Paginator.js",
-        "data": {
-            "i18n": "i18n.yaml"
-        }
-    },
     "lx.Radio": {
         "name": "lx.Radio",
         "path": "modules\/widgets\/Radio.js"
@@ -196,10 +157,6 @@
     "lx.RadioGroup": {
         "name": "lx.RadioGroup",
         "path": "modules\/widgets\/RadioGroup.js"
-    },
-    "lx.Rect": {
-        "name": "lx.Rect",
-        "path": "modules\/widgets\/Rect\/Rect.js"
     },
     "lx.Scroll": {
         "name": "lx.Scroll",
@@ -228,5 +185,48 @@
     "lx.TreeBox": {
         "name": "lx.TreeBox",
         "path": "modules\/widgets\/TreeBox.js"
+    },
+    "lx.Box": {
+        "name": "lx.Box",
+        "path": "modules\/widgets\/Box\/Box.js"
+    },
+    "lx.Calendar": {
+        "name": "lx.Calendar",
+        "path": "modules\/widgets\/Calendar\/Calendar.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
+    },
+    "lx.ColorPicker": {
+        "name": "lx.ColorPicker",
+        "path": "modules\/widgets\/ColorPicker\/ColorPicker.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
+    },
+    "lx.ConfirmPopup": {
+        "name": "lx.ConfirmPopup",
+        "path": "modules\/widgets\/ConfirmPopup\/ConfirmPopup.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
+    },
+    "lx.InputPopup": {
+        "name": "lx.InputPopup",
+        "path": "modules\/widgets\/InputPopup\/InputPopup.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
+    },
+    "lx.Paginator": {
+        "name": "lx.Paginator",
+        "path": "modules\/widgets\/Paginator\/Paginator.js",
+        "data": {
+            "i18n": "i18n.yaml"
+        }
+    },
+    "lx.Rect": {
+        "name": "lx.Rect",
+        "path": "modules\/widgets\/Rect\/Rect.js"
     }
 }

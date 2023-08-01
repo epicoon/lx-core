@@ -583,14 +583,11 @@ class Yaml
                 return $val;
             }
 
-            $last = mb_strlen($val) - 1;
-
-            if ($val[0] == '"' && $val[$last] == '"') {
+            if (preg_match('/^"[\w\W]*"$/', $val)) {
                 $val = preg_replace('/(^"|"$)/', '', $val);
             }
 
-            $last = mb_strlen($val) - 1;
-            if ($val[0] == '\'' && $val[$last] == '\'') {
+            if (preg_match('/^\'[\w\W]*\'$/', $val)) {
                 $val = preg_replace('/(^\'|\'$)/', '', $val);
             }
         }

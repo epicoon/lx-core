@@ -34,8 +34,13 @@ Object.defineProperty(Object.prototype, "lxClone", {
 
 Object.defineProperty(Object.prototype, "lxCompare", {
 	value: function(obj) {
+		if (lx.isObject(obj) && this === obj)
+			return true;
+
+		let done = [];
 		function rec(left, right) {
-			if (!lx.isArray(left) && !lx.isObject(left) && !lx.isArray(right) && !lx.isObject(right)) return left == right;
+			if (!lx.isArray(left) && !lx.isObject(left) && !lx.isArray(right) && !lx.isObject(right))
+				return left == right;
 			if (lx.isArray(left) && !lx.isArray(right)) return false;
 			if (lx.isObject(left) && !lx.isObject(right)) return false;
 
@@ -44,7 +49,11 @@ Object.defineProperty(Object.prototype, "lxCompare", {
 			if (leftKeys.len != rightKeys.len) return false;
 			if (leftKeys.lxDiff(rightKeys).len || rightKeys.lxDiff(leftKeys).len) return false;
 
-			for (var i in left) if (!rec(left[i], right[i])) return false;
+			for (var i in left) {
+				if (done.includes(left[i])) continue;
+				else done.push(left[i]);
+				if (!rec(left[i], right[i])) return false;
+			}
 			return true;
 		}
 		return rec(this, obj);
@@ -114,10 +123,12 @@ Object.defineProperty(Object.prototype, "lxMerge", {
 				this.push(obj[i]);
 		} else {
 			for (var i in obj) {
-				if ((lx.isObject(this[i]) && lx.isObject(obj[i]))
-					|| (lx.isArray(this[i]) && lx.isArray(obj[i]))
-				) {
-					this[i].lxMerge(obj[i]);
+				if (lx.isObject(this[i]) && lx.isObject(obj[i])) {
+					this[i].lxMerge(obj[i], overwrite);
+					continue;
+				}
+				if (lx.isArray(this[i]) && lx.isArray(obj[i])) {
+					this[i].lxMerge(obj[i], overwrite);
 					continue;
 				}
 				if (!overwrite && i in this) continue;

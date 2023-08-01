@@ -70,7 +70,7 @@ class TreeBox extends lx.Box {
 	 *
 	 * @param [config] {Object: {
 	 *     #merge(lx.Rect::constructor::config),
-	 *     [tree] {lx.Tree},
+	 *     [tree] {lx.Tree|lx.RecursiveTree},
 	 *     [indent = 10] {Number},
 	 *     [step = 5] {Number},
 	 *     [leafHeight = 18] {Number},
@@ -78,7 +78,7 @@ class TreeBox extends lx.Box {
 	 *     [addAllowed = false] {Boolean},
 	 *     [rootAddAllowed = false] {Boolean},
 	 *     [leaf] {Function} (: argument - leaf {TreeLeaf} :),
-	 *     [beforeAddLeaf] {Function} (: argument - node {lx.Tree} :),
+	 *     [beforeAddLeaf] {Function} (: argument - node {lx.Tree|lx.RecursiveTree} :),
 	 *     [beforeDropLeaf] {Function} (: argument - leaf {TreeLeaf} :)
 	 * }}
 	 */
@@ -121,6 +121,7 @@ class TreeBox extends lx.Box {
 	}
 
 	#lx:server beforePack() {
+		//TODO lx.RecursiveTree
 		if (this.tree) this.tree = (new lx.TreeConverter).treeToJson(this.tree);
 		if (this.leafRenderer)
 			this.leafRenderer = this.packFunction(this.leafRenderer);
@@ -141,12 +142,15 @@ class TreeBox extends lx.Box {
 			work.style('overflow', 'visible');
 			move.move({ yMove: false });
 			move.on('move', function() { work.width(this.left('px') + 'px'); });
+			move.left( this.width('px') - this.indent - this.step + 'px' );
+			move.trigger('move');
 			this.prepareRoot();
 		}
 
 		postUnpack(config) {
 			super.postUnpack(config);
 
+			//TODO lx.RecursiveTree
 			if (this.tree && lx.isString(this.tree))
 				this.tree = (new lx.TreeConverter).jsonToTree(this.tree);
 
@@ -156,12 +160,11 @@ class TreeBox extends lx.Box {
 
 		leafs() {
 			if (!this->work->leaf) return new lx.Collection();
-			return new lx.Collection(this->work->leaf);
+			return this->work.getAll('leaf');
 		}
 
 		leaf(i) {
-			const c = this->work.getAll('leaf');
-			return c.at(i);
+			return this.leafs().at(i);
 		}
 
 		leafByNode(node) {
@@ -188,7 +191,7 @@ class TreeBox extends lx.Box {
 
 		/**
 		 * Чтобы открытые ветви дерева не забывались при перезагрузке страницы
-		 * */
+		 */
 		setStateMemoryKey(key) {
 			// На открытие ветки
 			this.on('leafOpen', function(e) {
@@ -234,7 +237,7 @@ class TreeBox extends lx.Box {
 
 		/**
 		 * Выдает массив индексов открытых листьев
-		 * */
+		 */
 		getOpenedInfo() {
 			let opened = [];
 			this.leafs().forEach((a, i)=> {
@@ -246,7 +249,7 @@ class TreeBox extends lx.Box {
 
 		/**
 		 * Раскрывает листья согласно массиву, сформированному в .getOpenedInfo()
-		 * */
+		 */
 		useOpenedInfo(info) {
 			for (let i=0, l=info.len; i<l; i++) {
 				let leaf = this.leaf(info[i]);
@@ -255,7 +258,7 @@ class TreeBox extends lx.Box {
 		}
 
 		prepareRoot() {
-			this.createLeafs(this.tree);
+			this.createLeafs(this.tree, 0);
 			let work = this->work;
 
 			if (this.rootAddAllowed && !work.contains('submenu')) {
@@ -271,8 +274,8 @@ class TreeBox extends lx.Box {
 			}
 		}
 
-		createLeafs(tree, before) {
-			if (!tree || !(tree instanceof lx.Tree)) return;
+		createLeafs(tree, shift, before = null) {
+			if (!tree || !(tree instanceof lx.Tree || tree instanceof lx.RecursiveTree)) return;
 
 			let config = {
 				parent: this->work,
@@ -282,12 +285,13 @@ class TreeBox extends lx.Box {
 			if (before) config.before = before;
 
 			let result = TreeLeaf.construct(tree.count(), config, {
-				preBuild:(config,i)=>{
+				preBuild: (config, i) => {
 					config.node = tree.getNth(i);
 					return config;
 				},
-				postBuild:elem=>{
+				postBuild: elem => {
 					elem.overflow('visible');
+					elem._shift = shift;
 				}
 			});
 
@@ -299,17 +303,17 @@ class TreeBox extends lx.Box {
 			event.leaf = leaf;
 			let node = leaf.node;
 
-			if ( node.fill !== undefined && node.fill ) {
-				//TODO точка для расширения логики - данных на фронте ещё нет, но узел знает, что не пуст
-				// здесь должно отработать что-то вроде коллбэка на дозагрузку данных
+			if (node.filled) {
+				//TODO точка для расширения логики - если данных на фронте ещё нет, но узел знает, что не пуст
+				// здесь может отработать запрос на дозагрузку данных
 			} else this.trigger('leafOpen', event);
 
-			if (!node.keys.len) return;
+			if (!node.count()) return;
 
 			this.useRenderCache();
-			let leafs = this.createLeafs(node, leaf.nextSibling());
+			let leafs = this.createLeafs(node, leaf._shift + 1, leaf.nextSibling());
 			leafs.forEach(a=>{
-				let shift = this.step + (this.step + this.leafHeight) * (node.deep());
+				let shift = this.step + (this.step + this.leafHeight) * (a._shift);
 				a->open.left(shift + 'px');
 				a->label.left(shift + this.step + this.leafHeight + 'px');
 			});
@@ -325,9 +329,9 @@ class TreeBox extends lx.Box {
 			event = event || this.newEvent();
 			event.leaf = leaf;
 			let i = leaf.index,
-				deep = leaf.node.deep(),
+				shift = leaf._shift,
 				next = this.leaf(++i);
-			while (next && next.node.deep() > deep) next = this.leaf(++i);
+			while (next && next._shift > shift) next = this.leaf(++i);
 
 			let count = next ? next.index - leaf.index - 1 : Infinity;
 
@@ -436,7 +440,7 @@ class TreeBox extends lx.Box {
 					geom: [0, 0, tw.leafHeight+'px', tw.leafHeight+'px'],
 					click: __handlerToggleOpened
 				}).addClass(
-					(this.node.keys.length || (this.node.fill !== undefined && this.node.fill))
+					(this.node.count() || (this.node.filled))
 						? tw.basicCss.buttonClosed : tw.basicCss.buttonEmpty
 				);
 			but.opened = false;

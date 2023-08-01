@@ -239,7 +239,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
             return null;
         }
 
-        return I18nHelper::translate($title, $this->i18nMap);
+        return I18nHelper::localizeKey($title, $this->i18nMap);
     }
 
     public function getIcon(): ?string

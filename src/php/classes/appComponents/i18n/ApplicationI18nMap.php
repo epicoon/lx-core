@@ -10,7 +10,7 @@ class ApplicationI18nMap extends I18nMap
 
 	public function inUse(string $name): bool
 	{
-		return array_search($name, $this->used) !== false;
+		return array_search($name, $this->used, true) !== false;
 	}
 
 	public function noteUse(string $name): void

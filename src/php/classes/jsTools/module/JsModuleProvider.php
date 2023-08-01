@@ -35,7 +35,7 @@ class JsModuleProvider extends Resource
         $compiler = new JsCompiler();
         $compiler->ignoreModules($except);
         $modulesCode = $compiler->compileCode($modulesCode);
-        $modulesCode = I18nHelper::localize($modulesCode, lx::$app->i18nMap);
+        $modulesCode = I18nHelper::localizeText($modulesCode, lx::$app->i18nMap);
 
         return [$modulesCode, $compiler->getCompiledModules()];
     }

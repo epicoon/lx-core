@@ -47,9 +47,6 @@ class Model extends lx.Object {
 		return result;
 	}
 
-	/**
-	 *
-	 * */
 	setField(name, value) {
 		var field = self::__schema.getField(name);
 		if (field.ref) {
@@ -61,9 +58,6 @@ class Model extends lx.Object {
 		}
 	}
 
-	/**
-	 *
-	 * */
 	getField(name) {
 		var field = self::__schema.getField(name);
 		if (field.ref) {
@@ -111,25 +105,30 @@ class Model extends lx.Object {
 		this.setField(name, val);
 	}
 
-	/**
-	 *
-	 * */
 	getSchema() {
 		if (!self::__schema) return null;
 		return self::__schema;
 	}
 
-	/**
-	 *
-	 * */
+	delegateSchema(obj) {
+		let model = this;
+		this.getSchema().getFieldNames(true).forEach(field => {
+			Object.defineProperty(obj, field, {
+				set: function (val) {
+					model[field] = val;
+				},
+				get: function () {
+					return model[field];
+				}
+			});
+		});
+	}
+	
 	static get schema() {
 		if (!this.__schema) this.__schema = new lx.ModelSchema();
 		return this.__schema;
 	}
 
-	/**
-	 *
-	 * */
 	static initSchema(config) {
 		this.__schema = new lx.ModelSchema(config);
 	}

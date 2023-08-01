@@ -1,12 +1,12 @@
 #lx:namespace lx;
 class Behavior {
-	onAfterConstruct(supportedObject) {}
+	behaviorConstructor() {}
 
 	static injectInto(supportedEssence, config=null) {
 		var names = Object.getOwnPropertyNames(this.prototype);
 		var funcNames = [];
 		for (var i=0, l=names.length; i<l; i++) {
-			if (names[i] == 'constructor' || names[i] == 'onAfterConstruct') continue;
+			if (names[i] == 'constructor' || names[i] == 'behaviorConstructor') continue;
 			if (lx.isFunction(this.prototype[names[i]])) funcNames.push(names[i]);
 		}
 

@@ -7,7 +7,7 @@
  * @content-disallowed
  *
  * @events [
- *     beforeStreamContentRelocation,
+ *     beforeStreamItemRelocation,
  *     afterStreamItemRelocation
  * ]
  */
@@ -35,8 +35,9 @@ class StreamItemRelocator extends lx.Box {
         if (!item) return;
 
         self.trigger('beforeStreamItemRelocation');
-        item.parent.trigger('beforeStreamContentRelocation');
-        item.trigger('beforeStreamItemRelocation');
+        item.parent.trigger('beforeStreamItemRelocation');
+        if (item !== self)
+            item.trigger('beforeStreamItemRelocation');
 
         let config = {
             key: '__holder',
@@ -76,10 +77,13 @@ class StreamItemRelocator extends lx.Box {
         if (!item) return;
 
         let top = item.top('px'),
+            height = item.height('px'),
+            middle = height * 0.5 + top,
             boxData = null;
+
         for (let i=0, l=self.__env.list.len; i<l; i++) {
             let data = self.__env.list[i];
-            if (top >= data.top && top <= data.bottom) {
+            if (middle >= data.top && middle <= data.bottom) {
                 boxData = data;
                 break;
             }
@@ -87,15 +91,13 @@ class StreamItemRelocator extends lx.Box {
 
         if (!boxData || boxData.elem.key == '__holder') return;
 
+        let direction = (top > self.__env.holder.top('px'))
+            ? lx.BOTTOM
+            : lx.TOP;
+
         let next = null, prev = null;
-        if (top <= boxData.point) {
-            if (boxData.elem.prevSibling() && boxData.elem.prevSibling().key == '__holder') return;
-            next = boxData.elem;
-        } else {
-            if (boxData.elem.nextSibling() && boxData.elem.nextSibling().key == '__holder') return;
-            next = boxData.elem.nextSibling();
-            prev = boxData.elem;
-        }
+        if (direction == lx.BOTTOM) prev = boxData.elem;
+        else next = boxData.elem;
 
         let config = next
             ? { before: next }
@@ -121,7 +123,7 @@ class StreamItemRelocator extends lx.Box {
         item.setParent(config);
         item.width(self.__env.width);
         item.height(self.__env.height);
-        item.depthCluster = self.__env.depthCluster;
+        item.setDepthCluster(self.__env.depthCluster);
 
         let needTrigger = (self.__env.baseIndex != item.index);
         self.__env.holder.del();
@@ -141,15 +143,16 @@ class StreamItemRelocator extends lx.Box {
         item.move(false);
         if (needTrigger) {
             self.trigger('afterStreamItemRelocation');
-            item.trigger('afterStreamItemRelocation');
-            item.parent.trigger('afterStreamContentRelocation');
+            item.parent.trigger('afterStreamItemRelocation');
+            if (item !== self)
+                item.trigger('afterStreamItemRelocation');
         }
     }
 
     function __getItem(self) {
         if (self.item) return self.item;
 
-        let parent = self.parent;
+        let parent = self;
         while (parent) {
             if (parent.parent && parent.parent.positioning().lxClassName() == 'StreamPositioningStrategy') {
                 self.item = parent;
@@ -163,6 +166,7 @@ class StreamItemRelocator extends lx.Box {
 
     function __calcList(self) {
         let stream = self.__env.parent;
+        self.__env.list = [];
         stream.getChildren().forEach(e=>{
             if (e.isDisplay()) {
                 e.getGlobalRect();

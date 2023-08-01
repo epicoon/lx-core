@@ -168,6 +168,7 @@ return [
     'Math' => 'classes/tools',
     'Undefined' => 'classes/tools',
     'Vector' => 'classes/tools',
+    'RecursiveTree' => 'classes/tools',
     'Yaml' => 'classes/tools',
     'ObjectMapper' => 'classes/tools',
     'MdBlocksBuilder' => 'classes/tools/mdConverter',

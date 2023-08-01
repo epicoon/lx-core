@@ -68,7 +68,7 @@ class CssContext {
 
         this.sequens.push({name, type: 'classes'});
 
-        var processed = __processContent(this, content, pseudoclasses);
+        let processed = __processContent(this, content, pseudoclasses);
         this.classes[name] = new CssClass({
             context: this,
             name,
@@ -83,7 +83,7 @@ class CssContext {
 
         this.sequens.push({name, type: 'classes'});
 
-        var processed = __processContent(this, content, pseudoclasses);
+        let processed = __processContent(this, content, pseudoclasses);
         this.classes[name] = new CssClass({
             context: this,
             parent,
@@ -96,7 +96,7 @@ class CssContext {
     addAbstractClass(name, content = {}, pseudoclasses = {}) {
         if (name[0] != '.') name = '.' + name;
 
-        var processed = __processContent(this, content, pseudoclasses);
+        let processed = __processContent(this, content, pseudoclasses);
         this.abstractClasses[name] = new CssClass({
             context: this,
             isAbstract: true,
@@ -110,7 +110,7 @@ class CssContext {
         if (name[0] != '.') name = '.' + name;
         if (parent[0] != '.') parent = '.' + parent;
 
-        var processed = __processContent(this, content, pseudoclasses);
+        let processed = __processContent(this, content, pseudoclasses);
         this.abstractClasses[name] = new CssClass({
             context: this,
             isAbstract: true,
@@ -166,8 +166,8 @@ class CssContext {
     }
 
     toString() {
-        var result = '';
-        for (var i=0, l=this.sequens.length; i<l; i++) {
+        let result = '';
+        for (let i=0, l=this.sequens.length; i<l; i++) {
             const rule = this[this.sequens[i].type][this.sequens[i].name];
             result += rule.render();
         }
@@ -277,7 +277,7 @@ function __getClassPropertyWithParent(cssClass, property) {
     if (!result.__str__) result.__str__ = [];
 
     if (lx.isObject(cssClass[property]))
-        result = result.lxMerge(cssClass[property], true)
+        result = cssClass[property].lxMerge(result);
     else if (lx.isString(cssClass[property]))
         result.__str__.push(cssClass[property]);
 
@@ -360,8 +360,8 @@ function __processContent(self, content, pseudoclasses) {
         return {content, pseudoclasses};
     }
 
-    var processedContent = {};
-    for (var name in content) {
+    let processedContent = {};
+    for (let name in content) {
         if (name[0] != '@') {
             processedContent[name] = content[name];
             continue;
@@ -370,9 +370,9 @@ function __processContent(self, content, pseudoclasses) {
         let mixin = __getMixin(self, name);
         if (!mixin) continue;
 
-        var args = content[name];
+        let args = content[name];
         if (!lx.isArray(args)) args = [args];
-        var result = mixin.apply(null, args);
+        let result = mixin.apply(null, args);
 
         if (result.content) {
             processedContent.lxMerge(result.content);

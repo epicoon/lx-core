@@ -1,9 +1,9 @@
 #lx:namespace lx;
 class TreeConverter {
 	treeToJson(tree) {
-		var arr = [];
-		for (var i=0, l=tree.keys.len; i<l; i++) {
-			var key = tree.keys[i];
+		let arr = [];
+		for (let i=0, l=tree.keys.len; i<l; i++) {
+			let key = tree.keys[i];
 			__collectJSON(tree.nodes[key], key, -1, arr);
 		}
 
@@ -15,10 +15,10 @@ class TreeConverter {
 		const tree = new lx.Tree();
 		if (str == '') return tree;
 
-		var arr = JSON.parse( str ),
+		let arr = JSON.parse( str ),
 			temp = [ tree ];
-		for (var i=0, l=arr.length; i<l; i++) {
-			var info = arr[i],
+		for (let i=0, l=arr.length; i<l; i++) {
+			let info = arr[i],
 				br = temp[ info.root+1 ].add( info.key );
 
 			br.data = info.data;
@@ -33,8 +33,8 @@ class TreeConverter {
 }
 
 function __collectJSON(tree, key, root, arr) {
-	var index = arr.length;
-	var temp = {
+	let index = arr.length;
+	let temp = {
 		root,
 		data: tree.data
 	};
@@ -43,8 +43,8 @@ function __collectJSON(tree, key, root, arr) {
 	if (key !== '') temp.key = key;
 
 	arr.push(temp);
-	for (var i=0, l=tree.keys.len; i<l; i++) {
-		var key = tree.keys[i];
+	for (let i=0, l=tree.keys.len; i<l; i++) {
+		let key = tree.keys[i];
 		__collectJSON(tree.nodes[key], key, index, arr);
 	}
 }

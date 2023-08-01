@@ -88,4 +88,8 @@ class CollectionSelector {
 
 		return result;
 	}
+
+	getOne() {
+		return this.getResult().at(0);
+	}
 }

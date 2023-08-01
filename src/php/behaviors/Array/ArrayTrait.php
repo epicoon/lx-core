@@ -210,7 +210,7 @@ trait ArrayTrait
 	 */
 	public function getKeyByValue($value)
 	{
-	    $result = array_search($value, $this->arrayValue);
+	    $result = array_search($value, $this->arrayValue, true);
 	    if ($result === false) {
 	        return null;
         }
