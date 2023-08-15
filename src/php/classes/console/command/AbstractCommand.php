@@ -39,34 +39,35 @@ abstract class AbstractCommand implements CommandInterface
             'typeMismatch' => [],
             'enumMismatch' => [],
         ];
-        /** @var CommandArgument $definition */
         foreach ($argumentsDefinition as $definition) {
-            $key = $definition->getKeys();
-            $value = $arguments->get($key);
-            if ($value === null) {
-                if ($definition->isMandatory()) {
-                    $errors['required'][] = $definition;
-                    $errorsCounter++;
-                }
-
+            $keys = $definition->getKeys();
+            if (!$arguments->has($keys) && ($definition->withInput() || $definition->withSelect())) {
                 continue;
             }
-
+            $value = $arguments->get($keys);
             $validationResult = $definition->validateValue($value);
-            if ($validationResult == CommandArgument::PROBLEM_ENUM_MISMATCH) {
-                $errors['enumMismatch'][] = $definition;
-                $errorsCounter++;
-                continue;
-            } elseif ($validationResult == CommandArgument::PROBLEM_TYPE_MISMATCH) {
-                $errors['typeMismatch'][] = $definition;
-                $errorsCounter++;
-                continue;
+            switch ($validationResult) {
+                case CommandArgument::PROBLEM_NO:
+                    if ($arguments->has($keys)) {
+                        $validatedArgs[] = [
+                            'keys' => $keys,
+                            'value' => $value,
+                        ];
+                    }
+                    break;
+                case CommandArgument::PROBLEM_REQUIRED:
+                    $errors['required'][] = $definition;
+                    break;
+                case CommandArgument::PROBLEM_ENUM_MISMATCH:
+                    $errors['enumMismatch'][] = $definition;
+                    break;
+                case CommandArgument::PROBLEM_TYPE_MISMATCH:
+                    $errors['typeMismatch'][] = $definition;
+                    break;
             }
-
-            $validatedArgs[] = [
-                'keys' => (array)$key,
-                'value' => $value,
-            ];
+            if ($validationResult !== CommandArgument::PROBLEM_NO) {
+                $errorsCounter++;
+            }
         }
 
         if ($errorsCounter) {
@@ -98,5 +99,31 @@ abstract class AbstractCommand implements CommandInterface
 
         $arguments->setValidatedData($validatedArgs);
         return [];
+    }
+
+    public function getInputRequire(CommandArgumentsList $arguments): ?CommandArgument
+    {
+        $argumentsDefinition = $this->getArgumentsSchema();
+        if (empty($argumentsDefinition)) {
+            return null;
+        }
+        /** @var CommandArgument $definition */
+        foreach ($argumentsDefinition as $definition) {
+            if (!$definition->withInput() && !$definition->withSelect()) {
+                continue;
+            }
+
+            $keys = $definition->getKeys();
+            if (!$arguments->has($keys)) {
+                return $definition;
+            }
+
+            $value = $arguments->get($keys);
+            if ($definition->isMandatory() && ($value === '' || $value === null)) {
+                return $definition;
+            }
+        }
+
+        return null;
     }
 }

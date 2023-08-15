@@ -2,24 +2,54 @@
 
 namespace lx;
 
+use lx;
+
 class PluginEditor
 {
 	private Service $service;
+    private bool $config = true;
+    private bool $respondent = true;
+    private bool $client = true;
+    private bool $snippets = true;
 
 	public function __construct(Service $service)
 	{
 		$this->service = $service;
 	}
 
+    public function buildConfig(bool $value): PluginEditor
+    {
+        $this->config = $value;
+        return $this;
+    }
+
+    public function buildRespondent(bool $value): PluginEditor
+    {
+        $this->respondent = $value;
+        return $this;
+    }
+
+    public function buildClient(bool $value): PluginEditor
+    {
+        $this->client = $value;
+        return $this;
+    }
+
+    public function buildSnippets(bool $value): PluginEditor
+    {
+        $this->snippets = $value;
+        return $this;
+    }
+
 	public function createPlugin(string $name, ?string $path = null, array $config = []): ?Plugin
 	{
 		$servicePath = $this->service->getPath();
 		if ($path === null) {
-		    $plaginPathes = $this->service->getConfig('plugins');
-		    if (is_array($plaginPathes)) {
-		        $path = $plaginPathes[0];
+		    $pluginPathes = $this->service->getConfig('plugins');
+		    if (is_array($pluginPathes)) {
+		        $path = $pluginPathes[0];
             } else {
-		        $path = $plaginPathes;
+		        $path = $pluginPathes;
             }
         }
 		$pluginRootPath = ($path == '')
@@ -64,43 +94,51 @@ class PluginEditor
 		$d = (new Directory($pluginRootPath))->makeDirectory($name);
 		$pluginConfig = \lx::$app->getDefaultPluginConfig();
 
-		$mainJs = $d->makeFile($pluginConfig['client']);
-		$mainJs->put($mainJsCode);
+        if ($this->client) {
+            $mainJs = $d->makeFile($pluginConfig['client']);
+            $mainJs->put($mainJsCode);
+        }
 
-		$root = $d->makeFile($pluginConfig['rootSnippet']);
-		$root->put($viewCode);
+        if ($this->snippets) {
+            $root = $d->makeFile($pluginConfig['rootSnippet']);
+            $root->put($viewCode);
+        }
 
 		$plugin = $d->makeFile('server/Plugin.php');
 		$pluginCode = str_replace('namespace ', 'namespace ' . $namespace, $pluginCode);
 		$plugin->put($pluginCode);
 
-		$configFile = $d->makeFile('lx-config.yaml');
-		$text = 'server: ' . $namespace . '\\Plugin' . PHP_EOL;
-        $text .= 'client: ' . $pluginConfig['client'] . PHP_EOL . PHP_EOL;
+        if ($this->config) {
+            $configFile = $d->makeFile('lx-config.yaml');
+            $text = 'server: ' . $namespace . '\\Plugin' . PHP_EOL;
+            $text .= 'client: ' . $pluginConfig['client'] . PHP_EOL . PHP_EOL;
 
-        $text .= 'snippets: ' . $pluginConfig['snippets'] . PHP_EOL;
-		$text .= 'rootSnippet: ' . $pluginConfig['rootSnippet'] . PHP_EOL . PHP_EOL;
+            $text .= 'snippets: ' . $pluginConfig['snippets'] . PHP_EOL;
+            $text .= 'rootSnippet: ' . $pluginConfig['rootSnippet'] . PHP_EOL . PHP_EOL;
 
-		if (is_array($pluginConfig['respondents'])) {
-			if (empty($pluginConfig['respondents'])) {
-				$text .= 'respondents: {}'. PHP_EOL . PHP_EOL;
-			} else {
-				$text .= $this->createRespondents(
-                    $pluginConfig['respondents'],
-                    $d->get('server'),
-                    $namespace,
-                    $respondentCode
-                ) . PHP_EOL . PHP_EOL;
-			}
-		} else {
-			$text .= 'respondents: ' . $pluginConfig['respondents'] . chr(10);
-		}
+            if ($this->respondent) {
+                if (is_array($pluginConfig['respondents'])) {
+                    if (empty($pluginConfig['respondents'])) {
+                        $text .= 'respondents: {}'. PHP_EOL . PHP_EOL;
+                    } else {
+                        $text .= $this->createRespondents(
+                                $pluginConfig['respondents'],
+                                $d->get('server'),
+                                $namespace,
+                                $respondentCode
+                            ) . PHP_EOL . PHP_EOL;
+                    }
+                } else {
+                    $text .= 'respondents: ' . $pluginConfig['respondents'] . chr(10);
+                }
+            }
 
-        $text .= 'images: ' . $pluginConfig['images'] . PHP_EOL . PHP_EOL;
+            $text .= 'images: ' . $pluginConfig['images'] . PHP_EOL . PHP_EOL;
 
-        $text .= 'cacheType: ' . ($config['cacheType'] ?? $pluginConfig['cacheType'] ?? lx\Plugin::CACHE_NONE);
+            $text .= 'cacheType: ' . ($config['cacheType'] ?? $pluginConfig['cacheType'] ?? lx\Plugin::CACHE_NONE);
 
-		$configFile->put($text);
+            $configFile->put($text);
+        }
 
 		return Plugin::create($this->service, $name, $fullPath);
 	}

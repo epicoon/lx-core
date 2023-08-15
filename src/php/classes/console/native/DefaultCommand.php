@@ -9,7 +9,7 @@ class DefaultCommand extends NativeCommand
         return 'default';
     }
 
-    protected function run()
+    protected function process()
     {
         echo 'Command not found' . PHP_EOL;
     }

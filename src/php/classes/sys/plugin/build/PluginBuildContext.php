@@ -229,7 +229,7 @@ class PluginBuildContext implements ContextTreeInterface
         }
 
         if (isset($config['images'])) {
-            $info['images'] = $plugin->getImagePathsList();
+            $info['images'] = (new PluginAssetProvider($plugin))->getImagePaths();
         }
 
         $widgetBasicCssList = $plugin->widgetBasicCssList();

@@ -118,11 +118,11 @@ class Cli
 
 	private function handleCommand(string $commandName): void
 	{
-		$this->processor->setParams($this->processParams);
 		$result = $this->processor->handleCommand(
 		    $commandName,
             CliProcessor::COMMAND_TYPE_CONSOLE,
             $this->args,
+            $this->processParams,
             $this->service,
             $this->plugin
         );

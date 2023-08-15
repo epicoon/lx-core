@@ -84,6 +84,10 @@ class ApplicationConductor implements ConductorInterface
 			return false;
 		}
 
+        while (preg_match('/\/\.\.\//', $fullPath)) {
+            $fullPath = preg_replace('/\/[^\/]+?\/\.\.\//', '/', $fullPath);
+        }
+
 		return explode($this->sitePath . '/', $fullPath)[1];
 	}
 

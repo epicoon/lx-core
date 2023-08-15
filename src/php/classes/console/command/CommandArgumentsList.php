@@ -44,7 +44,7 @@ class CommandArgumentsList
 
     /**
      * @param array|string|int $key
-     * @return mixed
+     * @return mixed|null
      */
     public function get($key)
     {
@@ -52,6 +52,22 @@ class CommandArgumentsList
         foreach ($keys as $one) {
             if (array_key_exists($one, $this->data)) {
                 return $this->data[$one];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param array|string|int $key
+     * @param mixed $value
+     */
+    public function set($key, $value, $force = false)
+    {
+        $keys = (array)$key;
+        foreach ($keys as $one) {
+            if (array_key_exists($one, $this->data) || $force) {
+                $this->data[$one] = $value;
+                return;
             }
         }
     }

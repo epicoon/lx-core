@@ -9,5 +9,5 @@ interface CommandExecutorInterface
     /**
      * @return mixed
      */
-    public function exec();
+    public function run();
 }

@@ -22,16 +22,17 @@ abstract class NativeCommand extends AbstractCommand implements CommandExecutorI
     /**
      * @return mixed
      */
-    abstract protected function run();
+    abstract protected function process();
 
     public function setParams(array $params): void
     {
         $this->params = new CommandArgumentsList($params);
     }
     
-    public function exec()
+    public function run()
     {
         $errorReport = ($this->params) ? $this->validateInput($this->params): [];
+        //TODO $this->getInputRequire($this->params);
         if (!empty($errorReport)) {
             foreach ($errorReport as $row) {
                 echo $row . PHP_EOL;
@@ -39,7 +40,7 @@ abstract class NativeCommand extends AbstractCommand implements CommandExecutorI
             return;
         }
         
-        $this->run();
+        $this->process();
     }
 
     /**

@@ -79,12 +79,29 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
 			return null;
 		}
 		$configFile = $dir->getConfigFile();
-		$config = $configFile !== null
-			? $configFile->get()
-			: [];
-        $pluginClass = $config['server'] ?? self::class;
-        unset($config['server']);
-
+        if ($configFile) {
+            $config = $configFile->get() ?? [];
+            $pluginClass = $config['server'] ?? null;
+            unset($config['server']);
+        } else {
+            $config = [];
+            $pluginClass = null;
+            $file = null;
+            if (file_exists($pluginPath . '/Plugin.php')) {
+                $file = $pluginPath . '/Plugin.php';
+            } elseif (file_exists($pluginPath . '/server/Plugin.php')) {
+                $file = $pluginPath . '/server/Plugin.php';
+            }
+            if ($file) {
+                $content = file_get_contents($file);
+                preg_match('/namespace \s*([^;]+?)\s*;/', $content, $match);
+                $pluginClass = $match[1] . '\\Plugin';
+            }
+        }
+        if ($pluginClass === null) {
+            $pluginClass = self::class;
+        }
+        
 		$data = [
 			'service' => $service,
 			'name' => $pluginName,
@@ -249,6 +266,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
             return null;
         }
 
+        $icon = $this->conductor->getFullPath($icon);
         return '/' . lx::$app->conductor->getRelativePath($icon, lx::$app->sitePath);
     }
 

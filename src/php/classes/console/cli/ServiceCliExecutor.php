@@ -7,19 +7,37 @@ use lx;
 class ServiceCliExecutor implements ServiceCliExecutorInterface
 {
 	protected CliProcessor $processor;
+    protected CommandInterface $command;
 	protected ?Service $service = null;
     protected ?Plugin $plugin = null;
+
+    protected function getArgs(): array
+    {
+        $list = [];
+        foreach ($this->command->getArgumentsSchema() as $definition) {
+            $key = $definition->getKeys()[0];
+            if ($this->processor->hasArg($key)) {
+                $list[$key] = $this->processor->getArg($key);
+            }
+        }
+        return $list;
+    }
 
 	public function setProcessor(CliProcessor $processor): void
 	{
 		$this->processor = $processor;
 	}
 
+    public function setCommand(CommandInterface $command): void
+    {
+        $this->command = $command;
+    }
+
 	public function run(): void
 	{
 		$this->processor->done();
 	}
-
+    
     public function defineService(): bool
     {
         if ($this->service) {
@@ -53,7 +71,10 @@ class ServiceCliExecutor implements ServiceCliExecutorInterface
         $processor = $this->processor;
         $pluginName = $processor->getArg('plugin');
         if ($pluginName) {
-            $plugin = lx::$app->getPlugin($pluginName);
+            $plugin = lx::$app->pluginProvider
+                ->setService($this->service)
+                ->setPluginName($pluginName)
+                ->getPlugin();
             if ($plugin) {
                 $this->plugin = $plugin;
             } else {

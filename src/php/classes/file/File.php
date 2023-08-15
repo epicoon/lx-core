@@ -15,10 +15,6 @@ class File extends BaseFile implements FileInterface
 			return;
 		}
 
-		if ($path instanceof Directory) {
-			$path = $path->getPath();
-		}
-		
 		if ($path[-1] != '/') {
 			$path .= '/';
 		}

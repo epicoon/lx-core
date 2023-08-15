@@ -55,11 +55,11 @@ class WebCli extends Module
 
         $processor = new CliProcessor();
         list($__pass, $args) = $processor->parseInput($inputString);
-        $processor->setParams($processParams);
         $result = $processor->handleCommand(
             $command,
             CliProcessor::COMMAND_TYPE_WEB,
             $args,
+            $processParams,
             $service,
             $plugin
         );

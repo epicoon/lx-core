@@ -16,10 +16,10 @@ class CliProcessor
 	private ?Service $service = null;
 	private ?Plugin $plugin = null;
 	private CommandArgumentsList $args;
+    private array $dynamicArgs = [];
+    private ?string $needArg = null;
+    private array $invalidArgs = [];
 	private array $consoleMap = [];
-	private ?string $needParam = null;
-	private array $params = [];
-	private array $invalidParams = [];
 	private bool $keepProcess = false;
 	private array $data = [];
 
@@ -27,9 +27,10 @@ class CliProcessor
     {
         $this->currentCommandType = null;
         $this->consoleMap = [];
-        $this->needParam = null;
-        $this->params = [];
-        $this->invalidParams = [];
+        $this->needArg = null;
+        $this->args = null;
+        $this->dynamicArgs = [];
+        $this->invalidArgs = [];
         $this->keepProcess = false;
         $this->data = [];
     }
@@ -47,9 +48,7 @@ class CliProcessor
                 'command' => ['\h', 'help'],
                 'description' => 'Show available commands list',
                 'arguments' => [
-                    $this->initArgument([0])
-                        ->setType(CommandArgument::TYPE_STRING)
-                        ->setDescription('Command name'),
+                    CommandArgument::string(0)->setDescription('Command name'),
                 ],
                 'handler' => 'showHelp',
             ],
@@ -58,17 +57,13 @@ class CliProcessor
                 'command' => ['\g', 'goto'],
                 'description' => 'Enter into service or plugin',
                 'arguments' => [
-                    $this->initArgument(['index', 'i'])
-                        ->setType(CommandArgument::TYPE_INTEGER)
+                    CommandArgument::integer(['index', 'i'])
                         ->setDescription('Index of service due to list returned by command "services-list"'),
-                    $this->initArgument(['service', 's'])
-                        ->setType(CommandArgument::TYPE_STRING)
+                    CommandArgument::string(['service', 's'])
                         ->setDescription('Service name'),
-                    $this->initArgument(['plugin', 'p'])
-                        ->setType(CommandArgument::TYPE_STRING)
+                    CommandArgument::string(['plugin', 'p'])
                         ->setDescription('Plugin name'),
-                    $this->initArgument(0)
-                        ->setType(CommandArgument::TYPE_STRING)
+                    CommandArgument::string(0)
                         ->setDescription('Service or plugin name'),
                 ],
                 'handler' => 'move',
@@ -78,15 +73,9 @@ class CliProcessor
                 'command' => ['\p', 'fullpath'],
                 'description' => 'Show path to service or plugin directory',
                 'arguments' => [
-                    $this->initArgument(['service', 's'])
-                        ->setType(CommandArgument::TYPE_STRING)
-                        ->setDescription('Service name'),
-                    $this->initArgument(['plugin', 'p'])
-                        ->setType(CommandArgument::TYPE_STRING)
-                        ->setDescription('Plugin name'),
-                    $this->initArgument(0)
-                        ->setType(CommandArgument::TYPE_STRING)
-                        ->setDescription('Service or plugin name'),
+                    CommandArgument::string(['service', 's'])->setDescription('Service name'),
+                    CommandArgument::string(['plugin', 'p'])->setDescription('Plugin name'),
+                    CommandArgument::string(0)->setDescription('Service or plugin name'),
                 ],
                 'handler' => 'fullPath',
             ],
@@ -101,9 +90,7 @@ class CliProcessor
                 'command' => ['\pl', 'plugins-list'],
                 'description' => 'Show plugins list',
                 'arguments' => [
-                    $this->initArgument(['service', 's', 0])
-                        ->setType(CommandArgument::TYPE_STRING)
-                        ->setDescription('Service name'),
+                    CommandArgument::service(),
                 ],
                 'handler' => 'showPlugins',
             ],
@@ -112,9 +99,17 @@ class CliProcessor
                 'command' => ['\cs', 'create-service'],
                 'description' => 'Create new service',
                 'arguments' => [
-                    $this->initArgument(['name', 'n', 0])
-                        ->setType(CommandArgument::TYPE_STRING)
-                        ->setDescription('New service name'),
+                    CommandArgument::service()->useInput(),
+                    CommandArgument::integer(['index', 'i'])
+                        ->setDescription('Directory for new service')
+                        ->useSelect(function () {
+                            $dirs = lx::$app->serviceProvider->getCategories();
+                            $dirsList = [];
+                            foreach ($dirs as $dirPath) {
+                                $dirsList[] = ($dirPath == '') ? '/' : $dirPath;
+                            }
+                            return $dirsList;
+                        }),
                 ],
                 'handler' => 'createService',
             ],
@@ -123,9 +118,9 @@ class CliProcessor
                 'command' => ['\cp', 'create-plugin'],
                 'description' => 'Create new plugin',
                 'arguments' => [
-                    $this->initArgument(['name', 'n', 0])
-                        ->setType(CommandArgument::TYPE_STRING)
-                        ->setDescription('New plugin name'),
+                    CommandArgument::plugin()->useInput(),
+                    CommandArgument::integer(['index', 'i'])
+                        ->setDescription('Directory for new plugin'),
                 ],
                 'handler' => 'createPlugin',
             ],
@@ -140,11 +135,9 @@ class CliProcessor
                 'command' => ['\amrjs', 'autoload-map-reset-js'],
                 'description' => 'Reset js-modules autoload map',
                 'arguments' => [
-                    $this->initArgument(['mode', 'm'])
-                        ->setEnum(['head', 'all'])
+                    CommandArgument::enum(['head', 'all'], ['mode', 'm'])
                         ->setDescription('Reset mode: "head" (reset common map) or "all" (reset services map)'),
-                    $this->initArgument(['service', 's'])
-                        ->setType(CommandArgument::TYPE_STRING)
+                    CommandArgument::string(['service', 's'])
                         ->setDescription('Service name'),
                 ],
                 'handler' => 'resetJsAutoloadMap',
@@ -154,20 +147,13 @@ class CliProcessor
                 'command' => ['cache'],
                 'description' => 'Reset plugins cache',
                 'arguments' => [
-                    $this->initArgument(['service', 's'])
-                        ->setType(CommandArgument::TYPE_STRING)
-                        ->setDescription('Service name'),
-                    $this->initArgument(['plugin', 'p'])
-                        ->setType(CommandArgument::TYPE_STRING)
-                        ->setDescription('Plugin name'),
-                    $this->initArgument(['build', 'b'])
-                        ->setFlag()
+                    CommandArgument::string(['service', 's'])->setDescription('Service name'),
+                    CommandArgument::string(['plugin', 'p'])->setDescription('Plugin name'),
+                    CommandArgument::flag(['build', 'b'])
                         ->setDescription('Flag to build cache for plugins without cache'),
-                    $this->initArgument(['clear', 'c'])
-                        ->setFlag()
+                    CommandArgument::flag(['clear', 'c'])
                         ->setDescription('Flag to clear cache'),
-                    $this->initArgument(['rebuild', 'r'])
-                        ->setFlag()
+                    CommandArgument::flag(['rebuild', 'r'])
                         ->setDescription('Flag to rebuild cache'),
                 ],
                 'handler' => 'cacheManage',
@@ -175,19 +161,6 @@ class CliProcessor
         ];
     }
 
-    /**
-     * @param string|int|array $key
-     */
-    public function initArgument($key = null): CommandArgument
-    {
-        $arg = new CommandArgument();
-        if ($key !== null) {
-            $arg->setKeys((array)$key);
-        }
-
-        return $arg;
-    }
-	
 	public function getCommandsList(): CliCommandsList
 	{
 	    if (!$this->_commandsList) {
@@ -208,15 +181,17 @@ class CliProcessor
 	    string $commandName,
         int $commandType,
         array $args,
+        array $dymanicArgs,
         ?Service $service,
         ?Plugin $plugin
     ): array
 	{
 		$this->service = $service;
 		$this->plugin = $plugin;
-		$this->args = new CommandArgumentsList($args);
+        $this->dynamicArgs = $dymanicArgs;
+		$this->args = new CommandArgumentsList(array_merge($args, $dymanicArgs));
 		$this->consoleMap = [];
-		$this->needParam = null;
+		$this->needArg = null;
 
 		$this->currentCommandType = $commandType;
         try {
@@ -327,48 +302,25 @@ class CliProcessor
 		return $this->plugin;
 	}
 
-	public function setParams(array $params): void
-	{
-		$this->params = $params;
-	}
-
-	/**
-	 * @param mixed $value
-	 */
-	public function setParam(string $name, $value): void
-	{
-		$this->params[$name] = $value;
-	}
-
-	/**
-	 * @return mixed
-	 */
-	public function getParam(string $name)
-	{
-		if (!array_key_exists($name, $this->params)) {
-			return null;
-		}
-
-		return $this->params[$name];
-	}
-
-	public function hasParam(string $name): bool
+    public function dropArg(string $name): void
     {
-        return array_key_exists($name, $this->params);
+        unset($this->dynamicArgs[$name]);
     }
 
-    public function dropParam(string $name): void
+    public function invalidateArg(string $name): void
     {
-        unset($this->params[$name]);
+        unset($this->dynamicArgs[$name]);
+        $this->invalidArgs[] = $name;
+        $this->keepProcess = true;
     }
 
 	public function getResult(): array
 	{
 		$result = [
 			'output' => $this->consoleMap,
-			'params' => $this->params,
-			'invalidParams' => $this->invalidParams,
-			'need' => $this->needParam,
+			'params' => $this->dynamicArgs,
+			'invalidParams' => $this->invalidArgs,
+			'need' => $this->needArg,
 			'keepProcess' => $this->keepProcess,
 		];
 
@@ -379,20 +331,13 @@ class CliProcessor
 		return $result;
 	}
 
-	public function invalidateParam(string $name): void
-	{
-		unset($this->params[$name]);
-		$this->invalidParams[] = $name;
-		$this->keepProcess = true;
-	}
-
 	/**
 	 * Method to be used by CLI executors to stop process
 	 */
 	public function done(): void
 	{
-		$this->params = [];
-		$this->invalidParams = [];
+		$this->dynamicArgs = [];
+		$this->invalidArgs = [];
 		$this->keepProcess = false;
 		$this->currentCommandType = null;
 	}
@@ -407,18 +352,16 @@ class CliProcessor
 		$this->consoleMap[] = ['outln', $text, $decor];
 	}
 
-	public function in(string $needParam, string $text, array $decor = [], $password = false): void
+	public function in(string $needArg, string $text, array $decor = [], $password = false): void
 	{
-        if ($this->hasParam($needParam)) {
-            return;
-        }
-		$this->needParam = $needParam;
+        unset($this->dynamicArgs[$needArg]);
+		$this->needArg = $needArg;
 		$this->consoleMap[] = ['in', $text, $decor, $password];
 	}
 
-    public function select(string $needParam, array $options, string $text, array $decor = []): void
+    public function select(string $needArg, array $options, string $text, array $decor = []): void
     {
-        $this->needParam = $needParam;
+        $this->needArg = $needArg;
         $this->consoleMap[] = ['select', $options, $text, $decor];
     }
 
@@ -435,6 +378,14 @@ class CliProcessor
 
 	    return $default;
 	}
+
+    /**
+     * @param string|int|array $key
+     */
+    public function hasArg($key): bool
+    {
+        return $this->args->has($key);
+    }
 
     /**
      * Method parses command name and arguments from console input
@@ -812,19 +763,11 @@ class CliProcessor
 			return;
 		}
 
-		if (!$this->hasParam('name')) {
-			$name = $this->args->get('name');
-			if (!$name) {
-				$this->in('name', 'You need enter new service name: ', ['decor' => 'b']);
-				return;
-			}
-			$this->setParam('name', $name);
-		}
-		$name = $this->getParam('name');
+        $name = $this->args->get('service');
 		if (!preg_match('/^[a-zA-Z0-9][a-zA-Z0-9-]*?(?:\/[a-zA-Z-])?[a-zA-Z0-9-]*$/', $name)) {
-            $this->dropParam('name');
+            $this->dropArg('service');
 			$this->in(
-				'name',
+				'service',
 				'Entered service name is incorrect, enter correct name: ',
 				['decor' => 'b']
 			);
@@ -837,23 +780,15 @@ class CliProcessor
 			return;
 		}
 
-		if (!$this->hasParam('index')) {
-            $dirsList = [];
-            foreach ($dirs as $dirPath) {
-                $dirsList[] = $dirPath == '' ? '/' : $dirPath;
-            }
-            $this->select('index', $dirsList, 'Choose directory for new service:', ['decor' => 'b']);
-			return;
-		}
-		$i = $this->getParam('index');
-
+        $i = $this->args->get('index');
 		if ($i === null) {
 			$this->outln('Aborted');
 			$this->done();
 			return;
 		}
+
 		if (!is_numeric($i) || $i < 0 || $i > count($dirs) - 1) {
-			$this->invalidateParam('index');
+			$this->invalidateArg('index');
 			return;
 		}
 
@@ -864,24 +799,16 @@ class CliProcessor
 	private function createPlugin(): void
 	{
 		if ($this->service === null) {
-			$this->outln("Plugins are belonging to services. Enter the service");
+			$this->outln("Plugins are belonged to services. Enter the service");
 			$this->done();
 			return;
 		}
 
-		if (!$this->hasParam('name')) {
-			$name = $this->args->get('name');
-			if (!$name) {
-				$this->in('name', 'You need enter new plugin name: ', ['decor' => 'b']);
-				return;
-			}
-			$this->setParam('name', $name);
-		}
-		$name = $this->getParam('name');
+        $name = $this->args->get('plugin');
 		if (!preg_match('/^[a-zA-Z_][\w-]*$/', $name)) {
-            $this->dropParam('name');
+            $this->dropArg('plugin');
 			$this->in(
-				'name',
+				'plugin',
 				'Entered plugin name is incorrect, enter correct name: ',
 				['decor' => 'b']
 			);
@@ -905,7 +832,7 @@ class CliProcessor
 			return;
 		}
 
-		if (!$this->hasParam('index')) {
+        if (!$this->args->has('index')) {
             $dirsList = [];
             foreach ($pluginDirs as $dirPath) {
                 $dirsList[] = $dirPath == '' ? '/' : $dirPath;
@@ -918,7 +845,7 @@ class CliProcessor
             );
 			return;
 		}
-		$i = $this->getParam('index');
+        $i = $this->args->get('index');
 
 		if ($i === null) {
 			$this->outln('Aborted');
@@ -926,7 +853,7 @@ class CliProcessor
 			return;
 		}
 		if (!is_numeric($i) || $i < 0 || $i > count($pluginDirs) - 1) {
-			$this->invalidateParam('index');
+			$this->invalidateArg('index');
 			return;
 		}
 
@@ -1092,13 +1019,54 @@ class CliProcessor
 	    $commands = $this->getCommandsList();
 	    $command = $commands->getCommand($commandName);
 
+        if ($this->service && !$this->args->has('service')) {
+            $this->args->set('service', $this->service->name, true);
+        }
+        if ($this->plugin && !$this->args->has('plugin')) {
+            $this->args->set('plugin', $this->plugin->name, true);
+        }
+
 	    $errorReport = $command->validateInput($this->args);
 	    if (!empty($errorReport)) {
 	        foreach ($errorReport as $row) {
 	            $this->outln($row);
             }
-
 	        return;
+        }
+
+        $schema = $command->getArgumentsSchema();
+        foreach ($schema as $commandArgument) {
+            if ($commandArgument->withSelect() && $this->args->has($commandArgument->getKeys())) {
+                $value = $this->args->get($commandArgument->getKeys());
+                if ($value === null) {
+                    $this->outln('Aborted');
+                    $this->done();
+                    return;
+                }
+            }
+        }
+
+        $inputDefinition = $command->getInputRequire($this->args);
+        if ($inputDefinition) {
+            $key = $inputDefinition->getKeys()[0];
+            $str = 'Set ' . $key . ' (' . $inputDefinition->getDescription() . '): ';
+            if ($inputDefinition->withInput()) {
+                $this->in(
+                    $key, $str, ['decor' => 'b'],
+                    $inputDefinition->getType() === CommandArgument::TYPE_PASSWORD
+                );
+                return;
+            } elseif ($inputDefinition->withSelect()) {
+                $list = $inputDefinition->getSelectOptions();
+                if (count($list) > 1) {
+                    $this->select($key, $list, $str, ['decor' => 'b']);
+                    return;
+                } elseif (count($list) == 1) {
+                    $this->args->set($key, 0);
+                } else {
+                    $this->args->set($key, null);
+                }
+            }
         }
 
 	    $executor = $command->getExecutor();
@@ -1111,6 +1079,7 @@ class CliProcessor
                 /** @var ServiceCliExecutorInterface $object */
                 $object = new $executor();
                 $object->setProcessor($this);
+                $object->setCommand($command);
                 $object->run();
             }
         } elseif (
@@ -1122,10 +1091,11 @@ class CliProcessor
             $method = $executor[1] ?? '';
             if (method_exists($object, $method)) {
                 $object->setProcessor($this);
+                $object->setCommand($command);
                 $object->{$method}();
             }
         } elseif ($executor instanceof CommandExecutorInterface) {
-            $executor->exec();
+            $executor->run();
         }
 	}
 

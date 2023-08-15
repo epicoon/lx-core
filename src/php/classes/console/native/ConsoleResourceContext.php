@@ -47,7 +47,7 @@ class ConsoleResourceContext implements ResourceContextInterface, FlightRecorder
 
         $executor->setParams($this->params);
         try {
-            $executor->exec();
+            $executor->run();
         } catch (\Throwable $exception) {
             echo $exception->getMessage() . PHP_EOL;
         }

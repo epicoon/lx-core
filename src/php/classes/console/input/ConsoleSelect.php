@@ -40,8 +40,8 @@ class ConsoleSelect extends AbstractConsoleInput
                 if ($this->index < $this->getLinesCount() - 1) {
                     $shift = $this->getLinesCount() - 1 - $this->index;
                     echo chr(27) . "[" . $shift . "B";
-                    echo PHP_EOL;
                 }
+                echo PHP_EOL;
                 $result = ($this->index == count($this->options)) ? null : $this->index;
                 break;
             }
