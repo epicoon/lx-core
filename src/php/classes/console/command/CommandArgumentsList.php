@@ -38,8 +38,11 @@ class CommandArgumentsList
     {
         $keys = (array)$key;
         foreach ($keys as $one) {
-            return array_key_exists($one, $this->data);
+            if (array_key_exists($one, $this->data)) {
+                return true;
+            }
         }
+        return false;
     }
 
     /**

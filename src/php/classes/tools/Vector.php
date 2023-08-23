@@ -2,6 +2,9 @@
 
 namespace lx;
 
+/**
+ * @method int getKeyByValue(mixed $value)
+ */
 class Vector implements ArrayInterface
 {
 	use ArrayTrait;
