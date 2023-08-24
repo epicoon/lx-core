@@ -9,9 +9,15 @@ class Router implements RouterInterface, FusionComponentInterface
 	use FusionComponentTrait;
 
 	protected array $routes = [];
+    protected string $ignorePrefix = '';
 
 	public function route(string $route): ?ResourceContextInterface
 	{
+        if ($route != '/' && $this->ignorePrefix !== '') {
+            $route = preg_replace('/^' . $this->ignorePrefix . '/', '', $route);
+            $route = preg_replace('/^\//', '', $route);
+        }
+
 		foreach ($this->routes as $routeKey => $data) {
 			$routeData = $this->determineRouteData($data);
 			if (!$this->validateRouteData($routeData)) {
