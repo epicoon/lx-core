@@ -100,7 +100,7 @@ class PluginAssetProvider
         $imagePaths = $this->getImagePaths();
         foreach ($imagePaths as $path) {
             $pathPart = ($prefix !== '')
-                ? preg_replace('/^' . $prefix . '/', '', $path)
+                ? preg_replace('/^' . addcslashes($prefix, '/') . '/', '', $path)
                 : $path;
 
             $filePath = lx::$app->sitePath . $pathPart . '/' . $imageName;
