@@ -99,11 +99,11 @@ class PluginAssetProvider
 
         $imagePaths = $this->getImagePaths();
         foreach ($imagePaths as $path) {
-            if ($prefix !== '') {
-                $path = preg_replace('/^' . $prefix . '/', '', $path);
-            }
+            $pathPart = ($prefix !== '')
+                ? preg_replace('/^' . $prefix . '/', '', $path)
+                : $path;
 
-            $filePath = lx::$app->sitePath . $path . '/' . $imageName;
+            $filePath = lx::$app->sitePath . $pathPart . '/' . $imageName;
             if (file_exists($filePath)) {
                 return $path . '/' . $imageName;
             }
