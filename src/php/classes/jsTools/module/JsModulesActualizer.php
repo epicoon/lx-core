@@ -126,6 +126,9 @@ class JsModulesActualizer
             }
 
             $moduleName = $matches[1];
+            if ($moduleName[0] == '<') {
+                return;
+            }
 
             //TODO нужна компиляция, список определенных классов, их расширения, зависимости от других модулей...
             $info = [
