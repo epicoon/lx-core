@@ -40,6 +40,11 @@ class ConsoleRouter implements RouterInterface, FusionComponentInterface
             'executor' => DefaultCommand::class,
         ]);
     }
+
+    public function getAssetPrefix(): string
+    {
+        return '';
+    }
     
     private function getExecutor($list, $key)
     {

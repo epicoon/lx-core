@@ -3,7 +3,7 @@
 namespace lx;
 
 /**
- * @property-read Router $router
+ * @property-read RouterInterface $router
  * @property-read HttpRequest $request
  * @property-read HttpResponse $response
  * @property-read Cookie $cookie

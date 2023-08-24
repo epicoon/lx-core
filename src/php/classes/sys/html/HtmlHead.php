@@ -109,6 +109,9 @@ class HtmlHead
 
 	private function getWebLxPath(): string
 	{
-		return '/' . lx::$app->conductor->getRelativePath(lx::$conductor->webLx);
+        /** @var RouterInterface|null $router */
+        $router = lx::$app->router;
+        $prefix = $router ? $router->getAssetPrefix() : '';
+		return $prefix . '/' . lx::$app->conductor->getRelativePath(lx::$conductor->webLx);
 	}
 }

@@ -3,7 +3,7 @@
 namespace lx;
 
 /**
- * @property-read ConsoleRouter $router
+ * @property-read RouterInterface $router
  */
 class ConsoleApplication extends AbstractApplication
 {

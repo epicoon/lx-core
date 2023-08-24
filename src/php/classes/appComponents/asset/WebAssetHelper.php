@@ -8,14 +8,24 @@ class WebAssetHelper
 {
     public static function getLinksMap(array $map): array
     {
+        /** @var RouterInterface|null $router */
+        $router = lx::$app->router;
+        $prefix = $router ? $router->getAssetPrefix() : '';
+
         $result = [
             'origins' => [],
             'links' => [],
             'names' => [],
         ];
+
         foreach ($map as $key => $value) {
-            if (preg_match('/^(\/web\/|http:|https:)/', $value)) {
+            if (preg_match('/^(http:|https:)/', $value)) {
                 $result['names'][$key] = $value;
+                continue;
+            }
+
+            if (preg_match('/^\/web\//', $value)) {
+                $result['names'][$key] = $prefix . $value;
                 continue;
             }
 
@@ -27,12 +37,12 @@ class WebAssetHelper
                 $path = '/web/auto/' . md5($parentDir);
                 $result['origins'][$key] = $parentDir;
                 $result['links'][$key] = $path;
-                $result['names'][$key] = $path . '/' . $file;
+                $result['names'][$key] = $prefix . $path . '/' . $file;
             } else {
                 $path = '/web/auto/' . md5($value);
                 $result['origins'][$key] = $value;
                 $result['links'][$key] = $path . $ext;
-                $result['names'][$key] = $path . $ext;
+                $result['names'][$key] = $prefix . $path . $ext;
             }
         }
 

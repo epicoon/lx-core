@@ -10,6 +10,7 @@ class Router implements RouterInterface, FusionComponentInterface
 
 	protected array $routes = [];
     protected string $ignorePrefix = '';
+    protected string $assetPrefix = '';
 
 	public function route(string $route): ?ResourceContextInterface
 	{
@@ -49,6 +50,19 @@ class Router implements RouterInterface, FusionComponentInterface
 
 		return null;
 	}
+
+    public function getAssetPrefix(): string
+    {
+        if ($this->assetPrefix === '') {
+            return '';
+        }
+
+        $prefix = $this->assetPrefix;
+        if ($prefix[0] != '/') {
+            $prefix = '/' . $prefix;
+        }
+        return $prefix;
+    }
 
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
