@@ -93,8 +93,16 @@ class PluginAssetProvider
 
     public function getImageLink(string $imageName): ?string
     {
+        /** @var RouterInterface|null $router */
+        $router = lx::$app->router;
+        $prefix = $router ? $router->getAssetPrefix() : '';
+
         $imagePaths = $this->getImagePaths();
         foreach ($imagePaths as $path) {
+            if ($prefix !== '') {
+                $path = preg_replace('/^' . $prefix . '/', '', $path);
+            }
+
             $filePath = lx::$app->sitePath . $path . '/' . $imageName;
             if (file_exists($filePath)) {
                 return $path . '/' . $imageName;
