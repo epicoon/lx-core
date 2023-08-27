@@ -1,44 +1,26 @@
-/**
- *
- * */
 #lx:namespace lx;
 class MethodListenerBehavior extends lx.Behavior {
 
-	/**
-	 *
-	 * */
 	static injectInto(supportedEssence, config=null) {
 		super.injectInto(supportedEssence);
 
 		supportedEssence.behaviorMap.set(behKey, 'methodEvents', {});
 	}
 
-	/**
-	 *
-	 * */
 	static beforeMethod(funcName, func, duplicate = false) {
 		__setMethodEvent.call(this, funcName, func, 'before', duplicate);
 	}
 
-	/**
-	 *
-	 * */
 	static afterMethod(funcName, func, duplicate = false) {
 		__setMethodEvent.call(this, funcName, func, 'after', duplicate);
 	}
 
-	/**
-	 *
-	 * */
 	beforeMethod(funcName, func, duplicate = false) {
 		if (!this.behaviorMap.get(behKey, 'methodEvents'))
 			this.behaviorMap.set(behKey, 'methodEvents', {});
 		__setMethodEvent.call(this, funcName, func, 'before', duplicate);
 	}
 
-	/**
-	 *
-	 * */
 	afterMethod(funcName, func, duplicate = false) {
 		if (!this.behaviorMap.get(behKey, 'methodEvents'))
 			this.behaviorMap.set(behKey, 'methodEvents', {});
@@ -47,15 +29,12 @@ class MethodListenerBehavior extends lx.Behavior {
 }
 
 
-/******************************************************************************************************************************
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * PRIVATE
- *****************************************************************************************************************************/
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 const behKey = lx.MethodListenerBehavior.lxFullName();
 
-/**
- *
- * */
 function __setMethodEvent(funcName, func, category, duplicate) {
 	var methodEvents = this.behaviorMap.get(behKey, 'methodEvents');
 	if (!duplicate
@@ -92,9 +71,6 @@ function __setMethodEvent(funcName, func, category, duplicate) {
 	methodEvents[funcName][category].push(func);
 }
 
-/**
- *
- * */
 function __wrapMethod(methodName) {
 	var info = self::behaviorMap.get(behKey, 'methodEvents'),
 		thisInfo = this.behaviorMap.get(behKey, 'methodEvents');

@@ -228,6 +228,8 @@ function __unbindMatrix(widget) {
 		delete __matrixBinds[c._lxMatrixBindId];
 		delete c._lxMatrixBindId;
 	}
+
+	//TODO - remove from Collection all changes by lx.MethodListenerBehavior !!!
 }
 
 function __bindAggregation(c, widget, type=BIND_TYPE_FULL) {

@@ -266,8 +266,7 @@ class Plugin extends Resource implements ObjectInterface, FusionInterface
             return null;
         }
 
-        $icon = $this->conductor->getFullPath($icon);
-        return '/' . lx::$app->conductor->getRelativePath($icon, lx::$app->sitePath);
+        return (new PluginAssetProvider($this))->getImageLink($icon);
     }
 
 	public function getRespondent(string $name): ?Respondent
