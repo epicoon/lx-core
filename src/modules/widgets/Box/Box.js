@@ -199,6 +199,10 @@ class Box extends lx.Rect {
         }
 
         checkContentResize(e) {
+            if (e && e.boxInitiator === this) return;
+            e = e || this.newEvent({
+                boxInitiator: this
+            });
             let sizes = this.getScrollSize(),
                 res = this.__sizeHolder.refreshContent(sizes.width, sizes.height);
             if (res) {
@@ -206,7 +210,8 @@ class Box extends lx.Rect {
                 const container = this.getContainer();
                 if (container !== this)
                     container.trigger('contentResize');
-                this.checkResize(e);
+                if (!this.checkResize(e))
+                    this.children.forEach(c=>c.checkResize(e));
             }
             return res;
         }
@@ -296,10 +301,13 @@ class Box extends lx.Rect {
         const renderContent = function(node) {
             if (!node.children || node.children.isEmpty()) return node.domElem.content;
             let arr = [];
+            let mode = node.__buildMode;
+            node.setBuildMode(true);
             node.eachChild(child=>{
                 if (child.domElem.rendered()) arr.push(child.domElem.outerHtml());
                 else arr.push(render(child));
             });
+            node.setBuildMode(mode);
             return arr.join('');
         }
 
@@ -411,7 +419,7 @@ class Box extends lx.Rect {
 
             // Если ничего не добавлялось
             if (this.renderCache === 0) {
-                var container = __getContainer(this);
+                let container = __getContainer(this);
                 // Возможно, менялось содержимое
                 if (container === this) {
                     this.getChildren(c=>{if (c.applyRenderCache) c.applyRenderCache()});
@@ -421,7 +429,7 @@ class Box extends lx.Rect {
                 return;
             }
 
-            var text = this.renderHtml();
+            let text = this.renderHtml();
             this.domElem.html(text);
             __refreshAfterRender(this);
             this.startPositioning();
@@ -1389,13 +1397,17 @@ function __get(self, path) {
     }
 
     function __addToRenderCache(self, widget) {
+        if (self.renderCache === undefined)
+            self.renderCache = 0;
         self.renderCache++;
     }
 
     function __refreshAfterRender(self) {
         if ( ! self.children) return;
 
-        var childNum = 0,
+        let mode = self.__buildMode;
+        self.setBuildMode(true);
+        let childNum = 0,
             elemNum,
             child = self.child(childNum),
             elemsList = self.getDomElem().children;
@@ -1408,6 +1420,7 @@ function __get(self, path) {
 
             child = self.child(++childNum);
         }
+        self.setBuildMode(mode);
 
         self.startPositioning();
         delete self.renderCacheStatus;

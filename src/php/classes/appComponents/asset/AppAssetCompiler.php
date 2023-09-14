@@ -37,7 +37,7 @@ class AppAssetCompiler
                     \lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
                         '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
                         'msg' => 'Css compiling mismatch' . ($context ? " for {$context}" : '')
-                            . ': compiled - ' . $common[$rule] . ', alternative - ' . $values,
+                            . ': rule - ' . $rule . ',  compiled - ' . $common[$rule] . ', alternative - ' . $values,
                     ]);
                     continue;
                 }

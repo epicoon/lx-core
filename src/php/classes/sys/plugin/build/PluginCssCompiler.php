@@ -146,11 +146,11 @@ class PluginCssCompiler
         $code .= '
             const result = {};
             const proxyList = [' . implode(',', $contexts) . '];
-            let proxies = [];
+            let context, proxies = [];
             proxyList.forEach(proxy=>proxies.push(new proxy()));
         ';
         foreach (lx::$app->cssManager->getCssPresets() as $type => $preset) {
-            $code .= 'var context = new lx.CssContext();'
+            $code .= 'context = new lx.CssContext();'
                 . 'context.configure({'
                     . 'proxyContexts: proxies,'
                     . 'preset: lx.app.cssManager.getPreset(\'' . $type . '\')'

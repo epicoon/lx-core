@@ -232,7 +232,7 @@ class Rect extends lx.Module {
 
     /**
      * Статический метод для массового создания сущностей
-     * */
+     */
     static construct(count, config, configurator={}) {
         var c = new lx.Collection();
 
@@ -262,7 +262,7 @@ class Rect extends lx.Module {
 
     /**
      * Метод для освобождения ресурсов
-     * */
+     */
     destructProcess() {
         #lx:client {
             this.trigger('beforeDestruct');
@@ -283,10 +283,10 @@ class Rect extends lx.Module {
         /**
          * Метод, вызываемый в конструкторе для выполенния действий, когда сущность действительно построена, связи (с родителем) выстроены
          * Логика общая для создания элемента и на клиенте и для допиливания при получении от сервера
-         * */
+         */
         clientBuild(config={}) {
             this.__sizeHolder.refresh(this.width('px'), this.height('px'));
-            this.on('scroll', __checkDisplay);
+            this.on('scroll', ()=>this.checkDisplay());
 
             if (!config) return;
             if (config.disabled !== undefined) this.disabled(config.disabled);
@@ -309,7 +309,7 @@ class Rect extends lx.Module {
 
         /**
          * Восстановление при загрузке
-         * */
+         */
         static rise(elem) {
             var el = new this(false);
 
@@ -545,7 +545,7 @@ class Rect extends lx.Module {
      * Можно передавать аргументы двумя путями:
      * 1. elem.addClass(class1, class2);
      * 2. elem.addClass([class1, class2]);
-     * */
+     */
     addClass(...args) {
         if (lx.isArray(args[0])) args = args[0];
 
@@ -561,7 +561,7 @@ class Rect extends lx.Module {
      * Можно передавать аргументы двумя путями:
      * 1. elem.removeClass(class1, class2);
      * 2. elem.removeClass([class1, class2]);
-     * */
+     */
     removeClass(...args) {
         if (lx.isArray(args[0])) args = args[0];
 
@@ -575,7 +575,7 @@ class Rect extends lx.Module {
 
     /**
      * Проверить имеет ли элемент css-класс
-     * */
+     */
     hasClass(name) {
         return this.domElem.hasClass(name);
     }
@@ -583,7 +583,7 @@ class Rect extends lx.Module {
     /**
      * Если элемент имеет один из классов, то он будет заменен на второй
      * Если передан только один класс - он будет установлен, если его не было, либо убран, если он был у элемента
-     * */
+     */
     toggleClass(class1, class2='') {
         if (this.hasClass(class1)) {
             this.removeClass(class1);
@@ -597,7 +597,7 @@ class Rect extends lx.Module {
     /**
      * Если condition==true - первый класс применяется, второй убирается
      * Если condition==false - второй класс применяется, первый убирается
-     * */
+     */
     toggleClassOnCondition(condition, class1, class2=null) {
         if (condition) {
             this.addClass(class1);
@@ -610,7 +610,7 @@ class Rect extends lx.Module {
 
     /**
      * Убрать все классы
-     * */
+     */
     clearClasses() {
         this.domElem.clearClasses();
         return this;
@@ -685,7 +685,7 @@ class Rect extends lx.Module {
      *     side: string  // указание углов для скругления в виде 'tlbr'
      *     value: int    // скругление по всем углам в пикселях
      * }
-     * */
+     */
     roundCorners(val) {
         var arr = [];
         if (lx.isObject(val)) {
@@ -731,13 +731,13 @@ class Rect extends lx.Module {
 
     show() {
         this.domElem.style('visibility', 'inherit');
-        #lx:client{ __checkDisplay.call(this); }
+        #lx:client{ this.checkDisplay(); }
         return this;
     }
 
     hide() {
         this.domElem.style('visibility', 'hidden');
-        #lx:client{ __checkDisplay.call(this); }
+        #lx:client{ this.checkDisplay(); }
         return this;
     }
 
@@ -759,7 +759,7 @@ class Rect extends lx.Module {
     /* 4. Geometry */
     /**
      * Размер без рамок, полос прокрутки и т.п.
-     * */
+     */
     getInnerSize(param) {
         if (param === undefined) return [
             this.domElem.param('clientWidth'),
@@ -789,7 +789,7 @@ class Rect extends lx.Module {
 
     /**
      * Установка значения геометрическому параметру с учетом проверки родительской стратегией позиционирования
-     * */
+     */
     setGeomParam(param, val) {
         /*
         todo
@@ -809,7 +809,7 @@ class Rect extends lx.Module {
 
     /**
      * Если в силу внутренних процессов изменился размер - о таком надо сообщить "наверх" по иерархии
-     * */
+     */
     reportSizeHasChanged() {
         if (this.parent) this.parent.childHasAutoresized(this);
     }
@@ -1074,7 +1074,7 @@ class Rect extends lx.Module {
     /**
      * Провека не выходит ли элемент за пределы видимости вверх по иерархии родителей
      * Родитель, с которого надо начать проверять может быть передан явно (н-р если непосредственный родитель заведомо содержит данный элемент вне своей геометрии)
-     * */
+     */
     isOutOfVisibility(el = null) {
         if (el === null) el = this.domElem.parent;
 
@@ -1134,7 +1134,7 @@ class Rect extends lx.Module {
 
     /**
      * Проверка не выходит ли элемент за пределы своего родителя
-     * */
+     */
     isOutOfParentScreen() {
         var p = this.domElem.parent,
             rect = this.rect('px'),
@@ -1167,9 +1167,21 @@ class Rect extends lx.Module {
         return this;
     }
 
+    checkDisplay(event) {
+        __triggerDisplay(this, event);
+
+        if (this.setBuildMode) this.setBuildMode(true);
+        if (this.childrenCount) for (let i=0; i<this.childrenCount(); i++) {
+            let child = this.child(i);
+            if (!child || !child.getDomElem()) continue;
+            child.checkDisplay(event);
+        }
+        if (this.setBuildMode) this.setBuildMode(false);
+    }
+
     /**
      * Отображается ли элемент в данный момент
-     * */
+     */
     isDisplay() {
         if (!this.visibility()) return false;
 
@@ -1190,6 +1202,7 @@ class Rect extends lx.Module {
             if (r.top + r.height < rect.top) return false;
             if (r.left > rect.left + rect.width) return false;
             if (r.left + r.width < rect.left) return false;
+            return box.isDisplay();
         } else {
             w = document.documentElement.scrollWidth;
             h = document.documentElement.scrollHeight;
@@ -1208,7 +1221,7 @@ class Rect extends lx.Module {
      * 2. small.locateBy(big, lx.RIGHT, 5);
      * 3. small.locateBy(big, [lx.RIGHT, lx.BOTTOM]);
      * 4. small.locateBy(big, {bottom: '20%', right: 20});
-     * */
+     */
     locateBy(elem, align, step) {
         if (lx.isArray(align)) {
             for (var i=0,l=align.len; i<l; i++) this.locateBy(elem, align[i]);
@@ -1270,7 +1283,7 @@ class Rect extends lx.Module {
      *     before: Rect   // если в родителе по ключу элемента есть группа, можно его расположить перед указанным элементом из группы
      *     after: Rect    // если в родителе по ключу элемента есть группа, можно его расположить после указанного элемента из группы
      * }
-     * */
+     */
     setParent(config = null) {
         this.dropParent();
 
@@ -1326,7 +1339,7 @@ class Rect extends lx.Module {
 
     /**
      * Назначить элементу поле, за которым он сможет следить
-     * */
+     */
     #lx:client setField(name, func, type = null) {
         this._field = name;
         this._bindType = type || lx.app.binder.BIND_TYPE_FULL;
@@ -1396,7 +1409,7 @@ class Rect extends lx.Module {
      * 2. hasProperty|hasProperties - имеет свойство(ва), при передаче значений проверяется их соответствие
      * 3. checkMethods - имеет метод(ы), проверяются возвращаемые ими значения
      * 4. instance - соответствие инстансу (отличие от 1 - может быть наследником инстанса)
-     * */
+     */
     ancestor(info={}) {
         if (info.hasProperty) info.hasProperties = [info.hasProperty];
         var p = this.parent;
@@ -1454,7 +1467,7 @@ class Rect extends lx.Module {
 
     /**
      * Определяет имеет ли элемент данного предка
-     * */
+     */
     hasAncestor(box) {
         var temp = this.parent
         while (temp) {
@@ -1466,7 +1479,7 @@ class Rect extends lx.Module {
 
     /**
      * Поиск подымается по иерархии родителей, вернется первый ближайший найденный элемент
-     * */
+     */
     neighbor(key) {
         var parent = this.parent;
         while (parent) {
@@ -1479,7 +1492,7 @@ class Rect extends lx.Module {
 
     /*
      * Родительский сниппет для данного виджета
-     * */
+     */
     getSnippet() {
         #lx:server { return Snippet; }
         return this.ancestor({hasProperty: 'isSnippet'});
@@ -1487,7 +1500,7 @@ class Rect extends lx.Module {
 
     /*
      * Сниппет с выходом на плагин, он же корневой сниппет в данном плагине
-     * */
+     */
     getRootSnippet() {
         #lx:server { return Snippet; }
         if (this.plugin) return this;
@@ -1687,7 +1700,7 @@ class Rect extends lx.Module {
     #lx:server {
         /**
          * Просто делегирование выполнения метода на JS
-         * */
+         */
         onLoad(handler, args = null) {
             if (!this.forOnload) this.forOnload = [];
             this.forOnload.push(args ? [handler, args] : handler);
@@ -1716,7 +1729,7 @@ class Rect extends lx.Module {
          * Пакуем код функуии в строку, приводя к формату:
          * '(arg1, arg2) => ...function code'
          * Метод, обратный клиентскому [[unpackFunction(str)]]
-         * */
+         */
         packFunction(func) {
             return lx.app.functionHelper.functionToString(func);
         }
@@ -1729,7 +1742,7 @@ class Rect extends lx.Module {
          * - ('.funcName')     // будет искать функцию 'funcName' среди своих методов
          * - ('::funcName')    // будет искать функцию 'funcName' среди статических методов своего класса
          * - ('lx.funcName')    // будет искать функцию 'funcName' в листе функций lx
-         * */
+         */
         findFunction(handler) {
             // '.funcName'
             if (handler.match(/^\./)) {
@@ -1761,7 +1774,7 @@ class Rect extends lx.Module {
          * Формат функции, которую упаковали в строку на стороне сервера:
          * '(arg1, arg2) => ...function code'
          * Метод, обратный серверному [[packFunction(func)]]
-         * */
+         */
         unpackFunction(str) {
             var f = null;
             if (str.match(/^\(.*?\)\s*=>/)) {
@@ -1777,7 +1790,7 @@ class Rect extends lx.Module {
 
         /**
          * Распаковка приоритетов геометрических параметров
-         * */
+         */
         unpackGeom() {
             var val = this.geom,
                 arr = val.split('|');
@@ -1794,7 +1807,7 @@ class Rect extends lx.Module {
 
         /**
          * Распаковка расширенных свойств
-         * */
+         */
         unpackProperties() {
             if (!this.inLoad) return;
 
@@ -1823,7 +1836,7 @@ class Rect extends lx.Module {
 
         /**
          * Метод чисто для допиливания виджета при получении данных от сервера
-         * */
+         */
         postUnpack(config={}) {
             // pass
         }
@@ -1849,7 +1862,7 @@ class Rect extends lx.Module {
 /**
  * format = '%' | 'px'  - вернет значение float, в соответствии с переданным форматом
  * если format не задан - вернет значение как оно записано в style
- * */
+ */
 function __getLeft(self, format) {
     if (!format) return self.domElem.style('left');
 
@@ -1986,7 +1999,7 @@ function __getGlobalGeomMask(self) {
  * val - как значение записано в стиле
  * thisSize - размер самого элемента в пикселях
  * parentSize - размер родительского элемента в пикселях
- * */
+ */
 function __calcGeomParam(format, val, thisSize, parentSize) {
     if (format == 'px') return thisSize;
 
@@ -2061,18 +2074,6 @@ function __setGeomPriorityV(self, val, val2) {
 
     self.geom.bpv[1] = val;
     return self;
-}
-
-function __checkDisplay(event) {
-    __triggerDisplay(this, event);
-
-    if (this.setBuildMode) this.setBuildMode(true);
-    if (this.childrenCount) for (var i=0; i<this.childrenCount(); i++) {
-        var child = this.child(i);
-        if (!child || !child.getDomElem()) continue;
-        __checkDisplay.call(child, event);
-    }
-    if (this.setBuildMode) this.setBuildMode(false);
 }
 
 function __triggerDisplay(self, event) {

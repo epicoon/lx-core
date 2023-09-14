@@ -32,8 +32,8 @@ class CssManager extends lx.AppComponentSettable {
         this.presetsList.register(name, preset);
     }
 
-    getPreset(name) {
-        return this.presetsList.get(name);
+    getPreset(name = null) {
+        return this.presetsList.get(name || this.getPresetName());
     }
 
     registerPreseted(preseted) {

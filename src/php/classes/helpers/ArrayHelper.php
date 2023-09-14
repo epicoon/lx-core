@@ -110,6 +110,10 @@ class ArrayHelper
         foreach ($array as $row) {
             if ((is_iterable($row)) && isset($row[$columnName])) {
                 $result[] = $row[$columnName];
+            } elseif (is_object($row) && property_exists($columnName)) {
+                $result[] = $row->$columnName;
+            } elseif ($row instanceof ModelInterface && $row->hasField($columnName)) {
+                $result[] = $row->getField($columnName);
             }
         }
         return $result;

@@ -13,6 +13,7 @@ class CssContext {
         this.preset = null;
         this.proxyContexts = [];
         this.presetedClasses = [];
+        this.presetedStyles = [];
     }
 
     init(cssPreset) {
@@ -172,6 +173,12 @@ class CssContext {
             result += rule.render();
         }
 
+        for (let i=0, l=this.presetedStyles.length; i<l; i++) {
+            let name = this.presetedStyles[i];
+            let reg = new RegExp('([ :])' + name + '([ ;{}])', 'g');
+            result = result.replace(reg, '$1' + name + '-' + this.preset.name + '$2');
+        }
+
         return result;
     }
 }
@@ -182,6 +189,29 @@ class CssContext {
 
 class CssRule {
 
+}
+
+function __defineRulePreseted(rule) {
+    if (__defineAttrsPreseted(rule.content))
+        return true;
+
+    if (rule.pseudoclasses) {
+        for (let i in rule.pseudoclasses)
+            if (__defineAttrsPreseted(rule.pseudoclasses[i]))
+                return true;
+    }
+
+    return false;
+}
+
+function __defineAttrsPreseted(attrs) {
+    for (let i in attrs) {
+        let attr = attrs[i];
+        if (lx.isInstance(attr, lx.CssValue)) return true;
+        if (lx.isCleanObject(attr) && __defineAttrsPreseted(attr))
+            return true;
+    }
+    return false;
 }
 
 
@@ -212,7 +242,7 @@ class CssClass {
         this.content = lx.clone(this.selfContent);
         this.pseudoclasses = lx.clone(this.selfPseudoclasses);
         if (this.parent) __applyClassParent(this);
-        this._isPreseted = __defineClassPreseted(this);
+        this._isPreseted = __defineRulePreseted(this);
     }
 
     render() {
@@ -238,22 +268,6 @@ class CssClass {
         }
         return text;
     }
-}
-
-function __defineClassPreseted(self) {
-    for (let i in self.content) {
-        let attr = self.content[i];
-        if (lx.isInstance(attr, lx.CssValue)) return true;
-    }
-
-    for (let i in self.pseudoclasses) {
-        for (let j in self.pseudoclasses[i]) {
-            let attr = self.pseudoclasses[i][j];
-            if (lx.isInstance(attr, lx.CssValue)) return true;
-        }
-    }
-
-    return false;
 }
 
 function __applyClassParent(self) {
@@ -337,16 +351,18 @@ class CssStyle {
 
 class CssDirective extends CssStyle {
     render() {
-        if (/^@keyframes/.test(this.selector)) {
-            let content = [];
-            for (let key in this.content) {
-                let row = __getContentString(this.content[key]);
-                content.push(key + '{' + row + '}');
-            }
-            return this.selector + '{' + content.join('') + '}';
-        }
+        if (!/^@keyframes/.test(this.selector)) return super.render();
 
-        return super.render();
+        if (__defineRulePreseted(this))
+            this.context.presetedStyles.lxPushUnique(this.selector.replace(/^@keyframes\s+/, ''));
+
+        let content = [];
+        for (let key in this.content) {
+            let attrs = this.content[key];
+            let row = __getContentString(attrs);
+            content.push(key + '{' + row + '}');
+        }
+        return this.selector + '{' + content.join('') + '}';
     }
 }
 

@@ -2,14 +2,14 @@
 
 class SizeHolder {
     constructor() {
-        this.width = null;
-        this.height = null;
+        this.width = undefined;
+        this.height = undefined;
         this.contentWidth = null;
         this.contentHeight = null;
     }
     
     refresh(width, height) {
-        if (this.width === null && this.height === null) {
+        if (this.width === undefined && this.height === undefined) {
             this.width = width;
             this.height = height;
             return false;
