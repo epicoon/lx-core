@@ -817,7 +817,7 @@ class Box extends lx.Rect {
         if (!this.__isEditing) return;
         
         let container = __getContainer(this);
-        container.overflow('hidden');
+        // container.overflow('hidden');
 
         let text = container->text.html();
         text = text.replaceAll('<div>', '\r\n');

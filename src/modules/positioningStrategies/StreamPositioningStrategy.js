@@ -114,7 +114,8 @@ class StreamPositioningStrategy extends lx.PositioningStrategy {
 
 		if (this.type == self::TYPE_SIMPLE && this.direction == lx.HORIZONTAL)
 			this.owner.style('display', this._baseDisplay);
-		this.owner.copyGeom(this._baseGeom);
+		if (this._baseGeom)
+			this.owner.copyGeom(this._baseGeom);
 		this._baseGeom = null;
 		this._baseDisplay = null;
 

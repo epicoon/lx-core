@@ -186,6 +186,7 @@ class LoadContext {
 		var node = this.snippetTrees[plugin.key];
 		var snippetsJs = node.compileCode();
 		code += snippetsJs[1];
+
 		lx.app.functionHelper.createAndCallFunction(snippetsJs[0], code, null, snippetsJs[2]);
 
 		lx.Rect.removeAutoParent(plugin.root);

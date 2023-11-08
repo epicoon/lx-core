@@ -1058,7 +1058,7 @@ class Rect extends lx.Module {
             && y <= (rect.top + rect.height)
         );
     }
-    
+
     globalPointToInner(point) {
         var y = point.lxGetFirstDefined(['y', 'clientY'], null),
             x = point.lxGetFirstDefined(['x', 'clientX'], null);
@@ -1069,6 +1069,23 @@ class Rect extends lx.Module {
             x: x - rect.left,
             y: y - rect.top
         };
+    }
+
+    checkCross(elem) {
+        let r1, r2;
+        if (this.parent === elem.parent) {
+            r1 = this.rect();
+            r2 = elem.rect();
+        } else {
+            r1 = this.getGlobalRect();
+            r2 = elem.getGlobalRect();
+        }
+        return (
+            r1.top < (r2.top + r2.height)
+            && (r1.top + r1.height) > r2.top
+            && r1.left < (r2.left + r2.width)
+            && (r1.left + r1.width) > r2.left
+        );
     }
 
     /**
@@ -1532,7 +1549,8 @@ class Rect extends lx.Module {
         //todo
         if (eventName == 'mousedown') this.on('touchstart', func, useCapture);
         else if (eventName == 'mousemove') this.on('touchmove', func, useCapture);
-        else if (eventName == 'mouseup' /*|| eventName == 'click'*/) this.on('touchend', func, useCapture);
+        else if (eventName == 'mouseup') this.on('touchend', func, useCapture);
+        else if (eventName == 'click') this.on('touchstart', func, useCapture);
 
         if (lx.isString(func))
             func = this.unpackFunction(func);

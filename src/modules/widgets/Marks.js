@@ -254,13 +254,15 @@ class Marks extends lx.Box {
 	select(num) {
 		let mark = this.mark(num),
 			sheet = this.sheet(num);
-		if (!mark || mark.checked || !sheet) return;
+		if (!mark || mark.checked) return;
 
 		if (this.mode == self::MODE_UNI_SHEET)
 			this.unselect();
 
 		mark.checked = true;
 		mark->but.addClass(this.basicCss.active);
+
+		if (!sheet) return;
 
 		if (this.animationOnOpen) {
 			let timer = __initTimerOnOpen(this);
@@ -276,10 +278,12 @@ class Marks extends lx.Box {
 		if (num === null) num = this.getActiveIndex();
 		let mark = this.mark(num),
 			sheet = this.sheet(num);
-		if (!mark || !sheet) return;
+		if (!mark) return;
 
 		mark.checked = false;
 		mark->but.removeClass(this.basicCss.active);
+
+		if (!sheet) return;
 
 		if (this.animationOnClose) {
 			let timer = __initTimerOnClose(this);

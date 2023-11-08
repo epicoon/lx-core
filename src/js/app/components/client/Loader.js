@@ -4,7 +4,7 @@
 class Loader extends lx.AppComponent {
 	loadPlugin(info, el, parent, clientCallback) {
 		new lx.Task('loadPlugin', function() {
-			var loadContext = new LoadContext();
+			let loadContext = new LoadContext();
 			loadContext.parseInfo(info);
 			loadContext.run(el, parent, ()=>{
 				this.setCompleted();
