@@ -75,6 +75,7 @@ class BindableModel extends lx.Model {
 	 */
 	static __afterDefinition() {
 		super.__afterDefinition();
+
 		lx.SetterListenerBehavior.injectInto(this);
 		this.beforeSet(function(field, value) {
 			const def = this.getSchema().getField(field);

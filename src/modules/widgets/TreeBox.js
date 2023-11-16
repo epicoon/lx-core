@@ -103,6 +103,7 @@ class TreeBox extends lx.Box {
 		this.tree = config.tree || new lx.Tree();
 		this.onAddHold = false;
 		this.onDelHold = false;
+		this.addBreaked = false;
 
 		let w = this.step * 2 + this.leafHeight + this.labelWidth,
 			el = new lx.Box({
@@ -349,6 +350,7 @@ class TreeBox extends lx.Box {
 
 		breakAdding() {
 			this.onAddHold = false;
+			this.addBreaked = true;
 		}
 
 		resumeAdding(newNodeAttributes = {}) {
@@ -510,6 +512,10 @@ function __handlerAddNode() {
 	let obj = null;
 	if (tw.beforeAddLeafHandler)
 		obj = tw.beforeAddLeafHandler.call(this, pNode);
+	if (tw.addBreaked) {
+		tw.addBreaked = false;
+		return;
+	}
 	if (tw.onAddHold) {
 		tw.onAddHold = pNode;
 		return;

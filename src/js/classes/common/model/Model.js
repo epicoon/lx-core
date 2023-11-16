@@ -19,7 +19,7 @@ class Model extends lx.Object {
 
 	/**
 	 * Инициализация полей согласно схеме
-	 * */
+	 */
 	setFields(data) {
 		if (!data || !lx.isObject(data)) return;
 
@@ -33,7 +33,7 @@ class Model extends lx.Object {
 
 	/**
 	 * Возвращает указанные (или все) поля согласно схеме
-	 * */
+	 */
 	getFields(map=null) {
 		var schema = self::__schema;
 		if (map === null) map = schema.getFieldNames();
@@ -71,7 +71,7 @@ class Model extends lx.Object {
 
 	/**
 	 * Сброс указанных (или всех) полей на дефолтные значения согласно схеме (или дефолтным значениям соответственно типу)
-	 * */
+	 */
 	resetFields(map=null) {
 		if (!self::__schema) return;
 		if (map === null) map = self::__schema.getFieldNames();
@@ -80,7 +80,7 @@ class Model extends lx.Object {
 
 	/**
 	 * Сброс указанного поля на дефолтное значение согласно схеме (или дефолтным значениям соответственно типу)
-	 * */
+	 */
 	resetField(name) {
 		var definition = self::__schema.getField(name);
 		if (!definition) return;
@@ -135,7 +135,7 @@ class Model extends lx.Object {
 
 	/**
 	 * Вернуть имена полей согласно схеме модели
-	 * */
+	 */
 	static getFieldNames(all = false) {
 		if (!this.__schema) return [];
 		return this.__schema.getFieldNames(all);
@@ -143,7 +143,7 @@ class Model extends lx.Object {
 
 	/**
 	 * Вернуть типы полей согласно схеме модели
-	 * */
+	 */
 	static getFieldTypes() {
 		if (!this.__schema) return [];
 		return this.__schema.getFieldTypes();
@@ -151,7 +151,7 @@ class Model extends lx.Object {
 
 	/**
 	 * Соответственно типу дефолтные значения для полей
-	 * */
+	 */
 	static defaultIntegerFieldValue() { return 0; }
 	static defaultStringFieldValue()  { return ''; }
 	static defaultBooleanFieldValue() { return false; }
@@ -163,15 +163,16 @@ class Model extends lx.Object {
 	
 	/**
 	 * Метод, автоматически вызываемый после определения класса
-	 * */
+	 */
 	static __afterDefinition() {
+		this.__schema = null;
 		this.initSchema(this.__getSchema());
 		super.__afterDefinition();
 	}
 
 	/**
 	 * На основании схемы создаются поля
-	 * */
+	 */
 	__init(data={}) {
 		var schema = self::__schema;
 		if (!schema) return;
