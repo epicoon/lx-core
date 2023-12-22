@@ -873,15 +873,23 @@ class Box extends lx.Rect {
         };
     }
 
+    /**
+     * @param [config] {Object: {
+     *     condition {Fuction},
+     *     hint {String},
+     *     css {String}
+     * }}
+     */
     #lx:client setEllipsisHint(config = {}) {
         config.condition = config.condition || function(box) {
+            if (lx.isString(this.hint) || box.hintText) return true;
             const elem = box->text;
             if (!elem) return false;
             if (elem.getDomElem().offsetWidth == elem.getDomElem().scrollWidth) return false;
             return true;
         };
         config.hint = config.hint || function(box) {
-            return box->text.html();
+            return box.hintText || box->text.html();
         }
         this.mouseover(()=>{
             if (!config.condition(this)) return;

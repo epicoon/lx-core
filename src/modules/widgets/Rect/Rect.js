@@ -100,7 +100,8 @@ class Rect extends lx.Module {
      *         [locked = false] {Boolean}
      *     }},
      *     [parentResize] {Boolean},
-     *     [parentMove] {Boolean}
+     *     [parentMove] {Boolean},
+     *     [data] {Dict<Any>}
      * }}
      */
     constructor(config = {}) {

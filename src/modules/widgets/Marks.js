@@ -356,6 +356,7 @@ function __buildMark(self, mark, text) {
 				e.stopPropagation();
 				const marks = this.ancestor({is:lx.Marks});
 				const event = marks.newEvent({mark});
+				mark.trigger('beforeDropMark', event);
 				marks.trigger('beforeDropMark', event);
 				if (event.isPrevented()) return;
 				marks.dropMark(mark.index, true);

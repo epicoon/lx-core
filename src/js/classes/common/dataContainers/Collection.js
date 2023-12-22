@@ -466,6 +466,12 @@ class Collection extends lx.Object {
 		if (!this.cachepos.len) delete this.cachepos;
 		return true;
 	}
+
+	toArray() {
+		let list = [];
+		this.forEach(elem => list.push(elem));
+		return list;
+	}
 }
 
 /*

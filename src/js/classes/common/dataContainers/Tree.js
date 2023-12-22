@@ -99,14 +99,13 @@ class Tree {
 		for (var i=0, l=this.keys.len; i<l; i++) {
 			let node = this.getNth(i);
 			func(node, i);
-			node.eachNode(func);
 		}
 	}
 
 	eachNodeRecursive(func) {
 		for (var i=0, l=this.keys.len; i<l; i++) {
 			let node = this.getNth(i);
-			func(node);
+			func(node, i);
 			node.eachNodeRecursive(func);
 		}
 	}
@@ -179,7 +178,7 @@ class Tree {
 	}
 
 	deep() {
-		var deep = 0,
+		let deep = 0,
 			root = this.root;
 		while (root) {
 			deep++;
@@ -188,6 +187,20 @@ class Tree {
 		return deep;
 	}
 
+	isDeep(test) {
+		if (!this.root) return (test === 0);
+
+		let deep = 0,
+			root = this.root;
+		while (root) {
+			deep++;
+			if (!root.root && deep === test)
+				return true;
+			root = root.root;
+		}
+		return (deep === test);
+	}
+	
 	info() {
 		var arr = [],
 			deep = 0,
