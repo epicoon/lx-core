@@ -10,7 +10,7 @@ class HttpRequest implements FusionComponentInterface
 
 	const REQUEST_TYPE_COMMON = 'common';
 	const REQUEST_TYPE_PAGE_LOAD = 'page_load';
-	const REQUEST_ASSET = 'asset';
+	const REQUEST_TYPE_ASSET = 'asset';
 	const REQUEST_TYPE_AJAX = 'ajax';
 	const REQUEST_TYPE_CORS = 'cors';
 
@@ -91,7 +91,7 @@ class HttpRequest implements FusionComponentInterface
 
 	public function isAssetLoad(): bool
 	{
-		return $this->_type == self::REQUEST_ASSET;
+		return $this->_type == self::REQUEST_TYPE_ASSET;
 	}
 
 	/**
@@ -237,7 +237,7 @@ class HttpRequest implements FusionComponentInterface
 		$origin = $this->getHeader('ORIGIN');
 		if (!$origin) {
 			if (preg_match('/\.(js|css)$/', $this->getUrl())) {
-				$this->_type = self::REQUEST_ASSET;
+				$this->_type = self::REQUEST_TYPE_ASSET;
 			} else {
 				$this->_type = self::REQUEST_TYPE_PAGE_LOAD;
 			}

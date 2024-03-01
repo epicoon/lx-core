@@ -42,6 +42,7 @@ class Dropbox extends lx.Box {
 			position: 'absolute',
 			width: 'calc(100% - 30px)',
 			height: '100%',
+			fontSize: 'inherit',
 			borderTopRightRadius: 0,
 			borderBottomRightRadius: 0
 		});
@@ -78,8 +79,8 @@ class Dropbox extends lx.Box {
 	 *     [button] {Boolean} (: Flag for rendering open-close button :)
 	 * }}
 	 */
-	build(config) {
-		super.build(config);
+	render(config) {
+		super.render(config);
 
 		new lx.Input({
 			parent: this,
@@ -101,8 +102,8 @@ class Dropbox extends lx.Box {
 	}
 
 	#lx:client {
-		clientBuild(config) {
-			super.clientBuild(config);
+		clientRender(config) {
+			super.clientRender(config);
 			this._options = lx.Dict.create(this._options);
 			this.click(_handler_open);
 			if (this.contains('button'))
@@ -217,7 +218,8 @@ class Dropbox extends lx.Box {
 	function __initOptions(self) {
 		var optionsTable = __getOptions();
 
-		optionsTable.width( self.width('px')+'px' );
+		optionsTable.width(self.width('px')+'px');
+		optionsTable.style('fontSize', window.getComputedStyle(self.getDomElem()).fontSize);
 
 		var options = [];
 		for (let key in self._options) {

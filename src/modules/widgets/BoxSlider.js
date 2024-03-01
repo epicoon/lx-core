@@ -52,8 +52,8 @@ class BoxSlider extends lx.Box {
 	 *     [auto = true] {Boolean}
 	 * }}
 	 */
-	build(config) {
-		super.build(config);
+	render(config) {
+		super.render(config);
 
 		#lx:client{ this.timer = new BoxSliderTimer(this, config); }
 		#lx:server{
@@ -70,8 +70,8 @@ class BoxSlider extends lx.Box {
 	}
 
 	#lx:client {
-		clientBuild(config) {
-			super.clientBuild(config);
+		clientRender(config) {
+			super.clientRender(config);
 			if (this->pre) this->pre.click(()=> this.timer.swapSlides(-1));
 			if (this->post) this->post.click(()=> this.timer.swapSlides(1));
 		}
@@ -153,9 +153,12 @@ class BoxSlider extends lx.Box {
 		});
 	}
 }
-//=============================================================================================================================
 
-//=============================================================================================================================
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * PRIVATE
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #lx:client {
 	class BoxSliderTimer extends lx.Timer {
 		constructor(owner, config) {

@@ -5,7 +5,7 @@ class Tree {
 	constructor(...args) {
 		this.key = '';
 		this.root = null;
-		this.nodes = [];
+		this.nodes = {};
 		this.keys = [];
 		this.data = {};
 

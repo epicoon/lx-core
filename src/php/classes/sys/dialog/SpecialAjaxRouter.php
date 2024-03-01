@@ -13,17 +13,22 @@ class SpecialAjaxRouter
 	{
 		$request = lx::$app->request;
 		return (
-			$request->isAjax() && $request->getHeader('lx-type')
+            ($request->isAjax() || $request->isCors())
+            && in_array($request->getUrl(), [
+                '/lx_service',
+                '/lx_plugin',
+                '/lx_module'
+            ])
 		);
 	}
 
 	public function route(): ?ResourceContext
 	{
-		switch (lx::$app->request->getHeader('lx-type')) {
-			case 'service': return $this->serviceAjaxResponse();
-			case 'plugin': return $this->pluginAjaxResponse();
-			case 'module': return $this->moduleAjaxResponse();
-		}
+        switch (lx::$app->request->getUrl()) {
+            case '/lx_service': return $this->serviceAjaxResponse();
+            case '/lx_plugin': return $this->pluginAjaxResponse();
+            case '/lx_module': return $this->moduleAjaxResponse();
+        }
 		return null;
 	}
 
@@ -34,42 +39,34 @@ class SpecialAjaxRouter
 
 	private function serviceAjaxResponse(): ResourceContext
 	{
-		$type = lx::$app->request->getHeader('lx-service');
+        $data = lx::$app->request->getParams();
+        $action = $data['action'];
 
-		// AJAX-request for required modules
-		if ($type == 'get-modules') {
-			$data = lx::$app->request->getParams();
-			return new ResourceContext([
-				'class' => JsModuleProvider::class,
-				'method' => 'getModulesResponse',
-				'params' => [$data],
-			]);
-		}
+        // AJAX-request for required modules
+        if ($action == 'get-modules') {
+            return new ResourceContext([
+                'class' => JsModuleProvider::class,
+                'method' => 'getModulesResponse',
+                'params' => [$data['params']],
+            ]);
+        }
 	}
 
 	private function pluginAjaxResponse(): ?ResourceContext
 	{
-		$meta = lx::$app->request->getHeader('lx-plugin');
-		if ($meta === null) {
-			lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
-				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-				'msg' => 'Plugin-ajax-request without plugin!',
-			]);
-			return null;
-		}
+        $data = lx::$app->request->getParams();
 
-		$arr = explode(' ', $meta);
-		$pluginName = $arr[0];
-		$plugin = lx::$app->getPlugin($pluginName);
-		if ($plugin === null) {
-			lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
-				'__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-				'msg' => "Plugin '$pluginName' not found",
-			]);
-			return null;
-		}
+        $pluginName = $data['plugin'] ?? null;
+        $plugin = lx::$app->getPlugin($pluginName);
+        if ($plugin === null) {
+            lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
+                '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
+                'msg' => "Plugin '$pluginName' not found",
+            ]);
+            return null;
+        }
 
-		$respondentName = $arr[1] ?? null;
+        $respondentName = $data['respondent'] ?? null;
         if (!$respondentName) {
             lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
                 '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
@@ -78,8 +75,9 @@ class SpecialAjaxRouter
             return null;
         }
 
-        $data = lx::$app->request->getParams();
-        if (!isset($data['attributes']) || !isset($data['data'])) {
+        $pluginAttributes = $data['attributes'] ?? null;
+        $requestData = $data['data'] ?? null;
+        if ($pluginAttributes === null || $requestData === null) {
             lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
                 '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
                 'msg' => "Wrong data in ajax-request for plugin '{$plugin->name}'",
@@ -87,14 +85,14 @@ class SpecialAjaxRouter
             return null;
         }
 
-        $plugin->attributes->setProperties($data['attributes']);
-        $requestData = $data['data'];
+        $plugin->attributes->setProperties($pluginAttributes);
+
         $respInfo = preg_split('/[^\w\d_]/', $respondentName);
         $respondent = $plugin->getRespondent($respInfo[0] ?? '');
         if (!$respondent) {
             lx::devLog(['_'=>[__FILE__,__CLASS__,__METHOD__,__LINE__],
                 '__trace__' => debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT&DEBUG_BACKTRACE_IGNORE_ARGS),
-                'msg' => "Respondent '$respondentName' is not found",
+                'msg' => "Respondent '$respondentName' not found",
             ]);
             return null;
         }
@@ -117,11 +115,17 @@ class SpecialAjaxRouter
 
 	private function moduleAjaxResponse(): ?ResourceContext
 	{
-        list($moduleName, $methodName) = explode(':', lx::$app->request->getHeader('lx-module'));
+        $data = lx::$app->request->getParams();
+        $moduleName = $data['moduleName'] ?? null;
         if (!$moduleName) {
             return null;
         }
-        
+
+        $methodName = $data['methodName'] ?? null;
+        if (!$methodName) {
+            return null;
+        }
+
 		$serverModuleName = lx::$app->jsModules->getModuleInfo($moduleName)->getMetaData('backend');
 		if (!$serverModuleName || !ClassHelper::exists($serverModuleName)) {
 			return null;
@@ -135,7 +139,7 @@ class SpecialAjaxRouter
 		return new ResourceContext([
 			'class' => $serverModuleName,
 			'method' => $methodName,
-			'params' => lx::$app->request->getParams(),
+			'params' => $data['params'],
 		]);
 	}
 }

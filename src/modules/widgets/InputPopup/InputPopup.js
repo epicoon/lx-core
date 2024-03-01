@@ -60,7 +60,7 @@ class InputPopup extends lx.Box {
 	}
 
     #lx:client {
-		clientBuild(config) {
+		clientRender(config) {
 			this.holder = __getHolder();
 			__render(this);
 		}

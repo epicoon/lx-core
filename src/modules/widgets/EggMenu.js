@@ -57,14 +57,14 @@ class EggMenu extends lx.Box {
 	 * @widget-init
 	 *
 	 * @param [config] {Object: {
-	 *     #merge(lx.Box::build::config),
+	 *     #merge(lx.Box::render::config),
 	 *     [menuWidget = lx.Box] {lx.Box}
-	 *     [menuConfig] {Object: {#schema(lx.Box::build::config)}}
+	 *     [menuConfig] {Object: {#schema(lx.Box::render::config)}}
 	 *     [menuRenderer] {Function} (: argument - lx.Box :)
 	 * }}
 	 */
-	build(config) {
-		super.build(config);
+	render(config) {
+		super.render(config);
 
 		this.setBuildMode(true);
 		this.style('positioning', 'fixed');
@@ -115,8 +115,8 @@ class EggMenu extends lx.Box {
 	}
 
 	#lx:client {
-		clientBuild(config) {
-			super.clientBuild(config);
+		clientRender(config) {
+			super.clientRender(config);
 
 			if (this.basicCss.onMove) {
 				this->top.on('moveBegin', ()=>{

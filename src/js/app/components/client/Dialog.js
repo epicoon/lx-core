@@ -1,10 +1,18 @@
 #lx:namespace lx;
 class Dialog extends lx.AppComponent {
 	/**
-	 * Отправка запроса на сервер указанным методом
-	 * */
+	 * @param config {Object: {
+	 * 	   url {String},
+	 *     [method == 'get'] {String},
+	 *     [data] {Object},
+	 *     [headers] {Dict<String>},
+	 *     [success] {Function},
+	 *     [waiting] {Function},
+	 *     [error] {Function},
+	 * }}
+	 */
 	request(config, ignoreEvents = []) {
-		return sendRequest(
+		return __sendRequest(
 			config.method,
 			config.url,
 			config.data,
@@ -16,46 +24,35 @@ class Dialog extends lx.AppComponent {
 		);
 	}
 
-	/**
-	 * Отправка запроса на сервер методом GET
-	 * */
 	get(config) {
 		config.method = 'get';
 		this.request(config);
 	}
 
-	/**
-	 * Отправка запроса на сервер методом POST
-	 * */
 	post(config) {
 		config.method = 'post';
 		this.request(config);
 	}
 
 	/**
-	 * Редирект в пределах сайта по переданному пути
-	 * */
+	 * Redirect to another page on this web-site
+	 */
 	move(path) {
 		window.location.pathname = path;
 	}
 
-	/**
-	 * 
-	 * */
 	requestParamsToString(params) {
 		return requestParamsToString(params);
 	}
 
-	/**
-	 * 
-	 * */
 	requestParamsFromString(params) {
 		return requestParamsFromString(params);
 	}
 
 	/**
-	 * 
-	 * */
+	 * TODO - does not use. Need to be clearyfied is it really deprecated
+	 * @deprecated
+	 */
 	handlersToConfig(handlers) {
 		var onSuccess,
 			onWaiting,
@@ -86,95 +83,31 @@ class Dialog extends lx.AppComponent {
 	}
 }
 
-/**
- * Создает экземпляр XMLHttpRequest
- * */
-function createRequest() {
-	var Request = false;
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * PRIVATE
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-	if (window.XMLHttpRequest) {
-		//Gecko-совместимые браузеры, Safari, Konqueror
-		Request = new XMLHttpRequest();
-	} else if (window.ActiveXObject) {
-		//Internet explorer
-		try {
-			Request = new ActiveXObject("Microsoft.XMLHTTP");
-		} catch (CatchException) {
-			Request = new ActiveXObject("Msxml2.XMLHTTP");
-		}
-	}
-
-	if (!Request) {
-		console.log("Невозможно создать XMLHttpRequest");
-	}
-
-	return Request;
-}
-
-/**
- * //todo - "first=value&arr[]=foo+bar&arr[]=baz"  + это пробел, наполнение массива
- * */
-function requestParamsToString(args) {
-	if (!args) return '';
-	if (lx.isString(args)) return args;
-	if (!lx.isObject(args)) return '';
-	var arr = [];
-	var result = '';
-	for (var i in args) arr.push(i + '=' + args[i]);
-	if (arr.len) result = arr.join('&');
-	return result;
-}
-
-/**
- * //todo - "first=value&arr[]=foo+bar&arr[]=baz"  + это пробел, наполнение массива
- * */
-function requestParamsFromString(str) {
-	if (!str || str == '') return {};
-
-	var arr = str.split('&'),
-		result = {};
-	for (var i=0, l=arr.len; i<l; i++) {
-		var boof = arr[i].split('=');
-		result[boof[0]] = boof[1];
-	}
-	return result;
-}
-
-/**
- * Функция посылки запроса к файлу на сервере
- * method  - тип запроса: GET или POST
- * url     - URL запроса
- * args    - аргументы вида a=1&b=2&c=3...
- * headers - заголовки в виде объекта
- * success - функция-обработчик ответа от сервера
- * */
-function sendRequest(method, url, data, headers, success, waiting, error, ignoreEvents = []) {
-	let calculatedUrl = url || '';
-
-	// Создаём запрос
-	var request = createRequest();
-	var handlerMap = {success, waiting, error};
-
-	// Проверяем существование запроса еще раз
-	if (!request) {
-		return /*todo неудача*/;
-	}
-
-	// Если требуется сделать GET-запрос, сформируем путь с аргументами
-	if (method.toLowerCase() == "get") {
+function __sendRequest(method, url, data, headers, success, waiting, error, ignoreEvents = []) {
+	url = url || '';
+	headers = headers || {};
+	let calculatedUrl = url;
+	if (method.toLowerCase() == 'get') {
 		let argsString = requestParamsToString(data);
 		if (argsString != '') url += '?' + argsString;
 	}
 
-	function callHandler(handler, args) {
-		if (!handler) return;
-		if (args !== undefined && !lx.isArray(args)) args = [args];
-		if (lx.isArray(handler)) 
-			if (args) handler[1].apply(handler[0], args);
-			else handler[1].call(handler[0]);
-		else
-			if (args) handler.apply(null, args);
-			else handler();
+	if (!__isAjax(calculatedUrl)) {
+		__sendCorsRequest(method, url, data, headers, success, waiting, error);
+		return;
+	}
+
+	// Создаём запрос
+	const request = createRequest(),
+		handlerMap = {success, waiting, error};
+
+	// Проверяем существование запроса еще раз
+	if (!request) {
+		return /*todo неудача*/;
 	}
 
 	// Обертка при успешном ответе - он может нести отладочную информацию
@@ -187,9 +120,9 @@ function sendRequest(method, url, data, headers, success, waiting, error, ignore
 		var contentType = request.getResponseHeader('Content-Type') || '';
 
 		#lx:mode-case: dev
-			var responseAndDump = __findDump(response), dump;
-			response = responseAndDump[0];
-			dump = responseAndDump[1];
+		var responseAndDump = __findDump(response), dump;
+		response = responseAndDump[0];
+		dump = responseAndDump[1];
 		#lx:mode-end;
 
 		var result = contentType.match(/text\/json/)
@@ -198,7 +131,7 @@ function sendRequest(method, url, data, headers, success, waiting, error, ignore
 		callHandler(handler, [result, request]);
 
 		#lx:mode-case: dev
-			if (dump) lx.alert(dump);
+		if (dump) lx.alert(dump);
 		#lx:mode-end;
 	}
 
@@ -207,9 +140,9 @@ function sendRequest(method, url, data, headers, success, waiting, error, ignore
 			contentType = request.getResponseHeader('Content-Type') || '';
 
 		#lx:mode-case: dev
-			var responseAndDump = __findDump(response), dump;
-			response = responseAndDump[0];
-			dump = responseAndDump[1];
+		var responseAndDump = __findDump(response), dump;
+		response = responseAndDump[0];
+		dump = responseAndDump[1];
 		#lx:mode-end;
 
 		var result = contentType.match(/text\/json/) ? JSON.parse(response) : response;
@@ -217,24 +150,22 @@ function sendRequest(method, url, data, headers, success, waiting, error, ignore
 		callHandler(handler, [result, request]);
 
 		#lx:mode-case: dev
-			if (dump) lx.alert(dump);
+		if (dump) lx.alert(dump);
 		#lx:mode-end;
 
-		if (__isAjax(calculatedUrl)) {
-			switch (result.error_code) {
-				case 401:
-					if (!ignoreEvents.includes(lx.EVENT_AJAX_REQUEST_UNAUTHORIZED)) lx.app.lifeCycle.trigger(
-						lx.EVENT_AJAX_REQUEST_UNAUTHORIZED,
-						[result, request, {method, url, data, headers, success, waiting, error}]
-					);
-					break;
-				case 403:
-					if (!ignoreEvents.includes(lx.EVENT_AJAX_REQUEST_FORBIDDEN)) lx.app.lifeCycle.trigger(
-						lx.EVENT_AJAX_REQUEST_FORBIDDEN,
-						[result, request, {method, url, data, headers, success, waiting, error}]
-					);
-					break;
-			}
+		switch (result.error_code) {
+			case 401:
+				if (!ignoreEvents.includes(lx.EVENT_AJAX_REQUEST_UNAUTHORIZED)) lx.app.lifeCycle.trigger(
+					lx.EVENT_AJAX_REQUEST_UNAUTHORIZED,
+					[result, request, {method, url, data, headers, success, waiting, error}]
+				);
+				break;
+			case 403:
+				if (!ignoreEvents.includes(lx.EVENT_AJAX_REQUEST_FORBIDDEN)) lx.app.lifeCycle.trigger(
+					lx.EVENT_AJAX_REQUEST_FORBIDDEN,
+					[result, request, {method, url, data, headers, success, waiting, error}]
+				);
+				break;
 		}
 	}
 
@@ -257,10 +188,8 @@ function sendRequest(method, url, data, headers, success, waiting, error, ignore
 
 	// Инициализируем соединение
 	request.open(method, calculatedUrl, true);
-	if (__isAjax(calculatedUrl)) {
-		if (!ignoreEvents.includes(lx.EVENT_BEFORE_AJAX_REQUEST))
-			lx.app.lifeCycle.trigger(lx.EVENT_BEFORE_AJAX_REQUEST, [request]);
-	}
+	if (!ignoreEvents.includes(lx.EVENT_BEFORE_AJAX_REQUEST))
+		lx.app.lifeCycle.trigger(lx.EVENT_BEFORE_AJAX_REQUEST, [request]);
 	for (var name in headers) {
 		request.setRequestHeader(name, headers[name]);
 	}
@@ -271,7 +200,7 @@ function sendRequest(method, url, data, headers, success, waiting, error, ignore
 			// request.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=utf-8");
 
 			// Устанавливаем заголовок
-			request.setRequestHeader("Content-Type","application/json; charset=UTF8");
+			request.setRequestHeader('Content-Type','application/json; charset=UTF8');
 			request.send(lx.Json.encode(data));
 			break;
 		case 'get':
@@ -279,16 +208,95 @@ function sendRequest(method, url, data, headers, success, waiting, error, ignore
 			request.send(null);
 			break;
 	}
+}
 
-	// return handlerMap;
+function __sendCorsRequest(method, url, data, headers, success, waiting, error) {
+	let options = {method, mode: 'cors'};
+	if (method.toLowerCase() != 'get' && data && !data.lxEmpty()) {
+		options.body = lx.Json.encode(data);
+		//TODO при добавлении заголовков отправляется OPTIONS-запрос, который обрабатывается nginx
+		// headers['Content-Type'] = 'application/json; charset=UTF8';
+	}
+	// if (!headers.lxEmpty()) options.headers = headers;
+
+	fetch(url, options)
+		.then(res=>res.json()).then(res=>callHandler(success, res))
+		.catch(res=>callHandler(error, res));
 }
 
 /**
- * Определение типа запроса по URL
- * */
+ * @return {XMLHttpRequest}
+ */
+function createRequest() {
+	let request = false;
+
+	if (window.XMLHttpRequest) {
+		//Gecko-совместимые браузеры, Safari, Konqueror
+		request = new XMLHttpRequest();
+	} else if (window.ActiveXObject) {
+		//Internet explorer
+		try {
+			request = new ActiveXObject("Microsoft.XMLHTTP");
+		} catch (CatchException) {
+			request = new ActiveXObject("Msxml2.XMLHTTP");
+		}
+	}
+
+	if (!request) {
+		console.log("Невозможно создать XMLHttpRequest");
+	}
+
+	return request;
+}
+
+/**
+ * //todo - "first=value&arr[]=foo+bar&arr[]=baz"  + это пробел, наполнение массива
+ */
+function requestParamsToString(args) {
+	if (!args) return '';
+	if (lx.isString(args)) return args;
+	if (!lx.isObject(args)) return '';
+	var arr = [];
+	var result = '';
+	for (var i in args) arr.push(i + '=' + args[i]);
+	if (arr.len) result = arr.join('&');
+	return result;
+}
+
+/**
+ * //todo - "first=value&arr[]=foo+bar&arr[]=baz"  + это пробел, наполнение массива
+ */
+function requestParamsFromString(str) {
+	if (!str || str == '') return {};
+
+	var arr = str.split('&'),
+		result = {};
+	for (var i=0, l=arr.len; i<l; i++) {
+		var boof = arr[i].split('=');
+		result[boof[0]] = boof[1];
+	}
+	return result;
+}
+
+function callHandler(handler, args) {
+	if (!handler) return;
+	if (args !== undefined && !lx.isArray(args)) args = [args];
+	if (lx.isArray(handler))
+		if (args) handler[1].apply(handler[0], args);
+		else handler[1].call(handler[0]);
+	else
+	if (args) handler.apply(null, args);
+	else handler();
+}
+
 function __isAjax(url) {
-	var reg = new RegExp('^\w+?:' + '/' + '/');
-	return !url.match(reg);
+	if (url == '' || url == location.origin) return true;
+
+	let reg = new RegExp('^\\w+?:' + '/' + '/');
+	if (!url.match(reg)) return true;
+
+	reg = new RegExp('^\\w+?:' + '/' + '/' + '[^\\/]+');
+	return url.match(reg) == location.origin;
 }
 
 #lx:mode-case: dev

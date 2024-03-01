@@ -34,7 +34,7 @@ class Radio extends lx.Checkbox {
 		});
 		css.inheritClass('lx-Radio-1', 'lx-Radio-0', {
 			color: 'black',
-			'@icon': ['\\25CF', {fontSize:8, paddingBottom:'1px'}],
+			'@icon': ['\\25CF', {fontFamily:'main', fontSize:8, paddingBottom:'1px'}],
 		});
 	}
 }

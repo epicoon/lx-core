@@ -43,22 +43,22 @@ class LabeledGroup extends lx.Box {
 	 *     [labels] {Array<String>},
 	 *     [list] {
 	 *         Array<String|Object:{
-	 *             #merge(lx.Box::build::config),
+	 *             #merge(lx.Box::render::config),
 	 *             [widget = lx.Box] {lx.Rect},
 	 *             [label] {String}
 	 *     	   }>
 	 *     }
 	 *     [fields] {
 	 *         Dict<String|Object:{
-	 *             #merge(lx.Box::build::config),
+	 *             #merge(lx.Box::render::config),
 	 *             [widget = lx.Box] {lx.Rect},
 	 *             [label] {String}
 	 *         }>
 	 *     }
 	 * }}
 	 */
-	build(config) {
-		super.build(config);
+	render(config) {
+		super.render(config);
 
 		var labelSide = config.labelSide || lx.LEFT;
 		var template = '';
@@ -153,8 +153,8 @@ class LabeledGroup extends lx.Box {
 		}
 	}
 
-	#lx:client clientBuild(config) {
-		super.clientBuild(config);
+	#lx:client clientRender(config) {
+		super.clientRender(config);
 		if (!this->label) return;
 		this.getAll('label').forEach(l=>{
 			l.on('click', function() {

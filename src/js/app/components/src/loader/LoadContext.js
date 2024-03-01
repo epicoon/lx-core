@@ -144,7 +144,7 @@ class LoadContext {
 		// Create plugin instance
 		if (!el) {
 			lx.body.key = 'body';
-			lx.body.clientBuild();
+			lx.body.clientRender();
 			el = lx.body;
 		}
 

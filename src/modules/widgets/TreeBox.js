@@ -8,8 +8,9 @@
  * @content-disallowed
  * 
  * @events [
- *     leafOpen,
- *     leafClose,
+ *     leafOpening,
+ *     leafOpened,
+ *     leafClosed,
  *     beforeAddLeaf,
  *     afterAddLeaf,
  *     beforeDropLeaf,
@@ -82,8 +83,8 @@ class TreeBox extends lx.Box {
 	 *     [beforeDropLeaf] {Function} (: argument - leaf {TreeLeaf} :)
 	 * }}
 	 */
-	build(config) {
-		super.build(config);
+	render(config) {
+		super.render(config);
 
 		this.style('overflow', 'auto');
 
@@ -129,8 +130,8 @@ class TreeBox extends lx.Box {
 	}
 
 	#lx:client {
-		clientBuild(config) {
-			super.clientBuild(config);
+		clientRender(config) {
+			super.clientRender(config);
 
 			let work = this->work,
 				move = this->move;
@@ -195,14 +196,14 @@ class TreeBox extends lx.Box {
 		 */
 		setStateMemoryKey(key) {
 			// На открытие ветки
-			this.on('leafOpen', function(e) {
+			this.on('leafOpening', function(e) {
 				let opened = this.getOpenedInfo();
 				opened.push(e.leaf.index);
 				lx.app.cookie.set(key, opened.join(','));
 			});
 
 			// На закрытие ветки
-			this.on('leafClose', function(e) {
+			this.on('leafClosed', function(e) {
 				let opened = this.getOpenedInfo();
 				lx.app.cookie.set(key, opened.join(','));
 			});
@@ -299,6 +300,24 @@ class TreeBox extends lx.Box {
 			return result;
 		}
 
+		openNode(node) {
+			let nodes = [],
+				temp = node,
+				leaf = this.leafByNode(temp);
+
+			while (!leaf) {
+				temp = temp.root;
+				nodes.push(temp);
+				leaf = this.leafByNode(temp);
+			}
+
+			for (let i = nodes.length - 1; i >= 0; i--) {
+				let node = nodes[i],
+					leaf = this.leafByNode(node);
+				this.openBranch(leaf);
+			}
+		}
+
 		openBranch(leaf, event) {
 			event = event || this.newEvent();
 			event.leaf = leaf;
@@ -307,7 +326,7 @@ class TreeBox extends lx.Box {
 			if (node.filled) {
 				//TODO точка для расширения логики - если данных на фронте ещё нет, но узел знает, что не пуст
 				// здесь может отработать запрос на дозагрузку данных
-			} else this.trigger('leafOpen', event);
+			} else this.trigger('leafOpening', event);
 
 			if (!node.count()) return;
 
@@ -324,6 +343,7 @@ class TreeBox extends lx.Box {
 			b.opened = true;
 			b.removeClass(this.basicCss.buttonClosed);
 			b.addClass(this.basicCss.buttonOpened);
+			this.trigger('leafOpened', event);
 		}
 
 		closeBranch(leaf, event) {
@@ -341,7 +361,7 @@ class TreeBox extends lx.Box {
 			b.opened = false;
 			b.removeClass(this.basicCss.buttonOpened);
 			b.addClass(this.basicCss.buttonClosed);
-			this.trigger('leafClose', event);
+			this.trigger('leafClosed', event);
 		}
 
 		holdAdding() {

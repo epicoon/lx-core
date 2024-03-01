@@ -17,11 +17,11 @@ class RadioGroup extends lx.LabeledGroup {
 	 *     [defaultValue = 0] {Number}
 	 * }}
 	 */
-	build(config) {
+	render(config) {
 		config.widgetSize = '30px';
 		config.labelSide = lx.RIGHT;
 
-		super.build(config);
+		super.render(config);
 		this.widgets().forEach(w=>{
 			let radio = w.add(lx.Radio, {key: 'radio'});
 			w.align(lx.CENTER, lx.MIDDLE);
@@ -30,8 +30,8 @@ class RadioGroup extends lx.LabeledGroup {
 		this.value(config.defaultValue || 0);
 	}
 
-	#lx:client clientBuild(config) {
-		super.clientBuild(config);
+	#lx:client clientRender(config) {
+		super.clientRender(config);
 		this.radios().forEach(r=>{
 			r.on('click', ()=>_handler_onChange(this, r));
 		});

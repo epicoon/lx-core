@@ -26,8 +26,8 @@ class Image extends lx.Rect {
 	 *     [filename] {String} (: path to image file relative to current plugin path :)
 	 * }}
 	 */
-	build(config) {
-		super.build(config);
+	render(config) {
+		super.render(config);
 
 		var src = config.src || null;
 		if (config.filename) src = this.imagePath(config.filename);

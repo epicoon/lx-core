@@ -28,6 +28,10 @@ class Plugin {
         return [];
     }
 
+    getServiceName() {
+        return this.name.split(':')[0];
+    }
+
     initCss(css) {
         this.getCssAssetClasses().forEach(assetClass => {
             const asset = new assetClass(this);
@@ -62,7 +66,13 @@ class Plugin {
         var arr = name.match(/^@([^\/]+?)(\/.+)$/);
         if (!arr || !map[arr[1]]) return '';
 
-        return map[arr[1]] + arr[2];
+        let url = '';
+        #lx:client {
+            if (lx.app.getProxy())
+                url = lx.app.getProxy();
+        }
+        url += map[arr[1]] + arr[2];
+        return url;
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -167,11 +177,11 @@ class Plugin {
             this._onUnfocus = callback.bind(this);
         }
 
-        setKeypressManager(className) {
+        initKeypressManager(className) {
             let manager = lx.createObject(className);
-            manager.setContext({plugin: this});
+            manager.addContext({plugin: this});
             manager.run();
-            this._keypressManager = manager;
+            return manager;
         }
 
         onKeydown(key, func) {
@@ -204,7 +214,7 @@ class Plugin {
         /**
          * Вернет все дочерние плагины - только непосредственные если передать false (по умолчанию), вообще все если передать true
          */
-        childPlugins(all=false) {
+        getChildPlugins(all=false) {
             var result = [];
 
             const list = lx.app.plugins.getList();
@@ -220,6 +230,19 @@ class Plugin {
             }
 
             return result;
+        }
+
+        /**
+         * @param name {String}
+         * @param [all = false] {Boolean}
+         * @return {lx.Plugin|null}
+         */
+        getChildPlugin(name, all = false) {
+            if (!name.match(/:/)) name = this.getServiceName() + ':' + name;
+            let plugins = this.getChildPlugins(all);
+            for (let i in plugins)
+                if (plugins[i].name == name) return plugins[i];
+            return null;
         }
 
         /**

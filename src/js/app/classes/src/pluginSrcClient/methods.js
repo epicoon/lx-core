@@ -13,7 +13,6 @@ function __construct(self, config) {
     self.namespaces = [];
     self.dependencies = {};
 
-    self._keypressManager = null;
     self._eventDispatcher = null;
     self._onFocus = null;
     self._onUnfocus = null;
@@ -32,7 +31,7 @@ function __destruct(self) {
     self.root.off('click', __onClick);
 
     // Удаление вложенных плагинов
-    let childPlugins = self.childPlugins(true);
+    let childPlugins = self.getChildPlugins(true);
     for (let i=0, l=childPlugins.len; i<l; i++)
         childPlugins[i].del();
 

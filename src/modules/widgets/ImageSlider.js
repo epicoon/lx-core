@@ -13,12 +13,12 @@ class ImageSlider extends lx.BoxSlider {
 	 * @widget-init
 	 *
 	 * @param [config] {Object: {
-	 *     #merge(lx.BoxSlider::build::config),
+	 *     #merge(lx.BoxSlider::render::config),
 	 *     [images] {Array<String>}
 	 * }}
 	 */
-	build(config) {
-		super.build(config);
+	render(config) {
+		super.render(config);
 		this.setImages(config.images || []);
 	}
 

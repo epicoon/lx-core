@@ -13,24 +13,24 @@ class DomSelector extends lx.AppComponentSettable {
 	}
 
 	getElementByAttrs(attrs, parent = null) {
-		var selector = '';
-		for (var name in attrs)
+		let selector = '';
+		for (let name in attrs)
 			selector += "[" + name + "^='" + attrs[name] + "']"
-		var elem = parent ? parent.getDomElem() : null;
+		let elem = parent ? parent.getDomElem() : null;
 		if (elem) return elem.querySelector(selector);
 		return document.querySelector(selector);
 	}
 
 	getWidgetById(id, type = null) {
-		var el = document.getElementById(id);
+		let el = document.getElementById(id);
 		if (!el) return null;
 		return el.__lx || __getType(type).rise(el);
 	}
 
 	getWidgetsByName(name, type = null) {
-		var els = document.getElementsByName(name),
+		let els = document.getElementsByName(name),
 			c = new lx.Collection();
-		for (var i = 0, l = els.length; i < l; i++) {
+		for (let i = 0, l = els.length; i < l; i++) {
 			let el = els[i];
 			c.add(el.__lx || __getType(type).rise(el));
 		}
@@ -42,13 +42,20 @@ class DomSelector extends lx.AppComponentSettable {
 	 * имеющими определенный css-класс
 	 */
 	getWidgetsByClass(className, type = null) {
-		var els = document.getElementsByClassName(className),
+		let els = document.getElementsByClassName(className),
 			c = new lx.Collection();
-		for (var i = 0, l = els.length; i < l; i++) {
+		for (let i = 0, l = els.length; i < l; i++) {
 			let el = els[i];
 			c.add(el.__lx || __getType(type).rise(el));
 		}
 		return c;
+	}
+
+	getWidgetByClass(className, type = null) {
+		let el = document.getElementsByClassName(className)[0];
+		if (!el) return null;
+		if (el.__lx) return el.__lx;
+		return __getType(type).rise(el);
 	}
 }
 

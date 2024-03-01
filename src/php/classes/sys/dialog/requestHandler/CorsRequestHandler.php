@@ -2,12 +2,14 @@
 
 namespace lx;
 
+use lx;
+
 class CorsRequestHandler extends CommonRequestHandler
 {
-    protected function beforeSendResponse(HttpResponseInterface $response): void
+    protected function beforeSendResponse(Event $event): void
     {
         $this->addCorsHeaders();
-        parent::beforeSendResponse($response);
+        parent::beforeSendResponse($event);
     }
 
     private function addCorsHeaders(): void

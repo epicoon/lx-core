@@ -13,15 +13,15 @@ class CheckboxGroup extends lx.LabeledGroup {
 	 * @widget-init
 	 *
 	 * @param [config] {Object: {
-	 *     #merge(lx.LabeledGroup::build::config),
+	 *     #merge(lx.LabeledGroup::render::config),
 	 *     [defaultValue] {Number|Array<Number>}
 	 * }}
 	 */
-	build(config) {
+	render(config) {
 		config.widgetSize = '30px';
 		config.labelSide = lx.RIGHT;
 
-		super.build(config);
+		super.render(config);
 		this.widgets().forEach(w=>{
 			let checkbox = w.add(lx.Checkbox, {key: 'checkbox'});
 			w.align(lx.CENTER, lx.MIDDLE);
@@ -33,8 +33,8 @@ class CheckboxGroup extends lx.LabeledGroup {
 		if (config.defaultValue !== undefined) this.value(config.defaultValue);
 	}
 
-	#lx:client clientBuild(config) {
-		super.clientBuild(config);
+	#lx:client clientRender(config) {
+		super.clientRender(config);
 		this.checkboxes().forEach(a=>a.on('change', function (e) {
 			_handler_onChange.call(this, e);
 			this.parent.parent.trigger('change', e);

@@ -47,8 +47,8 @@ class Table extends lx.Box  {
 	 *     [indents] {Object: #schema(lx.IndentData::constructor::config)}
 	 * }}
 	 */
-	build(config) {
-		super.build(config);
+	render(config) {
+		super.render(config);
 
 		var rows = config.rows || 0;
 		this.cols = config.cols || 0;
@@ -290,7 +290,7 @@ class Table extends lx.Box  {
 //======================================================================================================================
 #lx:namespace lx;
 class TableRow extends lx.Box {
-	build(config) {
+	render(config) {
 		var colConfig = {direction: lx.HORIZONTAL},
 			table = this.parent,
 			indentData = table.indents.get();

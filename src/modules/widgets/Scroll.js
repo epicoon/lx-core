@@ -80,7 +80,7 @@ class Scroll extends lx.Box {
      *     )}
      * }}
      */
-    build(config) {
+    render(config) {
         if (!config.target || config.target === config.target.getContainer())
             throw 'Unavailable target for the Scroll widget';
 
@@ -97,8 +97,8 @@ class Scroll extends lx.Box {
         handle.add(lx.Box, {css: this.basicCss.handle});
     }
 
-    #lx:client clientBuild(config) {
-        super.clientBuild(config);
+    #lx:client clientRender(config) {
+        super.clientRender(config);
 
         __actualizeHandleSize(this);
         this->handle.move();

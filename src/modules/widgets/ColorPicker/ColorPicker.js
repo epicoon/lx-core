@@ -30,9 +30,9 @@ const __lims = {
  * @content-disallowed
  *
  * @events [
- *     colorSelect {color: lx.Color},
- *     colorChange {color: lx.Color},
- *     colorReject {color: lx.Color}
+ *     colorSelect {newColor: lx.Color, oldColor: lx.Color},
+ *     colorChange {newColor: lx.Color, oldColor: lx.Color},
+ *     colorReject {oldColor: lx.Color, newColor: lx.Color}
  * ]
  */
 #lx:namespace lx;
@@ -64,7 +64,7 @@ class ColorPicker extends lx.Box {
      *     [color] {lx.Color}
      * }}
      */
-    #lx:client clientBuild(config) {
+    #lx:client clientRender(config) {
         const _t = this;
         this._movingLines = false;
         this._movingHue = false;
@@ -76,13 +76,21 @@ class ColorPicker extends lx.Box {
             R: {default: _t.color.R},
             G: {default: _t.color.G},
             B: {default: _t.color.B},
+            RGB << __rgb(),
             H: {default: Math.round(_t.color.getHue())},
             S: {default: Math.round(_t.color.getSaturation())},
             L: {default: Math.round(_t.color.getLightness())},
             text: {default: _t.color.toString()}
         };
+        this.colorModel.__rgb = function (val) {
+            if (val === undefined) return [this.R, this.G, this.B];
+            val = lx.Color.castToRgb(val, 255);
+            this.R = val[0];
+            this.G = val[1];
+            this.B = val[2];
+        };
         this.colorModel.beforeSet(function(fieldName, value) {
-            if (fieldName == 'text') return value;
+            if (fieldName == 'text' || fieldName == 'RGB') return value;
             if (!lx.isNumber(value) || value < __lims[fieldName][0]) return __lims[fieldName][0];
             if (value > __lims[fieldName][1]) return __lims[fieldName][1];
             return Math.round(value);
@@ -94,6 +102,12 @@ class ColorPicker extends lx.Box {
                 case 'R': _t.color.R = this.R; __actualizeColorModel(_t); break;
                 case 'G': _t.color.G = this.G; __actualizeColorModel(_t); break;
                 case 'B': _t.color.B = this.B; __actualizeColorModel(_t); break;
+                case 'RGB':
+                    _t.color.R = this.R;
+                    _t.color.G = this.G;
+                    _t.color.B = this.B;
+                    __actualizeColorModel(_t);
+                    break;
                 case 'text': _t.color.init(this.text); __actualizeColorModel(_t); break;
                 case 'H': _t.color.setHue(this.H); __actualizeColorModel(_t); break;
                 case 'S': _t.color.setSaturation(this.S); __actualizeColorModel(_t); break;
@@ -131,7 +145,10 @@ class ColorPicker extends lx.Box {
         this.add(lx.Button, {
             geom: [0, 7, 6, 1],
             text: #lx:i18n(Select),
-            click: ()=>this.trigger('colorSelect', this.newEvent({color: this.color.clone()}))
+            click: ()=>this.trigger('colorSelect', this.newEvent({
+                newColor: this.color.clone(),
+                oldColor: this.colorSave.clone()
+            }))
         });
         this.add(lx.Button, {
             geom: [6, 7, 6, 1],
@@ -150,11 +167,21 @@ class ColorPicker extends lx.Box {
         this.add(lx.Button, {
             geom: [12, 7, 6, 1],
             text: #lx:i18n(Reject),
-            click: ()=>this.trigger('colorReject', this.newEvent({color: this.color.clone()}))
+            click: ()=>this.trigger('colorReject', this.newEvent({
+                oldColor: this.colorSave.clone(),
+                newColor: this.color.clone()
+            }))
         });
 
         this.bind(this.colorModel);
         __onColorChange(this);
+    }
+
+    #lx:client setColor(color) {
+        this.colorSave = new lx.Color(color);
+        this.color = new lx.Color(color);
+        this.baseColor = {R: 0, G: 0, B: 0};
+        this.colorModel.RGB = color;
     }
 }
 
@@ -289,7 +316,7 @@ class ColorPicker extends lx.Box {
     }
 
     function __defineSliceIndex(self) {
-        let sliceIndex = null;
+        let sliceIndex = 0;
         for (let i=0; i<6; i++) {
             let slice = __slices[i],
                 base = slice.base,
@@ -474,11 +501,16 @@ class ColorPicker extends lx.Box {
             y = hLine.top('px');
         if (w === null) w = mainScale.width('px');
         if (h === null) h = mainScale.height('px');
+
         w -= vLine.width('px');
         h -= hLine.height('px');
-        return {
-            x: (w - x) / w,
-            y: y / h
-        };
+
+        x = (w - x) / w;
+        y = y / h;
+        if (x > 1) x = 1;
+        else if (x < 0) x = 0;
+        if (y > 1) y = 1;
+        else if (y < 0) y = 0;
+        return {x, y};
     }
 }

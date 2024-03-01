@@ -11,7 +11,7 @@ Object.defineProperty(Object.prototype, "lxGetKeys", {
 
 Object.defineProperty(Object.prototype, "lxClone", {
 	value: function() {
-		if (!lx.isArray(this) && !lx.isCleanObject(this)) return this;
+		if (!lx.isArray(this) && !lx.isStrictObject(this)) return this;
 		var result = (lx.isArray(this)) ? [] : {};
 		function rec(from, to) {
 			for (var i in from) {
@@ -21,7 +21,7 @@ Object.defineProperty(Object.prototype, "lxClone", {
 				} else if (lx.isArray(val)) {
 					to[i] = [];
 					rec(val, to[i]);
-				} else if (lx.isCleanObject(val)) {
+				} else if (lx.isStrictObject(val)) {
 					to[i] = {};
 					rec(val, to[i]);
 				} else to[i] = val;

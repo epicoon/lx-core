@@ -3,147 +3,57 @@
 #lx:namespace lx;
 class Color {
 	constructor(color) {
-		this.init(color);
-	}
-
-	/**
-	 * Попытка привести переданное значение к цвету в формате числа
-	 */
-	static castToNumber(color, max= 255) {
-		if (lx.isArray(color)) return this.castRgbToNumber(color, max);
-		if (lx.isNumber(color)) return color;
-		return false;
-	}
-
-	/**
-	 * Попытка привести переданное значение к цвету в формате RGB массива
-	 */
-	static castToRgb(color, max= 255) {
-		if (lx.isArray(color)) return color;
-		if (lx.isNumber(color)) return this.castNumberToRgb(color, max);
-		return false;
-	}
-
-	/**
-	 * Форматы для max == 1 и max == 255
-	 * [1, 1, 1] => 0xffffff (для max==1)
-	 */
-	static castRgbToNumber(color, max = 255) {
-		var r, g, b;
-		if (max == 1) {
-			r = Math.floor( color[0] * 255 );
-			g = Math.floor( color[1] * 255 );
-			b = Math.floor( color[2] * 255 );
-		} else {
-			r = color[0]; g = color[1]; b = color[2];
-		}
-		var sR = r.toString(16),
-			sG = g.toString(16),
-			sB = b.toString(16);
-		if (sR.length < 2) sR = '0' + sR;
-		if (sG.length < 2) sG = '0' + sG;
-		if (sB.length < 2) sB = '0' + sB;
-		return +('0x' + sR + sG + sB);
-	}
-
-	/**
-	 * Форматы для max == 1 и max == 255
-	 * 0xffffff => [1, 1, 1] (для max==1)
-	 */
-	static castNumberToRgb(color, max = 255) {
-		var str = color.toString(16),
-			r = +('0x'+str.substr(0, 2)),
-			g = +('0x'+str.substr(2, 2)),
-			b = +('0x'+str.substr(4, 2));
-		if (max == 1) {
-			r /= 255;
-			g /= 255;
-			b /= 255;
-		}
-		return [r, g, b];
+		let config = __parseConfig(color);
+		this.max = lx.getFirstDefined(config.max, 255);
+		this._R = lx.getFirstDefined(config.r, 0);
+		this._G = lx.getFirstDefined(config.g, 0);
+		this._B = lx.getFirstDefined(config.b, 0);
+		this.alpha = lx.getFirstDefined(config.a, 1);
+		this.HSL = null;
 	}
 
 	init(color) {
+		let config = __parseConfig(color),
+			max = config.max;
+
+		if (config.a !== undefined)
+			this.alpha = config.a;
+
+		function setC(self, field, val) {
+			if (self.max == max) { self[field] = val; return; }
+			self[field] = (val * self.max) / max;
+			if (self.max > 1) self[field] = Math.round(self[field]);
+			else self[field] = Math.round((self[field] + Number.EPSILON) * 100) / 100;
+		}
+		if (config.r !== undefined) setC(this, '_R', config.r);
+		if (config.g !== undefined) setC(this, '_G', config.g);
+		if (config.b !== undefined) setC(this, '_B', config.b);
 		this.HSL = null;
-		this.alpha = 1;
+	}
 
-		if (!color) {
-			this._R = 0;
-			this._G = 0;
-			this._B = 0;
-			return;
-		}
+	/**
+	 * @param color {String|Number|Array|Object|lx.Color}
+	 * @return {Number}
+	 */
+	static castToNumber(color) {
+		return (new lx.Color(color)).toNumber();
+	}
 
-		if (lx.isNumber(color)) {
-			var res = __16strToRGB(color.toString(16));
-			this._R = res[0];
-			this._G = res[1];
-			this._B = res[2];
-			return;
-		}
+	/**
+	 * @param color {String|Number|Array|Object|lx.Color}
+	 * @param max {Number} format - 1, 100, 255
+	 * @return {Array} [R, G, B]
+	 */
+	static castToRgb(color, max= 255) {
+		return (new lx.Color(color)).toRGB(max);
+	}
 
-		if (lx.isString(color)) {
-			if (color[0] == '#') {
-				var res = __16strToRGB(color.replace(/^#/, ''));
-				this._R = res[0];
-				this._G = res[1];
-				this._B = res[2];
-				return;
-			}
-
-			var name = color.toLowerCase();
-			if (name in colorsMap) {
-				this._R = colorsMap[name][0];
-				this._G = colorsMap[name][1];
-				this._B = colorsMap[name][2];
-			} else {
-				color = color.replace(' ', '');
-				if (color.match(/^rgba?\(\d{1,3},\d{1,3},\d{1,3}(,(0\.\d|\d))?\)/)) {
-					color = color.replace(/^rgba?\(/, '');
-					color = color.replace(')', '');
-					color = color.split(',');
-					this._R = color[0];
-					this._G = color[1];
-					this._B = color[2];
-					if (color.len == 4) this.alpha = color[3];
-				} else {
-					this._R = 0;
-					this._G = 0;
-					this._B = 0;
-				}
-			}
-			return;
-		}
-
-		if (lx.isArray(color)) {
-			if (color.len == 3) {
-				this._R = color[0];
-				this._G = color[1];
-				this._B = color[2];
-			} else if (color.len == 4) {
-				this._R = color[0];
-				this._G = color[1];
-				this._B = color[2];
-				this.alpha = color[3];
-			}
-			return;
-		}
-
-		if (lx.isInstance(color, lx.Color)) {
-			this.copy(color);
-			return;
-		}
-
-		if (lx.isObject(color)) {
-			this._R = color._R || color.r || color.Red || color.red || 0;
-			this._G = color._G || color.g || color.Green || color.green || 0;
-			this._B = color._B || color.b || color.Blue || color.blue || 0;
-			return;
-		}
-
-		this._R = 0;
-		this._G = 0;
-		this._B = 0;
+	/**
+	 * @param color {String|Number|Array|Object|lx.Color}
+	 * @return {String}
+	 */
+	static castToString(color) {
+		return (new lx.Color(color)).toString();
 	}
 
 	copy(color) {
@@ -151,6 +61,7 @@ class Color {
 		this._G = color._G;
 		this._B = color._B;
 		this.alpha = color.alpha;
+		this.max = color.max;
 		if (color.HSL)
 			this.HSL = [color.HSL[0], color.HSL[1], color.HSL[2]];
 		return this;
@@ -161,7 +72,7 @@ class Color {
 	}
 
 	getHSL() {
-		if (!this.HSL) this.HSL = __RGBtoHSL(this.toRGB());
+		if (!this.HSL) this.HSL = __RGBtoHSL(this.toRGB(1));
 		return this.HSL;
 	}
 
@@ -178,9 +89,10 @@ class Color {
 	}
 
 	getLuma() {
-		var r = this._R / 255,
-			g = this._G / 255,
-			b = this._B / 255;
+		let RGB = this.toRGB(1),
+			r = RGB[0],
+			g = RGB[1],
+			b = RGB[2];
 		r = (r <= 0.03928) ? r / 12.92 : Math.pow(((r + 0.055) / 1.055), 2.4);
 		g = (g <= 0.03928) ? g / 12.92 : Math.pow(((g + 0.055) / 1.055), 2.4);
 		b = (b <= 0.03928) ? b / 12.92 : Math.pow(((b + 0.055) / 1.055), 2.4);
@@ -206,11 +118,9 @@ class Color {
 	}
 
 	setHSL(hsl) {
+		let RGB = __HSLtoRGB(hsl);
+		this.init({r: RGB[0], g: RGB[1], b: RGB[2], max: 1});
 		this.HSL = hsl;
-		var RGB = __HSLtoRGB(hsl);
-		this._R = RGB[0];
-		this._G = RGB[1];
-		this._B = RGB[2];
 		return this;
 	}
 
@@ -242,35 +152,35 @@ class Color {
 	}
 
 	darken(persent) {
-		var hsl = this.getHSL();
+		let hsl = this.getHSL();
 		hsl[2] = __clamp(hsl[2] - persent, 100);
 		this.setHSL(hsl);
 		return this;
 	}
 
 	lighten(persent) {
-		var hsl = this.getHSL();
+		let hsl = this.getHSL();
 		hsl[2] = __clamp(hsl[2] + persent, 100);
 		this.setHSL(hsl);
 		return this;
 	}
 
 	saturate(persent) {
-		var hsl = this.getHSL();
+		let hsl = this.getHSL();
 		hsl[1] = __clamp(hsl[2] + persent, 100);
 		this.setHSL(hsl);
 		return this;
 	}
 
 	desaturate(persent) {
-		var hsl = this.getHSL();
+		let hsl = this.getHSL();
 		hsl[1] = __clamp(hsl[2] - persent, 100);
 		this.setHSL(hsl);
 		return this;
 	}
 
 	spin(angle) {
-		var hsl = this.getHSL();
+		let hsl = this.getHSL();
         hsl[0] += angle % 360;
         if (hsl[0] < 0) hsl[0] += 360;
         else if (hsl[0] > 360) hsl[0] -= 360;
@@ -295,16 +205,22 @@ class Color {
 
 	mix(color, weight = 50) {
 		color = new lx.Color(color);
-		var w = weight / 50 - 1,
+		let w = weight / 50 - 1,
+			selfA = this.alpha,
 			a = this.alpha - color.alpha,
 			w1 = ((w * a == -1 ? w : (w + a)/(1 + w * a)) + 1) / 2.0,
-			w2 = 1.0 - w1;
-		this._R = Math.round(w1 * this._R + w2 * color._R);
-		this._G = Math.round(w1 * this._G + w2 * color._G);
-		this._B = Math.round(w1 * this._B + w2 * color._B);
-		this.HSL = null;
+			w2 = 1.0 - w1,
+			selfRGB = this.toRGB(255),
+			RGB = color.toRGB(255),
+			r, g, b;
+
+		r = Math.round(w1 * selfRGB[0] + w2 * RGB[0]);
+		g = Math.round(w1 * selfRGB[1] + w2 * RGB[1]);
+		b = Math.round(w1 * selfRGB[2] + w2 * RGB[2]);
+		this.init({r, g, b, max: 255});
+
 		if (this.alpha != 1 || color.alpha != 1)
-			this.alpha = this.alpha * weight + color.alpha * (weight - 1);
+			this.alpha = selfA * weight + color.alpha * (weight - 1);
 		return this;
 	}
 
@@ -312,7 +228,7 @@ class Color {
 		dark = new lx.Color(dark || [0, 0, 0]);
 		light = new lx.Color(light || [255, 255, 255]);
 		if (dark.getLuma() > light.getLuma()) {
-			var temp = light;
+			let temp = light;
 			light = dark;
 			dark = temp;
 		}
@@ -323,8 +239,11 @@ class Color {
 		return this;
 	}
 
-	toRGB() {
-		return [this._R, this._G, this._B];
+	toRGB(max = 255) {
+		if (this.max == max)
+			return [this._R, this._G, this._B];
+
+		return [(this._R * max) / this.max, (this._G * max) / this.max, (this._B * max) / this.max];
 	}
 
 	[Symbol.toPrimitive](hint) {
@@ -338,43 +257,36 @@ class Color {
 	}
 
 	toNumber() {
-		var sR = this._R.toString(16),
-			sG = this._G.toString(16),
-			sB = this._B.toString(16);
-		if (sR.length < 2) sR = '0' + sR;
-		if (sG.length < 2) sG = '0' + sG;
-		if (sB.length < 2) sB = '0' + sB;
-		return +('0x' + sR + sG + sB);
+		let RGB = __toPreStr(this);
+		return +('0x' + RGB[0] + RGB[1] + RGB[2]);
 	}
 
 	toString() {
-		if (this.alpha != 1) return 'rgba('
-			+ this._R
-			+ ', '
-			+ this._G
-			+ ', '
-			+ this._B
-			+ ', '
-			+ this.alpha
-			+ ')';
+		if (this.alpha != 1) {
+			let RGB = this.toRGB(1);
+			return 'rgba('
+				+ Math.round((RGB[0] + Number.EPSILON) * 100) / 100
+				+ ', '
+				+ Math.round((RGB[1] + Number.EPSILON) * 100) / 100
+				+ ', '
+				+ Math.round((RGB[2] + Number.EPSILON) * 100) / 100
+				+ ', '
+				+ this.alpha
+				+ ')';
+		}
 
-
-		var sR = this._R.toString(16),
-			sG = this._G.toString(16),
-			sB = this._B.toString(16);
-		if (sR.length < 2) sR = '0' + sR;
-		if (sG.length < 2) sG = '0' + sG;
-		if (sB.length < 2) sB = '0' + sB;
-		return '#' + sR + sG + sB;
+		let RGB = __toPreStr(this);
+		return '#' + RGB[0] + RGB[1] + RGB[2];
 	}
 
 	toStringWithAlfa() {
+		let RGB = this.toRGB(1);
 		return 'rgba('
-			+ this._R
+			+ Math.round((RGB[0] + Number.EPSILON) * 100) / 100
 			+ ', '
-			+ this._G
+			+ Math.round((RGB[1] + Number.EPSILON) * 100) / 100
 			+ ', '
-			+ this._B
+			+ Math.round((RGB[2] + Number.EPSILON) * 100) / 100
 			+ ', '
 			+ this.alpha
 			+ ')';
@@ -387,12 +299,101 @@ class Color {
 }
 
 
-/***********************************************************************************************************************
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * PRIVATE
- **********************************************************************************************************************/
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+function __parseConfig(color) {
+	let r = undefined, g = undefined, b = undefined, a = undefined, max = undefined;
+
+	if (lx.isNumber(color)) {
+		let res = __16strToRGB(color.toString(16));
+		r = res[0];
+		g = res[1];
+		b = res[2];
+		max = 255;
+	} else if (lx.isString(color)) {
+		if (color[0] == '#') {
+			let res = __16strToRGB(color.replace(/^#/, ''));
+			r = res[0];
+			g = res[1];
+			b = res[2];
+			max = 255;
+		} else {
+			let name = color.toLowerCase();
+			if (name in colorsMap) {
+				r = colorsMap[name][0];
+				g = colorsMap[name][1];
+				b = colorsMap[name][2];
+				max = 255;
+			} else {
+				color = color.replace(' ', '');
+				if (color.match(/^rgba?\((0\.\d+|\d+) *, *(0\.\d+|\d+) *, *(0\.\d+|\d+)( *, *(0\.\d+|\d+))?\)/)) {
+					color = color.replace(/^rgba?\(/, '');
+					color = color.replace(')', '');
+					color = color.split(/ *, */);
+					r = +color[0];
+					g = +color[1];
+					b = +color[2];
+					if (color.len == 4) a = color[3];
+					if (r == 0 && g == 0 && b == 0) max = 255;
+					else if (r <= 1 && g <= 1 && b <= 1) max = 1;
+					else max = 255;
+				} else {
+					r = 0;
+					g = 0;
+					b = 0;
+					max = 255;
+				}
+			}
+		}
+	} else if (lx.isArray(color)) {
+		if (color.len == 3) {
+			r = color[0];
+			g = color[1];
+			b = color[2];
+		} else if (color.len == 4) {
+			r = color[0];
+			g = color[1];
+			b = color[2];
+			a = color[3];
+		}
+		if (r == 0 && g == 0 && b == 0) max = 255;
+		else if (r <= 1 && g <= 1 && b <= 1) max = 1;
+		else max = 255;
+	} else if (lx.isInstance(color, lx.Color)) {
+		r = color._R;
+		g = color._G;
+		b = color._B;
+		a = color.alpha;
+		max = color.max;
+	} else if (lx.isObject(color)) {
+		r = color._R || color.r || color.Red || color.red || 0;
+		g = color._G || color.g || color.Green || color.green || 0;
+		b = color._B || color.b || color.Blue || color.blue || 0;
+		a = color.alpha || color.a;
+		if (color.max !== undefined) max = color.max;
+		else if (r == 0 && g == 0 && b == 0) max = 255;
+		else if (r <= 1 && g <= 1 && b <= 1) max = 1;
+		else max = 255;
+	}
+
+	return {r, g, b, a, max};
+}
+
+function __toPreStr(color) {
+	let RGB = color.toRGB(255),
+		sR = RGB[0].toString(16),
+		sG = RGB[1].toString(16),
+		sB = RGB[2].toString(16);
+	if (sR.length < 2) sR = '0' + sR;
+	if (sG.length < 2) sG = '0' + sG;
+	if (sB.length < 2) sB = '0' + sB;
+	return [sR, sG, sB];
+}
 
 function __16strToRGB(str) {
-	var r = +('0x'+str.substr(0, 2)),
+	let r = +('0x'+str.substr(0, 2)),
 		g = +('0x'+str.substr(2, 2)),
 		b = +('0x'+str.substr(4, 2));
 	return [r, g, b];
@@ -403,9 +404,9 @@ function __clamp(val, max = 1, min = 0) {
 }
 
 function __RGBtoHSL(rgb) {
-	var r = rgb[0] / 255,
-		g = rgb[1] / 255,
-		b = rgb[2] / 255,
+	let r = rgb[0],
+		g = rgb[1],
+		b = rgb[2],
 		min = Math.min(r, g, b),
 		max = Math.max(r, g, b),
 		h, s, l = (min + max) / 2;
@@ -440,17 +441,17 @@ function __HSLtoRGB(hls) {
 		return temp1;
 	}
 
-	var h = hls[0] / 360,
+	let h = hls[0] / 360,
 		s = hls[1] / 100,
 		l = hls[2] / 100,
 		r, g, b;
 	if (s == 0) r = g = b = l;
 	else {
-		var temp2 = l < 0.5 ? l * (1.0 + s) : l + s - l * s,
+		let temp2 = l < 0.5 ? l * (1.0 + s) : l + s - l * s,
 			temp1 = 2.0 * l - temp2;
-		r = Math.round(helper(h + 1/3, temp1, temp2) * 255);
-		g = Math.round(helper(h, temp1, temp2) * 255);
-		b = Math.round(helper(h - 1/3, temp1, temp2) * 255);
+		r = Math.round(helper(h + 1/3, temp1, temp2));
+		g = Math.round(helper(h, temp1, temp2));
+		b = Math.round(helper(h - 1/3, temp1, temp2));
 	}
 
 	return [r, g, b];

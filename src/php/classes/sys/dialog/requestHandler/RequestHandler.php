@@ -16,6 +16,7 @@ abstract class RequestHandler implements EventListenerInterface
     {
         $this->request = $request;
         $this->response = $response;
+        $this->constructEventListener();
     }
 
     public static function create(HttpRequest $request, HttpResponseInterface $response): RequestHandler

@@ -38,6 +38,12 @@ class DbTableField
         $this->details = $definition['details'] ?? [];
         $this->isNullable = $definition['nullable'] ?? true;
         $this->defailt = $definition['default'] ?? null;
+        if ($this->defailt !== null) {
+            if ($this->getType() == self::TYPE_INTEGER) {
+                $this->defailt = (int)$this->defailt;
+            }
+            //TODO another types?
+        }
 
         $this->pk = $definition['pk'] ?? false;
         $this->fk = $definition['fk'] ?? null;

@@ -13,7 +13,7 @@
  */
 #lx:namespace lx;
 class StreamItemRelocator extends lx.Box {
-    clientBuild(config) {
+    clientRender(config) {
         this.item = null;
         this.__env = {
             width: null,

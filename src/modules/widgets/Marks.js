@@ -74,8 +74,8 @@ class Marks extends lx.Box {
 	 *     [autopositioning = true] {Boolean}
 	 * }}
 	 */
-	build(config) {
-		super.build(config);
+	render(config) {
+		super.render(config);
 		this.mode = config.mode || self::MODE_UNI_SHEET;
 		this.animation = lx.getFirstDefined(config.animation, false);
 		this.appendAllowed = lx.getFirstDefined(config.appendAllowed, false);
@@ -99,8 +99,8 @@ class Marks extends lx.Box {
 			this.open(0);
 	}
 
-	#lx:client clientBuild(config) {
-		super.clientBuild(config);
+	#lx:client clientRender(config) {
+		super.clientRender(config);
 
 		if (this.animation) {
 			let duration = lx.isNumber(this.animation) ? this.animation : 300;

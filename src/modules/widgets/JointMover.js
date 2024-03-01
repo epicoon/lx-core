@@ -65,8 +65,8 @@ class JointMover extends lx.Rect {
      *     [limit = 20] {Number} (: number of pixels to stop resizing :)
      * }}
      */
-    build(config) {
-        super.build(config);
+    render(config) {
+        super.render(config);
 
         this.direction = config.direction || null;
         this.limit = config.limit || 20;
@@ -98,8 +98,8 @@ class JointMover extends lx.Rect {
         });
     }
 
-    clientBuild(config) {
-        super.clientBuild(config);
+    clientRender(config) {
+        super.clientRender(config);
         this.actualize();
 
         this.parent.map('%');

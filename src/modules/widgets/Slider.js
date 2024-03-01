@@ -8,8 +8,9 @@
  * 
  * @events [
  *     started,
- *     input,
- *     stopped
+ *     moved,
+ *     stopped,
+ *     change
  * ]
  */
 #lx:namespace lx;
@@ -37,8 +38,8 @@ class Slider extends lx.Box {
 	 *     [value = 0] {Number}
 	 * }}
 	 */
-	build(config) {
-		super.build(config);
+	render(config) {
+		super.render(config);
 
 		this.min = config.min || 0;
 		this.max = config.max || 100;
@@ -68,8 +69,8 @@ class Slider extends lx.Box {
 		});
 	}
 
-	#lx:client clientBuild(config) {
-		super.clientBuild(config);
+	#lx:client clientRender(config) {
+		super.clientRender(config);
 
 		var h = this.height('px'),
 			w = this.width('px'),
@@ -95,8 +96,23 @@ class Slider extends lx.Box {
 		this->track.click(self::trackClick);
 	}
 
-	change(func) {
-		this.on('change', func);
+	started(f) {
+		this.on('started', f);
+		return this;
+	}
+
+	moved(f) {
+		this.on('moved', f);
+		return this;
+	}
+
+	stopped(f) {
+		this.on('stopped', f);
+		return this;
+	}
+
+	change(f) {
+		this.on('change', f);
 		return this;
 	}
 
@@ -115,7 +131,7 @@ class Slider extends lx.Box {
 
 		#lx:client {
 			this.locateHandle();
-			if (event) this.trigger('input', event);
+			if (event) this.trigger('moved', event);
 		}
 
 		return this;

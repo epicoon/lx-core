@@ -1,31 +1,32 @@
 /* Collection *//**********************************************
-	len
-	isEmpty
-	clear()
-	getEmptyInstance()
-	at(k)
-	to(k)
-	set(i, val)
-	contains(obj)
-	first()
-	last()
-	current(value)
-	next()
-	prev()
-	toCopy()
-	add(*arguments*)
-	addCopy(*arguments*)
-	addList(list)
-	flat(deep)
-	construct(*arguments*)
-	indexOf(el)
-	remove(el)
-	removeAt(k)
-	pop()
-	sub(k, amt)
- 	forEach(func)
-	forEachRevert(func)
-	stop()
+    len
+    isEmpty()
+    clear()
+    getEmptyInstance()
+    at(k)
+    to(k)
+    set(i, val)
+    contains(obj)
+    first()
+    last()
+    current(value)
+    next()
+    prev()
+    toCopy()
+    add(*arguments*)
+    addCopy(*arguments*)
+    addList(list)
+    flat(deep)
+    construct(*arguments*)
+    indexOf(el)
+    remove(el)
+    removeAt(k)
+    pop()
+    sub(k, amt)
+    forEach(func)
+    forEachRevert(func)
+    stop()
+    toArray()
 
 ***************************************************************/
 
@@ -53,6 +54,14 @@ class Collection extends lx.Object {
 		if (obj === undefined || obj === null) return new this();
 		if (lx.isInstance(obj, this)) return obj;
 		return new this(obj);
+	}
+
+	isEmpty() {
+		if (this.isCopy) return this.elements.length == 0;
+		for (var i=0, l=this.map.length; i<l; i++)
+			if (this.map[i].length)
+				return false;
+		return true;
 	}
 
 	clear() {
@@ -540,16 +549,6 @@ Object.defineProperty(lx.Collection.prototype, 'len', {
 		for (var i=0, l=this.map.length; i<l; i++)
 			len += this.map[i].length;
 		return len;
-	}
-});
-
-Object.defineProperty(lx.Collection.prototype, 'isEmpty', {
-	get: function() {
-		if (this.isCopy) return this.elements.length == 0;
-		for (var i=0, l=this.map.length; i<l; i++)
-			if (this.map[i].length)
-				return false;
-		return true;
 	}
 });
 

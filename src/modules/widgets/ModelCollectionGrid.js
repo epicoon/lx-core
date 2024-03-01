@@ -56,7 +56,7 @@ class ModelCollectionGrid extends lx.Box {
      *     [paginator = true] {Boolean}
      * }}
      */
-    build(config) {
+    render(config) {
         this.totalCount = null;
         this.collection = null;
         this.columnSequence = [];
@@ -76,8 +76,8 @@ class ModelCollectionGrid extends lx.Box {
         if (config.footer) this.add(lx.Box, {key: 'footer'});
     }
 
-    #lx:client clientBuild(config) {
-        super.clientBuild(config);
+    #lx:client clientRender(config) {
+        super.clientRender(config);
 
         const rBody = this->>rBody;
         const lBody = this->>lBody;

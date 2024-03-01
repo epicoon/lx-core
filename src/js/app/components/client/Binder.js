@@ -92,7 +92,7 @@ function __bind(obj, widget, type=BIND_TYPE_FULL) {
 				: new lx.Collection();
 
 		if (widget._field == _field) c.add(widget);
-		if (c.isEmpty) continue;
+		if (c.isEmpty()) continue;
 
 		var readWidgets = new lx.Collection(),
 			writeWidgets = new lx.Collection();
@@ -105,7 +105,7 @@ function __bind(obj, widget, type=BIND_TYPE_FULL) {
 		function actualize(a, val) {
 			obj[a._field] = val;
 		};
-		if (!readWidgets.isEmpty) {
+		if (!readWidgets.isEmpty()) {
 			__bindProcess(obj, _field, readWidgets);
 			__action(obj, _field, obj[_field]);
 		}
@@ -265,7 +265,7 @@ function __bindAggregation(c, widget, type=BIND_TYPE_FULL) {
 					: new lx.Collection();
 
 			if (widget._field == _field) cw.add(widget);
-			if (cw.isEmpty) continue;
+			if (cw.isEmpty()) continue;
 
 			var readWidgets = new lx.Collection(),
 				writeWidgets = new lx.Collection();
@@ -277,7 +277,7 @@ function __bindAggregation(c, widget, type=BIND_TYPE_FULL) {
 			function actualize(a, val) {
 				c.forEach(el=>el[_field] = val);
 			}
-			if (!readWidgets.isEmpty) {
+			if (!readWidgets.isEmpty()) {
 				__bindProcess(obj, _field, readWidgets);
 				__action(obj, _field, obj[_field]);
 			}
@@ -294,13 +294,13 @@ function __bindAggregation(c, widget, type=BIND_TYPE_FULL) {
 
 	// проверка при добавлении/изменении элемента коллекции
 	function checkNewObj(obj) {
-		if (c.isEmpty) bindFirst(obj);
+		if (c.isEmpty()) bindFirst(obj);
 		else if (c.first().constructor !== obj.constructor) return false;
 		obj.lxBindC = c;
 	}
 
 	function unbindAll() {
-		if (c.isEmpty) return;
+		if (c.isEmpty()) return;
 		c.first();
 		let i = 0;
 		while(c.current()) {
@@ -316,7 +316,7 @@ function __bindAggregation(c, widget, type=BIND_TYPE_FULL) {
 		if (c.len == 1 && c.at(0) === elem) unbindAll();
 	});
 	c.afterMethod('remove', elem=>{
-		if (c.isEmpty) return;
+		if (c.isEmpty()) return;
 		bindFirst(c.first());
 		disableDifferent();
 	});
@@ -325,7 +325,7 @@ function __bindAggregation(c, widget, type=BIND_TYPE_FULL) {
 		if (!c.len) unbindAll();
 	});
 	c.afterMethod('removeAt', i=>{
-		if (c.isEmpty) return;
+		if (c.isEmpty()) return;
 		if (i == 0) bindFirst(c.first());
 		disableDifferent();
 	});
@@ -360,7 +360,7 @@ function __genBindId() {
 }
 
 function __collectionDifferent(c) {
-	if (c.isEmpty) return {};
+	if (c.isEmpty()) return {};
 	c.cachePosition();
 	var first = c.first(),
 		fields = first.getSetterEvents().fields,

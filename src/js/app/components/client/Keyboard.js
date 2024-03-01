@@ -12,100 +12,33 @@ class Keyboard extends lx.AppComponent {
 	}
 
 	resetKeys() {
-		for (var i=0; i<256; i++) __pressedKeys[i] = false;
+		for (let i=0; i<256; i++) __pressedKeys[i] = false;
 		__pressedKey = 0;
 		__pressedChar = null;
 	}
 
 	onKeydown(key, func, context = {}) {
 		if (lx.isObject(key)) {
-			for (var k in key) this.onKeydown(k, key[k]);
+			for (let k in key) this.onKeydown(k, key[k]);
 			return;
 		}
-
-		key = lx.isNumber(key) ? 'k_' + key : 'c_' + key;
-
-		if (!__keydownHandlers[key])
-			__keydownHandlers[key] = [];
-		__keydownHandlers[key].push({handler:func, context});
+		__on(__keydownHandlers, key, func, context);
 	}
 
 	offKeydown(key, func, context = {}) {
-		if (key === null && func === null) {
-			var temp = {};
-			for (var key in __keydownHandlers) {
-				var keysTemp = [];
-				for (var i=0, l=__keydownHandlers[key].len; i<l; i++) {
-					var _context = __keydownHandlers[key][i].context;
-					if (context.plugin && context.plugin === _context.plugin) continue;
-					keysTemp.push(__keydownHandlers[key][i]);
-				}
-				temp[key]= keysTemp;
-			}
-			__keydownHandlers = temp;
-			return;
-		}
-
-		key = lx.isNumber(key) ? 'k_' + key : 'c_' + key;
-		if (!__keydownHandlers[key]) return;
-
-		var index = -1;
-		for (var i=0, l=__keydownHandlers[key].len; i<l; i++) {
-			var handler = __keydownHandlers[key][i].handler;
-
-			if ((lx.isFunction(handler) && handler === func) || (lx.isArray(handler) && lx.isFunction(handler[1]) && handler[1] === func)) {
-				index = i;
-				break;
-			}
-		}
-
-		if (index == -1) return;
-		__keydownHandlers[key].splice(index, 1);
+		__off(__keydownHandlers, key, func, context);
 	}
 
 	onKeyup(key, func, context = {}) {
 		if (lx.isObject(key)) {
-			for (var k in key) this.onKeyup(k, key[k]);
+			for (let k in key) this.onKeyup(k, key[k]);
 			return;
 		}
-		key = lx.isNumber(key) ? 'k_' + key : 'c_' + key;
-
-		if (!__keyupHandlers[key])
-			__keyupHandlers[key] = [];
-		__keyupHandlers[key].push({handler:func, context});
+		__on(__keyupHandlers, key, func, context);
 	}
 
 	offKeyup(key, func, context = {}) {
-		if (key === null && func === null) {
-			var temp = {};
-			for (var key in __keyupHandlers) {
-				var keysTemp = [];
-				for (var i=0, l=__keyupHandlers[key].len; i<l; i++) {
-					var _context = __keyupHandlers[key][i].context;
-					if (context.plugin && context.plugin === _context.plugin) continue;
-					keysTemp.push(__keyupHandlers[key][i]);
-				}
-				temp[key]= keysTemp;
-			}
-			__keyupHandlers = temp;
-			return;
-		}
-
-		key = lx.isNumber(key) ? 'k_' + key : 'c_' + key;
-		if (!__keyupHandlers[key]) return;
-
-		var index = -1;
-		for (var i=0, l=__keyupHandlers[key].len; i<l; i++) {
-			var handler = __keyupHandlers[key][i].handler;
-
-			if ((lx.isFunction(handler) && handler === func) || (lx.isArray(handler) && lx.isFunction(handler[1]) && handler[1] === func)) {
-				index = i;
-				break;
-			}
-		}
-
-		if (index == -1) return;
-		__keyupHandlers[key].splice(index, 1);
+		__off(__keyupHandlers, key, func, context);
 	}
 
 	keyPressed(key) {
@@ -146,8 +79,8 @@ class Keyboard extends lx.AppComponent {
 		}
 
 		function watchForKeydown(event) {
-			var e = event || window.event;
-			var code = (e.charCode) ? e.charCode: e.keyCode;
+			let e = event || window.event,
+				code = (e.charCode) ? e.charCode: e.keyCode;
 			if (!__pressedKeys[code]) __pressedCount++;
 			__pressedKeys[code] = true;
 
@@ -161,27 +94,27 @@ class Keyboard extends lx.AppComponent {
 			__pressedChar = getPressedChar(e);
 
 			if (__keydownHandlers['k_' + code])
-				for (var i in __keydownHandlers['k_' + code]) {
-					var pare = __keydownHandlers['k_' + code][i];
+				for (let i in __keydownHandlers['k_' + code]) {
+					let pare = __keydownHandlers['k_' + code][i];
 					if (!__checkContext(pare.context)) continue;
-					var f = pare.handler;
+					let f = pare.handler;
 					if (lx.isFunction(f)) f(e);
 					else if (lx.isArray(f)) f[1].call(f[0], e);
 				}
 
 			if (__keydownHandlers['c_' + __pressedChar])
-				for (var i in __keydownHandlers['c_' + __pressedChar]) {
-					var pare = __keydownHandlers['c_' + __pressedChar][i];
+				for (let i in __keydownHandlers['c_' + __pressedChar]) {
+					let pare = __keydownHandlers['c_' + __pressedChar][i];
 					if (!__checkContext(pare.context)) continue;
-					var f = pare.handler;
+					let f = pare.handler;
 					if (lx.isFunction(f)) f(e);
 					else if (lx.isArray(f)) f[1].call(f[0], e);
 				}
 		}
 
 		function watchForKeyup(event) {
-			var e = event || window.event;
-			var code = (e.charCode) ? e.charCode: e.keyCode;
+			let e = event || window.event,
+				code = (e.charCode) ? e.charCode: e.keyCode;
 			__pressedKeys[code] = false;
 			__pressedCount--;
 
@@ -189,35 +122,95 @@ class Keyboard extends lx.AppComponent {
 			if (lx.entryElement) return;
 
 			if (__keyupHandlers['k_' + code])
-				for (var i in __keyupHandlers['k_' + code]) {
-					var pare = __keyupHandlers['k_' + code][i];
+				for (let i in __keyupHandlers['k_' + code]) {
+					let pare = __keyupHandlers['k_' + code][i];
 					if (!__checkContext(pare.context)) continue;
-					var f = pare.handler;
+					let f = pare.handler;
 					if (lx.isFunction(f)) f(e);
 					else if (lx.isArray(f)) f[1].call(f[0], e);
 				}
 
 			if (__keyupHandlers['c_' + __pressedChar])
-				for (var i in __keyupHandlers['c_' + __pressedChar]) {
-					var pare = __keyupHandlers['c_' + __pressedChar][i];
+				for (let i in __keyupHandlers['c_' + __pressedChar]) {
+					let pare = __keyupHandlers['c_' + __pressedChar][i];
 					if (!__checkContext(pare.context)) continue;
-					var f = pare.handler;
+					let f = pare.handler;
 					if (lx.isFunction(f)) f(e);
 					else if (lx.isArray(f)) f[1].call(f[0], e);
 				}
 		}
 
 		__pressedKeys = [];
-		for (var i=0; i<256; i++) __pressedKeys.push(false);
+		for (let i=0; i<256; i++) __pressedKeys.push(false);
 		lx.on('keydown', watchForKeydown);
 		lx.on('keyup', watchForKeyup);
 	}
+
+	#lx:mode-case: dev
+	status() {
+		console.log('Key down handlers:');
+		console.log(__keydownHandlers);
+		console.log('Key up handlers:');
+		console.log(__keyupHandlers);
+	}
+	#lx:mode-end;
+}
+
+function __on(handlers, key, func, context) {
+	key = lx.isNumber(key) ? 'k_' + key : 'c_' + key;
+	if (!handlers[key])
+		handlers[key] = [];
+	handlers[key].push({handler:func, context});
+}
+
+function __off(handlers, key, func, context) {
+	if (key === null && func === null) {
+		for (let key in handlers) {
+			let keyHandlers = handlers[key],
+				tempHandlers = [];
+			for (let i=0, l=keyHandlers.len; i<l; i++) {
+				let keyHandler = keyHandlers[i],
+					_context = keyHandler.context;
+				if (context.plugin && _context.plugins) {
+					_context.plugins.lxRemove(context.plugin);
+					if (!_context.plugins.length) continue;
+				}
+				tempHandlers.push(keyHandler);
+			}
+			if (tempHandlers.length) handlers[key] = tempHandlers;
+			else delete handlers[key];
+		}
+		return;
+	}
+
+	key = lx.isNumber(key) ? 'k_' + key : 'c_' + key;
+	if (!handlers[key]) return;
+
+	let index = -1;
+	for (let i=0, l=handlers[key].len; i<l; i++) {
+		let handler = handlers[key][i].handler;
+
+		if ((lx.isFunction(handler) && handler === func)
+			|| (lx.isArray(handler) && lx.isFunction(handler[1]) && handler[1] === func)
+		) {
+			index = i;
+			break;
+		}
+	}
+
+	if (index == -1) return;
+	delete handlers[key][index].handler;
+	delete handlers[key][index].context;
+	handlers[key].splice(index, 1);
 }
 
 function __checkContext(context) {
-	var check = true;
-	if (context.plugin !== undefined && context.plugin !== lx.app.plugins.getFocusedPlugin())
-		check = false;
+	if (context.plugins) {
+		for (let i in context.plugins)
+			if (context.plugins[i] === lx.app.plugins.getFocusedPlugin())
+				return true;
+		return false;
+	}
 
-	return check;
+	return true;
 }

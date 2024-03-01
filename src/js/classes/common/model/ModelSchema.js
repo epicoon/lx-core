@@ -5,13 +5,10 @@ class ModelSchema {
 		if (config) this.set(config);
 	}
 
-	get isEmpty() {
+	isEmpty() {
 		return this.fields.lxEmpty();
 	}
 
-	/**
-	 *
-	 * */
 	set(list) {
 		if (lx.isArray(list)) {
 			let temp = {};
@@ -27,26 +24,21 @@ class ModelSchema {
 		return null;
 	}
 
-	/**
-	 *
-	 * */
 	getField(name) {
 		return this.fields[name];
 	}
 
-	/**
-	 *
-	 * */
 	hasField(name) {
 		return name in this.fields;
 	}
 
 	/**
-	 * @param all - возвращать с полями, имеющими ref, или без них
-	 * */
+	 * @param all {Boolean} - возвращать с полями, имеющими ref, или без них
+	 * @return {Array}
+	 */
 	getFieldNames(all = false) {
-		var result = [];
-		for (var name in this.fields) {
+		let result = [];
+		for (let name in this.fields) {
 			if (!all && this.fields[name].ref !== undefined) continue;
 			result.push(name);
 		}
@@ -55,7 +47,7 @@ class ModelSchema {
 
 	/**
 	 * Вернуть типы полей
-	 * */
+	 */
 	getFieldTypes() {
 		var result = {};
 		for (var name in this.fields) {
@@ -67,17 +59,11 @@ class ModelSchema {
 		return result;
 	}
 
-	/**
-	 *
-	 * */
 	eachField(func) {
 		for (var name in this.fields)
 			func(this.fields[name], name);
 	}
 
-	/**
-	 *
-	 * */
 	getFieldsExportDefinition() {
 		var result = [];
 		for (var name in this.fields) {

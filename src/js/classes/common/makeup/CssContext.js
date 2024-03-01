@@ -208,7 +208,7 @@ function __defineAttrsPreseted(attrs) {
     for (let i in attrs) {
         let attr = attrs[i];
         if (lx.isInstance(attr, lx.CssValue)) return true;
-        if (lx.isCleanObject(attr) && __defineAttrsPreseted(attr))
+        if (lx.isStrictObject(attr) && __defineAttrsPreseted(attr))
             return true;
     }
     return false;

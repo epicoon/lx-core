@@ -46,7 +46,7 @@ class MultiBox extends lx.Box {
 	 *         lx.MultiBox.STYLE_JUSTIFY,
 	 *         lx.MultiBox.STYLE_STREAM
 	 *     )},
-	 *     [marks] {Array<String>|Object: #schema(lx.Marks::build::config)},
+	 *     [marks] {Array<String>|Object: #schema(lx.Marks::render::config)},
 	 *     [marksPosition = lx.TOP] {Number&Enum(
 	 *         lx.TOP,
 	 *         lx.BOTTOM,
@@ -61,8 +61,8 @@ class MultiBox extends lx.Box {
 	 *     [joint = false] {Boolean} (: add lx.JointMover between :)
 	 * }}
 	 */
-	build(config) {
-		super.build(config);
+	render(config) {
+		super.render(config);
 
 		let marksConfig = config.marks || [];
 		if (lx.isArray(marksConfig)) marksConfig = {marks:marksConfig};
@@ -91,8 +91,8 @@ class MultiBox extends lx.Box {
 		if (marks.mode == lx.Marks.MODE_UNI_SHEET) marks.open(0);
 	}
 
-	#lx:client clientBuild(config) {
-		super.clientBuild(config);
+	#lx:client clientRender(config) {
+		super.clientRender(config);
 
 		const marks = this->marksBox->marks;
 		let events = [

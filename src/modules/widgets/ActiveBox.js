@@ -89,17 +89,17 @@ class ActiveBox extends lx.Box {
 	 * @widget-init
 	 *
 	 * @param [config] {Object: {
-	 *     #merge(lx.Box::build::config),
+	 *     #merge(lx.Box::render::config),
 	 * 	   [header] {String}
 	 * 	   [headerHeight] {String|Number} 
-	 * 	   [headerConfig] {Object: #schema(lx.Box::build::config)}
+	 * 	   [headerConfig] {Object: #schema(lx.Box::render::config)}
 	 * 	   [closeButton] {Boolean}
 	 * 	   [move] {Boolean}
 	 * 	   [resize] {Boolean}
 	 *	   [adhesive] {Boolean}
 	 * }}
 	 * */
-	build(config) {
+	render(config) {
 		this.setBuildMode(true);
 
 		__setHeader(this, config);
@@ -110,12 +110,12 @@ class ActiveBox extends lx.Box {
 
 		this.setBuildMode(false);
 
-		super.build(config);
+		super.render(config);
 	}
 
 	#lx:client {
-		clientBuild(config) {
-			super.clientBuild(config);
+		clientRender(config) {
+			super.clientRender(config);
 
 			if (this.width() === null) this.width(this.width('px')+'px');
 			if (this.height() === null) this.height(this.height('px')+'px');

@@ -109,11 +109,11 @@ class Calendar extends lx.Input {
      * @widget-init
      *
      * @param [config] {Object: {
-     *     #merge(lx.Input::build::config),
+     *     #merge(lx.Input::render::config),
      *     [date] {String}
      * }}
      */
-    build(config) {
+    render(config) {
         this.date = config.date || (new Date()).toString();
         #lx:client {
             this.date = new lx.Date(this.date);
@@ -122,8 +122,8 @@ class Calendar extends lx.Input {
     }
 
     #lx:client {
-        clientBuild(config) {
-            super.clientBuild(config);
+        clientRender(config) {
+            super.clientRender(config);
             this.on('mouseup', _handler_open);
             this.on('blur', _handler_blur);
         }

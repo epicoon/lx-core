@@ -33,16 +33,16 @@ class Input extends lx.Rect {
 	 *     [value] {String}
 	 * }}
 	 */
-	build(config) {
-		super.build(config);
+	render(config) {
+		super.render(config);
 
 		if (config.placeholder) this.setAttribute('placeholder', config.placeholder);
 		if (config.value != '') this.value(config.value);
 	}
 
 	#lx:client {
-		clientBuild(config) {
-			super.clientBuild(config);
+		clientRender(config) {
+			super.clientRender(config);
 			this.on('focus', self::setEntry );
 			this.on('blur', self::unsetEntry );
 		}

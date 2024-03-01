@@ -10,13 +10,13 @@
  */
 #lx:namespace lx;
 class LanguageSwitcher extends lx.Dropbox {
-	build(config) {
-		super.build(config);
+	render(config) {
+		super.render(config);
 		this.options(#lx:php(\lx::$app->language->list));
 	}
 
-	#lx:client clientBuild(config) {
-		super.clientBuild(config);
+	#lx:client clientRender(config) {
+		super.clientRender(config);
 		__actualizeLang(this);
 		this.on('change', _handler_onChange);
 	}

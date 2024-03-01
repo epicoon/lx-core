@@ -72,8 +72,8 @@ class Paginator extends lx.Box {
      *     [activePage = 0] {Number}
      * }}
      */
-	build(config) {
-		super.build(config);
+    render(config) {
+		super.render(config);
 
 		this.firstSlotIndex = 0;
 
@@ -91,8 +91,8 @@ class Paginator extends lx.Box {
 	}
 
 	#lx:client {
-        clientBuild(config) {
-            super.clientBuild(config);
+        clientRender(config) {
+            super.clientRender(config);
             this->toStart.click(self::toFirstPage);
             this->toLeft.click(self::toPrevPage);
             this->toRight.click(self::toNextPage);

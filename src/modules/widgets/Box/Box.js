@@ -14,8 +14,8 @@
 #lx:require tools;
 
 /* * 1. Constructor
- * build(config)
- * clientBuild(config)
+ * render(config)
+ * clientRender(config)
  * postUnpack(config)
  * positioning()
  * static onresize()
@@ -126,8 +126,8 @@ class Box extends lx.Rect {
      *     [slot]             {Object: #schema(lx.SlotPositioningStrategy::applyConfig::config)}
      * }}
      */
-    build(config) {
-        super.build(config);
+    render(config) {
+        super.render(config);
 
         if ( config.text ) this.text( config.text );
 
@@ -158,8 +158,8 @@ class Box extends lx.Rect {
             this.childrenByKeys = {};
         }
 
-        clientBuild(config) {
-            super.clientBuild(config);
+        clientRender(config) {
+            super.clientRender(config);
             var sizes = this.getScrollSize();
             this.__sizeHolder.refreshContent(sizes.width, sizes.height);
             this.on('resize', self::onresize);
@@ -964,7 +964,7 @@ class Box extends lx.Rect {
 
     findOne(key, all=true) {
         var c = lx.Collection.cast(this.find(key, all));
-        if (c.isEmpty) return null;
+        if (c.isEmpty()) return null;
         return c.at(0);
     }
 

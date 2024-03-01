@@ -27,11 +27,11 @@ class ClassHelper
 
 	public static function exists(string $className): bool
 	{
+        if (class_exists($className)) {
+            return true;
+        }
 		$autoloader = Autoloader::getInstance();
 		try {
-			if (class_exists($className)) {
-				return true;
-			}
 			return $autoloader->getClassPath($className) !== null;
 		} catch (\Exception $e) {
 			return $autoloader->getClassPath($className) !== null;

@@ -63,6 +63,10 @@ class Application {
         return __ready;
     }
 
+    getProxy() {
+        return __settings.proxy || null;
+    }
+
     genId() {
         var id = __getPrefix() + '_' + lx.Math.decChangeNotation(idCounter, 62);
         idCounter++;
@@ -94,8 +98,10 @@ class Application {
             __applyComponentsData(this, config.components);
 
             // Запуск загрузчика
-            lx.body = lx.Box.rise(this.domSelector.getBodyElement());
-            if (pluginInfo) this.loader.loadPlugin(pluginInfo, lx.body);
+            if (pluginInfo) {
+                lx.body = lx.Box.rise(this.domSelector.getBodyElement());
+                this.loader.loadPlugin(pluginInfo, lx.body);
+            }
 
             __setReady(this);
 

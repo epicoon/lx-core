@@ -1,13 +1,12 @@
 #lx:namespace lx;
 class PluginRequest extends lx.HttpRequest {
 	constructor(plugin, respondent, params=[]) {
-		params = {
+		super('/lx_plugin', {
+			plugin: plugin.name,
 			attributes: plugin.attributes,
+			respondent,
 			data: params
-		};
+		});
 
-		super('', params);
-		this.setHeader('lx-type', 'plugin');
-		this.setHeader('lx-plugin', plugin.name + ((respondent=='') ? '' : (' ' + respondent)));
 	}
 }

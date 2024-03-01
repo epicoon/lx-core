@@ -78,7 +78,7 @@ lx.isArray = function (value) {
     return value.constructor === Array;
 };
 
-lx.isCleanObject = function (value) {
+lx.isStrictObject = function (value) {
     if (value === undefined || value === null) return false;
     return (value.constructor === Object || value.lxClassName() == 'Object');
 };
@@ -92,6 +92,16 @@ lx.isObject = function (value) {
         )
     );
 };
+
+lx.isDomELem = function (value) {
+    if (value === undefined || value === null) return false;
+
+    return (value.constructor === Object || value.lxClassName() == 'Object'
+        || (typeof value === 'object'
+            && /^\[object HTML/.test(Object.prototype.toString.call(value))
+        )
+    );
+}
 
 lx.isFunction = function (value) {
     if (value === undefined || value === null) return false;

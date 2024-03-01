@@ -93,17 +93,17 @@ class ConfirmPopup extends lx.Box {
 
 	/**
 	 * @param [config] {Object: {
-	 *     #merge(lx.Box::build::config),
+	 *     #merge(lx.Box::render::config),
 	 *     [customButtons = false] {Boolean}
 	 * }}
 	 */
-	build(config) {
+	render(config) {
 		if (config.customButtons !== undefined)
 			this.customButtons = config.customButtons;
 	}
 
     #lx:client {
-		clientBuild(config) {
+		clientRender(config) {
 			this.holder = __getHolder(this);
 			__render(this);
 		}

@@ -28,16 +28,36 @@ class TagResourceRequest extends lx.Request {
 		return request;
 	}
 
+	//TODO дублируется в HttpRequest
+	getFullUrl() {
+		let host = this.host || lx.app.getProxy(),
+			url,
+			reg = new RegExp('^\\w+?:' + '/' + '/');
+		if (host && lx.isString(this.url) && !this.url.match(reg)) {
+			url = host;
+			if (lx.isString(this.url)) {
+				let slashes = 0;
+				if (url[url.length - 1] == '/') slashes++;
+				if (this.url[0] == '/') slashes++;
+				if (slashes == 0) url += '/';
+				else if (slashes == 2) url = url.slice(0, -1);
+				url += this.url;
+			}
+		} else url = this.url;
+		return url;
+	}
+
 	send() {
-		let tag = null;
-		if (this.url.match(/\.js$/)) {
+		let tag = null,
+			url = this.getFullUrl();
+		if (url.match(/\.js$/)) {
 			tag = document.createElement('script');
-			tag.src = this.url;
+			tag.src = url;
 		} else {
 			tag  = document.createElement('link');
 			tag.rel  = 'stylesheet';
 			tag.type = 'text/css';
-			tag.href = this.url;
+			tag.href = url;
 		}
 
 		for (let name in this.attributes)

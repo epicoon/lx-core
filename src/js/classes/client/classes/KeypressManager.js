@@ -25,12 +25,27 @@ class KeypressManager {
 		this.context = context;
 	}
 
+	addContext(info) {
+		if (info.plugin) {
+			if (!this.context.plugins)
+				this.context.plugins = [];
+			this.context.plugins.push(info.plugin);
+		}
+	}
+
+	dropContext(info) {
+		if (info.plugin) {
+			if (!this.context.plugins) return;
+			this.context.plugins.lxRemove(info.plugin);
+		}
+	}
+
 	run() {
-		var funcs = this.lxGetAllProperties(),
+		let funcs = this.lxGetAllProperties(),
 			upHandlers = {},
 			downHandlers = {};
-		for (var i=0, l=funcs.len; i<l; i++) {
-			var funcName = funcs[i];
+		for (let i=0, l=funcs.len; i<l; i++) {
+			let funcName = funcs[i];
 			switch (true) {
 				case !!funcName.match(/^onUp_/):
 					__handleOn(this, funcName, upHandlers);
@@ -63,12 +78,12 @@ class KeypressManager {
 }
 
 function __handleOn(self, funcName, handlers) {
-	var key = funcName.replace(/on(Up|Down)?_/, '');
+	let key = funcName.replace(/on(Up|Down)?_/, '');
 	__pushHandler(self, key, self[funcName], handlers);
 }
 
 function __handleKey(self, funcName, handlers) {
-	var key = funcName.replace(/key(Up|Down)?_/, ''),
+	let key = funcName.replace(/key(Up|Down)?_/, ''),
 		hotkeys = self.keys()[key];
 
 	if (!hotkeys) return;

@@ -41,4 +41,13 @@ class PluginsList extends lx.AppComponent {
         __plugin.trigger('unfocus');
         __plugin = null;
     }
+
+    #lx:mode-case: dev
+    status() {
+        console.log('Plugins list:');
+        console.log(__list);
+        console.log('Focused plugin:');
+        console.log(__plugin);
+    }
+    #lx:mode-end;
 }

@@ -56,7 +56,7 @@ class BindableModel extends lx.Model {
 	}
 
 	static dropSchema() {
-		if (!this.__schema || this.__schema.isEmpty) return;
+		if (!this.__schema || this.__schema.isEmpty()) return;
 
 		var fieldNames = this.getFieldNames(true);
 		fieldNames.forEach((name)=>{

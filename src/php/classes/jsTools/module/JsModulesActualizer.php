@@ -73,7 +73,7 @@ class JsModulesActualizer
     /**
      * Renew modules meta-data in the service
      */
-    public function renewService(Service $service): Service
+    public function renewService(Service $service): void
     {
         if ($this->serviceRenewProcess($service)) {
             $this->addService($service->name);

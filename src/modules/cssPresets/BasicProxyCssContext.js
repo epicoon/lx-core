@@ -22,6 +22,18 @@ class BasicProxyCssContext extends lx.CssContext {
             }
         });
 
+        /**
+         * @param iconCode {String}
+         * @param [config] {Number|Object: {
+         *     [fontSize = 'calc(30px + 1.0vh)'] {Number|String},
+         *     [fontWeight = 500] {Number|String},
+         *     [color = 'inherit'] {String}
+         *     [fontFamily = 'inherit'] {String}
+         * }}
+         * Examples:
+         * '@icon': {'\\2297', 16}
+         * '@icon': {'\\21BB', {fontWeight: 300, fontSize: 16}}
+         */
         this.registerMixin('icon', (iconCode, config = null) => {
             var iconFlex = {
                 display: 'flex',
@@ -33,7 +45,7 @@ class BasicProxyCssContext extends lx.CssContext {
                 fontSize: 'calc(30px + 1.0vh)',
                 fontWeight: '500',
                 color: 'inherit',
-                fontFamily: 'MainFont',
+                fontFamily: 'inherit',
                 content: "'" + iconCode + "'"
             };
             if (config) {
@@ -98,7 +110,7 @@ class BasicProxyCssContext extends lx.CssContext {
             borderRadius: cssPreset.borderRadius,
             outline: 'none',
             boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.3)',
-            fontFamily: 'MainFont',
+            fontFamily: 'inherit',
             fontSize: 'calc(10px + 1.0vh)',
             color: cssPreset.textColor
         });

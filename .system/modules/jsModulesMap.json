@@ -23,6 +23,10 @@
         "name": "lx.CodeEditor",
         "path": "src\/modules\/codeEditor\/CodeEditor.js"
     },
+    "lx.SmoothOpener": {
+        "name": "lx.SmoothOpener",
+        "path": "src\/modules\/cssPresets\/SmoothOpener.js"
+    },
     "lx.BasicProxyCssContext": {
         "name": "lx.BasicProxyCssContext",
         "path": "src\/modules\/cssPresets\/BasicProxyCssContext.js"
@@ -228,5 +232,13 @@
     "lx.Rect": {
         "name": "lx.Rect",
         "path": "src\/modules\/widgets\/Rect\/Rect.js"
+    },
+    "lx.Calculator": {
+        "name": "lx.Calculator",
+        "path": "src\/modules\/widgets\/Calculator.js"
+    },
+    "lx.TestModule": {
+        "name": "lx.TestModule",
+        "path": "src\/modules\/test\/TestModule.js"
     }
 }

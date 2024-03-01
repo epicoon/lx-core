@@ -23,6 +23,7 @@ let __autoParentStack = [];
  *     afterDestruct,
  *     resize,
  *     change,
+ *     beforeHide,
  *     displayout,
  *     displayin,
  *     display
@@ -117,8 +118,8 @@ class Rect extends lx.Module {
         this.defineDomElement(config);
         this.applyConfig(config);
 
-        this.build(config);
-        #lx:client { this.clientBuild(config); };
+        this.render(config);
+        #lx:client { this.clientRender(config); };
 
         if (this.style('z-index') === null)
             this.applyDepthCluster();
@@ -148,6 +149,7 @@ class Rect extends lx.Module {
         this.domElem = null;
         this.parent = null;
         this.__sizeHolder = new SizeHolder();
+        this.clientInit();
     }
 
     static getStaticTag() {
@@ -161,7 +163,8 @@ class Rect extends lx.Module {
     /**
      * Строительство элемента и на клиенте и на сервере
      */
-    build(config={}) {
+    render(config={}) {
+        // pass
     }
 
     /**
@@ -200,7 +203,7 @@ class Rect extends lx.Module {
      * depthCluster
      */
     applyConfig(config={}) {
-        if (config.data) this.data = data;
+        if (config.data) this.data = config.data;
         if (config.field) this._field = config.field;
         if (config.html) this.html(config.html);
 
@@ -281,11 +284,15 @@ class Rect extends lx.Module {
     destruct() {}
 
     #lx:client {
+        clientInit() {
+            // pass
+        }
+
         /**
          * Метод, вызываемый в конструкторе для выполенния действий, когда сущность действительно построена, связи (с родителем) выстроены
          * Логика общая для создания элемента и на клиенте и для допиливания при получении от сервера
          */
-        clientBuild(config={}) {
+        clientRender(config={}) {
             this.__sizeHolder.refresh(this.width('px'), this.height('px'));
             this.on('scroll', ()=>this.checkDisplay());
 
@@ -732,13 +739,20 @@ class Rect extends lx.Module {
 
     show() {
         this.domElem.style('visibility', 'inherit');
-        #lx:client{ this.checkDisplay(); }
+        #lx:client{
+            this.trigger('beforeShow');
+            this.checkDisplay();
+        }
         return this;
     }
 
-    hide() {
-        this.domElem.style('visibility', 'hidden');
-        #lx:client{ this.checkDisplay(); }
+    hide(timer = null) {
+        if (timer === null) this.domElem.style('visibility', 'hidden');
+        else setTimeout(()=>this.domElem.style('visibility', 'hidden'), timer);
+        #lx:client{
+            this.trigger('beforeHide');
+            this.checkDisplay();
+        }
         return this;
     }
 
@@ -1866,7 +1880,7 @@ class Rect extends lx.Module {
         postLoad() {
             var config = this.lxExtract('__postBuild') || {};
             this.postUnpack(config);
-            this.clientBuild(config);
+            this.clientRender(config);
         }
 
         restoreLinks(loader) {

@@ -62,11 +62,11 @@ class GuiNode {
             this._afterShow();
     }
 
-    hide() {
+    hide(timer = null) {
         this.beforeHide();
         if (this._beforeHide)
             this._beforeHide();
-        this.getWidget().hide();
+        this.getWidget().hide(timer);
         this.afterHide();
         if (this._afterHide)
             this._afterHide();

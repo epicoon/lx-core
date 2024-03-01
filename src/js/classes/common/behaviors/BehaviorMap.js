@@ -4,34 +4,22 @@ class BehaviorMap {
 		this.supportedEssence = supportedEssence;
 	}
 
-	/**
-	 *
-	 * */
 	get map() {
 		return this.supportedEssence.__lxBehaviors;
 	}
 	
-	/**
-	 *
-	 * */
-	get isEmpty() {
+	isEmpty() {
 		return !this.supportedEssence.__lxBehaviors;
 	}
 
-	/**
-	 *
-	 * */
 	register(behavior) {
-		if (this.isEmpty) this.__resetMap();
+		if (this.isEmpty()) this.__resetMap();
 		else this.__copyMap(this.map);
 		this.map.list.lxPushUnique(behavior);
 	}
 
-	/**
-	 *
-	 * */
 	set(behaviorKey, key, value) {
-		if (this.isEmpty) this.__resetMap();
+		if (this.isEmpty()) this.__resetMap();
 		if (!this.map.data[behaviorKey]) this.map.data[behaviorKey] = {};
 		this.map.data[behaviorKey][key] = value;
 		return value;
@@ -41,7 +29,7 @@ class BehaviorMap {
 	 *
 	 * */
 	get(behaviorKey, key) {
-		if (this.isEmpty) return null;
+		if (this.isEmpty()) return null;
 		if (!this.map.data[behaviorKey] || this.map.data[behaviorKey][key] === undefined) return null;
 		return this.map.data[behaviorKey][key];		
 	}
@@ -50,7 +38,7 @@ class BehaviorMap {
 	 *
 	 * */
 	has(behavior) {
-		if (this.isEmpty) return false;
+		if (this.isEmpty()) return false;
 		return this.map.list.includes(behavior);
 	}
 
@@ -58,7 +46,7 @@ class BehaviorMap {
 	 *
 	 * */
 	forEach(func) {
-		if (this.isEmpty) return;
+		if (this.isEmpty()) return;
 		this.map.list.forEach(func);
 	}
 

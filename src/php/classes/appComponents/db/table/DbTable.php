@@ -100,6 +100,7 @@ class DbTable
             return null;
         }
 
+        $this->db->resetFlightRecords();
         $res = $this->db->query($query);
         if ($this->db->hasFlightRecords()) {
             //TODO remember error

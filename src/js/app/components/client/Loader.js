@@ -13,6 +13,15 @@ class Loader extends lx.AppComponent {
 		});
 	}
 
+	/**
+	 * @param config {Object: {
+	 *     modules {Array<String>},
+	 *     [callback] {Function},
+	 *     [immediately: true] {Boolean},
+	 *     [host] {String}
+	 * }}
+	 * @return {lx.ServiceRequest|null}
+	 */
 	loadModules(config) {
 		let list = config.modules || [],
 			callback = config.callback || null,
@@ -27,6 +36,7 @@ class Loader extends lx.AppComponent {
 				have: lx.app.dependencies.getCurrentModules(),
 				need
 			});
+			if (config.host) modulesRequest.host = config.host;
 			let onLoad = function (res) {
 				if (!res.success) {
 					console.error(res.data);

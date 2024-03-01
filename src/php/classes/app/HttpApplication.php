@@ -41,6 +41,7 @@ class HttpApplication extends AbstractApplication
 
             $request = $this->request;
             $response = $this->response;
+
             $this->events->trigger(self::EVENT_BEFORE_HANDLE_REQUEST, ['request' => $request]);
             $requestHandler = RequestHandler::create($request, $response);
             $requestHandler->handle();
