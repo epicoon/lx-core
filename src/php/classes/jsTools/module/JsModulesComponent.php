@@ -146,7 +146,7 @@ class JsModulesComponent implements FusionComponentInterface
                 continue;
             }
 
-            $list = array_merge($list, json_decode($file->get(), this));
+            $list = array_merge($list, json_decode($file->get(), true));
         }
         return $list;
     }

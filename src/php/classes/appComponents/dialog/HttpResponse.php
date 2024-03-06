@@ -83,6 +83,9 @@ class HttpResponse implements HttpResponseInterface, FusionComponentInterface
                 $result = ($dump === '')
                     ? $data
                     : $this->insertDump($data, $dump);
+                if (!is_string($result)) {
+                    $result = json_encode($result);
+                }
                 break;
             case 'json':
                 $result = $this->isSuccessfull()
